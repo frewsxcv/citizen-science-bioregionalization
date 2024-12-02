@@ -141,13 +141,13 @@ def build_condensed_distance_matrix() -> Tuple[List[str], np.ndarray]:
 
 if os.path.exists("condensed_distance_matrix.pickle"):
     logger.info("Loading condensed distance matrix")
-    with open("condensed_distance_matrix.pickle", "rb") as f:
-        ordered_seen_geohash, condensed_distance_matrix = pickle.load(f)
+    with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
+        ordered_seen_geohash, condensed_distance_matrix = pickle.load(pickle_reader)
 else:
     ordered_seen_geohash, condensed_distance_matrix = build_condensed_distance_matrix()
     logger.info("Saving condensed distance matrix")
-    with open("condensed_distance_matrix.pickle", "wb") as f:
-        pickle.dump((ordered_seen_geohash, condensed_distance_matrix), f)
+    with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
+        pickle.dump((ordered_seen_geohash, condensed_distance_matrix), pickle_writer)
 
 # Generate the linkage matrix
 Z = linkage(condensed_distance_matrix, "ward")
@@ -165,5 +165,5 @@ feature_collection = {
         for geohash, cluster in zip(ordered_seen_geohash, clusters)
     ],
 }
-with open("clusters.geojson", "w") as f:
-    json.dump(feature_collection, f)
+with open("clusters.geojson", "w") as geojson_writer:
+    json.dump(feature_collection, geojson_writer)
