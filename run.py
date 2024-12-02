@@ -15,7 +15,7 @@ from scipy.cluster.vq import whiten, kmeans2
 from scipy.spatial.distance import squareform, pdist
 from typing import Dict, Generator, NamedTuple, Set
 
-GEOHASH_PRECISION = 4
+GEOHASH_PRECISION = 5
 NUM_CLUSTERS = 5
 COLORS = [
     "#"+''.join([random.choice('0123456789ABCDEF')
@@ -86,6 +86,7 @@ def build_geojson_feature(geohash: str, cluster: int):
         "properties": {
             "label": geohash,
             "fill": COLORS[int(cluster)],
+            "stroke-width": 0,
             "cluster": int(cluster),
         },
         "geometry": {"type": "Polygon", "coordinates": [coords]}
@@ -139,7 +140,9 @@ def build_condensed_distance_matrix():
         for j, taxon_id in enumerate(ordered_seen_taxon_id):
             matrix[i, j] = geohash_to_taxon_id_to_count[geohash].get(taxon_id, 0)
 
-    return ordered_seen_geohash, pdist(matrix, metric='braycurtis')
+    whitened = whiten(matrix)
+
+    return ordered_seen_geohash, pdist(whitened, metric='braycurtis')
 
 if os.path.exists('condensed_distance_matrix.pickle'):
     logger.info("Loading condensed distance matrix")
@@ -152,12 +155,13 @@ else:
         pickle.dump((ordered_seen_geohash, condensed_distance_matrix), f)
 
 # Generate the linkage matrix
-Z = linkage(condensed_distance_matrix, 'complete')
+Z = linkage(condensed_distance_matrix, 'ward')
 # fig = plt.figure(figsize=(25, 10))
 # dn = dendrogram(Z, labels=ordered_seen_geohash)
 # plt.show()
 
-clusters = fcluster(Z, t=0.97, criterion='distance')
+clusters = fcluster(Z, t=3, criterion='distance')
+logger.info(f"Number of clusters: {len(set(clusters))}")
 
 feature_collection = {
     "type": "FeatureCollection",
