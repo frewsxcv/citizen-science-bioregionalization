@@ -92,32 +92,6 @@ def build_geojson_feature(geohash: str, cluster: int):
         "geometry": {"type": "Polygon", "coordinates": [coords]}
     }
 
-# # Each row of the M by N array is an observation vector. The columns are the features seen during each observation. The features must be whitened first with the whiten function.
-# matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
-# for i, geohash in enumerate(ordered_seen_geohash):
-#     for j, taxon_id in enumerate(ordered_seen_taxon_id):
-#         matrix[i, j] = geohash_to_taxon_id_to_count[geohash].get(taxon_id, 0)
-
-# whitened = whiten(matrix)
-# centroid, label = kmeans2(whitened, NUM_CLUSTERS)
-
-# def build_geojson_featurecollection():
-#     features = []
-#     for i, geohash in enumerate(ordered_seen_geohash):
-#         features.append(build_geojson_feature(geohash, label[i]))
-#     return {
-#         "type": "FeatureCollection",
-#         "features": features
-#     }
-
-# print(
-#     json.dumps(
-#         build_geojson_featurecollection()
-#     )
-# )
-
-
-
 def build_condensed_distance_matrix():
     geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]] = {}
     seen_taxon_id: Set[int] = set()
