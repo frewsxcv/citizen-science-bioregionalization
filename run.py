@@ -78,7 +78,6 @@ class Bbox(NamedTuple):
     ne: Point
 
 
-# bbox lower left, bbox upper right
 def geohash_to_bbox(geohash) -> Bbox:
     lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)
     return Bbox(
