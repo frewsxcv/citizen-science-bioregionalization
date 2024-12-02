@@ -129,6 +129,14 @@ def build_condensed_distance_matrix() -> Tuple[List[str], np.ndarray]:
 
     logger.info("Building condensed distance matrix")
 
+    # Create a matrix where each row is a geohash and each column is a taxon ID
+    # Example:
+    # [
+    #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 2, 0, 0],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 0, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
+    # ]
     matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
     for i, geohash in enumerate(ordered_seen_geohash):
         for j, taxon_id in enumerate(ordered_seen_taxon_id):
