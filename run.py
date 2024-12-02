@@ -15,7 +15,7 @@ from scipy.cluster.vq import whiten, kmeans2
 from scipy.spatial.distance import squareform, pdist
 from typing import Dict, Generator, NamedTuple, Set
 
-GEOHASH_PRECISION = 5
+GEOHASH_PRECISION = 4
 NUM_CLUSTERS = 5
 COLORS = [
     "#"+''.join([random.choice('0123456789ABCDEF')
@@ -134,31 +134,12 @@ def build_condensed_distance_matrix():
 
     logger.info("Building condensed distance matrix")
 
-    distance_matrix = np.ones((len(ordered_seen_geohash), len(ordered_seen_geohash)))
+    matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
+    for i, geohash in enumerate(ordered_seen_geohash):
+        for j, taxon_id in enumerate(ordered_seen_taxon_id):
+            matrix[i, j] = geohash_to_taxon_id_to_count[geohash].get(taxon_id, 0)
 
-    for (
-        (geohash_a, taxon_id_to_count_a),
-        (geohash_b, taxon_id_to_count_b)
-    ) in itertools.combinations_with_replacement(
-        geohash_to_taxon_id_to_count.items(),
-        r=2,
-    ):
-        geohash_a_idx = ordered_seen_geohash.index(geohash_a)
-        geohash_b_idx = ordered_seen_geohash.index(geohash_b)
-        taxon_id_to_count_a = np.fromiter(
-            (taxon_id_to_count_a.get(taxon_id, 0) for taxon_id in ordered_seen_taxon_id),
-            dtype=np.float64
-        )
-        taxon_id_to_count_b = np.fromiter(
-            (taxon_id_to_count_b.get(taxon_id, 0) for taxon_id in ordered_seen_taxon_id),
-            dtype=np.float64
-        )
-        distance = scipy.spatial.distance.braycurtis(taxon_id_to_count_a, taxon_id_to_count_b)
-        distance_matrix[geohash_a_idx, geohash_b_idx] = distance
-        distance_matrix[geohash_b_idx, geohash_a_idx] = distance
-
-    logger.info("Building linkage")
-    return ordered_seen_geohash, squareform(distance_matrix)
+    return ordered_seen_geohash, pdist(matrix, metric='braycurtis')
 
 if os.path.exists('condensed_distance_matrix.pickle'):
     logger.info("Loading condensed distance matrix")
