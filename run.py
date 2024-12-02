@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from scipy.cluster.vq import whiten, kmeans2
 from scipy.spatial.distance import squareform, pdist
-from typing import Dict, Generator, NamedTuple, Set
+from typing import Dict, Generator, List, NamedTuple, Set, Tuple
 
 GEOHASH_PRECISION = 5
 NUM_CLUSTERS = 5
@@ -31,15 +31,18 @@ class Row(NamedTuple):
     lon: float
     taxon_id: int
 
+    def geohash(self, precision: int = GEOHASH_PRECISION) -> str:
+        return pygeohash.encode(self.lat, self.lon, precision=precision)
 
-def read_float(value: str) -> float:
+
+def read_float(value: str) -> float | None:
     try:
         return float(value)
     except ValueError:
         return None
 
 
-def read_int(value: str) -> int:
+def read_int(value: str) -> int | None:
     try:
         return int(value)
     except ValueError:
@@ -70,22 +73,28 @@ class Point(NamedTuple):
     lon: float
 
 
+class Bbox(NamedTuple):
+    sw: Point
+    ne: Point
+
+
 # bbox lower left, bbox upper right
-def geohash_to_rect(geohash):
+def geohash_to_bbox(geohash) -> Bbox:
     lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)
-    return Point(lat=lat - lat_err, lon=lon - lon_err), Point(
-        lat=lat + lat_err, lon=lon + lon_err
+    return Bbox(
+        sw=Point(lat=lat - lat_err, lon=lon - lon_err),
+        ne=Point(lat=lat + lat_err, lon=lon + lon_err),
     )
 
 
-def build_geojson_feature(geohash: str, cluster: int):
-    sw_bbox, ne_bbox = geohash_to_rect(geohash)
+def build_geojson_feature(geohash: str, cluster: int) -> Dict:
+    bbox = geohash_to_bbox(geohash)
     coords = [
-        [sw_bbox.lon, sw_bbox.lat],
-        [ne_bbox.lon, sw_bbox.lat],
-        [ne_bbox.lon, ne_bbox.lat],
-        [sw_bbox.lon, ne_bbox.lat],
-        [sw_bbox.lon, sw_bbox.lat],
+        [bbox.sw.lon, bbox.sw.lat],
+        [bbox.ne.lon, bbox.sw.lat],
+        [bbox.ne.lon, bbox.ne.lat],
+        [bbox.sw.lon, bbox.ne.lat],
+        [bbox.sw.lon, bbox.sw.lat],
     ]
     return {
         "type": "Feature",
@@ -99,14 +108,14 @@ def build_geojson_feature(geohash: str, cluster: int):
     }
 
 
-def build_condensed_distance_matrix():
+def build_condensed_distance_matrix() -> Tuple[List[str], np.ndarray]:
     geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]] = {}
     seen_taxon_id: Set[int] = set()
 
     logger.info("Reading rows")
 
     for row in read_rows():
-        geohash = pygeohash.encode(row.lat, row.lon, precision=GEOHASH_PRECISION)
+        geohash = row.geohash()
         geohash_to_taxon_id_to_count[geohash] = geohash_to_taxon_id_to_count.get(
             geohash, {}
         )
