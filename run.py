@@ -66,6 +66,11 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         help="Path to the input file",
     )
+    parser.add_argument(
+        "output_file",
+        type=str,
+        help="Path to the output file",
+    )
     return parser.parse_args()
 
 
@@ -203,5 +208,5 @@ if __name__ == "__main__":
             for geohash, cluster in zip(ordered_seen_geohash, clusters)
         ],
     }
-    with open("clusters.geojson", "w") as geojson_writer:
+    with open(args.output_file, "w") as geojson_writer:
         json.dump(feature_collection, geojson_writer)
