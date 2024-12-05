@@ -193,12 +193,13 @@ def build_condensed_distance_matrix(
     return ordered_seen_geohash, pdist(whitened, metric="braycurtis")
 
 
-def get_averages(rows: List[Row]) -> Dict[int, float]:
+def get_averages(read_rows_result: ReadRowsResult) -> Dict[int, float]:
     taxon_id_to_count: Dict[int, int] = {}
-    for row in rows:
-        taxon_id_to_count[row.taxon_id] = taxon_id_to_count.get(row.taxon_id, 0) + 1
+    for taxon_id in read_rows_result.ordered_seen_taxon_id:
+        taxon_id_to_count[taxon_id] = taxon_id_to_count.get(taxon_id, 0) + 1
     return {
-        taxon_id: count / len(rows) for taxon_id, count in taxon_id_to_count.items()
+        taxon_id: count / len(read_rows_result.ordered_seen_geohash)
+        for taxon_id, count in taxon_id_to_count.items()
     }
 
 
@@ -210,7 +211,9 @@ if __name__ == "__main__":
     if os.path.exists("condensed_distance_matrix.pickle"):
         logger.info("Loading condensed distance matrix")
         with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
-            ordered_seen_geohash, condensed_distance_matrix = pickle.load(pickle_reader)
+            ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
+                pickle.load(pickle_reader)
+            )
     else:
         read_rows_result = build_read_rows_result(input_file, args.geohash_precision)
         ordered_seen_geohash, condensed_distance_matrix = (
@@ -219,7 +222,8 @@ if __name__ == "__main__":
         logger.info("Saving condensed distance matrix")
         with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
             pickle.dump(
-                (ordered_seen_geohash, condensed_distance_matrix), pickle_writer
+                (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
+                pickle_writer,
             )
 
     # Generate the linkage matrix
