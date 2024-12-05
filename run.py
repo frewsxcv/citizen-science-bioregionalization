@@ -103,7 +103,7 @@ class Bbox(NamedTuple):
     ne: Point
 
 
-def geohash_to_bbox(geohash) -> Bbox:
+def geohash_to_bbox(geohash: str) -> Bbox:
     lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)
     return Bbox(
         sw=Point(lat=lat - lat_err, lon=lon - lon_err),
@@ -132,9 +132,14 @@ def build_geojson_feature(geohash: str, cluster: int) -> Dict:
     }
 
 
-def build_condensed_distance_matrix(
-    input_file: str, geohash_precision: int
-) -> Tuple[List[str], np.ndarray]:
+class ReadRowsResult(NamedTuple):
+    geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]]
+    seen_taxon_id: Set[int]
+    ordered_seen_taxon_id: List[int]
+    ordered_seen_geohash: List[str]
+
+
+def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
     geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]] = {}
     seen_taxon_id: Set[int] = set()
 
@@ -152,6 +157,19 @@ def build_condensed_distance_matrix(
 
     ordered_seen_taxon_id = sorted(seen_taxon_id)
     ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
+    return ReadRowsResult(
+        geohash_to_taxon_id_to_count,
+        seen_taxon_id,
+        ordered_seen_taxon_id,
+        ordered_seen_geohash,
+    )
+
+
+def build_condensed_distance_matrix(
+    read_rows_result: ReadRowsResult,
+) -> Tuple[List[str], np.ndarray]:
+    ordered_seen_taxon_id = sorted(read_rows_result.seen_taxon_id)
+    ordered_seen_geohash = sorted(read_rows_result.geohash_to_taxon_id_to_count.keys())
 
     logger.info("Building condensed distance matrix")
 
@@ -166,11 +184,22 @@ def build_condensed_distance_matrix(
     matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
     for i, geohash in enumerate(ordered_seen_geohash):
         for j, taxon_id in enumerate(ordered_seen_taxon_id):
-            matrix[i, j] = geohash_to_taxon_id_to_count[geohash].get(taxon_id, 0)
+            matrix[i, j] = read_rows_result.geohash_to_taxon_id_to_count[geohash].get(
+                taxon_id, 0
+            )
 
     whitened = whiten(matrix)
 
     return ordered_seen_geohash, pdist(whitened, metric="braycurtis")
+
+
+def get_averages(rows: List[Row]) -> Dict[int, float]:
+    taxon_id_to_count: Dict[int, int] = {}
+    for row in rows:
+        taxon_id_to_count[row.taxon_id] = taxon_id_to_count.get(row.taxon_id, 0) + 1
+    return {
+        taxon_id: count / len(rows) for taxon_id, count in taxon_id_to_count.items()
+    }
 
 
 if __name__ == "__main__":
@@ -183,8 +212,9 @@ if __name__ == "__main__":
         with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
             ordered_seen_geohash, condensed_distance_matrix = pickle.load(pickle_reader)
     else:
+        read_rows_result = build_read_rows_result(input_file, args.geohash_precision)
         ordered_seen_geohash, condensed_distance_matrix = (
-            build_condensed_distance_matrix(input_file, args.geohash_precision)
+            build_condensed_distance_matrix(read_rows_result)
         )
         logger.info("Saving condensed distance matrix")
         with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
