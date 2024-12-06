@@ -1,3 +1,4 @@
+from collections import defaultdict
 import csv
 import itertools
 import json
@@ -13,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from scipy.cluster.vq import whiten, kmeans2
 from scipy.spatial.distance import squareform, pdist
-from typing import Dict, Generator, List, NamedTuple, Set, Tuple
+from typing import DefaultDict, Dict, Generator, List, NamedTuple, Optional, Set, Tuple
 import argparse
 
 COLORS = [
@@ -28,6 +29,7 @@ class Row(NamedTuple):
     lat: float
     lon: float
     taxon_id: int
+    scientific_name: str
 
     def geohash(self, precision: int) -> str:
         return pygeohash.encode(self.lat, self.lon, precision=precision)
@@ -90,7 +92,7 @@ def read_rows(input_file: str) -> Generator[Row, None, None]:
             if not taxon_id:
                 logger.error(f"Invalid taxon ID: {row['taxonID']}")
                 continue
-            yield Row(lat, lon, taxon_id)
+            yield Row(lat, lon, taxon_id, row["scientificName"])
 
 
 class Point(NamedTuple):
@@ -137,6 +139,8 @@ class ReadRowsResult(NamedTuple):
     seen_taxon_id: Set[int]
     ordered_seen_taxon_id: List[int]
     ordered_seen_geohash: List[str]
+    # taxon_id -> scientific_name
+    taxon_index: Dict[int, str]
 
 
 def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
@@ -144,6 +148,7 @@ def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsR
     seen_taxon_id: Set[int] = set()
 
     logger.info("Reading rows")
+    taxon_index: Dict[int, str] = {}
 
     for row in read_rows(input_file):
         geohash = row.geohash(geohash_precision)
@@ -153,6 +158,7 @@ def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsR
         geohash_to_taxon_id_to_count[geohash][row.taxon_id] = (
             geohash_to_taxon_id_to_count[geohash].get(row.taxon_id, 0) + 1
         )
+        taxon_index[row.taxon_id] = row.scientific_name
         seen_taxon_id.add(row.taxon_id)
 
     ordered_seen_taxon_id = sorted(seen_taxon_id)
@@ -162,6 +168,7 @@ def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsR
         seen_taxon_id,
         ordered_seen_taxon_id,
         ordered_seen_geohash,
+        taxon_index,
     )
 
 
@@ -193,14 +200,33 @@ def build_condensed_distance_matrix(
     return ordered_seen_geohash, pdist(whitened, metric="braycurtis")
 
 
-def get_averages(read_rows_result: ReadRowsResult) -> Dict[int, float]:
-    taxon_id_to_count: Dict[int, int] = {}
-    for taxon_id in read_rows_result.ordered_seen_taxon_id:
-        taxon_id_to_count[taxon_id] = taxon_id_to_count.get(taxon_id, 0) + 1
-    return {
-        taxon_id: count / len(read_rows_result.ordered_seen_geohash)
-        for taxon_id, count in taxon_id_to_count.items()
-    }
+class Stats(NamedTuple):
+    # taxon_id -> average per geohash
+    averages: Dict[int, float]
+    # taxon_id -> count
+    counts: Dict[int, int]
+
+
+def build_stats(
+    read_rows_result: ReadRowsResult, geohash_filter: Optional[List[str]] = None
+) -> Stats:
+    # taxon_id -> taxon average
+    averages: DefaultDict[int, float] = defaultdict(float)
+    # taxon_id -> taxon count
+    counts: DefaultDict[int, int] = defaultdict(int)
+
+    # Calculate total counts for each taxon_id
+    for geohash, taxon_counts in read_rows_result.geohash_to_taxon_id_to_count.items():
+        if geohash_filter and geohash not in geohash_filter:
+            continue
+        for taxon_id, count in taxon_counts.items():
+            counts[taxon_id] += count
+
+    # Calculate averages for each taxon_id
+    for taxon_id in counts.keys():
+        averages[taxon_id] = counts[taxon_id] / sum(counts.values())
+
+    return Stats(averages=averages, counts=counts)
 
 
 if __name__ == "__main__":
@@ -226,6 +252,17 @@ if __name__ == "__main__":
                 pickle_writer,
             )
 
+    # Find the top averages of taxon
+    all_stats = build_stats(read_rows_result)
+    # For each top count taxon, print the average per geohash
+    print("all")
+    for taxon_id, count in sorted(
+        all_stats.counts.items(), key=lambda x: x[1], reverse=True
+    )[:5]:
+        print(
+            f"{read_rows_result.taxon_index[taxon_id]}: {all_stats.averages[taxon_id]}"
+        )
+
     # Generate the linkage matrix
     Z = linkage(condensed_distance_matrix, "ward")
     # fig = plt.figure(figsize=(25, 10))
@@ -235,6 +272,15 @@ if __name__ == "__main__":
     clusters = fcluster(Z, t=3, criterion="distance")
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
+    geohash_to_cluster = {
+        geohash: int(cluster)
+        for geohash, cluster in zip(ordered_seen_geohash, clusters)
+    }
+    cluster_to_geohashes = {
+        int(cluster): [g for g, c in geohash_to_cluster.items() if c == cluster]
+        for cluster in set(clusters)
+    }
+
     feature_collection = {
         "type": "FeatureCollection",
         "features": [
@@ -242,5 +288,28 @@ if __name__ == "__main__":
             for geohash, cluster in zip(ordered_seen_geohash, clusters)
         ],
     }
+
+    for cluster, geohashes in cluster_to_geohashes.items():
+        stats = build_stats(read_rows_result, geohash_filter=geohashes)
+        print("-" * 10)
+        print(f"cluster {cluster} (count: {len(geohashes)})")
+        for taxon_id, count in sorted(
+            all_stats.counts.items(), key=lambda x: x[1], reverse=True
+        )[:10]:
+            # If the difference between the average of the cluster and the average of all is greater than 20%, print it
+            percent_diff = (
+                stats.averages[taxon_id] / all_stats.averages[taxon_id] * 100
+            ) - 100
+            if abs(percent_diff) > 20:
+                # Print the percentage difference
+                print(
+                    f"{read_rows_result.taxon_index[taxon_id]}: {stats.averages[taxon_id]} {all_stats.averages[taxon_id]} ({percent_diff:.2f}%)"
+                )
+
+        # for taxon_id, count in sorted(
+        #     stats.counts.items(), key=lambda x: x[1], reverse=True
+        # )[:5]:
+        #     print(f"{taxon_id}: {stats.averages[taxon_id]}")
+
     with open(args.output_file, "w") as geojson_writer:
         json.dump(feature_collection, geojson_writer)
