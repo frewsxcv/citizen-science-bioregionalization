@@ -30,6 +30,8 @@ class Row(NamedTuple):
     lon: float
     taxon_id: int
     scientific_name: str
+    # TODO: Should this be a user ID?
+    observer: str
 
     def geohash(self, precision: int) -> str:
         return pygeohash.encode(self.lat, self.lon, precision=precision)
@@ -92,7 +94,7 @@ def read_rows(input_file: str) -> Generator[Row, None, None]:
             if not taxon_id:
                 logger.error(f"Invalid taxon ID: {row['taxonID']}")
                 continue
-            yield Row(lat, lon, taxon_id, row["scientificName"])
+            yield Row(lat, lon, taxon_id, row["scientificName"], row["recordedBy"])
 
 
 class Point(NamedTuple):
@@ -146,12 +148,28 @@ class ReadRowsResult(NamedTuple):
 def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
     geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]] = {}
     seen_taxon_id: Set[int] = set()
+    # Will this work for eBird?
+    geohash_to_taxon_id_to_user_to_count: Dict[str, Dict[int, Dict[str, int]]] = {}
 
     logger.info("Reading rows")
     taxon_index: Dict[int, str] = {}
 
     for row in read_rows(input_file):
         geohash = row.geohash(geohash_precision)
+        geohash_to_taxon_id_to_user_to_count.setdefault(geohash, {})
+        geohash_to_taxon_id_to_user_to_count[geohash].setdefault(row.taxon_id, {})
+        geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer] = (
+            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id].get(
+                row.observer, 0
+            )
+            + 1
+        )
+        # If the observer has seen the taxon more than 5 times, skip it
+        if (
+            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer]
+            > 5
+        ):
+            continue
         geohash_to_taxon_id_to_count[geohash] = geohash_to_taxon_id_to_count.get(
             geohash, {}
         )
@@ -195,9 +213,9 @@ def build_condensed_distance_matrix(
                 taxon_id, 0
             )
 
-    whitened = whiten(matrix)
+    # whitened = whiten(matrix)
 
-    return ordered_seen_geohash, pdist(whitened, metric="braycurtis")
+    return ordered_seen_geohash, pdist(matrix, metric="braycurtis")
 
 
 class Stats(NamedTuple):
@@ -227,6 +245,29 @@ def build_stats(
         averages[taxon_id] = counts[taxon_id] / sum(counts.values())
 
     return Stats(averages=averages, counts=counts)
+
+
+def print_cluster_stats(
+    cluster: int,
+    geohashes: List[str],
+    read_rows_result: ReadRowsResult,
+    all_stats: Stats,
+) -> None:
+    stats = build_stats(read_rows_result, geohash_filter=geohashes)
+    print("-" * 10)
+    print(f"cluster {cluster} (count: {len(geohashes)})")
+    for taxon_id, count in sorted(
+        all_stats.counts.items(), key=lambda x: x[1], reverse=True
+    )[:10]:
+        # If the difference between the average of the cluster and the average of all is greater than 20%, print it
+        percent_diff = (
+            stats.averages[taxon_id] / all_stats.averages[taxon_id] * 100
+        ) - 100
+        if abs(percent_diff) > 20:
+            # Print the percentage difference
+            print(
+                f"{read_rows_result.taxon_index[taxon_id]}: {stats.averages[taxon_id]} {all_stats.averages[taxon_id]} ({percent_diff:.2f}%)"
+            )
 
 
 if __name__ == "__main__":
@@ -290,26 +331,7 @@ if __name__ == "__main__":
     }
 
     for cluster, geohashes in cluster_to_geohashes.items():
-        stats = build_stats(read_rows_result, geohash_filter=geohashes)
-        print("-" * 10)
-        print(f"cluster {cluster} (count: {len(geohashes)})")
-        for taxon_id, count in sorted(
-            all_stats.counts.items(), key=lambda x: x[1], reverse=True
-        )[:10]:
-            # If the difference between the average of the cluster and the average of all is greater than 20%, print it
-            percent_diff = (
-                stats.averages[taxon_id] / all_stats.averages[taxon_id] * 100
-            ) - 100
-            if abs(percent_diff) > 20:
-                # Print the percentage difference
-                print(
-                    f"{read_rows_result.taxon_index[taxon_id]}: {stats.averages[taxon_id]} {all_stats.averages[taxon_id]} ({percent_diff:.2f}%)"
-                )
-
-        # for taxon_id, count in sorted(
-        #     stats.counts.items(), key=lambda x: x[1], reverse=True
-        # )[:5]:
-        #     print(f"{taxon_id}: {stats.averages[taxon_id]}")
+        print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
         json.dump(feature_collection, geojson_writer)
