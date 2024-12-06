@@ -310,7 +310,7 @@ if __name__ == "__main__":
     # dn = dendrogram(Z, labels=ordered_seen_geohash)
     # plt.show()
 
-    clusters = fcluster(Z, t=3, criterion="distance")
+    clusters = fcluster(Z, t=10, criterion="maxclust")
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
     geohash_to_cluster = {
