@@ -115,24 +115,28 @@ def geohash_to_bbox(geohash: str) -> Bbox:
     )
 
 
-def build_geojson_feature(geohash: str, cluster: int) -> Dict:
-    bbox = geohash_to_bbox(geohash)
-    coords = [
-        [bbox.sw.lon, bbox.sw.lat],
-        [bbox.ne.lon, bbox.sw.lat],
-        [bbox.ne.lon, bbox.ne.lat],
-        [bbox.sw.lon, bbox.ne.lat],
-        [bbox.sw.lon, bbox.sw.lat],
-    ]
+def build_geojson_feature(geohashes: List[str], cluster: int) -> Dict:
+    geometries = []
+    for geohash in geohashes:
+        bbox = geohash_to_bbox(geohash)
+        coords = [
+            [bbox.sw.lon, bbox.sw.lat],
+            [bbox.ne.lon, bbox.sw.lat],
+            [bbox.ne.lon, bbox.ne.lat],
+            [bbox.sw.lon, bbox.ne.lat],
+            [bbox.sw.lon, bbox.sw.lat],
+        ]
+        geometries.append({"type": "Polygon", "coordinates": [coords]})
+
     return {
         "type": "Feature",
         "properties": {
-            "label": geohash,
+            "label": ", ".join(geohashes),
             "fill": COLORS[int(cluster)],
             "stroke-width": 0,
             "cluster": int(cluster),
         },
-        "geometry": {"type": "Polygon", "coordinates": [coords]},
+        "geometry": {"type": "GeometryCollection", "geometries": geometries},
     }
 
 
@@ -310,7 +314,7 @@ if __name__ == "__main__":
     # dn = dendrogram(Z, labels=ordered_seen_geohash)
     # plt.show()
 
-    clusters = fcluster(Z, t=10, criterion="maxclust")
+    clusters = fcluster(Z, t=5, criterion="maxclust")
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
     geohash_to_cluster = {
@@ -325,8 +329,8 @@ if __name__ == "__main__":
     feature_collection = {
         "type": "FeatureCollection",
         "features": [
-            build_geojson_feature(geohash, cluster)
-            for geohash, cluster in zip(ordered_seen_geohash, clusters)
+            build_geojson_feature(geohashes, cluster)
+            for cluster, geohashes in cluster_to_geohashes.items()
         ],
     }
 
