@@ -37,6 +37,8 @@ type Geohash = str
 
 type TaxonId = int
 
+type ClusterId = int
+
 
 class Point(NamedTuple):
     lat: float
@@ -131,7 +133,7 @@ def geohash_to_bbox(geohash: Geohash) -> Bbox:
     )
 
 
-def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
+def build_geojson_feature(geohashes: List[Geohash], cluster: ClusterId) -> Dict:
     geometries = []
     for geohash in geohashes:
         bbox = geohash_to_bbox(geohash)
@@ -148,9 +150,9 @@ def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
         "type": "Feature",
         "properties": {
             "label": ", ".join(geohashes),
-            "fill": COLORS[int(cluster)],
+            "fill": COLORS[cluster],
             "stroke-width": 0,
-            "cluster": int(cluster),
+            "cluster": cluster,
         },
         "geometry": {"type": "GeometryCollection", "geometries": geometries},
     }
@@ -264,7 +266,7 @@ def build_condensed_distance_matrix(
 
 
 def print_cluster_stats(
-    cluster: int,
+    cluster: ClusterId,
     geohashes: List[Geohash],
     read_rows_result: ReadRowsResult,
     all_stats: Stats,
@@ -299,17 +301,17 @@ def print_all_cluster_stats(
 
 
 class ClusterIndex(NamedTuple):
-    geohash_to_cluster: Dict[Geohash, int]
-    cluster_to_geohashes: Dict[int, List[Geohash]]
+    geohash_to_cluster: Dict[Geohash, ClusterId]
+    cluster_to_geohashes: Dict[ClusterId, List[Geohash]]
 
     @classmethod
-    def build(cls, ordered_seen_geohash: List[Geohash], clusters: List[int]) -> Self:
+    def build(cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]) -> Self:
         geohash_to_cluster = {
             geohash: cluster
             for geohash, cluster in zip(ordered_seen_geohash, clusters)
         }
         cluster_to_geohashes = {
-            int(cluster): [g for g, c in geohash_to_cluster.items() if c == cluster]
+            cluster: [g for g, c in geohash_to_cluster.items() if c == cluster]
             for cluster in set(clusters)
         }
         return cls(geohash_to_cluster, cluster_to_geohashes)
