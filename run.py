@@ -288,9 +288,7 @@ def print_cluster_stats(
             )
 
 
-def print_all_cluster_stats(
-    read_rows_result: ReadRowsResult, all_stats: Stats
-) -> None:
+def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) -> None:
     print("all")
     for taxon_id, count in sorted(
         all_stats.counts.items(), key=lambda x: x[1], reverse=True
@@ -305,10 +303,11 @@ class ClusterIndex(NamedTuple):
     cluster_to_geohashes: Dict[ClusterId, List[Geohash]]
 
     @classmethod
-    def build(cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]) -> Self:
+    def build(
+        cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]
+    ) -> Self:
         geohash_to_cluster = {
-            geohash: cluster
-            for geohash, cluster in zip(ordered_seen_geohash, clusters)
+            geohash: cluster for geohash, cluster in zip(ordered_seen_geohash, clusters)
         }
         cluster_to_geohashes = {
             cluster: [g for g, c in geohash_to_cluster.items() if c == cluster]
@@ -322,7 +321,10 @@ def build_geojson_feature_collection(
 ) -> Dict:
     return {
         "type": "FeatureCollection",
-        "features": [build_geojson_feature(geohashes, cluster) for cluster, geohashes in cluster_index.cluster_to_geohashes.items()],
+        "features": [
+            build_geojson_feature(geohashes, cluster)
+            for cluster, geohashes in cluster_index.cluster_to_geohashes.items()
+        ],
     }
 
 
