@@ -90,9 +90,9 @@ def read_rows(input_file: str) -> Generator[Row, None, None]:
                     f"Invalid latitude or longitude: {row['decimalLatitude']}, {row['decimalLongitude']}"
                 )
                 continue
-            taxon_id = read_int(row["taxonID"])
+            taxon_id = read_int(row["taxonKey"])
             if not taxon_id:
-                logger.error(f"Invalid taxon ID: {row['taxonID']}")
+                logger.error(f"Invalid taxon ID: {row['taxonKey']}")
                 continue
             yield Row(lat, lon, taxon_id, row["scientificName"], row["recordedBy"])
 
