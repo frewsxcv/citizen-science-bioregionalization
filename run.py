@@ -3,7 +3,7 @@ import csv
 import json
 import logging
 import numpy as np
-import pygeohash
+import pygeohash  # type: ignore
 import random
 import scipy.cluster.hierarchy
 import scipy.spatial
