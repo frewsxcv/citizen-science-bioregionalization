@@ -286,6 +286,18 @@ def print_cluster_stats(
             )
 
 
+def print_all_cluster_stats(
+    read_rows_result: ReadRowsResult, all_stats: Stats
+) -> None:
+    print("all")
+    for taxon_id, count in sorted(
+        all_stats.counts.items(), key=lambda x: x[1], reverse=True
+    )[:5]:
+        print(
+            f"{read_rows_result.taxon_index[taxon_id]}: {all_stats.averages[taxon_id]}"
+        )
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -312,13 +324,7 @@ if __name__ == "__main__":
     # Find the top averages of taxon
     all_stats = read_rows_result.build_stats()
     # For each top count taxon, print the average per geohash
-    print("all")
-    for taxon_id, count in sorted(
-        all_stats.counts.items(), key=lambda x: x[1], reverse=True
-    )[:5]:
-        print(
-            f"{read_rows_result.taxon_index[taxon_id]}: {all_stats.averages[taxon_id]}"
-        )
+    print_all_cluster_stats(read_rows_result, all_stats)
 
     # Generate the linkage matrix
     Z = linkage(condensed_distance_matrix, "ward")
