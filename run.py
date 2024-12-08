@@ -156,7 +156,7 @@ def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
 
 
 class ReadRowsResult(NamedTuple):
-    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[TaxonId]]
+    geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]]
     seen_taxon_id: Set[TaxonId]
     ordered_seen_taxon_id: List[TaxonId]
     ordered_seen_geohash: List[Geohash]
@@ -165,22 +165,20 @@ class ReadRowsResult(NamedTuple):
 
 
 def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
-    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[TaxonId]] = {}
+    geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]] = defaultdict(
+        Counter
+    )
     seen_taxon_id: Set[TaxonId] = set()
     # Will this work for eBird?
-    geohash_to_taxon_id_to_user_to_count: Dict[Geohash, Dict[TaxonId, Counter[str]]] = (
-        {}
-    )
+    geohash_to_taxon_id_to_user_to_count: DefaultDict[
+        Geohash, DefaultDict[TaxonId, Counter[str]]
+    ] = defaultdict(lambda: defaultdict(Counter))
 
     logger.info("Reading rows")
     taxon_index: Dict[TaxonId, str] = {}
 
     for row in read_rows(input_file):
         geohash = row.geohash(geohash_precision)
-        geohash_to_taxon_id_to_user_to_count.setdefault(geohash, {})
-        geohash_to_taxon_id_to_user_to_count[geohash].setdefault(
-            row.taxon_id, Counter()
-        )
         geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer] += 1
         # If the observer has seen the taxon more than 5 times, skip it
         if (
@@ -188,7 +186,6 @@ def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsR
             > 5
         ):
             continue
-        geohash_to_taxon_id_to_count.setdefault(geohash, Counter())
         geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
         taxon_index[row.taxon_id] = row.scientific_name
         seen_taxon_id.add(row.taxon_id)
