@@ -4,6 +4,7 @@ import json
 import logging
 import numpy as np
 import pygeohash  # type: ignore
+import geojson  # type: ignore
 import random
 import scipy.cluster.hierarchy
 import scipy.spatial
@@ -133,33 +134,33 @@ def geohash_to_bbox(geohash: Geohash) -> Bbox:
     )
 
 
-def build_geojson_geohash_polygon(geohash: Geohash) -> Dict:
+def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
     bbox = geohash_to_bbox(geohash)
-    coords = [
-        [bbox.sw.lon, bbox.sw.lat],
-        [bbox.ne.lon, bbox.sw.lat],
-        [bbox.ne.lon, bbox.ne.lat],
-        [bbox.sw.lon, bbox.ne.lat],
-        [bbox.sw.lon, bbox.sw.lat],
-    ]
-    return {"type": "Polygon", "coordinates": [coords]}
+    return geojson.Polygon(
+        coordinates=[
+            [bbox.sw.lon, bbox.sw.lat],
+            [bbox.ne.lon, bbox.sw.lat],
+            [bbox.ne.lon, bbox.ne.lat],
+            [bbox.sw.lon, bbox.ne.lat],
+            [bbox.sw.lon, bbox.sw.lat],
+        ]
+    )
 
 
-def build_geojson_feature(geohashes: List[Geohash], cluster: ClusterId) -> Dict:
+def build_geojson_feature(geohashes: List[Geohash], cluster: ClusterId) -> geojson.Feature:
     geometries = [
         build_geojson_geohash_polygon(geohash) for geohash in geohashes
     ]
 
-    return {
-        "type": "Feature",
-        "properties": {
+    return geojson.Feature(
+        properties={
             "label": ", ".join(geohashes),
             "fill": COLORS[cluster],
             "stroke-width": 0,
             "cluster": cluster,
         },
-        "geometry": {"type": "GeometryCollection", "geometries": geometries},
-    }
+        geometry=geojson.GeometryCollection(geometries),
+    )
 
 
 class Stats(NamedTuple):
@@ -322,14 +323,13 @@ class ClusterIndex(NamedTuple):
 
 def build_geojson_feature_collection(
     cluster_index: ClusterIndex,
-) -> Dict:
-    return {
-        "type": "FeatureCollection",
-        "features": [
+) -> geojson.FeatureCollection:
+    return geojson.FeatureCollection(
+        features=[
             build_geojson_feature(geohashes, cluster)
             for cluster, geohashes in cluster_index.cluster_to_geohashes.items()
         ],
-    }
+    )
 
 
 if __name__ == "__main__":
@@ -376,4 +376,4 @@ if __name__ == "__main__":
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
-        json.dump(feature_collection, geojson_writer)
+        geojson.dump(feature_collection, geojson_writer)
