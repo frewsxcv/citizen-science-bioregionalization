@@ -298,6 +298,23 @@ def print_all_cluster_stats(
         )
 
 
+class ClusterIndex(NamedTuple):
+    geohash_to_cluster: Dict[Geohash, int]
+    cluster_to_geohashes: Dict[int, List[Geohash]]
+
+    @classmethod
+    def build(cls, ordered_seen_geohash: List[Geohash], clusters: List[int]) -> Self:
+        geohash_to_cluster = {
+            geohash: cluster
+            for geohash, cluster in zip(ordered_seen_geohash, clusters)
+        }
+        cluster_to_geohashes = {
+            int(cluster): [g for g, c in geohash_to_cluster.items() if c == cluster]
+            for cluster in set(clusters)
+        }
+        return cls(geohash_to_cluster, cluster_to_geohashes)
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -332,27 +349,19 @@ if __name__ == "__main__":
     # dn = dendrogram(Z, labels=ordered_seen_geohash)
     # plt.show()
 
-    clusters = fcluster(Z, t=5, criterion="maxclust")
+    clusters = list(map(int, fcluster(Z, t=15, criterion="maxclust")))
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
-    geohash_to_cluster = {
-        geohash: int(cluster)
-        for geohash, cluster in zip(ordered_seen_geohash, clusters)
-    }
-    cluster_to_geohashes = {
-        int(cluster): [g for g, c in geohash_to_cluster.items() if c == cluster]
-        for cluster in set(clusters)
-    }
-
+    cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
     feature_collection = {
         "type": "FeatureCollection",
         "features": [
             build_geojson_feature(geohashes, cluster)
-            for cluster, geohashes in cluster_to_geohashes.items()
+            for cluster, geohashes in cluster_index.cluster_to_geohashes.items()
         ],
     }
 
-    for cluster, geohashes in cluster_to_geohashes.items():
+    for cluster, geohashes in cluster_index.cluster_to_geohashes.items():
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
