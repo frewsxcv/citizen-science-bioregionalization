@@ -1,6 +1,5 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 import csv
-import itertools
 import json
 import logging
 import numpy as np
@@ -141,7 +140,7 @@ def build_geojson_feature(geohashes: List[str], cluster: int) -> Dict:
 
 
 class ReadRowsResult(NamedTuple):
-    geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]]
+    geohash_to_taxon_id_to_count: Dict[str, Counter[int]]
     seen_taxon_id: Set[int]
     ordered_seen_taxon_id: List[int]
     ordered_seen_geohash: List[str]
@@ -150,10 +149,10 @@ class ReadRowsResult(NamedTuple):
 
 
 def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
-    geohash_to_taxon_id_to_count: Dict[str, Dict[int, int]] = {}
+    geohash_to_taxon_id_to_count: Dict[str, Counter[int]] = {}
     seen_taxon_id: Set[int] = set()
     # Will this work for eBird?
-    geohash_to_taxon_id_to_user_to_count: Dict[str, Dict[int, Dict[str, int]]] = {}
+    geohash_to_taxon_id_to_user_to_count: Dict[str, Dict[int, Counter[str]]] = {}
 
     logger.info("Reading rows")
     taxon_index: Dict[int, str] = {}
@@ -161,25 +160,18 @@ def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsR
     for row in read_rows(input_file):
         geohash = row.geohash(geohash_precision)
         geohash_to_taxon_id_to_user_to_count.setdefault(geohash, {})
-        geohash_to_taxon_id_to_user_to_count[geohash].setdefault(row.taxon_id, {})
-        geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer] = (
-            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id].get(
-                row.observer, 0
-            )
-            + 1
+        geohash_to_taxon_id_to_user_to_count[geohash].setdefault(
+            row.taxon_id, Counter()
         )
+        geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer] += 1
         # If the observer has seen the taxon more than 5 times, skip it
         if (
             geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer]
             > 5
         ):
             continue
-        geohash_to_taxon_id_to_count[geohash] = geohash_to_taxon_id_to_count.get(
-            geohash, {}
-        )
-        geohash_to_taxon_id_to_count[geohash][row.taxon_id] = (
-            geohash_to_taxon_id_to_count[geohash].get(row.taxon_id, 0) + 1
-        )
+        geohash_to_taxon_id_to_count.setdefault(geohash, Counter())
+        geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
         taxon_index[row.taxon_id] = row.scientific_name
         seen_taxon_id.add(row.taxon_id)
 
