@@ -22,7 +22,6 @@ from typing import (
     Optional,
     Set,
     Tuple,
-    TypeAlias,
 )
 import argparse
 
@@ -33,9 +32,9 @@ COLORS = [
 
 logger = logging.getLogger(__name__)
 
-Geohash: TypeAlias = str
+type Geohash = str
 
-TaxonId: TypeAlias = int
+type TaxonId = int
 
 
 class Row(NamedTuple):
@@ -154,7 +153,7 @@ def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
 
 
 class ReadRowsResult(NamedTuple):
-    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[int]]
+    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[TaxonId]]
     seen_taxon_id: Set[TaxonId]
     ordered_seen_taxon_id: List[TaxonId]
     ordered_seen_geohash: List[Geohash]
