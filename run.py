@@ -13,7 +13,17 @@ from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from scipy.cluster.vq import whiten, kmeans2
 from scipy.spatial.distance import squareform, pdist
-from typing import DefaultDict, Dict, Generator, List, NamedTuple, Optional, Set, Tuple
+from typing import (
+    DefaultDict,
+    Dict,
+    Generator,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    TypeAlias,
+)
 import argparse
 
 COLORS = [
@@ -23,11 +33,15 @@ COLORS = [
 
 logger = logging.getLogger(__name__)
 
+Geohash: TypeAlias = str
+
+TaxonId: TypeAlias = int
+
 
 class Row(NamedTuple):
     lat: float
     lon: float
-    taxon_id: int
+    taxon_id: TaxonId
     scientific_name: str
     # TODO: Should this be a user ID?
     observer: str
@@ -106,7 +120,7 @@ class Bbox(NamedTuple):
     ne: Point
 
 
-def geohash_to_bbox(geohash: str) -> Bbox:
+def geohash_to_bbox(geohash: Geohash) -> Bbox:
     lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)
     return Bbox(
         sw=Point(lat=lat - lat_err, lon=lon - lon_err),
@@ -114,7 +128,7 @@ def geohash_to_bbox(geohash: str) -> Bbox:
     )
 
 
-def build_geojson_feature(geohashes: List[str], cluster: int) -> Dict:
+def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
     geometries = []
     for geohash in geohashes:
         bbox = geohash_to_bbox(geohash)
@@ -140,22 +154,24 @@ def build_geojson_feature(geohashes: List[str], cluster: int) -> Dict:
 
 
 class ReadRowsResult(NamedTuple):
-    geohash_to_taxon_id_to_count: Dict[str, Counter[int]]
-    seen_taxon_id: Set[int]
-    ordered_seen_taxon_id: List[int]
-    ordered_seen_geohash: List[str]
+    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[int]]
+    seen_taxon_id: Set[TaxonId]
+    ordered_seen_taxon_id: List[TaxonId]
+    ordered_seen_geohash: List[Geohash]
     # taxon_id -> scientific_name
-    taxon_index: Dict[int, str]
+    taxon_index: Dict[TaxonId, str]
 
 
 def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
-    geohash_to_taxon_id_to_count: Dict[str, Counter[int]] = {}
-    seen_taxon_id: Set[int] = set()
+    geohash_to_taxon_id_to_count: Dict[Geohash, Counter[TaxonId]] = {}
+    seen_taxon_id: Set[TaxonId] = set()
     # Will this work for eBird?
-    geohash_to_taxon_id_to_user_to_count: Dict[str, Dict[int, Counter[str]]] = {}
+    geohash_to_taxon_id_to_user_to_count: Dict[Geohash, Dict[TaxonId, Counter[str]]] = (
+        {}
+    )
 
     logger.info("Reading rows")
-    taxon_index: Dict[int, str] = {}
+    taxon_index: Dict[TaxonId, str] = {}
 
     for row in read_rows(input_file):
         geohash = row.geohash(geohash_precision)
@@ -216,18 +232,18 @@ def build_condensed_distance_matrix(
 
 class Stats(NamedTuple):
     # taxon_id -> average per geohash
-    averages: Dict[int, float]
+    averages: Dict[TaxonId, float]
     # taxon_id -> count
-    counts: Dict[int, int]
+    counts: Dict[TaxonId, int]
 
 
 def build_stats(
-    read_rows_result: ReadRowsResult, geohash_filter: Optional[List[str]] = None
+    read_rows_result: ReadRowsResult, geohash_filter: Optional[List[Geohash]] = None
 ) -> Stats:
     # taxon_id -> taxon average
-    averages: DefaultDict[int, float] = defaultdict(float)
+    averages: DefaultDict[TaxonId, float] = defaultdict(float)
     # taxon_id -> taxon count
-    counts: DefaultDict[int, int] = defaultdict(int)
+    counts: DefaultDict[TaxonId, int] = defaultdict(int)
 
     # Calculate total counts for each taxon_id
     for geohash, taxon_counts in read_rows_result.geohash_to_taxon_id_to_count.items():
@@ -245,7 +261,7 @@ def build_stats(
 
 def print_cluster_stats(
     cluster: int,
-    geohashes: List[str],
+    geohashes: List[Geohash],
     read_rows_result: ReadRowsResult,
     all_stats: Stats,
 ) -> None:
