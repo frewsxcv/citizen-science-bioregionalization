@@ -156,6 +156,13 @@ def build_geojson_feature(geohashes: List[Geohash], cluster: int) -> Dict:
     }
 
 
+class Stats(NamedTuple):
+    # taxon_id -> average per geohash
+    averages: Dict[TaxonId, float]
+    # taxon_id -> count
+    counts: Counter[TaxonId]
+
+
 class ReadRowsResult(NamedTuple):
     geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]]
     seen_taxon_id: Set[TaxonId]
@@ -205,6 +212,28 @@ class ReadRowsResult(NamedTuple):
             taxon_index,
         )
 
+    def build_stats(self, geohash_filter: Optional[List[Geohash]] = None) -> Stats:
+        # taxon_id -> taxon average
+        averages: DefaultDict[TaxonId, float] = defaultdict(float)
+        # taxon_id -> taxon count
+        counts: Counter[TaxonId] = Counter()
+
+        # Calculate total counts for each taxon_id
+        for (
+            geohash,
+            taxon_counts,
+        ) in read_rows_result.geohash_to_taxon_id_to_count.items():
+            if geohash_filter and geohash not in geohash_filter:
+                continue
+            for taxon_id, count in taxon_counts.items():
+                counts[taxon_id] += count
+
+        # Calculate averages for each taxon_id
+        for taxon_id in counts.keys():
+            averages[taxon_id] = counts[taxon_id] / sum(counts.values())
+
+        return Stats(averages=averages, counts=counts)
+
 
 def build_condensed_distance_matrix(
     read_rows_result: ReadRowsResult,
@@ -234,42 +263,13 @@ def build_condensed_distance_matrix(
     return ordered_seen_geohash, pdist(matrix, metric="braycurtis")
 
 
-class Stats(NamedTuple):
-    # taxon_id -> average per geohash
-    averages: Dict[TaxonId, float]
-    # taxon_id -> count
-    counts: Counter[TaxonId]
-
-
-def build_stats(
-    read_rows_result: ReadRowsResult, geohash_filter: Optional[List[Geohash]] = None
-) -> Stats:
-    # taxon_id -> taxon average
-    averages: DefaultDict[TaxonId, float] = defaultdict(float)
-    # taxon_id -> taxon count
-    counts: Counter[TaxonId] = Counter()
-
-    # Calculate total counts for each taxon_id
-    for geohash, taxon_counts in read_rows_result.geohash_to_taxon_id_to_count.items():
-        if geohash_filter and geohash not in geohash_filter:
-            continue
-        for taxon_id, count in taxon_counts.items():
-            counts[taxon_id] += count
-
-    # Calculate averages for each taxon_id
-    for taxon_id in counts.keys():
-        averages[taxon_id] = counts[taxon_id] / sum(counts.values())
-
-    return Stats(averages=averages, counts=counts)
-
-
 def print_cluster_stats(
     cluster: int,
     geohashes: List[Geohash],
     read_rows_result: ReadRowsResult,
     all_stats: Stats,
 ) -> None:
-    stats = build_stats(read_rows_result, geohash_filter=geohashes)
+    stats = read_rows_result.build_stats(geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
     for taxon_id, count in sorted(
@@ -310,7 +310,7 @@ if __name__ == "__main__":
             )
 
     # Find the top averages of taxon
-    all_stats = build_stats(read_rows_result)
+    all_stats = read_rows_result.build_stats()
     # For each top count taxon, print the average per geohash
     print("all")
     for taxon_id, count in sorted(
