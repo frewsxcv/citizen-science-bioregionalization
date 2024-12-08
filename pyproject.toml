@@ -8,5 +8,6 @@ dependencies = [
     "matplotlib>=3.9.3",
     "mypy>=1.13.0",
     "pygeohash>=1.0",
+    "scipy-stubs>=1.14.1.5",
     "scipy>=1.11.3",
 ]

@@ -67,6 +67,7 @@ dependencies = [
     { name = "mypy" },
     { name = "pygeohash" },
     { name = "scipy" },
+    { name = "scipy-stubs" },
 ]
 
 [package.metadata]
@@ -75,6 +76,7 @@ requires-dist = [
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "pygeohash", specifier = ">=1.0" },
     { name = "scipy", specifier = ">=1.11.3" },
+    { name = "scipy-stubs", specifier = ">=1.14.1.5" },
 ]
 
 [[package]]
@@ -188,6 +190,15 @@ wheels = [
 ]
 
 [[package]]
+name = "optype"
+version = "0.7.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/08/b7/3053b7d8b648b077422cfd7235f83909b6b192c2fa42bb9dba51cdc773bf/optype-0.7.3.tar.gz", hash = "sha256:51c8dd104ac197457059bcee5e256160a641ca72c6c852012d952790a5e0cac0", size = 80608 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/92/466c23b21b341d062f33be00a307b1581b90ca86b07f27a4a71ecbec830b/optype-0.7.3-py3-none-any.whl", hash = "sha256:856416484131038799e0e9cefc19d0ef37e7b4fde2144f25e8bb0e8981ebbe95", size = 70043 },
+]
+
+[[package]]
 name = "packaging"
 version = "24.2"
 source = { registry = "https://pypi.org/simple" }
@@ -267,6 +278,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/56/46/2449e6e51e0d7c3575f289f6acb7f828938eaab8874dbccfeb0cd2b71a27/scipy-1.14.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5149e3fd2d686e42144a093b206aef01932a0059c2a33ddfa67f5f035bdfe13e", size = 40798288 },
     { url = "https://files.pythonhosted.org/packages/32/cd/9d86f7ed7f4497c9fd3e39f8918dd93d9f647ba80d7e34e4946c0c2d1a7c/scipy-1.14.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:e4f5a7c49323533f9103d4dacf4e4f07078f360743dec7f7596949149efeec06", size = 42524647 },
     { url = "https://files.pythonhosted.org/packages/f5/1b/6ee032251bf4cdb0cc50059374e86a9f076308c1512b61c4e003e241efb7/scipy-1.14.1-cp313-cp313-win_amd64.whl", hash = "sha256:baff393942b550823bfce952bb62270ee17504d02a1801d7fd0719534dfb9c84", size = 44469524 },
+]
+
+[[package]]
+name = "scipy-stubs"
+version = "1.14.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "optype" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/79/d9a73d6c215b00b21ed16c6638c72a2ea25392f44348bd512fb7802f2ec4/scipy_stubs-1.14.1.5.tar.gz", hash = "sha256:66c160c6b72b1406edc7827879ef25ea81dc3d95ab7e4af3a2de836f27c26ce6", size = 211659 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/01/166738cea89ca8acacd46ef048b9ea37b5817373c7052bfaadbc6a95bc74/scipy_stubs-1.14.1.5-py3-none-any.whl", hash = "sha256:ca927802cae4c83e75b2a4b8c41271f36ebe0d928cee25ef3968e143b1793a75", size = 386065 },
 ]
 
 [[package]]
