@@ -20,6 +20,7 @@ from typing import (
     List,
     NamedTuple,
     Optional,
+    Self,
     Set,
     Tuple,
 )
@@ -163,42 +164,46 @@ class ReadRowsResult(NamedTuple):
     # taxon_id -> scientific_name
     taxon_index: Dict[TaxonId, str]
 
+    @classmethod
+    def build(cls, input_file: str, geohash_precision: int) -> Self:
+        geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]] = (
+            defaultdict(Counter)
+        )
+        seen_taxon_id: Set[TaxonId] = set()
+        # Will this work for eBird?
+        geohash_to_taxon_id_to_user_to_count: DefaultDict[
+            Geohash, DefaultDict[TaxonId, Counter[str]]
+        ] = defaultdict(lambda: defaultdict(Counter))
 
-def build_read_rows_result(input_file: str, geohash_precision: int) -> ReadRowsResult:
-    geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]] = defaultdict(
-        Counter
-    )
-    seen_taxon_id: Set[TaxonId] = set()
-    # Will this work for eBird?
-    geohash_to_taxon_id_to_user_to_count: DefaultDict[
-        Geohash, DefaultDict[TaxonId, Counter[str]]
-    ] = defaultdict(lambda: defaultdict(Counter))
+        logger.info("Reading rows")
+        taxon_index: Dict[TaxonId, str] = {}
 
-    logger.info("Reading rows")
-    taxon_index: Dict[TaxonId, str] = {}
+        for row in read_rows(input_file):
+            geohash = row.geohash(geohash_precision)
+            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
+                row.observer
+            ] += 1
+            # If the observer has seen the taxon more than 5 times, skip it
+            if (
+                geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
+                    row.observer
+                ]
+                > 5
+            ):
+                continue
+            geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
+            taxon_index[row.taxon_id] = row.scientific_name
+            seen_taxon_id.add(row.taxon_id)
 
-    for row in read_rows(input_file):
-        geohash = row.geohash(geohash_precision)
-        geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer] += 1
-        # If the observer has seen the taxon more than 5 times, skip it
-        if (
-            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][row.observer]
-            > 5
-        ):
-            continue
-        geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
-        taxon_index[row.taxon_id] = row.scientific_name
-        seen_taxon_id.add(row.taxon_id)
-
-    ordered_seen_taxon_id = sorted(seen_taxon_id)
-    ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
-    return ReadRowsResult(
-        geohash_to_taxon_id_to_count,
-        seen_taxon_id,
-        ordered_seen_taxon_id,
-        ordered_seen_geohash,
-        taxon_index,
-    )
+        ordered_seen_taxon_id = sorted(seen_taxon_id)
+        ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
+        return cls(
+            geohash_to_taxon_id_to_count,
+            seen_taxon_id,
+            ordered_seen_taxon_id,
+            ordered_seen_geohash,
+            taxon_index,
+        )
 
 
 def build_condensed_distance_matrix(
@@ -293,7 +298,7 @@ if __name__ == "__main__":
                 pickle.load(pickle_reader)
             )
     else:
-        read_rows_result = build_read_rows_result(input_file, args.geohash_precision)
+        read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
         ordered_seen_geohash, condensed_distance_matrix = (
             build_condensed_distance_matrix(read_rows_result)
         )
