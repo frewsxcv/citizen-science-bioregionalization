@@ -133,18 +133,22 @@ def geohash_to_bbox(geohash: Geohash) -> Bbox:
     )
 
 
+def build_geojson_geohash_polygon(geohash: Geohash) -> Dict:
+    bbox = geohash_to_bbox(geohash)
+    coords = [
+        [bbox.sw.lon, bbox.sw.lat],
+        [bbox.ne.lon, bbox.sw.lat],
+        [bbox.ne.lon, bbox.ne.lat],
+        [bbox.sw.lon, bbox.ne.lat],
+        [bbox.sw.lon, bbox.sw.lat],
+    ]
+    return {"type": "Polygon", "coordinates": [coords]}
+
+
 def build_geojson_feature(geohashes: List[Geohash], cluster: ClusterId) -> Dict:
-    geometries = []
-    for geohash in geohashes:
-        bbox = geohash_to_bbox(geohash)
-        coords = [
-            [bbox.sw.lon, bbox.sw.lat],
-            [bbox.ne.lon, bbox.sw.lat],
-            [bbox.ne.lon, bbox.ne.lat],
-            [bbox.sw.lon, bbox.ne.lat],
-            [bbox.sw.lon, bbox.sw.lat],
-        ]
-        geometries.append({"type": "Polygon", "coordinates": [coords]})
+    geometries = [
+        build_geojson_geohash_polygon(geohash) for geohash in geohashes
+    ]
 
     return {
         "type": "Feature",
