@@ -317,6 +317,15 @@ class ClusterIndex(NamedTuple):
         return cls(geohash_to_cluster, cluster_to_geohashes)
 
 
+def build_geojson_feature_collection(
+    cluster_index: ClusterIndex,
+) -> Dict:
+    return {
+        "type": "FeatureCollection",
+        "features": [build_geojson_feature(geohashes, cluster) for cluster, geohashes in cluster_index.cluster_to_geohashes.items()],
+    }
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -355,13 +364,7 @@ if __name__ == "__main__":
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
     cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
-            build_geojson_feature(geohashes, cluster)
-            for cluster, geohashes in cluster_index.cluster_to_geohashes.items()
-        ],
-    }
+    feature_collection = build_geojson_feature_collection(cluster_index)
 
     for cluster, geohashes in cluster_index.cluster_to_geohashes.items():
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
