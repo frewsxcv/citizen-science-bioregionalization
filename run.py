@@ -234,7 +234,7 @@ class Stats(NamedTuple):
     # taxon_id -> average per geohash
     averages: Dict[TaxonId, float]
     # taxon_id -> count
-    counts: Dict[TaxonId, int]
+    counts: Counter[TaxonId]
 
 
 def build_stats(
@@ -243,7 +243,7 @@ def build_stats(
     # taxon_id -> taxon average
     averages: DefaultDict[TaxonId, float] = defaultdict(float)
     # taxon_id -> taxon count
-    counts: DefaultDict[TaxonId, int] = defaultdict(int)
+    counts: Counter[TaxonId] = Counter()
 
     # Calculate total counts for each taxon_id
     for geohash, taxon_counts in read_rows_result.geohash_to_taxon_id_to_count.items():
