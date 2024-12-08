@@ -37,16 +37,22 @@ type Geohash = str
 type TaxonId = int
 
 
-class Row(NamedTuple):
+class Point(NamedTuple):
     lat: float
     lon: float
+
+
+class Row(NamedTuple):
+    location: Point
     taxon_id: TaxonId
     scientific_name: str
     # TODO: Should this be a user ID?
     observer: str
 
     def geohash(self, precision: int) -> str:
-        return pygeohash.encode(self.lat, self.lon, precision=precision)
+        return pygeohash.encode(
+            self.location.lat, self.location.lon, precision=precision
+        )
 
 
 def read_float(value: str) -> float | None:
@@ -106,12 +112,9 @@ def read_rows(input_file: str) -> Generator[Row, None, None]:
             if not taxon_id:
                 logger.error(f"Invalid taxon ID: {row['taxonKey']}")
                 continue
-            yield Row(lat, lon, taxon_id, row["scientificName"], row["recordedBy"])
-
-
-class Point(NamedTuple):
-    lat: float
-    lon: float
+            yield Row(
+                Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"]
+            )
 
 
 class Bbox(NamedTuple):
