@@ -12,9 +12,5 @@ jobs:
           version: "latest"
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Run mypy
-        uses: sasanquaneuf/mypy-github-action@releases/v1
-        with:
-          checkName: 'mypy'   # NOTE: this needs to be the same as the job name
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Mypy
+        run: uv run mypy run.py
