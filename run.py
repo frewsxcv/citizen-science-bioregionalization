@@ -10,8 +10,8 @@ import scipy.cluster.hierarchy
 import scipy.spatial
 import pickle
 import os
-import geopandas
-import contextily
+import geopandas  # type: ignore
+import contextily  # type: ignore
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from scipy.cluster.vq import whiten, kmeans2
