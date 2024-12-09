@@ -144,11 +144,13 @@ def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
     bbox = geohash_to_bbox(geohash)
     return geojson.Polygon(
         coordinates=[
-            [bbox.sw.lon, bbox.sw.lat],
-            [bbox.ne.lon, bbox.sw.lat],
-            [bbox.ne.lon, bbox.ne.lat],
-            [bbox.sw.lon, bbox.ne.lat],
-            [bbox.sw.lon, bbox.sw.lat],
+            [
+                [bbox.sw.lon, bbox.sw.lat],
+                [bbox.ne.lon, bbox.sw.lat],
+                [bbox.ne.lon, bbox.ne.lat],
+                [bbox.sw.lon, bbox.ne.lat],
+                [bbox.sw.lon, bbox.sw.lat],
+            ]
         ]
     )
 
