@@ -14,3 +14,10 @@ dependencies = [
     "geopandas>=1.0.1",
     "contextily>=1.6.2",
 ]
+
+[tool.mypy]
+ignore_missing_imports = true
+files = [
+    "*.py",
+    "src/**/*.py",
+]
