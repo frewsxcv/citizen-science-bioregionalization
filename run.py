@@ -53,6 +53,24 @@ class Row(NamedTuple):
     # TODO: Should this be a user ID?
     observer: str
 
+    @classmethod
+    def from_csv_dict(cls, row: Dict[str, str]) -> Optional[Self]:
+        lat, lon = read_float(row["decimalLatitude"]), read_float(
+            row["decimalLongitude"]
+        )
+        if not (lat and lon):
+            logger.error(
+                f"Invalid latitude or longitude: {row['decimalLatitude']}, {row['decimalLongitude']}"
+            )
+            return None
+        taxon_id = read_int(row["taxonKey"])
+        if not taxon_id:
+            logger.error(f"Invalid taxon ID: {row['taxonKey']}")
+            return None
+        return cls(
+            Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"]
+        )
+
     def geohash(self, precision: int) -> str:
         return pygeohash.encode(
             self.location.lat, self.location.lon, precision=precision
@@ -103,22 +121,10 @@ def parse_arguments() -> argparse.Namespace:
 def read_rows(input_file: str) -> Generator[Row, None, None]:
     with open(input_file, "r") as f:
         reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            lat, lon = read_float(row["decimalLatitude"]), read_float(
-                row["decimalLongitude"]
-            )
-            if not (lat and lon):
-                logger.error(
-                    f"Invalid latitude or longitude: {row['decimalLatitude']}, {row['decimalLongitude']}"
-                )
-                continue
-            taxon_id = read_int(row["taxonKey"])
-            if not taxon_id:
-                logger.error(f"Invalid taxon ID: {row['taxonKey']}")
-                continue
-            yield Row(
-                Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"]
-            )
+        for dict_row in reader:
+            row = Row.from_csv_dict(dict_row)
+            if row:
+                yield row
 
 
 class Bbox(NamedTuple):
@@ -147,10 +153,10 @@ def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
     )
 
 
-def build_geojson_feature(geohashes: List[Geohash], cluster: ClusterId) -> geojson.Feature:
-    geometries = [
-        build_geojson_geohash_polygon(geohash) for geohash in geohashes
-    ]
+def build_geojson_feature(
+    geohashes: List[Geohash], cluster: ClusterId
+) -> geojson.Feature:
+    geometries = [build_geojson_geohash_polygon(geohash) for geohash in geohashes]
 
     return geojson.Feature(
         properties={
@@ -254,9 +260,9 @@ def build_condensed_distance_matrix(
     # Example:
     # [
     #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 2, 0, 0],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
     #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 0, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
+    #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
     for i, geohash in enumerate(ordered_seen_geohash):
