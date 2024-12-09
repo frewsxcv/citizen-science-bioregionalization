@@ -67,9 +67,7 @@ class Row(NamedTuple):
         if not taxon_id:
             logger.error(f"Invalid taxon ID: {row['taxonKey']}")
             return None
-        return cls(
-            Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"]
-        )
+        return cls(Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"])
 
     def geohash(self, precision: int) -> str:
         return pygeohash.encode(
