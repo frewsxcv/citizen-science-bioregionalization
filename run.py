@@ -157,6 +157,9 @@ def build_geojson_feature(
     geohashes: List[Geohash], cluster: ClusterId
 ) -> geojson.Feature:
     geometries = [build_geojson_geohash_polygon(geohash) for geohash in geohashes]
+    geometry = (
+        geojson.GeometryCollection(geometries) if len(geometries) > 1 else geometries[0]
+    )
 
     return geojson.Feature(
         properties={
@@ -165,7 +168,7 @@ def build_geojson_feature(
             "stroke-width": 0,
             "cluster": cluster,
         },
-        geometry=geojson.GeometryCollection(geometries),
+        geometry=geometry,
     )
 
 
