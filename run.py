@@ -1,12 +1,10 @@
 from collections import defaultdict, Counter
 import csv
-import json
 import logging
 import numpy as np
-import pygeohash  # type: ignore
 import geojson  # type: ignore
 import random
-import scipy.cluster.hierarchy
+import pygeohash
 import scipy.spatial
 import pickle
 import os
@@ -27,7 +25,10 @@ from typing import (
     Set,
     Tuple,
 )
-import argparse
+
+from src.cli import parse_arguments
+from src.geohash import geohash_to_bbox
+from src.point import Point
 
 COLORS = [
     "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
@@ -41,11 +42,6 @@ type Geohash = str
 type TaxonId = int
 
 type ClusterId = int
-
-
-class Point(NamedTuple):
-    lat: float
-    lon: float
 
 
 class Row(NamedTuple):
@@ -90,34 +86,6 @@ def read_int(value: str) -> int | None:
     except ValueError:
         return None
 
-
-def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Cluster geohash data.")
-    parser.add_argument(
-        "--geohash-precision",
-        type=int,
-        help="Precision of the geohash",
-        required=True,
-    )
-    parser.add_argument(
-        "--log-file",
-        type=str,
-        help="Path to the log file",
-        required=True,
-    )
-    parser.add_argument(
-        "input_file",
-        type=str,
-        help="Path to the input file",
-    )
-    parser.add_argument(
-        "output_file",
-        type=str,
-        help="Path to the output file",
-    )
-    return parser.parse_args()
-
-
 def read_rows(input_file: str) -> Generator[Row, None, None]:
     with open(input_file, "r") as f:
         reader = csv.DictReader(f, delimiter="\t")
@@ -125,19 +93,6 @@ def read_rows(input_file: str) -> Generator[Row, None, None]:
             row = Row.from_csv_dict(dict_row)
             if row:
                 yield row
-
-
-class Bbox(NamedTuple):
-    sw: Point
-    ne: Point
-
-
-def geohash_to_bbox(geohash: Geohash) -> Bbox:
-    lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)
-    return Bbox(
-        sw=Point(lat=lat - lat_err, lon=lon - lon_err),
-        ne=Point(lat=lat + lat_err, lon=lon + lon_err),
-    )
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
