@@ -1,23 +1,18 @@
 from collections import defaultdict, Counter
-import csv
 import logging
 import numpy as np
 import geojson  # type: ignore
 import random
-import pygeohash
-import scipy.spatial
 import pickle
 import os
 import geopandas  # type: ignore
 import contextily  # type: ignore
 from matplotlib import pyplot as plt
-from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
-from scipy.cluster.vq import whiten, kmeans2
-from scipy.spatial.distance import squareform, pdist
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import pdist
 from typing import (
     DefaultDict,
     Dict,
-    Generator,
     List,
     NamedTuple,
     Optional,
@@ -27,8 +22,8 @@ from typing import (
 )
 
 from src.cli import parse_arguments
+from src.darwin_core import TaxonId, read_rows
 from src.geohash import geohash_to_bbox
-from src.point import Point
 
 COLORS = [
     "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
@@ -39,60 +34,7 @@ logger = logging.getLogger(__name__)
 
 type Geohash = str
 
-type TaxonId = int
-
 type ClusterId = int
-
-
-class Row(NamedTuple):
-    location: Point
-    taxon_id: TaxonId
-    scientific_name: str
-    # TODO: Should this be a user ID?
-    observer: str
-
-    @classmethod
-    def from_csv_dict(cls, row: Dict[str, str]) -> Optional[Self]:
-        lat, lon = read_float(row["decimalLatitude"]), read_float(
-            row["decimalLongitude"]
-        )
-        if not (lat and lon):
-            logger.error(
-                f"Invalid latitude or longitude: {row['decimalLatitude']}, {row['decimalLongitude']}"
-            )
-            return None
-        taxon_id = read_int(row["taxonKey"])
-        if not taxon_id:
-            logger.error(f"Invalid taxon ID: {row['taxonKey']}")
-            return None
-        return cls(Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"])
-
-    def geohash(self, precision: int) -> str:
-        return pygeohash.encode(
-            self.location.lat, self.location.lon, precision=precision
-        )
-
-
-def read_float(value: str) -> float | None:
-    try:
-        return float(value)
-    except ValueError:
-        return None
-
-
-def read_int(value: str) -> int | None:
-    try:
-        return int(value)
-    except ValueError:
-        return None
-
-def read_rows(input_file: str) -> Generator[Row, None, None]:
-    with open(input_file, "r") as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for dict_row in reader:
-            row = Row.from_csv_dict(dict_row)
-            if row:
-                yield row
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
