@@ -14,6 +14,8 @@ class Row(NamedTuple):
     location: Point
     taxon_id: TaxonId
     scientific_name: str
+    # taxonomic order
+    order: str
     # TODO: Should this be a user ID?
     observer: str
 
@@ -31,7 +33,13 @@ class Row(NamedTuple):
         if not taxon_id:
             logger.error(f"Invalid taxon ID: {row['taxonKey']}")
             return None
-        return cls(Point(lat, lon), taxon_id, row["scientificName"], row["recordedBy"])
+        return cls(
+            location=Point(lat, lon),
+            taxon_id=taxon_id,
+            scientific_name=row["scientificName"],
+            order=row["order"],
+            observer=row["recordedBy"],
+        )
 
     def geohash(self, precision: int) -> str:
         return pygeohash.encode(
@@ -51,6 +59,7 @@ def read_int(value: str) -> int | None:
         return int(value)
     except ValueError:
         return None
+
 
 def read_rows(input_file: str) -> Generator[Row, None, None]:
     with open(input_file, "r") as f:

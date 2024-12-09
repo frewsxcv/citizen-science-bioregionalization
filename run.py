@@ -70,14 +70,18 @@ def build_geojson_feature(
 
 
 class Stats(NamedTuple):
+    geohashes: List[Geohash]
     # taxon_id -> average per geohash
     averages: Dict[TaxonId, float]
     # taxon_id -> count
     counts: Counter[TaxonId]
+    # taxonomic order -> count
+    order_counts: Counter[str]
 
 
 class ReadRowsResult(NamedTuple):
     geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]]
+    geohash_to_order_to_count: DefaultDict[Geohash, Counter[str]]
     seen_taxon_id: Set[TaxonId]
     ordered_seen_taxon_id: List[TaxonId]
     ordered_seen_geohash: List[Geohash]
@@ -88,6 +92,9 @@ class ReadRowsResult(NamedTuple):
     def build(cls, input_file: str, geohash_precision: int) -> Self:
         geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]] = (
             defaultdict(Counter)
+        )
+        geohash_to_order_to_count: DefaultDict[Geohash, Counter[str]] = defaultdict(
+            Counter
         )
         seen_taxon_id: Set[TaxonId] = set()
         # Will this work for eBird?
@@ -112,6 +119,7 @@ class ReadRowsResult(NamedTuple):
             ):
                 continue
             geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
+            geohash_to_order_to_count[geohash][row.order] += 1
             taxon_index[row.taxon_id] = row.scientific_name
             seen_taxon_id.add(row.taxon_id)
 
@@ -119,6 +127,7 @@ class ReadRowsResult(NamedTuple):
         ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
         return cls(
             geohash_to_taxon_id_to_count,
+            geohash_to_order_to_count,
             seen_taxon_id,
             ordered_seen_taxon_id,
             ordered_seen_geohash,
@@ -130,6 +139,18 @@ class ReadRowsResult(NamedTuple):
         averages: DefaultDict[TaxonId, float] = defaultdict(float)
         # taxon_id -> taxon count
         counts: Counter[TaxonId] = Counter()
+        # taxonomic order -> count
+        order_counts: Counter[str] = Counter()
+
+        geohashes = (
+            list(self.geohash_to_taxon_id_to_count.keys())
+            if geohash_filter is None
+            else [
+                g
+                for g in self.geohash_to_taxon_id_to_count.keys()
+                if g in geohash_filter
+            ]
+        )
 
         # Calculate total counts for each taxon_id
         for (
@@ -141,11 +162,25 @@ class ReadRowsResult(NamedTuple):
             for taxon_id, count in taxon_counts.items():
                 counts[taxon_id] += count
 
+        for (
+            geohash,
+            inner_order_counts,
+        ) in read_rows_result.geohash_to_order_to_count.items():
+            if geohash_filter and geohash not in geohash_filter:
+                continue
+            for order, count in inner_order_counts.items():
+                order_counts[order] += count
+
         # Calculate averages for each taxon_id
         for taxon_id in counts.keys():
             averages[taxon_id] = counts[taxon_id] / sum(counts.values())
 
-        return Stats(averages=averages, counts=counts)
+        return Stats(
+            geohashes=geohashes,
+            averages=averages,
+            counts=counts,
+            order_counts=order_counts,
+        )
 
 
 def build_condensed_distance_matrix(
@@ -187,6 +222,8 @@ def print_cluster_stats(
     stats = read_rows_result.build_stats(geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
+    print(f"Passeriformes counts: {stats.order_counts.get('Passeriformes')}")
+    print(f"Anseriformes counts: {stats.order_counts.get('Anseriformes')}")
     for taxon_id, count in sorted(
         all_stats.counts.items(), key=lambda x: x[1], reverse=True
     )[:10]:
