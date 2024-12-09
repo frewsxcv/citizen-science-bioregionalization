@@ -256,7 +256,9 @@ def build_condensed_distance_matrix(
     ordered_seen_taxon_id = sorted(read_rows_result.seen_taxon_id)
     ordered_seen_geohash = sorted(read_rows_result.geohash_to_taxon_id_to_count.keys())
 
-    logger.info("Building condensed distance matrix")
+    logger.info(
+        f"Building condensed distance matrix: {len(ordered_seen_geohash)} geohashes, {len(ordered_seen_taxon_id)} taxon IDs"
+    )
 
     # Create a matrix where each row is a geohash and each column is a taxon ID
     # Example:
