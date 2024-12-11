@@ -250,6 +250,11 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
 
 class ClusterIndex(NamedTuple):
     dataframe: pd.DataFrame
+    """
+    Schema:
+    - `geohash`: `str` (index)
+    - `cluster`: `int`
+    """
 
     @classmethod
     def build(
@@ -257,10 +262,10 @@ class ClusterIndex(NamedTuple):
     ) -> Self:
         dataframe = pd.DataFrame(
             columns=["geohash", "cluster"],
-            data=[
+            data=(
                 (geohash, cluster)
                 for geohash, cluster in zip(ordered_seen_geohash, clusters)
-            ],
+            ),
         )
         dataframe.set_index("geohash", inplace=True)
         return cls(dataframe)
