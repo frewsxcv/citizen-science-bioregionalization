@@ -248,7 +248,7 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
         )
 
 
-class ClusterIndex(NamedTuple):
+class ClusterDataFrame(NamedTuple):
     dataframe: pd.DataFrame
     """
     Schema:
@@ -278,12 +278,12 @@ class ClusterIndex(NamedTuple):
 
 
 def build_geojson_feature_collection(
-    cluster_index: ClusterIndex,
+    cluster_dataframe: ClusterDataFrame,
 ) -> geojson.FeatureCollection:
     return geojson.FeatureCollection(
         features=[
             build_geojson_feature(geohashes, cluster)
-            for cluster, geohashes in cluster_index.iter_clusters_and_geohashes()
+            for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
         ],
     )
 
@@ -325,10 +325,10 @@ if __name__ == "__main__":
     clusters = list(map(int, fcluster(Z, t=10, criterion="maxclust")))
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
-    cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
-    feature_collection = build_geojson_feature_collection(cluster_index)
+    cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
+    feature_collection = build_geojson_feature_collection(cluster_dataframe)
 
-    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes():
+    for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
