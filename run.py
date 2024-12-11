@@ -1,4 +1,5 @@
 from collections import defaultdict, Counter
+import pandas as pd
 import logging
 import numpy as np
 import geojson  # type: ignore
@@ -11,6 +12,7 @@ from scipy.spatial.distance import pdist
 from typing import (
     DefaultDict,
     Dict,
+    Iterator,
     List,
     NamedTuple,
     Optional,
@@ -210,21 +212,27 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
 
 
 class ClusterIndex(NamedTuple):
-    geohash_to_cluster: Dict[Geohash, ClusterId]
-    cluster_to_geohashes: Dict[ClusterId, List[Geohash]]
+    dataframe: pd.DataFrame
 
     @classmethod
     def build(
         cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]
     ) -> Self:
-        geohash_to_cluster = {
-            geohash: cluster for geohash, cluster in zip(ordered_seen_geohash, clusters)
-        }
-        cluster_to_geohashes = {
-            cluster: [g for g, c in geohash_to_cluster.items() if c == cluster]
-            for cluster in set(clusters)
-        }
-        return cls(geohash_to_cluster, cluster_to_geohashes)
+        dataframe = pd.DataFrame(
+            columns=["geohash", "cluster"],
+            data=[
+                (geohash, cluster)
+                for geohash, cluster in zip(ordered_seen_geohash, clusters)
+            ],
+        )
+        dataframe.set_index("geohash", inplace=True)
+        return cls(dataframe)
+
+    def iter_clusters_and_geohashes(
+        self,
+    ) -> Iterator[Tuple[ClusterId, List[Geohash]]]:
+        for cluster, geohashes in self.dataframe.groupby("cluster"):
+            yield cluster, geohashes.index
 
 
 def build_geojson_feature_collection(
@@ -233,7 +241,7 @@ def build_geojson_feature_collection(
     return geojson.FeatureCollection(
         features=[
             build_geojson_feature(geohashes, cluster)
-            for cluster, geohashes in cluster_index.cluster_to_geohashes.items()
+            for cluster, geohashes in cluster_index.iter_clusters_and_geohashes()
         ],
     )
 
@@ -278,7 +286,7 @@ if __name__ == "__main__":
     cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(cluster_index)
 
-    for cluster, geohashes in cluster_index.cluster_to_geohashes.items():
+    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
