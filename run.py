@@ -24,6 +24,8 @@ from typing import (
 from src.cli import parse_arguments
 from src.darwin_core import TaxonId, read_rows
 from src.geohash import geohash_to_bbox
+from src.render import plot_clusters
+from src.cluster import ClusterId
 
 COLORS = [
     "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
@@ -33,8 +35,6 @@ COLORS = [
 logger = logging.getLogger(__name__)
 
 type Geohash = str
-
-type ClusterId = int
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
@@ -242,29 +242,6 @@ def build_geojson_feature_collection(
     )
 
 
-def plot_clusters(cluster_index: ClusterIndex) -> None:
-    geojson_gdf = geopandas.GeoDataFrame.from_features(
-        feature_collection["features"], crs="EPSG:4326"
-    )
-    geojson_gdf_wm = geojson_gdf.to_crs(epsg=3857)
-
-    ax = geojson_gdf_wm.plot(
-        column="cluster",
-        legend=True,
-        categorical=True,
-    )
-    geojson_gdf_wm.plot(
-        ax=ax,
-        alpha=0.5,
-        color=geojson_gdf_wm["fill"],
-    )
-    contextily.add_basemap(
-        ax, source=contextily.providers.CartoDB.Positron, attribution_size=0
-    )
-    ax.set_axis_off()
-    plt.show()
-
-
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -311,4 +288,4 @@ if __name__ == "__main__":
     with open(args.output_file, "w") as geojson_writer:
         geojson.dump(feature_collection, geojson_writer)
 
-    plot_clusters(cluster_index)
+    plot_clusters(feature_collection)
