@@ -157,7 +157,7 @@ class ReadRowsResult(NamedTuple):
             geohash,
             taxon_counts,
         ) in read_rows_result.geohash_to_taxon_id_to_count.items():
-            if geohash_filter and geohash not in geohash_filter:
+            if geohash_filter is not None and geohash not in geohash_filter:
                 continue
             for taxon_id, count in taxon_counts.items():
                 counts[taxon_id] += count
@@ -166,7 +166,7 @@ class ReadRowsResult(NamedTuple):
             geohash,
             inner_order_counts,
         ) in read_rows_result.geohash_to_order_to_count.items():
-            if geohash_filter and geohash not in geohash_filter:
+            if geohash_filter is not None and geohash not in geohash_filter:
                 continue
             for order, count in inner_order_counts.items():
                 order_counts[order] += count
