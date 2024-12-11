@@ -3,6 +3,8 @@ import pygeohash
 from src.bbox import Bbox
 from src.point import Point
 
+type Geohash = str
+
 
 def geohash_to_bbox(geohash: str) -> Bbox:
     lat, lon, lat_err, lon_err = pygeohash.decode_exactly(geohash)

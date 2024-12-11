@@ -5,8 +5,6 @@ import geojson  # type: ignore
 import random
 import pickle
 import os
-import geopandas  # type: ignore
-import contextily  # type: ignore
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
@@ -23,7 +21,7 @@ from typing import (
 
 from src.cli import parse_arguments
 from src.darwin_core import TaxonId, read_rows
-from src.geohash import geohash_to_bbox
+from src.geohash import geohash_to_bbox, Geohash
 from src.render import plot_clusters
 from src.cluster import ClusterId
 
@@ -33,8 +31,6 @@ COLORS = [
 ]
 
 logger = logging.getLogger(__name__)
-
-type Geohash = str
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
