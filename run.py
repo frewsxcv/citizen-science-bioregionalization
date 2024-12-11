@@ -81,7 +81,14 @@ class Stats(NamedTuple):
 
 
 class ReadRowsResult(NamedTuple):
-    geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]]
+    taxon_counts_dataframe: pd.DataFrame
+    """
+    Schema:
+    - `geohash`: `str` (index)
+    - `taxon_id`: `str` (index)
+    - `count`: `int`
+    """
+
     geohash_to_order_to_count: DefaultDict[Geohash, Counter[str]]
     seen_taxon_id: Set[TaxonId]
     ordered_seen_taxon_id: List[TaxonId]
@@ -91,9 +98,8 @@ class ReadRowsResult(NamedTuple):
 
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
-        geohash_to_taxon_id_to_count: DefaultDict[Geohash, Counter[TaxonId]] = (
-            defaultdict(Counter)
-        )
+        # { (geohash, taxon_id): count }
+        taxon_counts_dataframe_data: Dict[Tuple[Geohash, TaxonId], int] = {}
         geohash_to_order_to_count: DefaultDict[Geohash, Counter[str]] = defaultdict(
             Counter
         )
@@ -119,23 +125,37 @@ class ReadRowsResult(NamedTuple):
                     > 5
                 ):
                     continue
-                geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
+
+                taxon_counts_dataframe_data.setdefault((geohash, row.taxon_id), 0)
+                taxon_counts_dataframe_data[(geohash, row.taxon_id)] += 1
                 geohash_to_order_to_count[geohash][row.order] += 1
                 taxon_index[row.taxon_id] = row.scientific_name
                 seen_taxon_id.add(row.taxon_id)
 
-        ordered_seen_taxon_id = sorted(seen_taxon_id)
-        ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
-        return cls(
-            geohash_to_taxon_id_to_count,
-            geohash_to_order_to_count,
-            seen_taxon_id,
-            ordered_seen_taxon_id,
-            ordered_seen_geohash,
-            taxon_index,
+        taxon_counts_dataframe: pd.DataFrame = pd.DataFrame(
+            data=([count] for count in taxon_counts_dataframe_data.values()),
+            columns=["count"],
+            index=pd.MultiIndex.from_tuples(
+                taxon_counts_dataframe_data.keys(),
+                names=["geohash", "taxon_id"],
+            ),
         )
 
-    def build_stats(self, geohash_filter: Optional[List[Geohash]] = None) -> Stats:
+        ordered_seen_taxon_id = sorted(seen_taxon_id)
+        ordered_seen_geohash = sorted(geohash_to_order_to_count.keys())
+        return cls(
+            taxon_counts_dataframe=taxon_counts_dataframe,
+            geohash_to_order_to_count=geohash_to_order_to_count,
+            seen_taxon_id=seen_taxon_id,
+            ordered_seen_taxon_id=ordered_seen_taxon_id,
+            ordered_seen_geohash=ordered_seen_geohash,
+            taxon_index=taxon_index,
+        )
+
+    def build_stats(
+        self,
+        geohash_filter: Optional[List[Geohash]] = None,
+    ) -> Stats:
         # taxon_id -> taxon average
         averages: DefaultDict[TaxonId, float] = defaultdict(float)
         # taxon_id -> taxon count
@@ -144,29 +164,28 @@ class ReadRowsResult(NamedTuple):
         order_counts: Counter[str] = Counter()
 
         geohashes = (
-            list(self.geohash_to_taxon_id_to_count.keys())
+            list(self.taxon_counts_dataframe.index.get_level_values("geohash"))
             if geohash_filter is None
             else [
                 g
-                for g in self.geohash_to_taxon_id_to_count.keys()
+                for g in self.taxon_counts_dataframe.index.get_level_values("geohash")
                 if g in geohash_filter
             ]
         )
 
-        # Calculate total counts for each taxon_id
-        for (
-            geohash,
-            taxon_counts,
-        ) in read_rows_result.geohash_to_taxon_id_to_count.items():
-            if geohash_filter is not None and geohash not in geohash_filter:
-                continue
-            for taxon_id, count in taxon_counts.items():
-                counts[taxon_id] += count
+        # Calculate total counts for each taxon_id using the dataframe
+        filtered_df = (
+            self.taxon_counts_dataframe
+            if geohash_filter is None
+            else self.taxon_counts_dataframe.loc[geohash_filter]
+        )
+        for (geohash, taxon_id), row in filtered_df.iterrows():
+            counts[taxon_id] += row["count"]
 
         for (
             geohash,
             inner_order_counts,
-        ) in read_rows_result.geohash_to_order_to_count.items():
+        ) in self.geohash_to_order_to_count.items():
             if geohash_filter is not None and geohash not in geohash_filter:
                 continue
             for order, count in inner_order_counts.items():
@@ -187,31 +206,26 @@ class ReadRowsResult(NamedTuple):
 def build_condensed_distance_matrix(
     read_rows_result: ReadRowsResult,
 ) -> Tuple[List[str], np.ndarray]:
-    ordered_seen_taxon_id = sorted(read_rows_result.seen_taxon_id)
-    ordered_seen_geohash = sorted(read_rows_result.geohash_to_taxon_id_to_count.keys())
+    # Create a matrix where each row is a geohash and each column is a taxon ID
+    # Example:
+    # [
+    #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
+    #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
+    #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
+    # ]
+    with Timer(output=logger.info, prefix="Building matrix"):
+        X = read_rows_result.taxon_counts_dataframe.unstack(fill_value=0)
 
-    with Timer(output=logger.info, prefix="Building condensed distance matrix"):
-        # Create a matrix where each row is a geohash and each column is a taxon ID
-        # Example:
-        # [
-        #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
-        #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
-        #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
-        #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
-        # ]
-        matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
-        for i, geohash in enumerate(ordered_seen_geohash):
-            for j, taxon_id in enumerate(ordered_seen_taxon_id):
-                matrix[i, j] = read_rows_result.geohash_to_taxon_id_to_count[
-                    geohash
-                ].get(taxon_id, 0)
+    logger.info(
+        f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
+    )
 
     # whitened = whiten(matrix)
-
     with Timer(output=logger.info, prefix="Running pdist"):
-        result = pdist(matrix, metric="braycurtis")
+        result = pdist(X.values, metric="braycurtis")
 
-    return ordered_seen_geohash, result
+    return list(X.index), result
 
 
 def print_cluster_stats(
