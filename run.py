@@ -154,8 +154,6 @@ class ReadRowsResult(NamedTuple):
             ),
         )
 
-        print(order_counts_dataframe)
-
         ordered_seen_taxon_id = sorted(
             taxon_counts_dataframe.index.get_level_values("taxon_id")
         )
