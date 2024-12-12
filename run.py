@@ -190,9 +190,9 @@ class ReadRowsResult(NamedTuple):
             .sum()
         )
 
-        taxon_averages: pd.Series = (
-            taxon_counts / self.taxon_counts_series.sum()
-        ).rename("average")
+        taxon_averages: pd.Series = (taxon_counts / taxon_counts.sum()).rename(
+            "average"
+        )
 
         taxon = pd.concat([taxon_counts, taxon_averages], axis=1)
 
