@@ -93,7 +93,7 @@ class Stats(NamedTuple):
 
 
 class ReadRowsResult(NamedTuple):
-    taxon_counts_dataframe: pd.DataFrame
+    taxon_counts_series: pd.Series
     """
     Schema:
     - `geohash`: `str` (index)
@@ -101,7 +101,7 @@ class ReadRowsResult(NamedTuple):
     - `count`: `int`
     """
 
-    order_counts_dataframe: pd.DataFrame
+    order_counts_series: pd.Series
     """
     Schema:
     - `geohash`: `str` (index)
@@ -117,8 +117,8 @@ class ReadRowsResult(NamedTuple):
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
         # { (geohash, taxon_id): count }
-        taxon_counts_dataframe_data: Dict[Tuple[Geohash, TaxonId], int] = {}
-        order_counts_dataframe_data: Dict[Tuple[Geohash, str], int] = {}
+        taxon_counts_series_data: Dict[Tuple[Geohash, TaxonId], int] = {}
+        order_counts_series_data: Dict[Tuple[Geohash, str], int] = {}
         # Will this work for eBird?
         geohash_to_taxon_id_to_user_to_count: DefaultDict[
             Geohash, DefaultDict[TaxonId, Counter[str]]
@@ -141,39 +141,39 @@ class ReadRowsResult(NamedTuple):
                 ):
                     continue
 
-                taxon_counts_dataframe_data.setdefault((geohash, row.taxon_id), 0)
-                taxon_counts_dataframe_data[(geohash, row.taxon_id)] += 1
-                order_counts_dataframe_data.setdefault((geohash, row.order), 0)
-                order_counts_dataframe_data[(geohash, row.order)] += 1
+                taxon_counts_series_data.setdefault((geohash, row.taxon_id), 0)
+                taxon_counts_series_data[(geohash, row.taxon_id)] += 1
+                order_counts_series_data.setdefault((geohash, row.order), 0)
+                order_counts_series_data[(geohash, row.order)] += 1
                 taxon_index[row.taxon_id] = row.scientific_name
 
-        taxon_counts_dataframe: pd.DataFrame = pd.DataFrame(
-            data=([count] for count in taxon_counts_dataframe_data.values()),
-            columns=["count"],
+        taxon_counts_series = pd.Series(
+            data=taxon_counts_series_data.values(),
             index=pd.MultiIndex.from_tuples(
-                taxon_counts_dataframe_data.keys(),
+                taxon_counts_series_data.keys(),
                 names=["geohash", "taxon_id"],
             ),
+            name="count",
         )
 
-        order_counts_dataframe: pd.DataFrame = pd.DataFrame(
-            data=([count] for count in order_counts_dataframe_data.values()),
-            columns=["count"],
+        order_counts_series = pd.Series(
+            data=order_counts_series_data.values(),
             index=pd.MultiIndex.from_tuples(
-                order_counts_dataframe_data.keys(),
+                order_counts_series_data.keys(),
                 names=["geohash", "order"],
             ),
+            name="count",
         )
 
         ordered_seen_taxon_id = sorted(
-            taxon_counts_dataframe.index.get_level_values("taxon_id")
+            taxon_counts_series.index.get_level_values("taxon_id")
         )
         ordered_seen_geohash = sorted(
-            taxon_counts_dataframe.index.get_level_values("geohash")
+            taxon_counts_series.index.get_level_values("geohash")
         )
         return cls(
-            taxon_counts_dataframe=taxon_counts_dataframe,
-            order_counts_dataframe=order_counts_dataframe,
+            taxon_counts_series=taxon_counts_series,
+            order_counts_series=order_counts_series,
             ordered_seen_taxon_id=ordered_seen_taxon_id,
             ordered_seen_geohash=ordered_seen_geohash,
             taxon_index=taxon_index,
@@ -187,24 +187,24 @@ class ReadRowsResult(NamedTuple):
         averages: DefaultDict[TaxonId, float] = defaultdict(float)
 
         geohashes = (
-            list(self.taxon_counts_dataframe.index.get_level_values("geohash"))
+            list(self.taxon_counts_series.index.get_level_values("geohash"))
             if geohash_filter is None
             else [
                 g
-                for g in self.taxon_counts_dataframe.index.get_level_values("geohash")
+                for g in self.taxon_counts_series.index.get_level_values("geohash")
                 if g in geohash_filter
             ]
         )
 
         taxon_counts = (
-            self.taxon_counts_dataframe.loc[geohashes]
+            self.taxon_counts_series.loc[geohashes]
             .reset_index(drop=False)[["taxon_id", "count"]]
             .groupby("taxon_id")["count"]
             .sum()
         )
 
         order_counts = (
-            self.order_counts_dataframe.loc[geohashes]
+            self.order_counts_series.loc[geohashes]
             .reset_index(drop=False)[["order", "count"]]
             .groupby("order")["count"]
             .sum()
@@ -234,7 +234,7 @@ def build_condensed_distance_matrix(
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     with Timer(output=logger.info, prefix="Building matrix"):
-        X = read_rows_result.taxon_counts_dataframe.unstack(fill_value=0)
+        X = read_rows_result.taxon_counts_series.unstack(fill_value=0)
 
     logger.info(
         f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
