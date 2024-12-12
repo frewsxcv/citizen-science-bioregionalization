@@ -8,6 +8,7 @@ import geojson  # type: ignore
 import random
 import pickle
 import os
+import geohashr
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
@@ -113,8 +114,12 @@ class ReadRowsResult(NamedTuple):
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
         # { (geohash, taxon_id): count }
-        taxon_counts_series_data: Dict[Tuple[Geohash, TaxonId], int] = {}
-        order_counts_series_data: Dict[Tuple[Geohash, str], int] = {}
+        taxon_counts_series_data: DefaultDict[Tuple[Geohash, TaxonId], np.uint32] = (
+            defaultdict(lambda: np.uint32(0))
+        )
+        order_counts_series_data: DefaultDict[Tuple[Geohash, str], np.uint32] = (
+            defaultdict(lambda: np.uint32(0))
+        )
         # Will this work for eBird?
         geohash_to_taxon_id_to_user_to_count: DefaultDict[
             Geohash, DefaultDict[TaxonId, Counter[str]]
@@ -123,25 +128,28 @@ class ReadRowsResult(NamedTuple):
         taxon_index: Dict[TaxonId, str] = {}
 
         with Timer(output=logger.info, prefix="Reading rows"):
-            for row in read_rows(input_file):
-                geohash = row.geohash(geohash_precision)
-                geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
-                    row.observer
-                ] += 1
-                # If the observer has seen the taxon more than 5 times, skip it
-                if (
-                    geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
-                        row.observer
-                    ]
-                    > 5
-                ):
-                    continue
+            for dataframe in read_rows(input_file):
+                for row in dataframe.itertuples():
+                    geohash = geohashr.encode(
+                        lat=row.decimalLatitude,
+                        lon=row.decimalLongitude,
+                        len=geohash_precision,
+                    )
+                    geohash_to_taxon_id_to_user_to_count[geohash][row.taxonKey][
+                        row.recordedBy
+                    ] += 1
+                    # If the observer has seen the taxon more than 5 times, skip it
+                    if (
+                        geohash_to_taxon_id_to_user_to_count[geohash][row.taxonKey][
+                            row.recordedBy
+                        ]
+                        > 5
+                    ):
+                        continue
 
-                taxon_counts_series_data.setdefault((geohash, row.taxon_id), 0)
-                taxon_counts_series_data[(geohash, row.taxon_id)] += 1
-                order_counts_series_data.setdefault((geohash, row.order), 0)
-                order_counts_series_data[(geohash, row.order)] += 1
-                taxon_index[row.taxon_id] = row.scientific_name
+                    taxon_counts_series_data[(geohash, row.taxonKey)] += 1
+                    order_counts_series_data[(geohash, row.order)] += 1
+                    taxon_index.setdefault(row.taxonKey, row.verbatimScientificName)
 
         taxon_counts_series = pd.Series(
             data=taxon_counts_series_data.values(),

@@ -189,6 +189,21 @@ wheels = [
 ]
 
 [[package]]
+name = "geohashr"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/dd/bab7c29902c2175380c64d7dee401c0bb224e2cabd99ba4212e3a637b852/geohashr-1.4.0.tar.gz", hash = "sha256:7b9e7ab96b3e9f5033ff8656d611b267c77b46805fd374dd3e107bc77be7c2e4", size = 8419 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/1e/d77cc34541b0c52260465ff805027c1ba1c743cc2288729b3825ae3e4f25/geohashr-1.4.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:4050d94e206ffcaab71e041671fb2548daa218ef3e5bc4030d003df690e86de4", size = 300177 },
+    { url = "https://files.pythonhosted.org/packages/9a/fd/417814b1ebaa35dbb74e5b58cf621be27e5e9118165bf695bccaa615b5b5/geohashr-1.4.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:8538dd6aefff6deef02dd45d5fe00b17712473f9ee3eda5cfde26b820eece28c", size = 281338 },
+    { url = "https://files.pythonhosted.org/packages/45/63/aba17cef80ffc65aee5c8b27dd3c5b713d02090eb8a749c85859dfb1df4b/geohashr-1.4.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3f6b6652f97a4c1e9e0a6af81a8f4dbb79115f3f25a3347f016d5adb00c0c98b", size = 355681 },
+    { url = "https://files.pythonhosted.org/packages/12/3f/28d317043ff9995c8ce58edfe31951e17dec2ad4d86788240882c4172d1f/geohashr-1.4.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a4e38977d4d7b1c1a4824b31b82158ea8724e550ba546882aed06d9a8c27399c", size = 378585 },
+    { url = "https://files.pythonhosted.org/packages/e6/0c/0fb19c907e3b3b1dbaefbaaee6c15966a1ac7fca25aec77c846adb9bc493/geohashr-1.4.0-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:9bf5c5cccbb4f40fbe9894849ccd50486e51fb57435db09b255ff80816d2ee4e", size = 546830 },
+    { url = "https://files.pythonhosted.org/packages/52/5e/6089696c0f893639260c177dfaa35449e519ca9315ec261e74e977b678f9/geohashr-1.4.0-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:8c1878247625f5bc78747f197ab570b8f2cac2213805f1c23f68c9b27a21b9c1", size = 545505 },
+    { url = "https://files.pythonhosted.org/packages/db/9c/152b5ce3616fdf83b92188eaee7f2e1b8389ab70963ad0dfa72581efcfbe/geohashr-1.4.0-cp313-none-win_amd64.whl", hash = "sha256:d83b90a2849bdffc746365cef3b9b9f18dca80990f1fd2ddbbe65e1be3ff13a0", size = 154669 },
+]
+
+[[package]]
 name = "geojson"
 version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -242,12 +257,12 @@ source = { virtual = "." }
 dependencies = [
     { name = "contextily" },
     { name = "contexttimer" },
+    { name = "geohashr" },
     { name = "geojson" },
     { name = "geopandas" },
     { name = "matplotlib" },
     { name = "mypy" },
     { name = "pandas" },
-    { name = "pygeohash" },
     { name = "scipy" },
     { name = "scipy-stubs" },
 ]
@@ -256,12 +271,12 @@ dependencies = [
 requires-dist = [
     { name = "contextily", specifier = ">=1.6.2" },
     { name = "contexttimer", specifier = ">=0.3.3" },
+    { name = "geohashr", specifier = ">=1.4.0" },
     { name = "geojson", specifier = ">=3.1.0" },
     { name = "geopandas", specifier = ">=1.0.1" },
     { name = "matplotlib", specifier = ">=3.9.3" },
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "pandas", specifier = ">=2.2.3" },
-    { name = "pygeohash", specifier = ">=1.0" },
     { name = "scipy", specifier = ">=1.11.3" },
     { name = "scipy-stubs", specifier = ">=1.14.1.5" },
 ]
@@ -468,12 +483,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/df/86/25dde85c06c89d7fc5db17940f07aae0a56ac69aa9ccb5eb0f09798862a8/pillow-11.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:5c39ed17edea3bc69c743a8dd3e9853b7509625c2462532e62baa0732163a904", size = 2572169 },
     { url = "https://files.pythonhosted.org/packages/51/85/9c33f2517add612e17f3381aee7c4072779130c634921a756c97bc29fb49/pillow-11.0.0-cp313-cp313t-win_arm64.whl", hash = "sha256:75acbbeb05b86bc53cbe7b7e6fe00fbcf82ad7c684b3ad82e3d711da9ba287d3", size = 2256828 },
 ]
-
-[[package]]
-name = "pygeohash"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2c/33/c912fa4476cedcd3ed9cd25c44c163583b92d319860438e6b632f7f42d0c/pygeohash-1.2.0.tar.gz", hash = "sha256:750e51643e743eabd065a84fc8c1912c5843b648143137919e4a9776366d921e", size = 4978 }
 
 [[package]]
 name = "pyogrio"
