@@ -98,7 +98,6 @@ class ReadRowsResult(NamedTuple):
     - `count`: `int`
     """
 
-    seen_taxon_id: Set[TaxonId]
     ordered_seen_taxon_id: List[TaxonId]
     ordered_seen_geohash: List[Geohash]
     # taxon_id -> scientific_name
@@ -109,7 +108,6 @@ class ReadRowsResult(NamedTuple):
         # { (geohash, taxon_id): count }
         taxon_counts_dataframe_data: Dict[Tuple[Geohash, TaxonId], int] = {}
         order_counts_dataframe_data: Dict[Tuple[Geohash, str], int] = {}
-        seen_taxon_id: Set[TaxonId] = set()
         # Will this work for eBird?
         geohash_to_taxon_id_to_user_to_count: DefaultDict[
             Geohash, DefaultDict[TaxonId, Counter[str]]
@@ -137,7 +135,6 @@ class ReadRowsResult(NamedTuple):
                 order_counts_dataframe_data.setdefault((geohash, row.order), 0)
                 order_counts_dataframe_data[(geohash, row.order)] += 1
                 taxon_index[row.taxon_id] = row.scientific_name
-                seen_taxon_id.add(row.taxon_id)
 
         taxon_counts_dataframe: pd.DataFrame = pd.DataFrame(
             data=([count] for count in taxon_counts_dataframe_data.values()),
@@ -159,14 +156,15 @@ class ReadRowsResult(NamedTuple):
 
         print(order_counts_dataframe)
 
-        ordered_seen_taxon_id = sorted(seen_taxon_id)
+        ordered_seen_taxon_id = sorted(
+            taxon_counts_dataframe.index.get_level_values("taxon_id")
+        )
         ordered_seen_geohash = sorted(
             taxon_counts_dataframe.index.get_level_values("geohash")
         )
         return cls(
             taxon_counts_dataframe=taxon_counts_dataframe,
             order_counts_dataframe=order_counts_dataframe,
-            seen_taxon_id=seen_taxon_id,
             ordered_seen_taxon_id=ordered_seen_taxon_id,
             ordered_seen_geohash=ordered_seen_geohash,
             taxon_index=taxon_index,
