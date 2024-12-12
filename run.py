@@ -129,27 +129,27 @@ class ReadRowsResult(NamedTuple):
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for dataframe in read_rows(input_file):
-                for row in dataframe.itertuples():
+                for (order, verbatimScientificName, decimalLatitude, decimalLongitude, taxonKey, recordedBy) in dataframe.iter_rows():
                     geohash = geohashr.encode(
-                        lat=row.decimalLatitude,
-                        lon=row.decimalLongitude,
+                        lat=decimalLatitude,
+                        lon=decimalLongitude,
                         len=geohash_precision,
                     )
-                    geohash_to_taxon_id_to_user_to_count[geohash][row.taxonKey][
-                        row.recordedBy
+                    geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
+                        recordedBy
                     ] += 1
                     # If the observer has seen the taxon more than 5 times, skip it
                     if (
-                        geohash_to_taxon_id_to_user_to_count[geohash][row.taxonKey][
-                            row.recordedBy
+                        geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
+                            recordedBy
                         ]
                         > 5
                     ):
                         continue
 
-                    taxon_counts_series_data[(geohash, row.taxonKey)] += 1
-                    order_counts_series_data[(geohash, row.order)] += 1
-                    taxon_index.setdefault(row.taxonKey, row.verbatimScientificName)
+                    taxon_counts_series_data[(geohash, taxonKey)] += 1
+                    order_counts_series_data[(geohash, order)] += 1
+                    taxon_index.setdefault(taxonKey, verbatimScientificName)
 
         taxon_counts_series = pd.Series(
             data=taxon_counts_series_data.values(),
@@ -230,7 +230,7 @@ def build_condensed_distance_matrix(
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     with Timer(output=logger.info, prefix="Building matrix"):
-        X = read_rows_result.taxon_counts_series.unstack(fill_value=0)
+        X = read_rows_result.taxon_counts_series.unstack(fill_value=np.uint32(0), sort=False)
 
     logger.info(
         f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"

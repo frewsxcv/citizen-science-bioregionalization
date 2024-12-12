@@ -1,7 +1,7 @@
 import csv
 from typing import Dict, Generator, NamedTuple, Optional, Self
 import logging
-import pandas as pd
+import polars as pl
 from src.point import Point
 from contexttimer import Timer
 
@@ -10,28 +10,26 @@ logger = logging.getLogger(__name__)
 type TaxonId = int
 
 
-dtype = {
-    "decimalLatitude": "Float64",
-    "decimalLongitude": "Float64",
-    "taxonKey": "UInt64",
-}
-
-
-def read_rows(input_file: str) -> Generator[pd.DataFrame, None, None]:
+def read_rows(input_file: str) -> Generator[pl.DataFrame, None, None]:
     with open(input_file, "rb") as f:
         num_lines = sum(1 for _ in f)
 
     logger.info(f"Processing CSV file ({num_lines} lines)")
 
-    chunksize = 200_000
-    num_chunks = num_lines // chunksize
-
-    for i, chunk in enumerate(pd.read_csv(
+    reader = pl.read_csv_batched(
         input_file,
-        delimiter="\t",
-        chunksize=200_000,
-        dtype=dtype,
-        usecols=[
+        separator="\t",
+        schema_overrides={
+            "decimalLatitude": pl.Float64,
+            "decimalLongitude": pl.Float64,
+            "taxonKey": pl.UInt64,
+            "verbatimScientificName": pl.String,
+            "order": pl.String,
+            "recordedBy": pl.String,
+        },
+        infer_schema_length=0,
+        quote_char=None,
+        columns=[
             "decimalLatitude",
             "decimalLongitude",
             "taxonKey",
@@ -39,13 +37,15 @@ def read_rows(input_file: str) -> Generator[pd.DataFrame, None, None]:
             "order",
             "recordedBy",
         ],
-    )):
-        with Timer(output=logger.info, prefix=f"Processing CSV file chunk {i}/{num_chunks} ({(i/num_chunks)*100:.1f}%)"):
-            yield chunk
-
-    # with open(input_file, "r") as f:
-    #     reader = csv.DictReader(f, delimiter="\t")
-    #     for dict_row in reader:
-    #         row = Row.from_csv_dict(dict_row)
-    #         if row:
-    #             yield row
+    )
+    batches = reader.next_batches(n=5)
+    processed_lines = 0
+    while batches:
+        for batch in batches:
+            with Timer(
+                output=logger.info,
+                prefix=f"Processing CSV file: {processed_lines}/{num_lines} lines ({(processed_lines/num_lines)*100:.1f}%)",
+            ):
+                yield batch
+            processed_lines += len(batch)
+        batches = reader.next_batches(n=5)
