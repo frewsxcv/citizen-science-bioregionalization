@@ -245,7 +245,9 @@ def build_condensed_distance_matrix(
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     with Timer(output=logger.info, prefix="Building matrix"):
-        X = read_rows_result.taxon_counts_series.unstack(fill_value=np.uint32(0), sort=False)
+        X = read_rows_result.taxon_counts_series.unstack(
+            fill_value=np.uint32(0), sort=False
+        )
 
     logger.info(
         f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
