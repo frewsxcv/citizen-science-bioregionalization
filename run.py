@@ -73,12 +73,23 @@ def build_geojson_feature(
 
 class Stats(NamedTuple):
     geohashes: List[Geohash]
+
     # taxon_id -> average per geohash
     averages: Dict[TaxonId, float]
-    # taxon_id -> count
-    counts: Counter[TaxonId]
-    # taxonomic order -> count
-    order_counts: Counter[str]
+
+    taxon_counts: pd.Series
+    """
+    Schema:
+    - `taxon_id`: `int` (index)
+    - `count`: `int`
+    """
+
+    order_counts: pd.Series
+    """
+    Schema:
+    - `order`: `str` (index)
+    - `count`: `int`
+    """
 
 
 class ReadRowsResult(NamedTuple):
@@ -174,10 +185,6 @@ class ReadRowsResult(NamedTuple):
     ) -> Stats:
         # taxon_id -> taxon average
         averages: DefaultDict[TaxonId, float] = defaultdict(float)
-        # taxon_id -> taxon count
-        counts: Counter[TaxonId] = Counter()
-        # taxonomic order -> count
-        order_counts: Counter[str] = Counter()
 
         geohashes = (
             list(self.taxon_counts_dataframe.index.get_level_values("geohash"))
@@ -189,31 +196,28 @@ class ReadRowsResult(NamedTuple):
             ]
         )
 
-        # Calculate total counts for each taxon_id using the dataframe
-        filtered_df = (
-            self.taxon_counts_dataframe
-            if geohash_filter is None
-            else self.taxon_counts_dataframe.loc[geohash_filter]
+        taxon_counts = (
+            self.taxon_counts_dataframe.loc[geohashes]
+            .reset_index(drop=False)[["taxon_id", "count"]]
+            .groupby("taxon_id")["count"]
+            .sum()
         )
-        for (_, taxon_id), row in filtered_df.iterrows():
-            counts[taxon_id] += row["count"]
 
-        filtered_order_counts_dataframe = (
-            self.order_counts_dataframe
-            if geohash_filter is None
-            else self.order_counts_dataframe.loc[geohash_filter]
+        order_counts = (
+            self.order_counts_dataframe.loc[geohashes]
+            .reset_index(drop=False)[["order", "count"]]
+            .groupby("order")["count"]
+            .sum()
         )
-        for (_, order), row in filtered_order_counts_dataframe.iterrows():
-            order_counts[order] += row["count"]
 
         # Calculate averages for each taxon_id
-        for taxon_id in counts.keys():
-            averages[taxon_id] = counts[taxon_id] / sum(counts.values())
+        for taxon_id in taxon_counts.index:
+            averages[taxon_id] = taxon_counts.loc[taxon_id] / taxon_counts.sum()
 
         return Stats(
             geohashes=geohashes,
             averages=averages,
-            counts=counts,
+            taxon_counts=taxon_counts,
             order_counts=order_counts,
         )
 
@@ -254,28 +258,26 @@ def print_cluster_stats(
     print(f"cluster {cluster} (count: {len(geohashes)})")
     print(f"Passeriformes counts: {stats.order_counts.get('Passeriformes')}")
     print(f"Anseriformes counts: {stats.order_counts.get('Anseriformes')}")
-    for taxon_id, count in sorted(
-        all_stats.counts.items(), key=lambda x: x[1], reverse=True
-    )[:10]:
+    for taxon_id, count in all_stats.taxon_counts.nlargest(5).items():
         # If the difference between the average of the cluster and the average of all is greater than 20%, print it
         percent_diff = (
             stats.averages[taxon_id] / all_stats.averages[taxon_id] * 100
         ) - 100
         if abs(percent_diff) > 20:
             # Print the percentage difference
+            print(f"{read_rows_result.taxon_index[taxon_id]}:")
             print(
-                f"{read_rows_result.taxon_index[taxon_id]}: {stats.averages[taxon_id]} {all_stats.averages[taxon_id]} ({percent_diff:.2f}%)"
+                f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
+            print(f"  - Proportion: {all_stats.averages[taxon_id] * 100:.2f}%")
+            print(f"  - Count: {count}")
 
 
 def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) -> None:
-    print("all")
-    for taxon_id, count in sorted(
-        all_stats.counts.items(), key=lambda x: x[1], reverse=True
-    )[:5]:
-        print(
-            f"{read_rows_result.taxon_index[taxon_id]}: {all_stats.averages[taxon_id]}"
-        )
+    for taxon_id, count in all_stats.taxon_counts.nlargest(5).items():
+        print(f"{read_rows_result.taxon_index[taxon_id]}:")
+        print(f"  - Proportion: {all_stats.averages[taxon_id] * 100:.2f}%")
+        print(f"  - Count: {count}")
 
 
 class ClusterDataFrame(NamedTuple):
