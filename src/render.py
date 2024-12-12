@@ -10,15 +10,12 @@ def plot_clusters(feature_collection: geojson.FeatureCollection) -> None:
     )
     geojson_gdf_wm = geojson_gdf.to_crs(epsg=3857)
 
+    # Note: This does not yet honor the fill color in the geojson
     ax = geojson_gdf_wm.plot(
-        column="cluster",
+        column=geojson_gdf_wm["cluster"],
         legend=True,
         categorical=True,
-    )
-    geojson_gdf_wm.plot(
-        ax=ax,
         alpha=0.5,
-        color=geojson_gdf_wm["fill"],
     )
     contextily.add_basemap(
         ax, source=contextily.providers.CartoDB.Positron, attribution_size=0
