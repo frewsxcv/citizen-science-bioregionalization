@@ -9,7 +9,6 @@ import random
 import pickle
 import os
 from contexttimer import Timer
-from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
 from typing import (
