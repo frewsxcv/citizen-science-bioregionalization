@@ -1,3 +1,5 @@
+# TODO: Don't include geohashes that extend beyond the bounds of the dataset as those clusters will have artificially fewer counts
+
 from collections import defaultdict, Counter
 import pandas as pd
 import logging
