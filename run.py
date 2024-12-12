@@ -6,6 +6,7 @@ import geojson  # type: ignore
 import random
 import pickle
 import os
+from contexttimer import Timer
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
@@ -102,26 +103,26 @@ class ReadRowsResult(NamedTuple):
             Geohash, DefaultDict[TaxonId, Counter[str]]
         ] = defaultdict(lambda: defaultdict(Counter))
 
-        logger.info("Reading rows")
         taxon_index: Dict[TaxonId, str] = {}
 
-        for row in read_rows(input_file):
-            geohash = row.geohash(geohash_precision)
-            geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
-                row.observer
-            ] += 1
-            # If the observer has seen the taxon more than 5 times, skip it
-            if (
+        with Timer(output=logger.info, prefix="Reading rows"):
+            for row in read_rows(input_file):
+                geohash = row.geohash(geohash_precision)
                 geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
                     row.observer
-                ]
-                > 5
-            ):
-                continue
-            geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
-            geohash_to_order_to_count[geohash][row.order] += 1
-            taxon_index[row.taxon_id] = row.scientific_name
-            seen_taxon_id.add(row.taxon_id)
+                ] += 1
+                # If the observer has seen the taxon more than 5 times, skip it
+                if (
+                    geohash_to_taxon_id_to_user_to_count[geohash][row.taxon_id][
+                        row.observer
+                    ]
+                    > 5
+                ):
+                    continue
+                geohash_to_taxon_id_to_count[geohash][row.taxon_id] += 1
+                geohash_to_order_to_count[geohash][row.order] += 1
+                taxon_index[row.taxon_id] = row.scientific_name
+                seen_taxon_id.add(row.taxon_id)
 
         ordered_seen_taxon_id = sorted(seen_taxon_id)
         ordered_seen_geohash = sorted(geohash_to_taxon_id_to_count.keys())
@@ -189,28 +190,28 @@ def build_condensed_distance_matrix(
     ordered_seen_taxon_id = sorted(read_rows_result.seen_taxon_id)
     ordered_seen_geohash = sorted(read_rows_result.geohash_to_taxon_id_to_count.keys())
 
-    logger.info(
-        f"Building condensed distance matrix: {len(ordered_seen_geohash)} geohashes, {len(ordered_seen_taxon_id)} taxon IDs"
-    )
-
-    # Create a matrix where each row is a geohash and each column is a taxon ID
-    # Example:
-    # [
-    #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
-    #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
-    # ]
-    matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
-    for i, geohash in enumerate(ordered_seen_geohash):
-        for j, taxon_id in enumerate(ordered_seen_taxon_id):
-            matrix[i, j] = read_rows_result.geohash_to_taxon_id_to_count[geohash].get(
-                taxon_id, 0
-            )
+    with Timer(output=logger.info, prefix="Building condensed distance matrix"):
+        # Create a matrix where each row is a geohash and each column is a taxon ID
+        # Example:
+        # [
+        #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+        #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
+        #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
+        #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
+        # ]
+        matrix = np.zeros((len(ordered_seen_geohash), len(ordered_seen_taxon_id)))
+        for i, geohash in enumerate(ordered_seen_geohash):
+            for j, taxon_id in enumerate(ordered_seen_taxon_id):
+                matrix[i, j] = read_rows_result.geohash_to_taxon_id_to_count[
+                    geohash
+                ].get(taxon_id, 0)
 
     # whitened = whiten(matrix)
 
-    return ordered_seen_geohash, pdist(matrix, metric="braycurtis")
+    with Timer(output=logger.info, prefix="Running pdist"):
+        result = pdist(matrix, metric="braycurtis")
+
+    return ordered_seen_geohash, result
 
 
 def print_cluster_stats(
@@ -291,25 +292,25 @@ def build_geojson_feature_collection(
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
-    logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.DEBUG)
+    logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
 
     if os.path.exists("condensed_distance_matrix.pickle"):
-        logger.info("Loading condensed distance matrix")
-        with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
-            ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
-                pickle.load(pickle_reader)
-            )
+        with Timer(output=logger.info, prefix="Loading condensed distance matrix"):
+            with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
+                ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
+                    pickle.load(pickle_reader)
+                )
     else:
         read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
         ordered_seen_geohash, condensed_distance_matrix = (
             build_condensed_distance_matrix(read_rows_result)
         )
-        logger.info("Saving condensed distance matrix")
-        with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
-            pickle.dump(
-                (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
-                pickle_writer,
-            )
+        with Timer(output=logger.info, prefix="Saving condensed distance matrix"):
+            with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
+                pickle.dump(
+                    (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
+                    pickle_writer,
+                )
 
     # Find the top averages of taxon
     all_stats = read_rows_result.build_stats()
