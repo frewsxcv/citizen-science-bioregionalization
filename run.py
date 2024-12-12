@@ -109,8 +109,6 @@ class ReadRowsResult(NamedTuple):
     - `count`: `int`
     """
 
-    ordered_seen_taxon_id: List[TaxonId]
-    ordered_seen_geohash: List[Geohash]
     # taxon_id -> scientific_name
     taxon_index: Dict[TaxonId, str]
 
@@ -155,6 +153,7 @@ class ReadRowsResult(NamedTuple):
             ),
             name="count",
         )
+        taxon_counts_series.sort_index(inplace=True)
 
         order_counts_series = pd.Series(
             data=order_counts_series_data.values(),
@@ -164,18 +163,11 @@ class ReadRowsResult(NamedTuple):
             ),
             name="count",
         )
+        order_counts_series.sort_index(inplace=True)
 
-        ordered_seen_taxon_id = sorted(
-            taxon_counts_series.index.get_level_values("taxon_id")
-        )
-        ordered_seen_geohash = sorted(
-            taxon_counts_series.index.get_level_values("geohash")
-        )
         return cls(
             taxon_counts_series=taxon_counts_series,
             order_counts_series=order_counts_series,
-            ordered_seen_taxon_id=ordered_seen_taxon_id,
-            ordered_seen_geohash=ordered_seen_geohash,
             taxon_index=taxon_index,
         )
 
