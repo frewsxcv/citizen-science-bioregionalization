@@ -36,7 +36,7 @@ class Row(NamedTuple):
         return cls(
             location=Point(lat, lon),
             taxon_id=taxon_id,
-            scientific_name=row["scientificName"],
+            scientific_name=row["verbatimScientificName"],
             order=row["order"],
             observer=row["recordedBy"],
         )
