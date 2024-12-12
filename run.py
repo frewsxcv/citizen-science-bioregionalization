@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 import numpy as np
 import geojson  # type: ignore
+import polars as pl
 import random
 import pickle
 import os
@@ -91,6 +92,14 @@ class Stats(NamedTuple):
     """
 
 
+def build_geohash_series(dataframe: pl.DataFrame) -> pl.Series:
+    return (
+        dataframe[["decimalLatitude", "decimalLongitude"]]
+        .map_rows(lambda n: (geohashr.encode(n[0], n[1])))
+        .rename({"map": "geohash"})["geohash"]
+    )
+
+
 class ReadRowsResult(NamedTuple):
     taxon_counts_series: pd.Series
     """
@@ -129,12 +138,18 @@ class ReadRowsResult(NamedTuple):
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for dataframe in read_rows(input_file):
-                for (order, verbatimScientificName, decimalLatitude, decimalLongitude, taxonKey, recordedBy) in dataframe.iter_rows():
-                    geohash = geohashr.encode(
-                        lat=decimalLatitude,
-                        lon=decimalLongitude,
-                        len=geohash_precision,
-                    )
+                geohash_series = build_geohash_series(dataframe)
+                dataframe.insert_column(-1, geohash_series)
+
+                for (
+                    order,
+                    verbatimScientificName,
+                    _decimalLatitude,
+                    _decimalLongitude,
+                    taxonKey,
+                    recordedBy,
+                    geohash,
+                ) in dataframe.iter_rows():
                     geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
                         recordedBy
                     ] += 1
