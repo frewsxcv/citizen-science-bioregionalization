@@ -76,11 +76,11 @@ def build_geojson_feature(
 class Stats(NamedTuple):
     geohashes: List[Geohash]
 
-    taxon_dataframe: pd.DataFrame
+    taxon: pl.LazyFrame
     """
     Schema:
-    - `taxon_id`: `int` (index)
-    - `count`: `int`
+    - `taxonKey`: `int`
+    - `len`: `int`
     - `average`: `float`
     """
 
@@ -92,21 +92,21 @@ class Stats(NamedTuple):
     """
 
 
-def build_geohash_series(dataframe: pl.DataFrame) -> pl.Series:
+def build_geohash_series(dataframe: pl.DataFrame, precision: int) -> pl.Series:
     return (
         dataframe[["decimalLatitude", "decimalLongitude"]]
-        .map_rows(lambda n: (geohashr.encode(n[0], n[1])))
+        .map_rows(lambda n: (geohashr.encode(n[0], n[1], precision)))
         .rename({"map": "geohash"})["geohash"]
     )
 
 
 class ReadRowsResult(NamedTuple):
-    taxon_counts_series: pd.Series
+    taxon_counts: pl.LazyFrame
     """
     Schema:
-    - `geohash`: `str` (index)
-    - `taxon_id`: `str` (index)
-    - `count`: `int`
+    - `geohash`: `str`
+    - `taxonKey`: `int`
+    - `len`: `int`
     """
 
     order_counts_series: pd.Series
@@ -122,9 +122,13 @@ class ReadRowsResult(NamedTuple):
 
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
-        # { (geohash, taxon_id): count }
-        taxon_counts_series_data: DefaultDict[Tuple[Geohash, TaxonId], np.uint32] = (
-            defaultdict(lambda: np.uint32(0))
+        taxon_counts = pl.LazyFrame(
+            schema={
+                "geohash": pl.String,
+                "taxonKey": pl.UInt64,
+                # TODO: rename this to `count`
+                "len": pl.UInt32,
+            }
         )
         order_counts_series_data: DefaultDict[Tuple[Geohash, str], np.uint32] = (
             defaultdict(lambda: np.uint32(0))
@@ -138,8 +142,17 @@ class ReadRowsResult(NamedTuple):
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for dataframe in read_rows(input_file):
-                geohash_series = build_geohash_series(dataframe)
+                geohash_series = build_geohash_series(dataframe, geohash_precision)
                 dataframe.insert_column(-1, geohash_series)
+
+                taxon_counts = pl.concat(
+                    items=[
+                        taxon_counts,
+                        dataframe.lazy()
+                        .group_by(["geohash", "taxonKey"])
+                        .agg(pl.len()),
+                    ]
+                )
 
                 for (
                     order,
@@ -162,19 +175,14 @@ class ReadRowsResult(NamedTuple):
                     ):
                         continue
 
-                    taxon_counts_series_data[(geohash, taxonKey)] += 1
                     order_counts_series_data[(geohash, order)] += 1
                     taxon_index.setdefault(taxonKey, verbatimScientificName)
 
-        taxon_counts_series = pd.Series(
-            data=taxon_counts_series_data.values(),
-            index=pd.MultiIndex.from_tuples(
-                taxon_counts_series_data.keys(),
-                names=["geohash", "taxon_id"],
-            ),
-            name="count",
+        taxon_counts = (
+            taxon_counts.group_by(["geohash", "taxonKey"])
+            .agg(pl.col("len").sum())
+            .sort(by="geohash")
         )
-        taxon_counts_series.sort_index(inplace=True)
 
         order_counts_series = pd.Series(
             data=order_counts_series_data.values(),
@@ -187,37 +195,61 @@ class ReadRowsResult(NamedTuple):
         order_counts_series.sort_index(inplace=True)
 
         return cls(
-            taxon_counts_series=taxon_counts_series,
+            taxon_counts=taxon_counts,
             order_counts_series=order_counts_series,
             taxon_index=taxon_index,
+        )
+
+    def ordered_geohashes(self) -> List[Geohash]:
+        return (
+            self.taxon_counts.select("geohash")
+            .unique()
+            .sort(by="geohash")
+            .collect()
+            .get_column("geohash")
+            .to_list()
+        )
+
+    def ordered_taxon_keys(self) -> List[TaxonId]:
+        return (
+            self.taxon_counts.select("taxonKey")
+            .unique()
+            .sort(by="taxonKey")
+            .collect()
+            .get_column("taxonKey")
+            .to_list()
         )
 
     def build_stats(
         self,
         geohash_filter: Optional[List[Geohash]] = None,
     ) -> Stats:
-        geohashes = list(
-            set(self.taxon_counts_series.index.get_level_values("geohash"))
+        geohashes = (
+            self.ordered_geohashes()
             if geohash_filter is None
-            else set(
-                g
-                for g in self.taxon_counts_series.index.get_level_values("geohash")
-                if g in geohash_filter
-            )
+            else [g for g in self.ordered_geohashes() if g in geohash_filter]
         )
 
-        taxon_counts: pd.Series = (
-            self.taxon_counts_series.loc[geohashes]
-            .reset_index(drop=False)[["taxon_id", "count"]]
-            .groupby("taxon_id")["count"]
-            .sum()
+        # Schema:
+        # - `taxonKey`: `int`
+        # - `count`: `int`
+        taxon_counts: pl.LazyFrame = (
+            self.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
+            .select(["taxonKey", "len"])
+            .group_by("taxonKey")
+            .agg(pl.col("len").sum())
         )
 
-        taxon_averages: pd.Series = (taxon_counts / taxon_counts.sum()).rename(
-            "average"
-        )
+        # Total observation count all filtered geohashes
+        total_count: int = taxon_counts.select("len").sum().collect()["len"].item()
 
-        taxon = pd.concat([taxon_counts, taxon_averages], axis=1)
+        # Schema:
+        # - `taxonKey`: `int`
+        # - `count`: `int`
+        # - `average`: `float`
+        taxon: pl.LazyFrame = taxon_counts.with_columns(
+            (pl.col("len") / total_count).alias("average")
+        )
 
         order_counts = (
             self.order_counts_series.loc[geohashes]
@@ -228,7 +260,7 @@ class ReadRowsResult(NamedTuple):
 
         return Stats(
             geohashes=geohashes,
-            taxon_dataframe=taxon,
+            taxon=taxon,
             order_counts=order_counts,
         )
 
@@ -245,19 +277,50 @@ def build_condensed_distance_matrix(
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     with Timer(output=logger.info, prefix="Building matrix"):
-        X = read_rows_result.taxon_counts_series.unstack(
-            fill_value=np.uint32(0), sort=False
+        # matrix = np.zeros(
+        #     (len(ordered_seen_geohash), len(ordered_seen_taxon_id)), dtype=np.uint32
+        # )
+        # geohash_count = 0
+        # for i, geohash in enumerate(ordered_seen_geohash):
+        #     # Print progress every 1000 geohashes
+        #     if geohash_count % 1000 == 0:
+        #         logger.info(
+        #             f"Processing geohash {geohash_count} of {len(ordered_seen_geohash)} ({geohash_count / len(ordered_seen_geohash) * 100:.2f}%)"
+        #         )
+        #     geohash_count += 1
+
+        #     for geohash, taxonKey, count in (
+        #         read_rows_result.taxon_counts.filter(pl.col("geohash") == geohash)
+        #         .collect()
+        #         .iter_rows(named=False)
+        #     ):
+        #         j = ordered_seen_taxon_id.index(taxonKey)
+        #         matrix[i, j] = np.uint32(count)
+
+        X = read_rows_result.taxon_counts.collect().pivot(
+            on="taxonKey",
+            index="geohash",
         )
 
-    logger.info(
-        f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
-    )
+    # fill null values with 0
+    with Timer(output=logger.info, prefix="Filling null values"):
+        X = X.fill_null(np.uint32(0))
+
+    assert X["geohash"].to_list() == read_rows_result.ordered_geohashes()
+
+    X = X.drop("geohash")
+
+    # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
+
+    # logger.info(
+    #     f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
+    # )
 
     # whitened = whiten(matrix)
     with Timer(output=logger.info, prefix="Running pdist"):
-        result = pdist(X.values, metric="braycurtis")
+        result = pdist(X.to_numpy(), metric="braycurtis")
 
-    return list(X.index), result
+    return read_rows_result.ordered_geohashes(), result
 
 
 def print_cluster_stats(
@@ -271,31 +334,45 @@ def print_cluster_stats(
     print(f"cluster {cluster} (count: {len(geohashes)})")
     print(f"Passeriformes counts: {stats.order_counts.get('Passeriformes')}")
     print(f"Anseriformes counts: {stats.order_counts.get('Anseriformes')}")
-    for taxon_id, count in stats.taxon_dataframe["count"].nlargest(5).items():
+
+    for taxon_id, count in (
+        stats.taxon.sort(by="len", descending=True)
+        .limit(5)
+        .select(["taxonKey", "len"])
+        .collect()
+        .iter_rows(named=False)
+    ):
+        average = stats.taxon.filter(pl.col("taxonKey") == taxon_id).collect().get_column("average").item()
+        all_average = all_stats.taxon.filter(pl.col("taxonKey") == taxon_id).collect().get_column("average").item()
+
         # If the difference between the average of the cluster and the average of all is greater than 20%, print it
-        percent_diff = (
-            stats.taxon_dataframe["average"][taxon_id]
-            / all_stats.taxon_dataframe["average"][taxon_id]
-            * 100
-        ) - 100
+        percent_diff = (average / all_average * 100) - 100
         if abs(percent_diff) > 20:
             # Print the percentage difference
             print(f"{read_rows_result.taxon_index[taxon_id]}:")
             print(
                 f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
-            print(
-                f"  - Proportion: {stats.taxon_dataframe['average'][taxon_id] * 100:.2f}%"
-            )
+            print(f"  - Proportion: {average * 100:.2f}%")
             print(f"  - Count: {count}")
 
 
 def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) -> None:
-    for taxon_id, count in all_stats.taxon_dataframe["count"].nlargest(5).items():
-        print(f"{read_rows_result.taxon_index[taxon_id]}:")
-        print(
-            f"  - Proportion: {all_stats.taxon_dataframe['average'][taxon_id] * 100:.2f}%"
+    for taxon_id, count in (
+        all_stats.taxon.sort(by="len", descending=True)
+        .limit(5)
+        .select(["taxonKey", "len"])
+        .collect()
+        .iter_rows(named=False)
+    ):
+        average = (
+            all_stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            .collect()
+            .get_column("average")
+            .item()
         )
+        print(f"{read_rows_result.taxon_index[taxon_id]}:")
+        print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 
 
