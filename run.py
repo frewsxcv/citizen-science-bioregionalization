@@ -141,16 +141,18 @@ class ReadRowsResult(NamedTuple):
         taxon_index: Dict[TaxonId, str] = {}
 
         with Timer(output=logger.info, prefix="Reading rows"):
-            for dataframe in read_rows(input_file):
-                geohash_series = build_geohash_series(dataframe, geohash_precision)
-                dataframe.insert_column(-1, geohash_series)
+            for read_dataframe in read_rows(input_file):
+                geohash_series = build_geohash_series(read_dataframe, geohash_precision)
+                dataframe_with_geohash = read_dataframe.lazy().with_columns(
+                    geohash_series
+                )
 
                 taxon_counts = pl.concat(
                     items=[
                         taxon_counts,
-                        dataframe.lazy()
-                        .group_by(["geohash", "taxonKey"])
-                        .agg(pl.len()),
+                        dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
+                            pl.len()
+                        ),
                     ]
                 )
 
@@ -162,7 +164,9 @@ class ReadRowsResult(NamedTuple):
                     taxonKey,
                     recordedBy,
                     geohash,
-                ) in dataframe.iter_rows():
+                ) in dataframe_with_geohash.collect(streaming=True).iter_rows(
+                    named=False
+                ):
                     geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
                         recordedBy
                     ] += 1
@@ -342,8 +346,18 @@ def print_cluster_stats(
         .collect()
         .iter_rows(named=False)
     ):
-        average = stats.taxon.filter(pl.col("taxonKey") == taxon_id).collect().get_column("average").item()
-        all_average = all_stats.taxon.filter(pl.col("taxonKey") == taxon_id).collect().get_column("average").item()
+        average = (
+            stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            .collect()
+            .get_column("average")
+            .item()
+        )
+        all_average = (
+            all_stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            .collect()
+            .get_column("average")
+            .item()
+        )
 
         # If the difference between the average of the cluster and the average of all is greater than 20%, print it
         percent_diff = (average / all_average * 100) - 100
