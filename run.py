@@ -117,8 +117,12 @@ class ReadRowsResult(NamedTuple):
     - `count`: `int`
     """
 
-    # taxon_id -> scientific_name
-    taxon_index: Dict[TaxonId, str]
+    taxon_index: pl.LazyFrame
+    """
+    Schema:
+    - `taxonKey`: `int`
+    - `verbatimScientificName`: `str`
+    """
 
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
@@ -138,7 +142,12 @@ class ReadRowsResult(NamedTuple):
             Geohash, DefaultDict[TaxonId, Counter[str]]
         ] = defaultdict(lambda: defaultdict(Counter))
 
-        taxon_index: Dict[TaxonId, str] = {}
+        taxon_index = pl.LazyFrame(
+            schema={
+                "taxonKey": pl.UInt64,
+                "verbatimScientificName": pl.String,
+            }
+        )
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for read_dataframe in read_rows(input_file):
@@ -156,31 +165,31 @@ class ReadRowsResult(NamedTuple):
                     ]
                 )
 
-                for (
-                    order,
-                    verbatimScientificName,
-                    _decimalLatitude,
-                    _decimalLongitude,
-                    taxonKey,
-                    recordedBy,
-                    geohash,
-                ) in dataframe_with_geohash.collect(streaming=True).iter_rows(
-                    named=False
+                taxon_index = pl.concat(
+                    items=[
+                        taxon_index,
+                        dataframe_with_geohash.select(
+                            ["taxonKey", "verbatimScientificName"]
+                        ),
+                    ]
+                ).unique()
+
+                for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
+                    named=True
                 ):
-                    geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
-                        recordedBy
-                    ] += 1
+                    geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+                        row["taxonKey"]
+                    ][row["recordedBy"]] += 1
                     # If the observer has seen the taxon more than 5 times, skip it
                     if (
-                        geohash_to_taxon_id_to_user_to_count[geohash][taxonKey][
-                            recordedBy
-                        ]
+                        geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+                            row["taxonKey"]
+                        ][row["recordedBy"]]
                         > 5
                     ):
                         continue
 
-                    order_counts_series_data[(geohash, order)] += 1
-                    taxon_index.setdefault(taxonKey, verbatimScientificName)
+                    order_counts_series_data[(row["geohash"], row["order"])] += 1
 
         taxon_counts = (
             taxon_counts.group_by(["geohash", "taxonKey"])
@@ -203,6 +212,18 @@ class ReadRowsResult(NamedTuple):
             order_counts_series=order_counts_series,
             taxon_index=taxon_index,
         )
+
+    def scientific_name_for_taxon_key(self, taxon_key: TaxonId) -> str:
+        column = (
+            self.taxon_index.filter(pl.col("taxonKey") == taxon_key)
+            .collect()
+            .get_column("verbatimScientificName")
+        )
+        if len(column) > 1:
+            # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
+            # raise ValueError(f"Multiple scientific names for taxon key {taxon_key}")
+            return column.limit(1).item()
+        return column.item()
 
     def ordered_geohashes(self) -> List[Geohash]:
         return (
@@ -363,7 +384,7 @@ def print_cluster_stats(
         percent_diff = (average / all_average * 100) - 100
         if abs(percent_diff) > 20:
             # Print the percentage difference
-            print(f"{read_rows_result.taxon_index[taxon_id]}:")
+            print(f"{read_rows_result.scientific_name_for_taxon_key(taxon_id)}:")
             print(
                 f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
@@ -385,7 +406,7 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
             .get_column("average")
             .item()
         )
-        print(f"{read_rows_result.taxon_index[taxon_id]}:")
+        print(f"{read_rows_result.scientific_name_for_taxon_key(taxon_id)}:")
         print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 
@@ -464,7 +485,7 @@ if __name__ == "__main__":
     # dn = dendrogram(Z, labels=ordered_seen_geohash)
     # plt.show()
 
-    clusters = list(map(int, fcluster(Z, t=10, criterion="maxclust")))
+    clusters = list(map(int, fcluster(Z, t=5, criterion="maxclust")))
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
