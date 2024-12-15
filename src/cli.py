@@ -30,4 +30,9 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Show the dendrogram",
     )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Plot the clusters",
+    )
     return parser.parse_args()

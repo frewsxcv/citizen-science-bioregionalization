@@ -341,9 +341,10 @@ def run() -> None:
 
     print_results(darwin_core_aggregations, all_stats, clusters, cluster_dataframe)
 
-    write_geojson(feature_collection, args.output_file)
+    if args.plot:
+        plot_clusters(feature_collection)
 
-    plot_clusters(feature_collection)
+    write_geojson(feature_collection, args.output_file)
 
 
 if __name__ == "__main__":
