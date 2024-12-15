@@ -4,9 +4,6 @@ import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
-import random
-import pickle
-import os
 import geohashr
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
@@ -25,51 +22,13 @@ from typing import (
 
 from src.cli import parse_arguments
 from src.darwin_core import TaxonId, read_rows
-from src.geohash import geohash_to_bbox, Geohash
+from src.geohash import Geohash
 from src.render import plot_clusters
 from src.cluster import ClusterId
 import matplotlib.pyplot as plt
-
-COLORS = [
-    "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
-    for _ in range(1000)
-]
+from src.geojson import build_geojson_feature_collection
 
 logger = logging.getLogger(__name__)
-
-
-def build_geojson_geohash_polygon(geohash: Geohash) -> geojson.Polygon:
-    bbox = geohash_to_bbox(geohash)
-    return geojson.Polygon(
-        coordinates=[
-            [
-                [bbox.sw.lon, bbox.sw.lat],
-                [bbox.ne.lon, bbox.sw.lat],
-                [bbox.ne.lon, bbox.ne.lat],
-                [bbox.sw.lon, bbox.ne.lat],
-                [bbox.sw.lon, bbox.sw.lat],
-            ]
-        ]
-    )
-
-
-def build_geojson_feature(
-    geohashes: List[Geohash], cluster: ClusterId
-) -> geojson.Feature:
-    geometries = [build_geojson_geohash_polygon(geohash) for geohash in geohashes]
-    geometry = (
-        geojson.GeometryCollection(geometries) if len(geometries) > 1 else geometries[0]
-    )
-
-    return geojson.Feature(
-        properties={
-            "label": ", ".join(geohashes),
-            "fill": COLORS[cluster],
-            "stroke-width": 0,
-            "cluster": cluster,
-        },
-        geometry=geometry,
-    )
 
 
 class Stats(NamedTuple):
@@ -452,17 +411,6 @@ class ClusterDataFrame(NamedTuple):
             yield row["cluster"], row["geohash"]
 
 
-def build_geojson_feature_collection(
-    cluster_dataframe: ClusterDataFrame,
-) -> geojson.FeatureCollection:
-    return geojson.FeatureCollection(
-        features=[
-            build_geojson_feature(geohashes, cluster)
-            for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
-        ],
-    )
-
-
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -509,7 +457,9 @@ if __name__ == "__main__":
     logger.info(f"Number of clusters: {len(set(clusters))}")
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
-    feature_collection = build_geojson_feature_collection(cluster_dataframe)
+    feature_collection = build_geojson_feature_collection(
+        cluster_dataframe.iter_clusters_and_geohashes()
+    )
 
     for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
