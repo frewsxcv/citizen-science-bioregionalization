@@ -4,6 +4,8 @@ import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
@@ -157,11 +159,25 @@ def build_condensed_distance_matrix(
 
     # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
+    logger.info(
+        f"Reducing dimensions with PCA. Previously: {X.height} geohashes, {X.width} taxon IDs"
+    )
+
+    scaler = StandardScaler()
+    standardized_data = scaler.fit_transform(X)
+
+    # Use PCA to reduce the number of dimensions
+    pca = PCA(n_components=0.95)  # Keep components explaining 95% of variance
+    reduced_data = pca.fit_transform(standardized_data)
+
+    logger.info(
+        f"Reduced dimensions with PCA. Now: {reduced_data.shape[0]} geohashes, {reduced_data.shape[1]} taxon IDs"
+    )
+
     logger.info(f"Running pdist on matrix: {X.height} geohashes, {X.width} taxon IDs")
 
-    # whitened = whiten(matrix)
     with Timer(output=logger.info, prefix="Running pdist"):
-        result = pdist(X.to_numpy(), metric="braycurtis")
+        result = pdist(reduced_data, metric="braycurtis")
 
     return darwin_core_aggregations.ordered_geohashes(), result
 
