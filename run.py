@@ -1,7 +1,5 @@
 # TODO: Don't include geohashes that extend beyond the bounds of the dataset as those clusters will have artificially fewer counts
 
-from collections import defaultdict, Counter
-import pandas as pd
 import logging
 import numpy as np
 import geojson  # type: ignore
@@ -425,10 +423,10 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
 
 
 class ClusterDataFrame(NamedTuple):
-    dataframe: pd.DataFrame
+    dataframe: pl.DataFrame
     """
     Schema:
-    - `geohash`: `str` (index)
+    - `geohash`: `str`
     - `cluster`: `int`
     """
 
@@ -436,21 +434,22 @@ class ClusterDataFrame(NamedTuple):
     def build(
         cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]
     ) -> Self:
-        dataframe = pd.DataFrame(
-            columns=["geohash", "cluster"],
-            data=(
+        dataframe = pl.DataFrame(
+            data=[
                 (geohash, cluster)
                 for geohash, cluster in zip(ordered_seen_geohash, clusters)
-            ),
+            ],
+            schema={"geohash": pl.String, "cluster": pl.UInt32},
         )
-        dataframe.set_index("geohash", inplace=True)
         return cls(dataframe)
 
     def iter_clusters_and_geohashes(
         self,
     ) -> Iterator[Tuple[ClusterId, List[Geohash]]]:
-        for cluster, geohashes in self.dataframe.groupby("cluster"):
-            yield cluster, geohashes.index
+        for row in (self.dataframe.group_by("cluster").all().sort("cluster")).iter_rows(
+            named=True
+        ):
+            yield row["cluster"], row["geohash"]
 
 
 def build_geojson_feature_collection(
