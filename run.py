@@ -205,48 +205,49 @@ class ReadRowsResult(NamedTuple):
             .to_list()
         )
 
-    def build_stats(
-        self,
-        geohash_filter: Optional[List[Geohash]] = None,
-    ) -> Stats:
-        geohashes = (
-            self.ordered_geohashes()
-            if geohash_filter is None
-            else [g for g in self.ordered_geohashes() if g in geohash_filter]
-        )
 
-        # Schema:
-        # - `taxonKey`: `int`
-        # - `count`: `int`
-        taxon_counts: pl.LazyFrame = (
-            self.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
-            .select(["taxonKey", "count"])
-            .group_by("taxonKey")
-            .agg(pl.col("count").sum())
-        )
+def build_stats(
+    read_rows_result: ReadRowsResult,
+    geohash_filter: Optional[List[Geohash]] = None,
+) -> Stats:
+    geohashes = (
+        read_rows_result.ordered_geohashes()
+        if geohash_filter is None
+        else [g for g in read_rows_result.ordered_geohashes() if g in geohash_filter]
+    )
 
-        # Total observation count all filtered geohashes
-        total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
+    # Schema:
+    # - `taxonKey`: `int`
+    # - `count`: `int`
+    taxon_counts: pl.LazyFrame = (
+        read_rows_result.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
+        .select(["taxonKey", "count"])
+        .group_by("taxonKey")
+        .agg(pl.col("count").sum())
+    )
 
-        # Schema:
-        # - `taxonKey`: `int`
-        # - `count`: `int`
-        # - `average`: `float`
-        taxon: pl.LazyFrame = taxon_counts.with_columns(
-            (pl.col("count") / total_count).alias("average")
-        )
+    # Total observation count all filtered geohashes
+    total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
 
-        order_counts = (
-            self.order_counts_series.filter(pl.col("geohash").is_in(geohashes))
-            .group_by("order")
-            .agg(pl.col("count").sum())
-        )
+    # Schema:
+    # - `taxonKey`: `int`
+    # - `count`: `int`
+    # - `average`: `float`
+    taxon: pl.LazyFrame = taxon_counts.with_columns(
+        (pl.col("count") / total_count).alias("average")
+    )
 
-        return Stats(
-            geohashes=geohashes,
-            taxon=taxon,
-            order_counts=order_counts,
-        )
+    order_counts = (
+        read_rows_result.order_counts_series.filter(pl.col("geohash").is_in(geohashes))
+        .group_by("order")
+        .agg(pl.col("count").sum())
+    )
+
+    return Stats(
+        geohashes=geohashes,
+        taxon=taxon,
+        order_counts=order_counts,
+    )
 
 
 def build_condensed_distance_matrix(
@@ -313,7 +314,7 @@ def print_cluster_stats(
     read_rows_result: ReadRowsResult,
     all_stats: Stats,
 ) -> None:
-    stats = read_rows_result.build_stats(geohash_filter=geohashes)
+    stats = build_stats(read_rows_result, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
     print(
@@ -433,7 +434,7 @@ if __name__ == "__main__":
     )
 
     # Find the top averages of taxon
-    all_stats = read_rows_result.build_stats()
+    all_stats = build_stats(read_rows_result)
 
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(read_rows_result, all_stats)
