@@ -78,7 +78,7 @@ class Stats(NamedTuple):
     """
     Schema:
     - `taxonKey`: `int`
-    - `len`: `int`
+    - `count`: `int`
     - `average`: `float`
     """
 
@@ -333,6 +333,8 @@ def build_condensed_distance_matrix(
             index="geohash",
         )
 
+    assert X.height > 1, "More than one geohash is required to cluster"
+
     # fill null values with 0
     with Timer(output=logger.info, prefix="Filling null values"):
         X = X.fill_null(np.uint32(0))
@@ -369,9 +371,9 @@ def print_cluster_stats(
     )
 
     for taxon_id, count in (
-        stats.taxon.sort(by="len", descending=True)
+        stats.taxon.sort(by="count", descending=True)
         .limit(5)
-        .select(["taxonKey", "len"])
+        .select(["taxonKey", "count"])
         .collect()
         .iter_rows(named=False)
     ):
@@ -402,9 +404,9 @@ def print_cluster_stats(
 
 def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) -> None:
     for taxon_id, count in (
-        all_stats.taxon.sort(by="len", descending=True)
+        all_stats.taxon.sort(by="count", descending=True)
         .limit(5)
-        .select(["taxonKey", "len"])
+        .select(["taxonKey", "count"])
         .collect()
         .iter_rows(named=False)
     ):
@@ -432,10 +434,10 @@ class ClusterDataFrame(NamedTuple):
         cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]
     ) -> Self:
         dataframe = pl.DataFrame(
-            data=[
-                (geohash, cluster)
-                for geohash, cluster in zip(ordered_seen_geohash, clusters)
-            ],
+            data={
+                "geohash": ordered_seen_geohash,
+                "cluster": clusters,
+            },
             schema={"geohash": pl.String, "cluster": pl.UInt32},
         )
         return cls(dataframe)
@@ -485,6 +487,7 @@ if __name__ == "__main__":
 
     # Find the top averages of taxon
     all_stats = read_rows_result.build_stats()
+
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(read_rows_result, all_stats)
 
