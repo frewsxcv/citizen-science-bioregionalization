@@ -49,6 +49,14 @@ class Stats(NamedTuple):
     - `count`: `int`
     """
 
+    def order_count(self, order: str) -> int:
+        return (
+            self.order_counts.filter(pl.col("order") == order)
+            .collect()
+            .get_column("count")
+            .item()
+        )
+
 
 def build_stats(
     darwin_core_aggregations: DarwinCoreAggregations,
@@ -167,12 +175,8 @@ def print_cluster_stats(
     stats = build_stats(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
-    print(
-        f"Passeriformes counts: {stats.order_counts.filter(pl.col('order') == 'Passeriformes').collect().get_column('count').item()}"
-    )
-    print(
-        f"Anseriformes counts: {stats.order_counts.filter(pl.col('order') == 'Anseriformes').collect().get_column('count').item()}"
-    )
+    print(f"Passeriformes counts: {stats.order_count('Passeriformes')}")
+    print(f"Anseriformes counts: {stats.order_count('Anseriformes')}")
 
     for taxon_id, count in (
         stats.taxon.sort(by="count", descending=True)
