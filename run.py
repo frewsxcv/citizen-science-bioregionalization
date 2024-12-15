@@ -4,7 +4,6 @@ import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
-import geohashr
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
@@ -22,7 +21,7 @@ from typing import (
 
 from src.cli import parse_arguments
 from src.darwin_core import TaxonId, read_rows
-from src.geohash import Geohash
+from src.geohash import Geohash, build_geohash_series
 from src.render import plot_clusters
 from src.cluster import ClusterId
 import matplotlib.pyplot as plt
@@ -48,14 +47,6 @@ class Stats(NamedTuple):
     - `order`: `str`
     - `count`: `int`
     """
-
-
-def build_geohash_series(dataframe: pl.DataFrame, precision: int) -> pl.Series:
-    return (
-        dataframe[["decimalLatitude", "decimalLongitude"]]
-        .map_rows(lambda n: (geohashr.encode(n[0], n[1], precision)))
-        .rename({"map": "geohash"})["geohash"]
-    )
 
 
 class ReadRowsResult(NamedTuple):
@@ -114,9 +105,11 @@ class ReadRowsResult(NamedTuple):
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for read_dataframe in read_rows(input_file):
-                geohash_series = build_geohash_series(read_dataframe, geohash_precision)
-                dataframe_with_geohash = read_dataframe.lazy().with_columns(
-                    geohash_series
+                dataframe_with_geohash = read_dataframe.lazy().pipe(
+                    build_geohash_series,
+                    lat_col=pl.col("decimalLatitude"),
+                    lon_col=pl.col("decimalLongitude"),
+                    precision=geohash_precision,
                 )
 
                 taxon_counts = pl.concat(
