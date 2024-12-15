@@ -9,7 +9,7 @@ import pickle
 import os
 import geohashr
 from contexttimer import Timer
-from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
 from typing import (
     DefaultDict,
@@ -28,6 +28,7 @@ from src.darwin_core import TaxonId, read_rows
 from src.geohash import geohash_to_bbox, Geohash
 from src.render import plot_clusters
 from src.cluster import ClusterId
+import matplotlib.pyplot as plt
 
 COLORS = [
     "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
@@ -498,9 +499,11 @@ if __name__ == "__main__":
 
     # Generate the linkage matrix
     Z = linkage(condensed_distance_matrix, "ward")
-    # fig = plt.figure(figsize=(25, 10))
-    # dn = dendrogram(Z, labels=ordered_seen_geohash)
-    # plt.show()
+
+    if args.show_dendrogram:
+        fig = plt.figure()
+        dn = dendrogram(Z, labels=ordered_seen_geohash)
+        plt.show()
 
     clusters = list(map(int, fcluster(Z, t=5, criterion="maxclust")))
     logger.info(f"Number of clusters: {len(set(clusters))}")

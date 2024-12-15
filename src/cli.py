@@ -25,4 +25,9 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         help="Path to the output file",
     )
+    parser.add_argument(
+        "--show-dendrogram",
+        action="store_true",
+        help="Show the dendrogram",
+    )
     return parser.parse_args()
