@@ -21,6 +21,7 @@ from typing import (
 
 from src.cli import parse_arguments
 from src.darwin_core import TaxonId, read_rows
+from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.geohash import Geohash, build_geohash_series
 from src.render import plot_clusters
 from src.cluster import ClusterId
@@ -49,178 +50,25 @@ class Stats(NamedTuple):
     """
 
 
-class ReadRowsResult(NamedTuple):
-    taxon_counts: pl.LazyFrame
-    """
-    Schema:
-    - `geohash`: `str`
-    - `taxonKey`: `int`
-    - `count`: `int`
-    """
-
-    order_counts_series: pl.LazyFrame
-    """
-    Schema:
-    - `geohash`: `str`
-    - `order`: `str`
-    - `count`: `int`
-    """
-
-    taxon_index: pl.LazyFrame
-    """
-    Schema:
-    - `taxonKey`: `int`
-    - `verbatimScientificName`: `str`
-    """
-
-    @classmethod
-    def build(cls, input_file: str, geohash_precision: int) -> Self:
-        taxon_counts = pl.LazyFrame(
-            schema={
-                "geohash": pl.String,
-                "taxonKey": pl.UInt64,
-                "count": pl.UInt32,
-            }
-        )
-
-        order_counts = pl.LazyFrame(
-            schema={
-                "geohash": pl.String,
-                "order": pl.String,
-                "count": pl.UInt32,
-            }
-        )
-
-        # Will this work for eBird?
-        # geohash_to_taxon_id_to_user_to_count: DefaultDict[
-        #     Geohash, DefaultDict[TaxonId, Counter[str]]
-        # ] = defaultdict(lambda: defaultdict(Counter))
-
-        taxon_index = pl.LazyFrame(
-            schema={
-                "taxonKey": pl.UInt64,
-                "verbatimScientificName": pl.String,
-            }
-        )
-
-        with Timer(output=logger.info, prefix="Reading rows"):
-            for read_dataframe in read_rows(input_file):
-                dataframe_with_geohash = read_dataframe.lazy().pipe(
-                    build_geohash_series,
-                    lat_col=pl.col("decimalLatitude"),
-                    lon_col=pl.col("decimalLongitude"),
-                    precision=geohash_precision,
-                )
-
-                taxon_counts = pl.concat(
-                    items=[
-                        taxon_counts,
-                        dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
-                            pl.len().alias("count")
-                        ),
-                    ]
-                )
-
-                order_counts = pl.concat(
-                    items=[
-                        order_counts,
-                        dataframe_with_geohash.group_by(["geohash", "order"]).agg(
-                            pl.len().alias("count")
-                        ),
-                    ]
-                )
-
-                taxon_index = pl.concat(
-                    items=[
-                        taxon_index,
-                        dataframe_with_geohash.select(
-                            ["taxonKey", "verbatimScientificName"]
-                        ),
-                    ]
-                ).unique()
-
-                # for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
-                #     named=True
-                # ):
-                #     geohash_to_taxon_id_to_user_to_count[row["geohash"]][
-                #         row["taxonKey"]
-                #     ][row["recordedBy"]] += 1
-                #     # If the observer has seen the taxon more than 5 times, skip it
-                #     if (
-                #         geohash_to_taxon_id_to_user_to_count[row["geohash"]][
-                #             row["taxonKey"]
-                #         ][row["recordedBy"]]
-                #         > 5
-                #     ):
-                #         continue
-
-        taxon_counts = (
-            taxon_counts.group_by(["geohash", "taxonKey"])
-            .agg(pl.col("count").sum())
-            .sort(by="geohash")
-        )
-
-        order_counts_series = (
-            order_counts.group_by(["geohash", "order"])
-            .agg(pl.col("count").sum())
-            .lazy()
-        )
-
-        return cls(
-            taxon_counts=taxon_counts,
-            order_counts_series=order_counts_series,
-            taxon_index=taxon_index,
-        )
-
-    def scientific_name_for_taxon_key(self, taxon_key: TaxonId) -> str:
-        column = (
-            self.taxon_index.filter(pl.col("taxonKey") == taxon_key)
-            .collect()
-            .get_column("verbatimScientificName")
-        )
-        if len(column) > 1:
-            # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
-            # raise ValueError(f"Multiple scientific names for taxon key {taxon_key}")
-            logger.error(f"Multiple scientific names for taxon key {taxon_key}")
-            return column.limit(1).item()
-        return column.item()
-
-    def ordered_geohashes(self) -> List[Geohash]:
-        return (
-            self.taxon_counts.select("geohash")
-            .unique()
-            .sort(by="geohash")
-            .collect()
-            .get_column("geohash")
-            .to_list()
-        )
-
-    def ordered_taxon_keys(self) -> List[TaxonId]:
-        return (
-            self.taxon_counts.select("taxonKey")
-            .unique()
-            .sort(by="taxonKey")
-            .collect()
-            .get_column("taxonKey")
-            .to_list()
-        )
-
-
 def build_stats(
-    read_rows_result: ReadRowsResult,
+    darwin_core_aggregations: DarwinCoreAggregations,
     geohash_filter: Optional[List[Geohash]] = None,
 ) -> Stats:
     geohashes = (
-        read_rows_result.ordered_geohashes()
+        darwin_core_aggregations.ordered_geohashes()
         if geohash_filter is None
-        else [g for g in read_rows_result.ordered_geohashes() if g in geohash_filter]
+        else [
+            g
+            for g in darwin_core_aggregations.ordered_geohashes()
+            if g in geohash_filter
+        ]
     )
 
     # Schema:
     # - `taxonKey`: `int`
     # - `count`: `int`
     taxon_counts: pl.LazyFrame = (
-        read_rows_result.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
+        darwin_core_aggregations.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
         .select(["taxonKey", "count"])
         .group_by("taxonKey")
         .agg(pl.col("count").sum())
@@ -238,7 +86,9 @@ def build_stats(
     )
 
     order_counts = (
-        read_rows_result.order_counts_series.filter(pl.col("geohash").is_in(geohashes))
+        darwin_core_aggregations.order_counts_series.filter(
+            pl.col("geohash").is_in(geohashes)
+        )
         .group_by("order")
         .agg(pl.col("count").sum())
     )
@@ -251,7 +101,7 @@ def build_stats(
 
 
 def build_condensed_distance_matrix(
-    read_rows_result: ReadRowsResult,
+    darwin_core_aggregations: DarwinCoreAggregations,
 ) -> Tuple[List[str], np.ndarray]:
     # Create a matrix where each row is a geohash and each column is a taxon ID
     # Example:
@@ -275,14 +125,14 @@ def build_condensed_distance_matrix(
         #     geohash_count += 1
 
         #     for geohash, taxonKey, count in (
-        #         read_rows_result.taxon_counts.filter(pl.col("geohash") == geohash)
+        #         darwin_core_aggregations.taxon_counts.filter(pl.col("geohash") == geohash)
         #         .collect()
         #         .iter_rows(named=False)
         #     ):
         #         j = ordered_seen_taxon_id.index(taxonKey)
         #         matrix[i, j] = np.uint32(count)
 
-        X = read_rows_result.taxon_counts.collect().pivot(
+        X = darwin_core_aggregations.taxon_counts.collect().pivot(
             on="taxonKey",
             index="geohash",
         )
@@ -293,7 +143,7 @@ def build_condensed_distance_matrix(
     with Timer(output=logger.info, prefix="Filling null values"):
         X = X.fill_null(np.uint32(0))
 
-    assert X["geohash"].to_list() == read_rows_result.ordered_geohashes()
+    assert X["geohash"].to_list() == darwin_core_aggregations.ordered_geohashes()
 
     X = X.drop("geohash")
 
@@ -305,16 +155,16 @@ def build_condensed_distance_matrix(
     with Timer(output=logger.info, prefix="Running pdist"):
         result = pdist(X.to_numpy(), metric="braycurtis")
 
-    return read_rows_result.ordered_geohashes(), result
+    return darwin_core_aggregations.ordered_geohashes(), result
 
 
 def print_cluster_stats(
     cluster: ClusterId,
     geohashes: List[Geohash],
-    read_rows_result: ReadRowsResult,
+    darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
 ) -> None:
-    stats = build_stats(read_rows_result, geohash_filter=geohashes)
+    stats = build_stats(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
     print(
@@ -348,7 +198,9 @@ def print_cluster_stats(
         percent_diff = (average / all_average * 100) - 100
         if abs(percent_diff) > 20:
             # Print the percentage difference
-            print(f"{read_rows_result.scientific_name_for_taxon_key(taxon_id)}:")
+            print(
+                f"{darwin_core_aggregations.scientific_name_for_taxon_key(taxon_id)}:"
+            )
             print(
                 f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
@@ -356,7 +208,9 @@ def print_cluster_stats(
             print(f"  - Count: {count}")
 
 
-def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) -> None:
+def print_all_cluster_stats(
+    darwin_core_aggregations: DarwinCoreAggregations, all_stats: Stats
+) -> None:
     for taxon_id, count in (
         all_stats.taxon.sort(by="count", descending=True)
         .limit(5)
@@ -370,7 +224,7 @@ def print_all_cluster_stats(read_rows_result: ReadRowsResult, all_stats: Stats) 
             .get_column("average")
             .item()
         )
-        print(f"{read_rows_result.scientific_name_for_taxon_key(taxon_id)}:")
+        print(f"{darwin_core_aggregations.scientific_name_for_taxon_key(taxon_id)}:")
         print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 
@@ -413,31 +267,35 @@ if __name__ == "__main__":
     # if os.path.exists("condensed_distance_matrix.pickle"):
     #     with Timer(output=logger.info, prefix="Loading condensed distance matrix"):
     #         with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
-    #             ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
+    #             ordered_seen_geohash, condensed_distance_matrix, darwin_core_aggregations = (
     #                 pickle.load(pickle_reader)
     #             )
     # else:
-    #     read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
+    #     darwin_core_aggregations = DarwinCoreAggregations.build(
+    #         input_file, args.geohash_precision
+    #     )
     #     ordered_seen_geohash, condensed_distance_matrix = (
-    #         build_condensed_distance_matrix(read_rows_result)
+    #         build_condensed_distance_matrix(darwin_core_aggregations)
     #     )
     #     with Timer(output=logger.info, prefix="Saving condensed distance matrix"):
     #         with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
     #             pickle.dump(
-    #                 (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
+    #                 (ordered_seen_geohash, condensed_distance_matrix, darwin_core_aggregations),
     #                 pickle_writer,
     #             )
 
-    read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
+    darwin_core_aggregations = DarwinCoreAggregations.build(
+        input_file, args.geohash_precision
+    )
     ordered_seen_geohash, condensed_distance_matrix = build_condensed_distance_matrix(
-        read_rows_result
+        darwin_core_aggregations
     )
 
     # Find the top averages of taxon
-    all_stats = build_stats(read_rows_result)
+    all_stats = build_stats(darwin_core_aggregations)
 
     # For each top count taxon, print the average per geohash
-    print_all_cluster_stats(read_rows_result, all_stats)
+    print_all_cluster_stats(darwin_core_aggregations, all_stats)
 
     # Generate the linkage matrix
     Z = linkage(condensed_distance_matrix, "ward")
@@ -456,7 +314,7 @@ if __name__ == "__main__":
     )
 
     for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
-        print_cluster_stats(cluster, geohashes, read_rows_result, all_stats)
+        print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
 
     with open(args.output_file, "w") as geojson_writer:
         geojson.dump(feature_collection, geojson_writer)

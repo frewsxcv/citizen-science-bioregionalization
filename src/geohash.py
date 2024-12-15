@@ -18,9 +18,9 @@ def build_geohash_series(
     dataframe: pl.LazyFrame, lat_col: pl.Expr, lon_col: pl.Expr, precision: int
 ) -> pl.LazyFrame:
     return dataframe.with_columns(
-        pl.struct([lat_col, lon_col])
+        pl.struct([lat_col.alias("lat"), lon_col.alias("lon")])
         .map_elements(
-            lambda series: geohashr.encode(series[lat_col], series[lon_col], precision),
+            lambda series: geohashr.encode(series["lat"], series["lon"], precision),
             return_dtype=pl.String,
         )
         .alias("geohash")
