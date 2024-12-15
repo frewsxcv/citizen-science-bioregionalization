@@ -276,6 +276,20 @@ def write_geojson(
         geojson.dump(feature_collection, geojson_writer)
 
 
+def print_results(
+    darwin_core_aggregations: DarwinCoreAggregations,
+    all_stats: Stats,
+    clusters: List[ClusterId],
+) -> None:
+    # For each top count taxon, print the average per geohash
+    print_all_cluster_stats(darwin_core_aggregations, all_stats)
+
+    logger.info(f"Number of clusters: {len(set(clusters))}")
+
+    for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
+        print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     input_file = args.input_file
@@ -311,9 +325,6 @@ if __name__ == "__main__":
     # Find the top averages of taxon
     all_stats = build_stats(darwin_core_aggregations)
 
-    # For each top count taxon, print the average per geohash
-    print_all_cluster_stats(darwin_core_aggregations, all_stats)
-
     # Generate the linkage matrix
     Z = linkage(condensed_distance_matrix, "ward")
 
@@ -321,15 +332,13 @@ if __name__ == "__main__":
         show_dendrogram(Z, ordered_seen_geohash)
 
     clusters = list(map(int, fcluster(Z, t=5, criterion="maxclust")))
-    logger.info(f"Number of clusters: {len(set(clusters))}")
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(
         cluster_dataframe.iter_clusters_and_geohashes()
     )
 
-    for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
-        print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
+    print_results(darwin_core_aggregations, all_stats, clusters)
 
     write_geojson(feature_collection, args.output_file)
 
