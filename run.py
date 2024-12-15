@@ -343,9 +343,7 @@ def build_condensed_distance_matrix(
 
     # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
-    # logger.info(
-    #     f"Running pdist on matrix: {len(X.index)} geohashes, {len(X.columns)} taxon IDs"
-    # )
+    logger.info(f"Running pdist on matrix: {X.height} geohashes, {X.width} taxon IDs")
 
     # whitened = whiten(matrix)
     with Timer(output=logger.info, prefix="Running pdist"):
