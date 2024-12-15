@@ -233,6 +233,12 @@ def print_all_cluster_stats(
         print(f"  - Count: {count}")
 
 
+def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
+    plt.figure()
+    dendrogram(Z, labels=ordered_seen_geohash)
+    plt.show()
+
+
 class ClusterDataFrame(NamedTuple):
     dataframe: pl.DataFrame
     """
@@ -261,6 +267,13 @@ class ClusterDataFrame(NamedTuple):
             named=True
         ):
             yield row["cluster"], row["geohash"]
+
+
+def write_geojson(
+    feature_collection: geojson.FeatureCollection, output_file: str
+) -> None:
+    with open(output_file, "w") as geojson_writer:
+        geojson.dump(feature_collection, geojson_writer)
 
 
 if __name__ == "__main__":
@@ -305,9 +318,7 @@ if __name__ == "__main__":
     Z = linkage(condensed_distance_matrix, "ward")
 
     if args.show_dendrogram:
-        fig = plt.figure()
-        dn = dendrogram(Z, labels=ordered_seen_geohash)
-        plt.show()
+        show_dendrogram(Z, ordered_seen_geohash)
 
     clusters = list(map(int, fcluster(Z, t=5, criterion="maxclust")))
     logger.info(f"Number of clusters: {len(set(clusters))}")
@@ -320,7 +331,6 @@ if __name__ == "__main__":
     for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
 
-    with open(args.output_file, "w") as geojson_writer:
-        geojson.dump(feature_collection, geojson_writer)
+    write_geojson(feature_collection, args.output_file)
 
     plot_clusters(feature_collection)
