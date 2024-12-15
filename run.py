@@ -84,10 +84,10 @@ class Stats(NamedTuple):
     - `average`: `float`
     """
 
-    order_counts: pd.Series
+    order_counts: pl.LazyFrame
     """
     Schema:
-    - `order`: `str` (index)
+    - `order`: `str`
     - `count`: `int`
     """
 
@@ -231,9 +231,7 @@ class ReadRowsResult(NamedTuple):
         if len(column) > 1:
             # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
             # raise ValueError(f"Multiple scientific names for taxon key {taxon_key}")
-            logger.error(
-                f"Multiple scientific names for taxon key {taxon_key}"
-            )
+            logger.error(f"Multiple scientific names for taxon key {taxon_key}")
             return column.limit(1).item()
         return column.item()
 
@@ -292,9 +290,6 @@ class ReadRowsResult(NamedTuple):
             self.order_counts_series.filter(pl.col("geohash").is_in(geohashes))
             .group_by("order")
             .agg(pl.col("count").sum())
-            .collect()
-            .to_pandas()
-            .set_index("order")["count"]
         )
 
         return Stats(
@@ -371,8 +366,12 @@ def print_cluster_stats(
     stats = read_rows_result.build_stats(geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
-    print(f"Passeriformes counts: {stats.order_counts.get('Passeriformes')}")
-    print(f"Anseriformes counts: {stats.order_counts.get('Anseriformes')}")
+    print(
+        f"Passeriformes counts: {stats.order_counts.filter(pl.col('order') == 'Passeriformes').collect().get_column('count').item()}"
+    )
+    print(
+        f"Anseriformes counts: {stats.order_counts.filter(pl.col('order') == 'Anseriformes').collect().get_column('count').item()}"
+    )
 
     for taxon_id, count in (
         stats.taxon.sort(by="len", descending=True)
