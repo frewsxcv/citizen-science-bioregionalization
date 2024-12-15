@@ -104,7 +104,7 @@ class ReadRowsResult(NamedTuple):
     Schema:
     - `geohash`: `str`
     - `taxonKey`: `int`
-    - `len`: `int`
+    - `count`: `int`
     """
 
     order_counts_series: pl.LazyFrame
@@ -128,8 +128,7 @@ class ReadRowsResult(NamedTuple):
             schema={
                 "geohash": pl.String,
                 "taxonKey": pl.UInt64,
-                # TODO: rename this to `count`
-                "len": pl.UInt32,
+                "count": pl.UInt32,
             }
         )
 
@@ -164,7 +163,7 @@ class ReadRowsResult(NamedTuple):
                     items=[
                         taxon_counts,
                         dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
-                            pl.len()
+                            pl.len().alias("count")
                         ),
                     ]
                 )
@@ -204,7 +203,7 @@ class ReadRowsResult(NamedTuple):
 
         taxon_counts = (
             taxon_counts.group_by(["geohash", "taxonKey"])
-            .agg(pl.col("len").sum())
+            .agg(pl.col("count").sum())
             .sort(by="geohash")
         )
 
@@ -268,20 +267,20 @@ class ReadRowsResult(NamedTuple):
         # - `count`: `int`
         taxon_counts: pl.LazyFrame = (
             self.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
-            .select(["taxonKey", "len"])
+            .select(["taxonKey", "count"])
             .group_by("taxonKey")
-            .agg(pl.col("len").sum())
+            .agg(pl.col("count").sum())
         )
 
         # Total observation count all filtered geohashes
-        total_count: int = taxon_counts.select("len").sum().collect()["len"].item()
+        total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
 
         # Schema:
         # - `taxonKey`: `int`
         # - `count`: `int`
         # - `average`: `float`
         taxon: pl.LazyFrame = taxon_counts.with_columns(
-            (pl.col("len") / total_count).alias("average")
+            (pl.col("count") / total_count).alias("average")
         )
 
         order_counts = (
