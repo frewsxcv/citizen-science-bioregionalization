@@ -109,11 +109,11 @@ class ReadRowsResult(NamedTuple):
     - `len`: `int`
     """
 
-    order_counts_series: pd.Series
+    order_counts_series: pl.LazyFrame
     """
     Schema:
-    - `geohash`: `str` (index)
-    - `order`: `str` (index)
+    - `geohash`: `str`
+    - `order`: `str`
     - `count`: `int`
     """
 
@@ -134,13 +134,19 @@ class ReadRowsResult(NamedTuple):
                 "len": pl.UInt32,
             }
         )
-        order_counts_series_data: DefaultDict[Tuple[Geohash, str], np.uint32] = (
-            defaultdict(lambda: np.uint32(0))
+
+        order_counts = pl.LazyFrame(
+            schema={
+                "geohash": pl.String,
+                "order": pl.String,
+                "count": pl.UInt32,
+            }
         )
+
         # Will this work for eBird?
-        geohash_to_taxon_id_to_user_to_count: DefaultDict[
-            Geohash, DefaultDict[TaxonId, Counter[str]]
-        ] = defaultdict(lambda: defaultdict(Counter))
+        # geohash_to_taxon_id_to_user_to_count: DefaultDict[
+        #     Geohash, DefaultDict[TaxonId, Counter[str]]
+        # ] = defaultdict(lambda: defaultdict(Counter))
 
         taxon_index = pl.LazyFrame(
             schema={
@@ -165,6 +171,15 @@ class ReadRowsResult(NamedTuple):
                     ]
                 )
 
+                order_counts = pl.concat(
+                    items=[
+                        order_counts,
+                        dataframe_with_geohash.group_by(["geohash", "order"]).agg(
+                            pl.len().alias("count")
+                        ),
+                    ]
+                )
+
                 taxon_index = pl.concat(
                     items=[
                         taxon_index,
@@ -174,22 +189,20 @@ class ReadRowsResult(NamedTuple):
                     ]
                 ).unique()
 
-                for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
-                    named=True
-                ):
-                    geohash_to_taxon_id_to_user_to_count[row["geohash"]][
-                        row["taxonKey"]
-                    ][row["recordedBy"]] += 1
-                    # If the observer has seen the taxon more than 5 times, skip it
-                    if (
-                        geohash_to_taxon_id_to_user_to_count[row["geohash"]][
-                            row["taxonKey"]
-                        ][row["recordedBy"]]
-                        > 5
-                    ):
-                        continue
-
-                    order_counts_series_data[(row["geohash"], row["order"])] += 1
+                # for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
+                #     named=True
+                # ):
+                #     geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+                #         row["taxonKey"]
+                #     ][row["recordedBy"]] += 1
+                #     # If the observer has seen the taxon more than 5 times, skip it
+                #     if (
+                #         geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+                #             row["taxonKey"]
+                #         ][row["recordedBy"]]
+                #         > 5
+                #     ):
+                #         continue
 
         taxon_counts = (
             taxon_counts.group_by(["geohash", "taxonKey"])
@@ -197,15 +210,11 @@ class ReadRowsResult(NamedTuple):
             .sort(by="geohash")
         )
 
-        order_counts_series = pd.Series(
-            data=order_counts_series_data.values(),
-            index=pd.MultiIndex.from_tuples(
-                order_counts_series_data.keys(),
-                names=["geohash", "order"],
-            ),
-            name="count",
+        order_counts_series = (
+            order_counts.group_by(["geohash", "order"])
+            .agg(pl.col("count").sum())
+            .lazy()
         )
-        order_counts_series.sort_index(inplace=True)
 
         return cls(
             taxon_counts=taxon_counts,
@@ -222,6 +231,9 @@ class ReadRowsResult(NamedTuple):
         if len(column) > 1:
             # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
             # raise ValueError(f"Multiple scientific names for taxon key {taxon_key}")
+            logger.error(
+                f"Multiple scientific names for taxon key {taxon_key}"
+            )
             return column.limit(1).item()
         return column.item()
 
@@ -277,10 +289,12 @@ class ReadRowsResult(NamedTuple):
         )
 
         order_counts = (
-            self.order_counts_series.loc[geohashes]
-            .reset_index(drop=False)[["order", "count"]]
-            .groupby("order")["count"]
-            .sum()
+            self.order_counts_series.filter(pl.col("geohash").is_in(geohashes))
+            .group_by("order")
+            .agg(pl.col("count").sum())
+            .collect()
+            .to_pandas()
+            .set_index("order")["count"]
         )
 
         return Stats(
