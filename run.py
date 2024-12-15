@@ -280,6 +280,7 @@ def print_results(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
     clusters: List[ClusterId],
+    cluster_dataframe: ClusterDataFrame,
 ) -> None:
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(darwin_core_aggregations, all_stats)
@@ -290,7 +291,7 @@ def print_results(
         print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
 
 
-if __name__ == "__main__":
+def run() -> None:
     args = parse_arguments()
     input_file = args.input_file
     logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
@@ -338,8 +339,12 @@ if __name__ == "__main__":
         cluster_dataframe.iter_clusters_and_geohashes()
     )
 
-    print_results(darwin_core_aggregations, all_stats, clusters)
+    print_results(darwin_core_aggregations, all_stats, clusters, cluster_dataframe)
 
     write_geojson(feature_collection, args.output_file)
 
     plot_clusters(feature_collection)
+
+
+if __name__ == "__main__":
+    run()
