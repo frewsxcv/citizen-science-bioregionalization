@@ -467,23 +467,28 @@ if __name__ == "__main__":
     input_file = args.input_file
     logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
 
-    if os.path.exists("condensed_distance_matrix.pickle"):
-        with Timer(output=logger.info, prefix="Loading condensed distance matrix"):
-            with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
-                ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
-                    pickle.load(pickle_reader)
-                )
-    else:
-        read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
-        ordered_seen_geohash, condensed_distance_matrix = (
-            build_condensed_distance_matrix(read_rows_result)
-        )
-        with Timer(output=logger.info, prefix="Saving condensed distance matrix"):
-            with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
-                pickle.dump(
-                    (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
-                    pickle_writer,
-                )
+    # if os.path.exists("condensed_distance_matrix.pickle"):
+    #     with Timer(output=logger.info, prefix="Loading condensed distance matrix"):
+    #         with open("condensed_distance_matrix.pickle", "rb") as pickle_reader:
+    #             ordered_seen_geohash, condensed_distance_matrix, read_rows_result = (
+    #                 pickle.load(pickle_reader)
+    #             )
+    # else:
+    #     read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
+    #     ordered_seen_geohash, condensed_distance_matrix = (
+    #         build_condensed_distance_matrix(read_rows_result)
+    #     )
+    #     with Timer(output=logger.info, prefix="Saving condensed distance matrix"):
+    #         with open("condensed_distance_matrix.pickle", "wb") as pickle_writer:
+    #             pickle.dump(
+    #                 (ordered_seen_geohash, condensed_distance_matrix, read_rows_result),
+    #                 pickle_writer,
+    #             )
+
+    read_rows_result = ReadRowsResult.build(input_file, args.geohash_precision)
+    ordered_seen_geohash, condensed_distance_matrix = build_condensed_distance_matrix(
+        read_rows_result
+    )
 
     # Find the top averages of taxon
     all_stats = read_rows_result.build_stats()
