@@ -78,7 +78,8 @@ def build_stats(
     # - `taxonKey`: `int`
     # - `count`: `int`
     taxon_counts: pl.LazyFrame = (
-        darwin_core_aggregations.taxon_counts.filter(pl.col("geohash").is_in(geohashes))
+        darwin_core_aggregations.taxon_counts.lazy()
+        .filter(pl.col("geohash").is_in(geohashes))
         .select(["taxonKey", "count"])
         .group_by("taxonKey")
         .agg(pl.col("count").sum())
@@ -96,9 +97,8 @@ def build_stats(
     )
 
     order_counts = (
-        darwin_core_aggregations.order_counts_series.filter(
-            pl.col("geohash").is_in(geohashes)
-        )
+        darwin_core_aggregations.order_counts.lazy()
+        .filter(pl.col("geohash").is_in(geohashes))
         .group_by("order")
         .agg(pl.col("count").sum())
     )
@@ -142,7 +142,7 @@ def build_condensed_distance_matrix(
         #         j = ordered_seen_taxon_id.index(taxonKey)
         #         matrix[i, j] = np.uint32(count)
 
-        X = darwin_core_aggregations.taxon_counts.collect().pivot(
+        X = darwin_core_aggregations.taxon_counts.pivot(
             on="taxonKey",
             index="geohash",
         )
@@ -348,7 +348,7 @@ def run() -> None:
     if args.show_dendrogram:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    clusters = list(map(int, fcluster(Z, t=5, criterion="maxclust")))
+    clusters = list(map(int, fcluster(Z, t=20, criterion="maxclust")))
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(

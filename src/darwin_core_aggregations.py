@@ -1,5 +1,6 @@
 import logging
 import polars as pl
+import functools
 from typing import List, NamedTuple, Self
 from src.darwin_core import read_rows, TaxonId
 from src.geohash import Geohash, build_geohash_series
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class DarwinCoreAggregations(NamedTuple):
-    taxon_counts: pl.LazyFrame
+    taxon_counts: pl.DataFrame
     """
     Schema:
     - `geohash`: `str`
@@ -18,7 +19,7 @@ class DarwinCoreAggregations(NamedTuple):
     - `count`: `int`
     """
 
-    order_counts_series: pl.LazyFrame
+    order_counts: pl.DataFrame
     """
     Schema:
     - `geohash`: `str`
@@ -26,7 +27,7 @@ class DarwinCoreAggregations(NamedTuple):
     - `count`: `int`
     """
 
-    taxon_index: pl.LazyFrame
+    taxon_index: pl.DataFrame
     """
     Schema:
     - `taxonKey`: `int`
@@ -35,7 +36,7 @@ class DarwinCoreAggregations(NamedTuple):
 
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
-        taxon_counts = pl.LazyFrame(
+        taxon_counts = pl.DataFrame(
             schema={
                 "geohash": pl.String,
                 "taxonKey": pl.UInt64,
@@ -43,7 +44,7 @@ class DarwinCoreAggregations(NamedTuple):
             }
         )
 
-        order_counts = pl.LazyFrame(
+        order_counts = pl.DataFrame(
             schema={
                 "geohash": pl.String,
                 "order": pl.String,
@@ -56,7 +57,7 @@ class DarwinCoreAggregations(NamedTuple):
         #     Geohash, DefaultDict[TaxonId, Counter[str]]
         # ] = defaultdict(lambda: defaultdict(Counter))
 
-        taxon_index = pl.LazyFrame(
+        taxon_index = pl.DataFrame(
             schema={
                 "taxonKey": pl.UInt64,
                 "verbatimScientificName": pl.String,
@@ -65,7 +66,7 @@ class DarwinCoreAggregations(NamedTuple):
 
         with Timer(output=logger.info, prefix="Reading rows"):
             for read_dataframe in read_rows(input_file):
-                dataframe_with_geohash = read_dataframe.lazy().pipe(
+                dataframe_with_geohash = read_dataframe.pipe(
                     build_geohash_series,
                     lat_col=pl.col("decimalLatitude"),
                     lon_col=pl.col("decimalLongitude"),
@@ -120,23 +121,19 @@ class DarwinCoreAggregations(NamedTuple):
             .sort(by="geohash")
         )
 
-        order_counts_series = (
-            order_counts.group_by(["geohash", "order"])
-            .agg(pl.col("count").sum())
-            .lazy()
+        order_counts = order_counts.group_by(["geohash", "order"]).agg(
+            pl.col("count").sum()
         )
 
         return cls(
             taxon_counts=taxon_counts,
-            order_counts_series=order_counts_series,
+            order_counts=order_counts,
             taxon_index=taxon_index,
         )
 
     def scientific_name_for_taxon_key(self, taxon_key: TaxonId) -> str:
-        column = (
-            self.taxon_index.filter(pl.col("taxonKey") == taxon_key)
-            .collect()
-            .get_column("verbatimScientificName")
+        column = self.taxon_index.filter(pl.col("taxonKey") == taxon_key).get_column(
+            "verbatimScientificName"
         )
         if len(column) > 1:
             # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
@@ -145,22 +142,22 @@ class DarwinCoreAggregations(NamedTuple):
             return column.limit(1).item()
         return column.item()
 
+    # @functools.cache
     def ordered_geohashes(self) -> List[Geohash]:
         return (
             self.taxon_counts.select("geohash")
             .unique()
             .sort(by="geohash")
-            .collect()
             .get_column("geohash")
             .to_list()
         )
 
+    # @functools.cache
     def ordered_taxon_keys(self) -> List[TaxonId]:
         return (
             self.taxon_counts.select("taxonKey")
             .unique()
             .sort(by="taxonKey")
-            .collect()
             .get_column("taxonKey")
             .to_list()
         )
