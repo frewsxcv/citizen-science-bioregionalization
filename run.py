@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.preprocessing import StandardScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
@@ -168,16 +168,43 @@ def build_condensed_distance_matrix(
         f"Reducing dimensions with PCA. Previously: {X.shape}"
     )
 
+    pca = IncrementalPCA(copy=True, batch_size=1000)
+
     # Use PCA to reduce the number of dimensions
-    with Timer(output=logger.info, prefix="Reducing dimensions with PCA"):
-        pca = PCA(n_components=0.95, copy=False)  # Keep components explaining 95% of variance
-        pca.fit_transform(X)
+    with Timer(output=logger.info, prefix="Fitting PCA"):
+        # Batch size (adjust based on memory availability)
+        batch_size = 1000
+        n_samples = X.shape[0]
+
+        X = pca.fit_transform(X)
+
+        # for i in range(0, n_samples//batch_size):
+        #     pca.partial_fit(X[i*batch_size : (i+1)*batch_size])
+
+        #     if i % max(1, min(n_samples // 10, 10)) == 0:
+        #         progress = (i / n_samples) * 100
+        #         logger.info(f"PCA fitting progress: {progress:.1f}% ({i}/{n_samples} batches)")
+
+        # # Fit the model incrementally
+        # for i in range(0, n_samples//batch_size):
+        #     X[i*batch_size : (i+1)*batch_size] = pca.transform(X[i*batch_size : (i+1)*batch_size])
+
+        # total_batches = (n_samples + batch_size - 1) // batch_size  # Calculate total number of batches
+        # for i, batch_num in enumerate(range(0, n_samples, batch_size)):
+            # batch = X[i:i + batch_size]
+            # pca.partial_fit(batch)
+            
+            # Log progress every 10% or at least every 10 batches
+
+
+    # with Timer(output=logger.info, prefix="Transforming PCA. Previously: {X.shape}"):
+    #     X = pca.transform(X)
 
     logger.info(
         f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
     )
 
-    logger.info(f"Running pdist on matrix: {X.height} geohashes, {X.width} taxon IDs")
+    logger.info(f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs")
 
     with Timer(output=logger.info, prefix="Running pdist"):
         Y = pdist(X, metric="braycurtis")
