@@ -155,31 +155,34 @@ def build_condensed_distance_matrix(
 
     assert X["geohash"].to_list() == darwin_core_aggregations.ordered_geohashes()
 
-    X = X.drop("geohash")
+    with Timer(output=logger.info, prefix="Dropping geohash column"):
+        X = X.drop("geohash")
 
     # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
+    with Timer(output=logger.info, prefix="Scaling values"):
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+
     logger.info(
-        f"Reducing dimensions with PCA. Previously: {X.height} geohashes, {X.width} taxon IDs"
+        f"Reducing dimensions with PCA. Previously: {X.shape}"
     )
 
-    scaler = StandardScaler()
-    standardized_data = scaler.fit_transform(X)
-
     # Use PCA to reduce the number of dimensions
-    pca = PCA(n_components=0.95)  # Keep components explaining 95% of variance
-    reduced_data = pca.fit_transform(standardized_data)
+    with Timer(output=logger.info, prefix="Reducing dimensions with PCA"):
+        pca = PCA(n_components=0.95, copy=False)  # Keep components explaining 95% of variance
+        pca.fit_transform(X)
 
     logger.info(
-        f"Reduced dimensions with PCA. Now: {reduced_data.shape[0]} geohashes, {reduced_data.shape[1]} taxon IDs"
+        f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
     )
 
     logger.info(f"Running pdist on matrix: {X.height} geohashes, {X.width} taxon IDs")
 
     with Timer(output=logger.info, prefix="Running pdist"):
-        result = pdist(reduced_data, metric="braycurtis")
+        Y = pdist(X, metric="braycurtis")
 
-    return darwin_core_aggregations.ordered_geohashes(), result
+    return darwin_core_aggregations.ordered_geohashes(), Y
 
 
 def print_cluster_stats(
