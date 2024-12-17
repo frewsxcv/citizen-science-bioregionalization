@@ -1,29 +1,27 @@
-# TODO: Don't include geohashes that extend beyond the bounds of the dataset as those clusters will have artificially fewer counts
+# TODO: Don't include geohashes that extend beyond the bounds of the dataset
+# so those clusters will have artificially fewer counts
 
 import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
-from sklearn.decomposition import PCA, IncrementalPCA
+from sklearn.decomposition import IncrementalPCA
 from sklearn.preprocessing import StandardScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
 from typing import (
-    DefaultDict,
-    Dict,
     Iterator,
     List,
     NamedTuple,
     Optional,
     Self,
-    Set,
     Tuple,
 )
 
 from src.cli import parse_arguments
 from src.darwin_core_aggregations import DarwinCoreAggregations
-from src.geohash import Geohash, build_geohash_series
+from src.geohash import Geohash
 from src.render import plot_clusters
 from src.cluster import ClusterId
 import matplotlib.pyplot as plt
@@ -114,7 +112,7 @@ def build_condensed_distance_matrix(
     darwin_core_aggregations: DarwinCoreAggregations,
 ) -> np.ndarray:
     cache_file = "condensed_distance_matrix.parquet"
-    
+
     # Try to load from cache
     if os.path.exists(cache_file):
         with Timer(output=logger.info, prefix="Loading cached distance matrix"):
@@ -172,9 +170,7 @@ def build_condensed_distance_matrix(
         scaler = StandardScaler()
         X = scaler.fit_transform(X)
 
-    logger.info(
-        f"Reducing dimensions with PCA. Previously: {X.shape}"
-    )
+    logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
     pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
 
@@ -195,11 +191,10 @@ def build_condensed_distance_matrix(
 
         # total_batches = (n_samples + batch_size - 1) // batch_size  # Calculate total number of batches
         # for i, batch_num in enumerate(range(0, n_samples, batch_size)):
-            # batch = X[i:i + batch_size]
-            # pca.partial_fit(batch)
-            
-            # Log progress every 10% or at least every 10 batches
+        # batch = X[i:i + batch_size]
+        # pca.partial_fit(batch)
 
+        # Log progress every 10% or at least every 10 batches
 
     # with Timer(output=logger.info, prefix="Transforming PCA. Previously: {X.shape}"):
     #     X = pca.transform(X)
@@ -208,7 +203,9 @@ def build_condensed_distance_matrix(
         f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
     )
 
-    logger.info(f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs")
+    logger.info(
+        f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
+    )
 
     with Timer(output=logger.info, prefix="Running pdist"):
         Y = pdist(X, metric="braycurtis")
@@ -376,9 +373,7 @@ def run() -> None:
     )
     ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
 
-    Y = build_condensed_distance_matrix(
-        darwin_core_aggregations
-    )
+    Y = build_condensed_distance_matrix(darwin_core_aggregations)
 
     # Find the top averages of taxon
     all_stats = build_stats(darwin_core_aggregations)
@@ -389,8 +384,7 @@ def run() -> None:
     if args.show_dendrogram:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    # 1.5 one giant cluster
-    clusters = list(map(int, fcluster(Z, t=30, criterion="maxclust")))
+    clusters = list(map(int, fcluster(Z, t=40, criterion="maxclust")))
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(
