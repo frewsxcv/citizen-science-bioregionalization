@@ -112,7 +112,15 @@ def build_stats(
 
 def build_condensed_distance_matrix(
     darwin_core_aggregations: DarwinCoreAggregations,
-) -> Tuple[List[str], np.ndarray]:
+) -> np.ndarray:
+    cache_file = "condensed_distance_matrix.parquet"
+    
+    # Try to load from cache
+    if os.path.exists(cache_file):
+        with Timer(output=logger.info, prefix="Loading cached distance matrix"):
+            matrix_df = pl.read_parquet(cache_file)
+            return matrix_df.to_numpy().flatten()
+
     # Create a matrix where each row is a geohash and each column is a taxon ID
     # Example:
     # [
@@ -168,14 +176,10 @@ def build_condensed_distance_matrix(
         f"Reducing dimensions with PCA. Previously: {X.shape}"
     )
 
-    pca = IncrementalPCA(copy=True, batch_size=1000)
+    pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
 
     # Use PCA to reduce the number of dimensions
     with Timer(output=logger.info, prefix="Fitting PCA"):
-        # Batch size (adjust based on memory availability)
-        batch_size = 1000
-        n_samples = X.shape[0]
-
         X = pca.fit_transform(X)
 
         # for i in range(0, n_samples//batch_size):
@@ -209,7 +213,12 @@ def build_condensed_distance_matrix(
     with Timer(output=logger.info, prefix="Running pdist"):
         Y = pdist(X, metric="braycurtis")
 
-    return darwin_core_aggregations.ordered_geohashes(), Y
+    with Timer(output=logger.info, prefix="Caching distance matrix"):
+        # Convert the condensed distance matrix to a DataFrame and save
+        matrix_df = pl.DataFrame({"values": Y})
+        matrix_df.write_parquet(cache_file)
+
+    return Y
 
 
 def print_cluster_stats(
@@ -365,7 +374,9 @@ def run() -> None:
     darwin_core_aggregations = DarwinCoreAggregations.build(
         input_file, args.geohash_precision
     )
-    ordered_seen_geohash, condensed_distance_matrix = build_condensed_distance_matrix(
+    ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
+
+    Y = build_condensed_distance_matrix(
         darwin_core_aggregations
     )
 
@@ -373,12 +384,13 @@ def run() -> None:
     all_stats = build_stats(darwin_core_aggregations)
 
     # Generate the linkage matrix
-    Z = linkage(condensed_distance_matrix, "ward")
+    Z = linkage(Y, "ward")
 
     if args.show_dendrogram:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    clusters = list(map(int, fcluster(Z, t=20, criterion="maxclust")))
+    # 1.5 one giant cluster
+    clusters = list(map(int, fcluster(Z, t=30, criterion="maxclust")))
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(
