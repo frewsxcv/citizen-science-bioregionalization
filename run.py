@@ -29,6 +29,7 @@ from src.render import plot_clusters
 from src.cluster import ClusterId
 import matplotlib.pyplot as plt
 from src.geojson import build_geojson_feature_collection
+import os
 
 logger = logging.getLogger(__name__)
 
