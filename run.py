@@ -22,7 +22,6 @@ from typing import (
 )
 
 from src.cli import parse_arguments
-from src.darwin_core import TaxonId, read_rows
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.geohash import Geohash, build_geohash_series
 from src.render import plot_clusters

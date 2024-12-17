@@ -2,7 +2,7 @@ import logging
 import polars as pl
 import functools
 from typing import List, NamedTuple, Self
-from src.darwin_core import read_rows, TaxonId
+from src.darwin_core import read_rows
 from src.geohash import Geohash, build_geohash_series
 from contexttimer import Timer
 
@@ -65,7 +65,17 @@ class DarwinCoreAggregations(NamedTuple):
         )
 
         with Timer(output=logger.info, prefix="Reading rows"):
-            for read_dataframe in read_rows(input_file):
+            for read_dataframe in read_rows(
+                input_file,
+                columns=[
+                    "decimalLatitude",
+                    "decimalLongitude",
+                    "taxonKey",
+                    "verbatimScientificName",
+                    "order",
+                    "recordedBy",
+                ],
+            ):
                 dataframe_with_geohash = read_dataframe.pipe(
                     build_geohash_series,
                     lat_col=pl.col("decimalLatitude"),
@@ -131,7 +141,7 @@ class DarwinCoreAggregations(NamedTuple):
             taxon_index=taxon_index,
         )
 
-    def scientific_name_for_taxon_key(self, taxon_key: TaxonId) -> str:
+    def scientific_name_for_taxon_key(self, taxon_key: int) -> str:
         column = self.taxon_index.filter(pl.col("taxonKey") == taxon_key).get_column(
             "verbatimScientificName"
         )
@@ -153,7 +163,7 @@ class DarwinCoreAggregations(NamedTuple):
         )
 
     # @functools.cache
-    def ordered_taxon_keys(self) -> List[TaxonId]:
+    def ordered_taxon_keys(self) -> List[int]:
         return (
             self.taxon_counts.select("taxonKey")
             .unique()
