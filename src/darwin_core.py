@@ -30,7 +30,7 @@ class ProgressLogger:
         self.num_lines = int((file_size // avg_line_size) - 1)
         self.processed_lines = 0
         self.last_percentage = -1
-        self.logger.info(f"Processing CSV file (estimated {self.num_lines:,} lines)")
+        self.logger.info(f"Processing CSV file (estimated {self.num_lines} lines)")
 
     def log_progress(self):
         current_percentage = int((self.processed_lines / self.num_lines) * 100)
