@@ -299,6 +299,11 @@ class ClusterDataFrame(NamedTuple):
         ):
             yield row["cluster"], row["geohash"]
 
+    def num_clusters(self) -> int:
+        num = self.dataframe["cluster"].max()
+        assert isinstance(num, int)
+        return num
+
 
 def write_geojson(
     feature_collection: geojson.FeatureCollection, output_file: str
@@ -310,16 +315,34 @@ def write_geojson(
 def print_results(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
-    clusters: List[ClusterId],
     cluster_dataframe: ClusterDataFrame,
 ) -> None:
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(darwin_core_aggregations, all_stats)
 
-    logger.info(f"Number of clusters: {len(set(clusters))}")
+    logger.info(f"Number of clusters: {cluster_dataframe.num_clusters()}")
 
     for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
+
+
+def cluster(
+    darwin_core_aggregations: DarwinCoreAggregations,
+    num_clusters: int,
+    ordered_seen_geohash: List[Geohash],
+    show_dendrogram_opt: bool,
+) -> ClusterDataFrame:
+    Y = build_condensed_distance_matrix(darwin_core_aggregations)
+    Z = linkage(Y, "ward")
+
+    clusters = list(map(int, fcluster(Z, t=num_clusters, criterion="maxclust")))
+
+    if show_dendrogram_opt:
+        show_dendrogram(Z, ordered_seen_geohash)
+
+    cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
+
+    return cluster_dataframe
 
 
 def run() -> None:
@@ -332,25 +355,21 @@ def run() -> None:
     )
     ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
 
-    Y = build_condensed_distance_matrix(darwin_core_aggregations)
+    cluster_dataframe = cluster(
+        darwin_core_aggregations,
+        args.num_clusters,
+        ordered_seen_geohash,
+        args.show_dendrogram,
+    )
 
     # Find the top averages of taxon
     all_stats = build_stats(darwin_core_aggregations)
 
-    # Generate the linkage matrix
-    Z = linkage(Y, "ward")
-
-    if args.show_dendrogram:
-        show_dendrogram(Z, ordered_seen_geohash)
-
-    clusters = list(map(int, fcluster(Z, t=args.num_clusters, criterion="maxclust")))
-
-    cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(
         cluster_dataframe.iter_clusters_and_geohashes()
     )
 
-    print_results(darwin_core_aggregations, all_stats, clusters, cluster_dataframe)
+    print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
 
     if args.plot:
         plot_clusters(feature_collection)
