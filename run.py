@@ -1,6 +1,7 @@
 # TODO: Don't include geohashes that extend beyond the bounds of the dataset
 # so those clusters will have artificially fewer counts
 
+import random
 import logging
 import numpy as np
 import geojson  # type: ignore
@@ -270,12 +271,25 @@ def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
     plt.show()
 
 
+COLORS = [
+    "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
+    for _ in range(1000)
+]
+
+
 class ClusterDataFrame(NamedTuple):
     dataframe: pl.DataFrame
     """
     Schema:
     - `geohash`: `str`
     - `cluster`: `int`
+    """
+
+    cluster_colors: pl.DataFrame
+    """
+    Schema:
+    - `cluster`: `int`
+    - `color`: `str`
     """
 
     @classmethod
@@ -289,7 +303,21 @@ class ClusterDataFrame(NamedTuple):
             },
             schema={"geohash": pl.String, "cluster": pl.UInt32},
         )
-        return cls(dataframe)
+        cluster_colors = pl.DataFrame(
+            data={
+                "cluster": list(range(1, max(clusters) + 1)),
+                "color": [COLORS[i] for i in range(max(clusters))],
+            },
+            schema={"cluster": pl.UInt32, "color": pl.String},
+        )
+        return cls(dataframe, cluster_colors)
+
+    def color_for_cluster(self, cluster: ClusterId) -> str:
+        color = self.cluster_colors.filter(pl.col("cluster") == cluster)[
+            "color"
+        ].first()
+        assert isinstance(color, str)
+        return color
 
     def iter_clusters_and_geohashes(
         self,
@@ -366,7 +394,12 @@ def run() -> None:
     all_stats = build_stats(darwin_core_aggregations)
 
     feature_collection = build_geojson_feature_collection(
-        cluster_dataframe.iter_clusters_and_geohashes()
+        (
+            cluster,
+            geohashes,
+            cluster_dataframe.color_for_cluster(cluster),
+        )
+        for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
     )
 
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
