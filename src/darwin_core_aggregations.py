@@ -82,31 +82,24 @@ class DarwinCoreAggregations(NamedTuple):
                     precision=geohash_precision,
                 )
 
-                taxon_counts = pl.concat(
-                    items=[
-                        taxon_counts,
-                        dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
-                            pl.len().alias("count")
-                        ),
-                    ]
+                taxon_counts.vstack(
+                    dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
+                        pl.len().alias("count")
+                    ),
+                    in_place=True,
                 )
 
-                order_counts = pl.concat(
-                    items=[
-                        order_counts,
-                        dataframe_with_geohash.group_by(["geohash", "order"]).agg(
-                            pl.len().alias("count")
-                        ),
-                    ]
+                order_counts = order_counts.vstack(
+                    dataframe_with_geohash.group_by(["geohash", "order"]).agg(
+                        pl.len().alias("count")
+                    ),
+                    in_place=True,
                 )
 
-                taxon_index = pl.concat(
-                    items=[
-                        taxon_index,
-                        dataframe_with_geohash.select(
-                            ["taxonKey", "verbatimScientificName"]
-                        ),
-                    ]
+                taxon_index = taxon_index.vstack(
+                    dataframe_with_geohash.select(
+                        ["taxonKey", "verbatimScientificName"]
+                    )
                 ).unique()
 
                 # for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
