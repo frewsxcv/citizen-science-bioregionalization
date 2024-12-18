@@ -277,7 +277,7 @@ COLORS = [
 ]
 
 
-class ClusterDataFrame(NamedTuple):
+class ClusterIndex(NamedTuple):
     dataframe: pl.DataFrame
     """
     Schema:
@@ -343,14 +343,14 @@ def write_geojson(
 def print_results(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
-    cluster_dataframe: ClusterDataFrame,
+    cluster_index: ClusterIndex,
 ) -> None:
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(darwin_core_aggregations, all_stats)
 
-    logger.info(f"Number of clusters: {cluster_dataframe.num_clusters()}")
+    logger.info(f"Number of clusters: {cluster_index.num_clusters()}")
 
-    for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes():
+    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes():
         print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
 
 
@@ -359,7 +359,7 @@ def cluster(
     num_clusters: int,
     ordered_seen_geohash: List[Geohash],
     show_dendrogram_opt: bool,
-) -> ClusterDataFrame:
+) -> ClusterIndex:
     Y = build_condensed_distance_matrix(darwin_core_aggregations)
     Z = linkage(Y, "ward")
 
@@ -368,9 +368,9 @@ def cluster(
     if show_dendrogram_opt:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
+    cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
 
-    return cluster_dataframe
+    return cluster_index
 
 
 def run() -> None:
