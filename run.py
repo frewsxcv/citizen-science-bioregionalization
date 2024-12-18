@@ -343,7 +343,7 @@ def run() -> None:
     if args.show_dendrogram:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    clusters = list(map(int, fcluster(Z, t=40, criterion="maxclust")))
+    clusters = list(map(int, fcluster(Z, t=args.num_clusters, criterion="maxclust")))
 
     cluster_dataframe = ClusterDataFrame.build(ordered_seen_geohash, clusters)
     feature_collection = build_geojson_feature_collection(

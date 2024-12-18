@@ -10,6 +10,12 @@ def parse_arguments() -> argparse.Namespace:
         required=True,
     )
     parser.add_argument(
+        "--num-clusters",
+        type=int,
+        help="Number of clusters to generate",
+        required=True,
+    )
+    parser.add_argument(
         "--log-file",
         type=str,
         help="Path to the log file",
