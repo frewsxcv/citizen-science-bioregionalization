@@ -178,27 +178,6 @@ def build_condensed_distance_matrix(
     with Timer(output=logger.info, prefix="Fitting PCA"):
         X = pca.fit_transform(X)
 
-        # for i in range(0, n_samples//batch_size):
-        #     pca.partial_fit(X[i*batch_size : (i+1)*batch_size])
-
-        #     if i % max(1, min(n_samples // 10, 10)) == 0:
-        #         progress = (i / n_samples) * 100
-        #         logger.info(f"PCA fitting progress: {progress:.1f}% ({i}/{n_samples} batches)")
-
-        # # Fit the model incrementally
-        # for i in range(0, n_samples//batch_size):
-        #     X[i*batch_size : (i+1)*batch_size] = pca.transform(X[i*batch_size : (i+1)*batch_size])
-
-        # total_batches = (n_samples + batch_size - 1) // batch_size  # Calculate total number of batches
-        # for i, batch_num in enumerate(range(0, n_samples, batch_size)):
-        # batch = X[i:i + batch_size]
-        # pca.partial_fit(batch)
-
-        # Log progress every 10% or at least every 10 batches
-
-    # with Timer(output=logger.info, prefix="Transforming PCA. Previously: {X.shape}"):
-    #     X = pca.transform(X)
-
     logger.info(
         f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
     )
