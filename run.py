@@ -405,7 +405,7 @@ def run() -> None:
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
 
     if args.plot:
-        plot_clusters(feature_collection)
+        plot_clusters(feature_collection, num_clusters=args.num_clusters)
 
     write_geojson(feature_collection, args.output_file)
 
