@@ -21,6 +21,8 @@ from typing import (
 )
 
 from src.cli import parse_arguments
+from src.cluster_color_builder import ClusterColorBuilder
+from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.geohash import Geohash
 from src.render import plot_clusters
@@ -30,83 +32,6 @@ from src.geojson import build_geojson_feature_collection
 import os
 
 logger = logging.getLogger(__name__)
-
-
-class Stats(NamedTuple):
-    geohashes: List[Geohash]
-
-    taxon: pl.LazyFrame
-    """
-    Schema:
-    - `taxonKey`: `int`
-    - `count`: `int`
-    - `average`: `float`
-    """
-
-    order_counts: pl.LazyFrame
-    """
-    Schema:
-    - `order`: `str`
-    - `count`: `int`
-    """
-
-    def order_count(self, order: str) -> int:
-        return (
-            self.order_counts.filter(pl.col("order") == order)
-            .collect()
-            .get_column("count")
-            .item()
-        )
-
-
-def build_stats(
-    darwin_core_aggregations: DarwinCoreAggregations,
-    geohash_filter: Optional[List[Geohash]] = None,
-) -> Stats:
-    geohashes = (
-        darwin_core_aggregations.ordered_geohashes()
-        if geohash_filter is None
-        else [
-            g
-            for g in darwin_core_aggregations.ordered_geohashes()
-            if g in geohash_filter
-        ]
-    )
-
-    # Schema:
-    # - `taxonKey`: `int`
-    # - `count`: `int`
-    taxon_counts: pl.LazyFrame = (
-        darwin_core_aggregations.taxon_counts.lazy()
-        .filter(pl.col("geohash").is_in(geohashes))
-        .select(["taxonKey", "count"])
-        .group_by("taxonKey")
-        .agg(pl.col("count").sum())
-    )
-
-    # Total observation count all filtered geohashes
-    total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
-
-    # Schema:
-    # - `taxonKey`: `int`
-    # - `count`: `int`
-    # - `average`: `float`
-    taxon: pl.LazyFrame = taxon_counts.with_columns(
-        (pl.col("count") / total_count).alias("average")
-    )
-
-    order_counts = (
-        darwin_core_aggregations.order_counts.lazy()
-        .filter(pl.col("geohash").is_in(geohashes))
-        .group_by("order")
-        .agg(pl.col("count").sum())
-    )
-
-    return Stats(
-        geohashes=geohashes,
-        taxon=taxon,
-        order_counts=order_counts,
-    )
 
 
 def build_condensed_distance_matrix(
@@ -204,11 +129,9 @@ def print_cluster_stats(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
 ) -> None:
-    stats = build_stats(darwin_core_aggregations, geohash_filter=geohashes)
+    stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
-    print(f"Passeriformes counts: {stats.order_count('Passeriformes')}")
-    print(f"Anseriformes counts: {stats.order_count('Anseriformes')}")
 
     for taxon_id, count in (
         stats.taxon.sort(by="count", descending=True)
@@ -285,12 +208,12 @@ class ClusterIndex(NamedTuple):
     - `cluster`: `int`
     """
 
-    cluster_colors: pl.DataFrame
-    """
-    Schema:
-    - `cluster`: `int`
-    - `color`: `str`
-    """
+    # cluster_colors: pl.DataFrame
+    # """
+    # Schema:
+    # - `cluster`: `int`
+    # - `color`: `str`
+    # """
 
     @classmethod
     def build(
@@ -303,21 +226,29 @@ class ClusterIndex(NamedTuple):
             },
             schema={"geohash": pl.String, "cluster": pl.UInt32},
         )
-        cluster_colors = pl.DataFrame(
-            data={
-                "cluster": list(range(1, max(clusters) + 1)),
-                "color": [COLORS[i] for i in range(max(clusters))],
-            },
-            schema={"cluster": pl.UInt32, "color": pl.String},
+        # cluster_colors = pl.DataFrame(
+        #     data={
+        #         "cluster": list(range(1, max(clusters) + 1)),
+        #         "color": [COLORS[i] for i in range(max(clusters))],
+        #     },
+        #     schema={"cluster": pl.UInt32, "color": pl.String},
+        # )
+        return cls(
+            dataframe,
+            # cluster_colors,
         )
-        return cls(dataframe, cluster_colors)
 
-    def color_for_cluster(self, cluster: ClusterId) -> str:
-        color = self.cluster_colors.filter(pl.col("cluster") == cluster)[
-            "color"
-        ].first()
-        assert isinstance(color, str)
-        return color
+    def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
+        return self.dataframe.filter(pl.col("cluster") == cluster)["geohash"].to_list()
+
+    def determine_color_for_cluster(
+        self, cluster: ClusterId, darwin_core_aggregations: DarwinCoreAggregations
+    ) -> str:
+        stats = Stats.build(
+            darwin_core_aggregations,
+            geohash_filter=self.geohashes_for_cluster(cluster),
+        )
+        return ClusterColorBuilder.determine_color_for_cluster(stats)
 
     def iter_clusters_and_geohashes(
         self,
@@ -391,13 +322,15 @@ def run() -> None:
     )
 
     # Find the top averages of taxon
-    all_stats = build_stats(darwin_core_aggregations)
+    all_stats = Stats.build(darwin_core_aggregations)
 
     feature_collection = build_geojson_feature_collection(
         (
             cluster,
             geohashes,
-            cluster_dataframe.color_for_cluster(cluster),
+            cluster_dataframe.determine_color_for_cluster(
+                cluster, darwin_core_aggregations
+            ),
         )
         for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
     )
