@@ -194,12 +194,6 @@ def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
     plt.show()
 
 
-COLORS = [
-    "#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)])
-    for _ in range(1000)
-]
-
-
 class ClusterIndex(NamedTuple):
     dataframe: pl.DataFrame
     """
