@@ -12,6 +12,7 @@ from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
 from typing import (
+    Callable,
     Iterator,
     List,
     NamedTuple,
@@ -32,6 +33,12 @@ from src.geojson import build_geojson_feature_collection
 import os
 
 logger = logging.getLogger(__name__)
+
+
+def log_action[T](action: str, func: Callable[[], T]) -> T:
+    logger.info(f"Running {action}")
+    with Timer(output=logger.info, prefix=action):
+        return func()
 
 
 def build_condensed_distance_matrix(
@@ -82,38 +89,33 @@ def build_condensed_distance_matrix(
     assert X.height > 1, "More than one geohash is required to cluster"
 
     # fill null values with 0
-    with Timer(output=logger.info, prefix="Filling null values"):
-        X = X.fill_null(np.uint32(0))
+    X = log_action("Filling null values", lambda: X.fill_null(np.uint32(0)))
 
     assert X["geohash"].to_list() == darwin_core_aggregations.ordered_geohashes()
 
-    with Timer(output=logger.info, prefix="Dropping geohash column"):
-        X = X.drop("geohash")
+    X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
     # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
-    with Timer(output=logger.info, prefix="Scaling values"):
-        scaler = StandardScaler()
-        X = scaler.fit_transform(X)
+    scaler = StandardScaler()
+
+    X = log_action("Scaling values", lambda: scaler.fit_transform(X))
 
     logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
     pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
 
     # Use PCA to reduce the number of dimensions
-    with Timer(output=logger.info, prefix="Fitting PCA"):
-        X = pca.fit_transform(X)
+    X = log_action("Fitting PCA", lambda: pca.fit_transform(X))
 
     logger.info(
         f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
     )
 
-    logger.info(
-        f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
+    Y = log_action(
+        f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs",
+        lambda: pdist(X, metric="braycurtis"),
     )
-
-    with Timer(output=logger.info, prefix="Running pdist"):
-        Y = pdist(X, metric="braycurtis")
 
     with Timer(output=logger.info, prefix="Caching distance matrix"):
         # Convert the condensed distance matrix to a DataFrame and save
