@@ -272,9 +272,9 @@ def print_results(
 def cluster(
     darwin_core_aggregations: DarwinCoreAggregations,
     num_clusters: int,
-    ordered_seen_geohash: List[Geohash],
     show_dendrogram_opt: bool,
 ) -> ClusterIndex:
+    ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
     Y = build_condensed_distance_matrix(darwin_core_aggregations)
     Z = linkage(Y, "ward")
 
