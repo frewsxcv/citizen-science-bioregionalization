@@ -51,11 +51,10 @@ def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
     #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
-    with Timer(output=logger.info, prefix="Building matrix"):
-        X = darwin_core_aggregations.taxon_counts.pivot(
-            on="taxonKey",
-            index="geohash",
-        )
+    X = log_action("Building matrix", lambda: darwin_core_aggregations.taxon_counts.pivot(
+        on="taxonKey",
+        index="geohash",
+    ))
 
     assert X.height > 1, "More than one geohash is required to cluster"
 
