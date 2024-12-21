@@ -1,6 +1,7 @@
 # TODO: Don't include geohashes that extend beyond the bounds of the dataset
 # so those clusters will have artificially fewer counts
 
+from sklearn.manifold import TSNE
 import random
 import logging
 import numpy as np
@@ -41,17 +42,7 @@ def log_action[T](action: str, func: Callable[[], T]) -> T:
         return func()
 
 
-def build_condensed_distance_matrix(
-    darwin_core_aggregations: DarwinCoreAggregations,
-) -> np.ndarray:
-    cache_file = "condensed_distance_matrix.parquet"
-
-    # Try to load from cache
-    if os.path.exists(cache_file):
-        with Timer(output=logger.info, prefix="Loading cached distance matrix"):
-            matrix_df = pl.read_parquet(cache_file)
-            return matrix_df.to_numpy().flatten()
-
+def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
     # Create a matrix where each row is a geohash and each column is a taxon ID
     # Example:
     # [
@@ -61,26 +52,6 @@ def build_condensed_distance_matrix(
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
     with Timer(output=logger.info, prefix="Building matrix"):
-        # matrix = np.zeros(
-        #     (len(ordered_seen_geohash), len(ordered_seen_taxon_id)), dtype=np.uint32
-        # )
-        # geohash_count = 0
-        # for i, geohash in enumerate(ordered_seen_geohash):
-        #     # Print progress every 1000 geohashes
-        #     if geohash_count % 1000 == 0:
-        #         logger.info(
-        #             f"Processing geohash {geohash_count} of {len(ordered_seen_geohash)} ({geohash_count / len(ordered_seen_geohash) * 100:.2f}%)"
-        #         )
-        #     geohash_count += 1
-
-        #     for geohash, taxonKey, count in (
-        #         darwin_core_aggregations.taxon_counts.filter(pl.col("geohash") == geohash)
-        #         .collect()
-        #         .iter_rows(named=False)
-        #     ):
-        #         j = ordered_seen_taxon_id.index(taxonKey)
-        #         matrix[i, j] = np.uint32(count)
-
         X = darwin_core_aggregations.taxon_counts.pivot(
             on="taxonKey",
             index="geohash",
@@ -95,11 +66,28 @@ def build_condensed_distance_matrix(
 
     X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
-    # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
-
     scaler = StandardScaler()
 
-    X = log_action("Scaling values", lambda: scaler.fit_transform(X))
+    return log_action("Scaling values", lambda: scaler.fit_transform(X))
+
+
+def build_condensed_distance_matrix(
+    darwin_core_aggregations: DarwinCoreAggregations,
+) -> np.ndarray:
+    cache_file = "condensed_distance_matrix.parquet"
+
+    # Try to load from cache
+    if os.path.exists(cache_file):
+        with Timer(output=logger.info, prefix="Loading cached distance matrix"):
+            matrix_df = pl.read_parquet(cache_file)
+            return matrix_df.to_numpy().flatten()
+
+    X = build_X(darwin_core_aggregations)
+
+    # tsne = TSNE(metric="braycurtis")
+    # tsne_result = tsne.fit_transform(X)
+
+    # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
     logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
