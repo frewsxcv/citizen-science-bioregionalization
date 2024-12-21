@@ -1,16 +1,21 @@
-from typing import Generator, List
+from typing import Generator, List, Dict
 import logging
 import polars as pl
 import os
 
 
-SCHEMA = {
-    "decimalLatitude": pl.Float64,
-    "decimalLongitude": pl.Float64,
-    "taxonKey": pl.UInt64,
-    "verbatimScientificName": pl.String,
-    "order": pl.String,
-    "recordedBy": pl.String,
+kingdom_enum = pl.Enum(
+    ["Animalia", "Archaea", "Bacteria", "Chromista", "Fungi", "Plantae", "Protozoa", "Viruses", "incertae sedis"],
+)
+
+schema: Dict[str, pl.DataType] = {
+    "decimalLatitude": pl.Float64(),
+    "decimalLongitude": pl.Float64(),
+    "taxonKey": pl.UInt64(),
+    "verbatimScientificName": pl.String(),
+    "order": pl.String(),
+    "recordedBy": pl.String(),
+    "kingdom": kingdom_enum,
 }
 
 
@@ -65,7 +70,7 @@ def read_rows(
     reader = pl.read_csv_batched(
         input_file,
         separator="\t",
-        schema_overrides=SCHEMA,
+        schema_overrides=schema,
         infer_schema_length=0,
         quote_char=None,
         columns=columns,

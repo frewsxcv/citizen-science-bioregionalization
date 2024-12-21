@@ -1,7 +1,8 @@
+from enum import Enum
 import logging
 import polars as pl
 from typing import List, NamedTuple, Self
-from src.darwin_core import read_rows
+from src.darwin_core import read_rows, kingdom_enum
 from src.geohash import Geohash, build_geohash_series
 from contexttimer import Timer
 
@@ -18,11 +19,13 @@ class DarwinCoreAggregations(NamedTuple):
     - `count`: `int`
     """
 
-    order_counts: pl.DataFrame
+    taxon_counts_2: pl.DataFrame
     """
     Schema:
     - `geohash`: `str`
-    - `order`: `str`
+    - `kingdom`: `enum`
+    - `rank`: `enum`
+    - `name`: `str`
     - `count`: `int`
     """
 
@@ -43,10 +46,23 @@ class DarwinCoreAggregations(NamedTuple):
             }
         )
 
-        order_counts = pl.DataFrame(
+        class TaxonRank(Enum):
+            phylum = "phylum"
+            class_ = "class"
+            order = "order"
+            family = "family"
+            genus = "genus"
+            species = "species"
+
+        # Each of these values is also the name of a Darwin Core column
+        taxon_rank_enum = pl.Enum(TaxonRank)
+
+        taxon_counts_2 = pl.DataFrame(
             schema={
                 "geohash": pl.String,
-                "order": pl.String,
+                "kingdom": kingdom_enum,
+                "rank": taxon_rank_enum,
+                "name": pl.String,
                 "count": pl.UInt32,
             }
         )
@@ -71,8 +87,9 @@ class DarwinCoreAggregations(NamedTuple):
                     "decimalLongitude",
                     "taxonKey",
                     "verbatimScientificName",
-                    "order",
                     "recordedBy",
+                    "kingdom",
+                    *map(lambda rank: rank.value, TaxonRank),
                 ],
             ):
                 dataframe_with_geohash = read_dataframe.pipe(
@@ -89,12 +106,26 @@ class DarwinCoreAggregations(NamedTuple):
                     in_place=True,
                 )
 
-                order_counts = order_counts.vstack(
-                    dataframe_with_geohash.group_by(["geohash", "order"]).agg(
-                        pl.len().alias("count")
-                    ),
-                    in_place=True,
-                )
+                for variant in TaxonRank:
+                    aggregated = (
+                        dataframe_with_geohash.lazy()
+                        .group_by(["geohash", "kingdom", variant.value])
+                        .agg(
+                            pl.len().alias("count"),
+                        )
+                        .rename({variant.value: "name"})
+                        .with_columns(
+                            pl.lit(variant, dtype=taxon_rank_enum).alias("rank"),
+                        )
+                        .select(
+                            ["geohash", "kingdom", "rank", "name", "count"]
+                        )
+                        .collect()
+                    )
+                    taxon_counts_2.vstack(
+                        aggregated,
+                        in_place=True,
+                    )
 
                 taxon_index = taxon_index.vstack(
                     dataframe_with_geohash.select(
@@ -123,13 +154,13 @@ class DarwinCoreAggregations(NamedTuple):
             .sort(by="geohash")
         )
 
-        order_counts = order_counts.group_by(["geohash", "order"]).agg(
-            pl.col("count").sum()
-        )
+        taxon_counts_2 = taxon_counts_2.group_by(
+            ["geohash", "kingdom", "rank", "name"]
+        ).agg(pl.col("count").sum())
 
         return cls(
             taxon_counts=taxon_counts,
-            order_counts=order_counts,
+            taxon_counts_2=taxon_counts_2,
             taxon_index=taxon_index,
         )
 

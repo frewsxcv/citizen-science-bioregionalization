@@ -63,9 +63,12 @@ class Stats(NamedTuple):
         )
 
         order_counts = (
-            darwin_core_aggregations.order_counts.lazy()
-            .filter(pl.col("geohash").is_in(geohashes))
-            .group_by("order")
+            darwin_core_aggregations.taxon_counts_2.lazy()
+            .filter(
+                pl.col("geohash").is_in(geohashes),
+                pl.col("rank") == "order",
+            )
+            .group_by("name")
             .agg(pl.col("count").sum())
         )
 
@@ -77,7 +80,7 @@ class Stats(NamedTuple):
 
     def order_count(self, order: str) -> int:
         return (
-            self.order_counts.filter(pl.col("order") == order)
+            self.order_counts.filter(pl.col("name") == order)
             .collect()
             .get_column("count")
             .item()
