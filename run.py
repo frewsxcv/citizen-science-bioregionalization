@@ -296,12 +296,10 @@ def run() -> None:
     darwin_core_aggregations = DarwinCoreAggregations.build(
         input_file, args.geohash_precision
     )
-    ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
 
     cluster_dataframe = cluster(
         darwin_core_aggregations,
         args.num_clusters,
-        ordered_seen_geohash,
         args.show_dendrogram,
     )
 
