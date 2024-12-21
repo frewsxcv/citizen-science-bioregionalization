@@ -30,7 +30,7 @@ class ClusterColorBuilder:
         ) > stats.order_count("Passeriformes"):
             return cls.blue()
 
-        # If the number of Piciformes (perching birds) is greater than
+        # If the number of Piciformes (woodpeckers) is greater than
         # Anseriformes (waterfowl) for the given cluster, use green.
         elif stats.order_count("Piciformes") > stats.order_count("Anseriformes"):
             return cls.green()
