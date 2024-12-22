@@ -21,6 +21,11 @@ class ClusterColorBuilder:
         return mpl.colors.to_hex(mpl.colormaps["Greens"](random.random()))
 
     @classmethod
+    def random(cls) -> str:
+        """Return a random color."""
+        return mpl.colors.to_hex(mpl.colormaps["hsv"](random.random()))
+
+    @classmethod
     def determine_color_for_cluster(cls, stats: Stats) -> str:
         # If the number of Anseriformes (waterfowl) and Charadriiformes (wading
         # birds) is greater than Passeriformes (perching birds) for the given
@@ -35,4 +40,4 @@ class ClusterColorBuilder:
         elif stats.order_count("Piciformes") > stats.order_count("Anseriformes"):
             return cls.green()
 
-        return cls.red()
+        return cls.random()
