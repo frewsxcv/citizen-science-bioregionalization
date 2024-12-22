@@ -15,11 +15,12 @@ class DarwinCoreAggregations(NamedTuple):
     """
     Schema:
     - `geohash`: `str`
-    - `taxonKey`: `int`
+    - `kingdom`: `enum`
+    - `species`: `str` species name
     - `count`: `int`
     """
 
-    taxon_counts_2: pl.DataFrame
+    unfiltered_taxon_counts: pl.DataFrame
     """
     Schema:
     - `geohash`: `str`
@@ -29,23 +30,8 @@ class DarwinCoreAggregations(NamedTuple):
     - `count`: `int`
     """
 
-    taxon_index: pl.DataFrame
-    """
-    Schema:
-    - `taxonKey`: `int`
-    - `verbatimScientificName`: `str`
-    """
-
     @classmethod
     def build(cls, input_file: str, geohash_precision: int) -> Self:
-        taxon_counts = pl.DataFrame(
-            schema={
-                "geohash": pl.String,
-                "taxonKey": pl.UInt64,
-                "count": pl.UInt32,
-            }
-        )
-
         class TaxonRank(Enum):
             phylum = "phylum"
             class_ = "class"
@@ -57,7 +43,7 @@ class DarwinCoreAggregations(NamedTuple):
         # Each of these values is also the name of a Darwin Core column
         taxon_rank_enum = pl.Enum(TaxonRank)
 
-        taxon_counts_2 = pl.DataFrame(
+        unfiltered_taxon_counts = pl.DataFrame(
             schema={
                 "geohash": pl.String,
                 "kingdom": kingdom_enum,
@@ -72,21 +58,12 @@ class DarwinCoreAggregations(NamedTuple):
         #     Geohash, DefaultDict[TaxonId, Counter[str]]
         # ] = defaultdict(lambda: defaultdict(Counter))
 
-        taxon_index = pl.DataFrame(
-            schema={
-                "taxonKey": pl.UInt64,
-                "verbatimScientificName": pl.String,
-            }
-        )
-
         with Timer(output=logger.info, prefix="Reading rows"):
             for read_dataframe in read_rows(
                 input_file,
                 columns=[
                     "decimalLatitude",
                     "decimalLongitude",
-                    "taxonKey",
-                    "verbatimScientificName",
                     "recordedBy",
                     "kingdom",
                     *map(lambda rank: rank.value, TaxonRank),
@@ -97,13 +74,6 @@ class DarwinCoreAggregations(NamedTuple):
                     lat_col=pl.col("decimalLatitude"),
                     lon_col=pl.col("decimalLongitude"),
                     precision=geohash_precision,
-                )
-
-                taxon_counts.vstack(
-                    dataframe_with_geohash.group_by(["geohash", "taxonKey"]).agg(
-                        pl.len().alias("count")
-                    ),
-                    in_place=True,
                 )
 
                 for variant in TaxonRank:
@@ -117,21 +87,14 @@ class DarwinCoreAggregations(NamedTuple):
                         .with_columns(
                             pl.lit(variant, dtype=taxon_rank_enum).alias("rank"),
                         )
-                        .select(
-                            ["geohash", "kingdom", "rank", "name", "count"]
-                        )
+                        .select(["geohash", "kingdom", "rank", "name", "count"])
                         .collect()
                     )
-                    taxon_counts_2.vstack(
+                    # TODO: investigate when species is null
+                    unfiltered_taxon_counts.vstack(
                         aggregated,
                         in_place=True,
                     )
-
-                taxon_index = taxon_index.vstack(
-                    dataframe_with_geohash.select(
-                        ["taxonKey", "verbatimScientificName"]
-                    )
-                ).unique()
 
                 # for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
                 #     named=True
@@ -148,32 +111,27 @@ class DarwinCoreAggregations(NamedTuple):
                 #     ):
                 #         continue
 
-        taxon_counts = (
-            taxon_counts.group_by(["geohash", "taxonKey"])
+        unfiltered_taxon_counts = (
+            unfiltered_taxon_counts.lazy()
+            .group_by(["geohash", "kingdom", "rank", "name"])
             .agg(pl.col("count").sum())
             .sort(by="geohash")
+            .collect()
         )
 
-        taxon_counts_2 = taxon_counts_2.group_by(
-            ["geohash", "kingdom", "rank", "name"]
-        ).agg(pl.col("count").sum())
+        taxon_counts = (
+            unfiltered_taxon_counts.lazy()
+            .filter(pl.col("rank") == "species", pl.col("name").is_not_null())
+            .select("geohash", "kingdom", "name", "count")
+            .rename({"name": "species"})
+            .sort(by="geohash")
+            .collect()
+        )
 
         return cls(
             taxon_counts=taxon_counts,
-            taxon_counts_2=taxon_counts_2,
-            taxon_index=taxon_index,
+            unfiltered_taxon_counts=unfiltered_taxon_counts,
         )
-
-    def scientific_name_for_taxon_key(self, taxon_key: int) -> str:
-        column = self.taxon_index.filter(pl.col("taxonKey") == taxon_key).get_column(
-            "verbatimScientificName"
-        )
-        if len(column) > 1:
-            # TODO: what should we do here? e.g. "Sciurus carolinensis leucotis" and "Sciurus carolinensis"
-            # raise ValueError(f"Multiple scientific names for taxon key {taxon_key}")
-            logger.error(f"Multiple scientific names for taxon key {taxon_key}")
-            return column.limit(1).item()
-        return column.item()
 
     # @functools.cache
     def ordered_geohashes(self) -> List[Geohash]:
@@ -185,12 +143,12 @@ class DarwinCoreAggregations(NamedTuple):
             .to_list()
         )
 
-    # @functools.cache
-    def ordered_taxon_keys(self) -> List[int]:
-        return (
-            self.taxon_counts.select("taxonKey")
-            .unique()
-            .sort(by="taxonKey")
-            .get_column("taxonKey")
-            .to_list()
-        )
+    # # @functools.cache
+    # def ordered_taxon_keys(self) -> List[int]:
+    #     return (
+    #         self.taxon_counts.select("taxonKey")
+    #         .unique()
+    #         .sort(by="taxonKey")
+    #         .get_column("taxonKey")
+    #         .to_list()
+    #     )

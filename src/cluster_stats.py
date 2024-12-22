@@ -12,7 +12,7 @@ class Stats(NamedTuple):
     taxon: pl.LazyFrame
     """
     Schema:
-    - `taxonKey`: `int`
+    - `name`: `str` species name
     - `count`: `int`
     - `average`: `float`
     """
@@ -46,8 +46,8 @@ class Stats(NamedTuple):
         taxon_counts: pl.LazyFrame = (
             darwin_core_aggregations.taxon_counts.lazy()
             .filter(pl.col("geohash").is_in(geohashes))
-            .select(["taxonKey", "count"])
-            .group_by("taxonKey")
+            .select(["kingdom", "species", "count"])
+            .group_by("kingdom", "species")
             .agg(pl.col("count").sum())
         )
 
@@ -55,7 +55,8 @@ class Stats(NamedTuple):
         total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
 
         # Schema:
-        # - `taxonKey`: `int`
+        # - `kingdom`: `str`
+        # - `species`: `str`
         # - `count`: `int`
         # - `average`: `float`
         taxon: pl.LazyFrame = taxon_counts.with_columns(
@@ -63,7 +64,7 @@ class Stats(NamedTuple):
         )
 
         order_counts = (
-            darwin_core_aggregations.taxon_counts_2.lazy()
+            darwin_core_aggregations.unfiltered_taxon_counts.lazy()
             .filter(
                 pl.col("geohash").is_in(geohashes),
                 pl.col("rank") == "order",

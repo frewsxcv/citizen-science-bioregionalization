@@ -8,7 +8,7 @@ import numpy as np
 import geojson  # type: ignore
 import polars as pl
 from sklearn.decomposition import IncrementalPCA
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
@@ -51,10 +51,12 @@ def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
     #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
     #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
     # ]
-    X = log_action("Building matrix", lambda: darwin_core_aggregations.taxon_counts.pivot(
-        on="taxonKey",
-        index="geohash",
-    ))
+    X = log_action(
+        "Building matrix",
+        lambda: darwin_core_aggregations.taxon_counts.pivot(
+            on=["kingdom", "species"], index="geohash", values="count"
+        ),
+    )
 
     assert X.height > 1, "More than one geohash is required to cluster"
 
@@ -65,7 +67,7 @@ def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
 
     X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
-    scaler = StandardScaler()
+    scaler = RobustScaler()
 
     return log_action("Scaling values", lambda: scaler.fit_transform(X))
 
@@ -122,21 +124,25 @@ def print_cluster_stats(
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
 
-    for taxon_id, count in (
+    for kingdom, species, count in (
         stats.taxon.sort(by="count", descending=True)
         .limit(5)
-        .select(["taxonKey", "count"])
+        .select(["kingdom", "species", "count"])
         .collect()
         .iter_rows(named=False)
     ):
         average = (
-            stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            stats.taxon.filter(
+                pl.col("kingdom") == kingdom, pl.col("species") == species
+            )
             .collect()
             .get_column("average")
             .item()
         )
         all_average = (
-            all_stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            all_stats.taxon.filter(
+                pl.col("kingdom") == kingdom, pl.col("species") == species
+            )
             .collect()
             .get_column("average")
             .item()
@@ -146,9 +152,7 @@ def print_cluster_stats(
         percent_diff = (average / all_average * 100) - 100
         if abs(percent_diff) > 20:
             # Print the percentage difference
-            print(
-                f"{darwin_core_aggregations.scientific_name_for_taxon_key(taxon_id)}:"
-            )
+            print(f"{species} ({kingdom}):")
             print(
                 f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
@@ -159,27 +163,41 @@ def print_cluster_stats(
 def print_all_cluster_stats(
     darwin_core_aggregations: DarwinCoreAggregations, all_stats: Stats
 ) -> None:
-    for taxon_id, count in (
+    for kingdom, species, count in (
         all_stats.taxon.sort(by="count", descending=True)
         .limit(5)
-        .select(["taxonKey", "count"])
+        .select(["kingdom", "species", "count"])
         .collect()
         .iter_rows(named=False)
     ):
         average = (
-            all_stats.taxon.filter(pl.col("taxonKey") == taxon_id)
+            all_stats.taxon.filter(
+                pl.col("kingdom") == kingdom, pl.col("species") == species
+            )
             .collect()
             .get_column("average")
             .item()
         )
-        print(f"{darwin_core_aggregations.scientific_name_for_taxon_key(taxon_id)}:")
+        print(f"{species} ({kingdom}):")
         print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 
 
+def is_water_geohash(geohash: Geohash) -> bool:
+    return geohash in ["9ny", "9nz", "9vj", "f04", "dpv", "9ug", "dqg", "9pw"]
+
+
 def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
     plt.figure()
-    dendrogram(Z, labels=ordered_seen_geohash)
+    dendrogram(
+        Z,
+        labels=ordered_seen_geohash,
+        leaf_label_func=lambda id: (
+            ordered_seen_geohash[id]
+            if is_water_geohash(ordered_seen_geohash[id])
+            else ""
+        ),
+    )
     plt.show()
 
 
