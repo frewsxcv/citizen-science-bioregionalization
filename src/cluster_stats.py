@@ -101,3 +101,21 @@ class Stats(NamedTuple):
             .get_column("count")
             .item()
         )
+
+    def class_count(self, class_name: str) -> int:
+        return (
+            self.class_counts.filter(pl.col("name") == class_name)
+            .collect()
+            .get_column("count")
+            .item()
+        )
+
+    def waterfowl_count(self) -> int:
+        return (
+            self.order_count("Anseriformes")
+            + self.order_count("Charadriiformes")
+            + self.order_count("Gaviiformes")
+        )
+
+    def aves_count(self) -> int:
+        return self.class_count("Aves")
