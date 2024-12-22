@@ -103,12 +103,15 @@ class Stats(NamedTuple):
         )
 
     def class_count(self, class_name: str) -> int:
-        return (
+        counts = (
             self.class_counts.filter(pl.col("name") == class_name)
             .collect()
             .get_column("count")
-            .item()
         )
+        assert len(counts) <= 1
+        sum = counts.sum()
+        assert isinstance(sum, int)
+        return sum
 
     def waterfowl_count(self) -> int:
         return (
