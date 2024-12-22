@@ -24,6 +24,13 @@ class Stats(NamedTuple):
     - `count`: `int`
     """
 
+    class_counts: pl.LazyFrame
+    """
+    Schema:
+    - `class`: `str`
+    - `count`: `int`
+    """
+
     @classmethod
     def build(
         cls,
@@ -73,10 +80,18 @@ class Stats(NamedTuple):
             .agg(pl.col("count").sum())
         )
 
+        class_counts = (
+            darwin_core_aggregations.unfiltered_taxon_counts.lazy()
+            .filter(pl.col("geohash").is_in(geohashes), pl.col("rank") == "class")
+            .group_by("name")
+            .agg(pl.col("count").sum())
+        )
+
         return cls(
             geohashes=geohashes,
             taxon=taxon,
             order_counts=order_counts,
+            class_counts=class_counts,
         )
 
     def order_count(self, order: str) -> int:

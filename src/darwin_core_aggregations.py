@@ -79,6 +79,7 @@ class DarwinCoreAggregations(NamedTuple):
                 for variant in TaxonRank:
                     aggregated = (
                         dataframe_with_geohash.lazy()
+                        .filter(pl.col(variant.value).is_not_null()) # TODO: DONT DO THIS. THIS LOSES DATA
                         .group_by(["geohash", "kingdom", variant.value])
                         .agg(
                             pl.len().alias("count"),
@@ -90,7 +91,6 @@ class DarwinCoreAggregations(NamedTuple):
                         .select(["geohash", "kingdom", "rank", "name", "count"])
                         .collect()
                     )
-                    # TODO: investigate when species is null
                     unfiltered_taxon_counts.vstack(
                         aggregated,
                         in_place=True,
