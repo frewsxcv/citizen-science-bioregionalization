@@ -3,7 +3,7 @@ import logging
 import polars as pl
 from typing import List, NamedTuple, Self
 from src.darwin_core import read_rows, kingdom_enum
-from src.geohash import Geohash, build_geohash_series
+from src.geohash import Geohash, build_geohash_series, build_geohash_series_lazy
 from contexttimer import Timer
 
 
@@ -69,16 +69,15 @@ class DarwinCoreAggregations(NamedTuple):
                     *map(lambda rank: rank.value, TaxonRank),
                 ],
             ):
-                dataframe_with_geohash = read_dataframe.pipe(
-                    build_geohash_series,
-                    lat_col=pl.col("decimalLatitude"),
-                    lon_col=pl.col("decimalLongitude"),
-                    precision=geohash_precision,
-                )
-
                 for variant in TaxonRank:
                     aggregated = (
-                        dataframe_with_geohash.lazy()
+                        read_dataframe.lazy()
+                        .pipe(
+                            build_geohash_series_lazy,
+                            lat_col=pl.col("decimalLatitude"),
+                            lon_col=pl.col("decimalLongitude"),
+                            precision=geohash_precision,
+                        )
                         .filter(
                             pl.col(variant.value).is_not_null()
                         )  # TODO: DONT DO THIS. THIS LOSES DATA
