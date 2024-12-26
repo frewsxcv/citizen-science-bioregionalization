@@ -42,20 +42,30 @@ def log_action[T](action: str, func: Callable[[], T]) -> T:
         return func()
 
 
+def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
+    """
+    Create a matrix where each row is a geohash and each column is a taxon ID
+
+    Example:
+
+    ```
+    [
+        [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
+        [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
+        [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
+        [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
+    ]
+    ```
+    """
+    return taxon_counts.pivot(
+        on=["kingdom", "species"], index="geohash", values="count"
+    )
+
+
 def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> pl.DataFrame:
-    # Create a matrix where each row is a geohash and each column is a taxon ID
-    # Example:
-    # [
-    #     [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
-    #     [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
-    #     [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
-    # ]
     X = log_action(
         "Building matrix",
-        lambda: darwin_core_aggregations.taxon_counts.pivot(
-            on=["kingdom", "species"], index="geohash", values="count"
-        ),
+        lambda: darwin_core_aggregations.taxon_counts.pipe(pivot_taxon_counts),
     )
 
     assert X.height > 1, "More than one geohash is required to cluster"
