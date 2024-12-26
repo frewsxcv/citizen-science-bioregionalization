@@ -42,7 +42,7 @@ def log_action[T](action: str, func: Callable[[], T]) -> T:
         return func()
 
 
-def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
+def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> pl.DataFrame:
     # Create a matrix where each row is a geohash and each column is a taxon ID
     # Example:
     # [
@@ -67,9 +67,17 @@ def build_X(darwin_core_aggregations: DarwinCoreAggregations) -> np.ndarray:
 
     X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
-    scaler = RobustScaler()
+    return log_action("Scaling values", lambda: X.pipe(scale_values))
 
-    return log_action("Scaling values", lambda: scaler.fit_transform(X))
+
+def scale_values(X: pl.DataFrame) -> pl.DataFrame:
+    scaler = RobustScaler()
+    return pl.from_numpy(scaler.fit_transform(X))
+
+
+def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
+    pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
+    return pl.from_numpy(pca.fit_transform(X))
 
 
 def build_condensed_distance_matrix(
@@ -92,10 +100,8 @@ def build_condensed_distance_matrix(
 
     logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
-    pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
-
     # Use PCA to reduce the number of dimensions
-    X = log_action("Fitting PCA", lambda: pca.fit_transform(X))
+    X = log_action("Fitting PCA", lambda: X.pipe(reduce_dimensions))
 
     logger.info(
         f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
