@@ -22,7 +22,7 @@ from typing import (
     Tuple,
 )
 
-from src.cli import parse_arguments
+from src import cli, inputs
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
@@ -321,19 +321,15 @@ def cluster(
     return cluster_index
 
 
-def run() -> None:
-    args = parse_arguments()
-    input_file = args.input_file
-    logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
-
+def run(inputs: inputs.Inputs) -> None:
     darwin_core_aggregations = DarwinCoreAggregations.build(
-        input_file, args.geohash_precision
+        inputs.input_file, inputs.geohash_precision
     )
 
     cluster_dataframe = cluster(
         darwin_core_aggregations,
-        args.num_clusters,
-        args.show_dendrogram,
+        inputs.num_clusters,
+        inputs.show_dendrogram,
     )
 
     # Find the top averages of taxon
@@ -352,11 +348,15 @@ def run() -> None:
 
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
 
-    if args.plot:
-        plot_clusters(feature_collection, num_clusters=args.num_clusters)
+    if inputs.plot:
+        plot_clusters(feature_collection, num_clusters=inputs.num_clusters)
 
-    write_geojson(feature_collection, args.output_file)
+    write_geojson(feature_collection, inputs.output_file)
 
 
 if __name__ == "__main__":
-    run()
+    cli_inputs = inputs.Inputs.from_args(cli.parse_arguments())
+    logging.basicConfig(
+        filename=cli_inputs.log_file, encoding="utf-8", level=logging.INFO
+    )
+    run(cli_inputs)
