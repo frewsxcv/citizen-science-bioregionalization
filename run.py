@@ -12,16 +12,9 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
-from typing import (
-    Callable,
-    Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Self,
-    Tuple,
-)
+from typing import Callable, List
 import typer
+from src import cluster_index
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
@@ -218,70 +211,6 @@ def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
     plt.show()
 
 
-class ClusterIndex(NamedTuple):
-    dataframe: pl.DataFrame
-    """
-    Schema:
-    - `geohash`: `str`
-    - `cluster`: `int`
-    """
-
-    # cluster_colors: pl.DataFrame
-    # """
-    # Schema:
-    # - `cluster`: `int`
-    # - `color`: `str`
-    # """
-
-    @classmethod
-    def build(
-        cls, ordered_seen_geohash: List[Geohash], clusters: List[ClusterId]
-    ) -> Self:
-        dataframe = pl.DataFrame(
-            data={
-                "geohash": ordered_seen_geohash,
-                "cluster": clusters,
-            },
-            schema={"geohash": pl.String, "cluster": pl.UInt32},
-        )
-        # cluster_colors = pl.DataFrame(
-        #     data={
-        #         "cluster": list(range(1, max(clusters) + 1)),
-        #         "color": [COLORS[i] for i in range(max(clusters))],
-        #     },
-        #     schema={"cluster": pl.UInt32, "color": pl.String},
-        # )
-        return cls(
-            dataframe,
-            # cluster_colors,
-        )
-
-    def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
-        return self.dataframe.filter(pl.col("cluster") == cluster)["geohash"].to_list()
-
-    def determine_color_for_cluster(
-        self, cluster: ClusterId, darwin_core_aggregations: DarwinCoreAggregations
-    ) -> str:
-        stats = Stats.build(
-            darwin_core_aggregations,
-            geohash_filter=self.geohashes_for_cluster(cluster),
-        )
-        return ClusterColorBuilder.determine_color_for_cluster(stats)
-
-    def iter_clusters_and_geohashes(
-        self,
-    ) -> Iterator[Tuple[ClusterId, List[Geohash]]]:
-        for row in (self.dataframe.group_by("cluster").all().sort("cluster")).iter_rows(
-            named=True
-        ):
-            yield row["cluster"], row["geohash"]
-
-    def num_clusters(self) -> int:
-        num = self.dataframe["cluster"].max()
-        assert isinstance(num, int)
-        return num
-
-
 def write_geojson(
     feature_collection: geojson.FeatureCollection, output_file: str
 ) -> None:
@@ -292,14 +221,14 @@ def write_geojson(
 def print_results(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
-    cluster_index: ClusterIndex,
+    clusters: cluster_index.ClusterIndex,
 ) -> None:
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(darwin_core_aggregations, all_stats)
 
-    logger.info(f"Number of clusters: {cluster_index.num_clusters()}")
+    logger.info(f"Number of clusters: {cluster_index.num_clusters(clusters)}")
 
-    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes():
+    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes(clusters):
         print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
 
 
@@ -308,7 +237,7 @@ def cluster(
     num_clusters: int,
     show_dendrogram_opt: bool,
     use_cache: bool,
-) -> ClusterIndex:
+) -> cluster_index.ClusterIndex:
     ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
     Y = build_condensed_distance_matrix(darwin_core_aggregations, use_cache)
     Z = linkage(Y, "ward")
@@ -318,9 +247,7 @@ def cluster(
     if show_dendrogram_opt:
         show_dendrogram(Z, ordered_seen_geohash)
 
-    cluster_index = ClusterIndex.build(ordered_seen_geohash, clusters)
-
-    return cluster_index
+    return cluster_index.build(ordered_seen_geohash, clusters)
 
 
 def run(
@@ -353,11 +280,13 @@ def run(
         (
             cluster,
             geohashes,
-            cluster_dataframe.determine_color_for_cluster(
-                cluster, darwin_core_aggregations
+            cluster_index.determine_color_for_cluster(
+                cluster_dataframe, cluster, darwin_core_aggregations
             ),
         )
-        for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
+        for cluster, geohashes in cluster_index.iter_clusters_and_geohashes(
+            cluster_dataframe
+        )
     )
 
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
