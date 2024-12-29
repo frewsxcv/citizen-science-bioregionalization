@@ -21,8 +21,7 @@ from typing import (
     Self,
     Tuple,
 )
-
-from src import cli, inputs
+import typer
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
@@ -92,11 +91,12 @@ def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
 
 def build_condensed_distance_matrix(
     darwin_core_aggregations: DarwinCoreAggregations,
+    use_cache: bool,
 ) -> np.ndarray:
     cache_file = "condensed_distance_matrix.parquet"
 
     # Try to load from cache
-    if os.path.exists(cache_file):
+    if use_cache and os.path.exists(cache_file):
         with Timer(output=logger.info, prefix="Loading cached distance matrix"):
             matrix_df = pl.read_parquet(cache_file)
             return matrix_df.to_numpy().flatten()
@@ -122,10 +122,11 @@ def build_condensed_distance_matrix(
         lambda: pdist(X, metric="braycurtis"),
     )
 
-    with Timer(output=logger.info, prefix="Caching distance matrix"):
-        # Convert the condensed distance matrix to a DataFrame and save
-        matrix_df = pl.DataFrame({"values": Y})
-        matrix_df.write_parquet(cache_file)
+    if use_cache:
+        with Timer(output=logger.info, prefix="Caching distance matrix"):
+            # Convert the condensed distance matrix to a DataFrame and save
+            matrix_df = pl.DataFrame({"values": Y})
+            matrix_df.write_parquet(cache_file)
 
     return Y
 
@@ -306,9 +307,10 @@ def cluster(
     darwin_core_aggregations: DarwinCoreAggregations,
     num_clusters: int,
     show_dendrogram_opt: bool,
+    use_cache: bool,
 ) -> ClusterIndex:
     ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
-    Y = build_condensed_distance_matrix(darwin_core_aggregations)
+    Y = build_condensed_distance_matrix(darwin_core_aggregations, use_cache)
     Z = linkage(Y, "ward")
 
     clusters = list(map(int, fcluster(Z, t=num_clusters, criterion="maxclust")))
@@ -321,15 +323,27 @@ def cluster(
     return cluster_index
 
 
-def run(inputs: inputs.Inputs) -> None:
+def run(
+    geohash_precision: int = typer.Option(..., help="Precision of the geohash"),
+    num_clusters: int = typer.Option(..., help="Number of clusters to generate"),
+    log_file: str = typer.Option(..., help="Path to the log file"),
+    input_file: str = typer.Argument(..., help="Path to the input file"),
+    output_file: str = typer.Argument(..., help="Path to the output file"),
+    show_dendrogram: bool = typer.Option(False, help="Show the dendrogram"),
+    plot: bool = typer.Option(False, help="Plot the clusters"),
+    use_cache: bool = typer.Option(False, help="Use the cache"),
+):
+    logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
+
     darwin_core_aggregations = DarwinCoreAggregations.build(
-        inputs.input_file, inputs.geohash_precision
+        input_file, geohash_precision
     )
 
     cluster_dataframe = cluster(
         darwin_core_aggregations,
-        inputs.num_clusters,
-        inputs.show_dendrogram,
+        num_clusters,
+        show_dendrogram,
+        use_cache,
     )
 
     # Find the top averages of taxon
@@ -348,15 +362,11 @@ def run(inputs: inputs.Inputs) -> None:
 
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
 
-    if inputs.plot:
-        plot_clusters(feature_collection, num_clusters=inputs.num_clusters)
+    if plot:
+        plot_clusters(feature_collection, num_clusters=num_clusters)
 
-    write_geojson(feature_collection, inputs.output_file)
+    write_geojson(feature_collection, output_file)
 
 
 if __name__ == "__main__":
-    cli_inputs = inputs.Inputs.from_args(cli.parse_arguments())
-    logging.basicConfig(
-        filename=cli_inputs.log_file, encoding="utf-8", level=logging.INFO
-    )
-    run(cli_inputs)
+    typer.run(run)
