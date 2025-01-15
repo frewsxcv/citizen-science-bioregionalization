@@ -70,6 +70,13 @@ class DarwinCoreAggregations(NamedTuple):
                 ],
             ):
                 for variant in TaxonRank:
+                    # `aggregated` is a dataframe that looks like this:
+                    #
+                    # +------------+----------+---------+--------------+-------+
+                    # | geohash    | kingdom  | rank    | name         | count |
+                    # +------------+----------+---------+--------------+-------+
+                    # | u4pruydqqvj| Animalia | species | Panthera leo | 42    |
+                    # +------------+----------+---------+--------------+-------+
                     aggregated = (
                         read_dataframe.lazy()
                         .pipe(
