@@ -292,7 +292,7 @@ def run(
     print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
 
     if plot:
-        plot_clusters(feature_collection, num_clusters=num_clusters)
+        plot_clusters(feature_collection)
 
     write_geojson(feature_collection, output_file)
 

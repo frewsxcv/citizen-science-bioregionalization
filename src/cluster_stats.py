@@ -7,8 +7,6 @@ from src.geohash import Geohash
 
 
 class Stats(NamedTuple):
-    geohashes: List[Geohash]
-
     taxon: pl.LazyFrame
     """
     Schema:
@@ -37,14 +35,10 @@ class Stats(NamedTuple):
         darwin_core_aggregations: DarwinCoreAggregations,
         geohash_filter: Optional[List[Geohash]] = None,
     ) -> Self:
-        geohashes = (
-            darwin_core_aggregations.ordered_geohashes()
-            if geohash_filter is None
-            else [
-                g
-                for g in darwin_core_aggregations.ordered_geohashes()
-                if g in geohash_filter
-            ]
+        geohash_filter_clause = (
+            pl.col("geohash").is_in(geohash_filter)
+            if geohash_filter
+            else pl.lit(True)
         )
 
         # Schema:
@@ -52,7 +46,7 @@ class Stats(NamedTuple):
         # - `count`: `int`
         taxon_counts: pl.LazyFrame = (
             darwin_core_aggregations.taxon_counts.lazy()
-            .filter(pl.col("geohash").is_in(geohashes))
+            .filter(geohash_filter_clause)
             .select(["kingdom", "species", "count"])
             .group_by("kingdom", "species")
             .agg(pl.col("count").sum())
@@ -73,7 +67,7 @@ class Stats(NamedTuple):
         order_counts = (
             darwin_core_aggregations.unfiltered_taxon_counts.lazy()
             .filter(
-                pl.col("geohash").is_in(geohashes),
+                geohash_filter_clause,
                 pl.col("rank") == "order",
             )
             .group_by("name")
@@ -82,13 +76,12 @@ class Stats(NamedTuple):
 
         class_counts = (
             darwin_core_aggregations.unfiltered_taxon_counts.lazy()
-            .filter(pl.col("geohash").is_in(geohashes), pl.col("rank") == "class")
+            .filter(geohash_filter_clause, pl.col("rank") == "class")
             .group_by("name")
             .agg(pl.col("count").sum())
         )
 
         return cls(
-            geohashes=geohashes,
             taxon=taxon,
             order_counts=order_counts,
             class_counts=class_counts,

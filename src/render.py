@@ -6,7 +6,7 @@ from matplotlib.lines import Line2D
 
 
 def plot_clusters(
-    feature_collection: geojson.FeatureCollection, num_clusters: int
+    feature_collection: geojson.FeatureCollection,
 ) -> None:
     geojson_gdf = geopandas.GeoDataFrame.from_features(
         feature_collection["features"], crs="EPSG:4326"
