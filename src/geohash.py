@@ -38,3 +38,7 @@ def build_geohash_series_lazy(
         )
         .alias("geohash")
     )
+
+
+def is_water(geohash: Geohash) -> bool:
+    return geohash in ["9ny", "9nz", "9vj", "f04", "dpv", "9ug", "dqg", "9pw"]
