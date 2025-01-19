@@ -88,12 +88,15 @@ class Stats(NamedTuple):
         )
 
     def order_count(self, order: str) -> int:
-        return (
+        counts = (
             self.order_counts.filter(pl.col("name") == order)
             .collect()
             .get_column("count")
-            .item()
         )
+        assert len(counts) <= 1
+        sum = counts.sum()
+        assert isinstance(sum, int)
+        return sum
 
     def class_count(self, class_name: str) -> int:
         counts = (
