@@ -14,11 +14,10 @@ from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
 from scipy.spatial.distance import pdist
 from typing import Callable, List
 import typer
-from src import cluster_index
+from src import cluster_index, geohash
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
-from src.geohash import Geohash
 from src.render import plot_clusters
 from src.cluster import ClusterId
 import matplotlib.pyplot as plt
@@ -126,7 +125,7 @@ def build_condensed_distance_matrix(
 
 def print_cluster_stats(
     cluster: ClusterId,
-    geohashes: List[Geohash],
+    geohashes: List[geohash.Geohash],
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
 ) -> None:
@@ -193,18 +192,14 @@ def print_all_cluster_stats(
         print(f"  - Count: {count}")
 
 
-def is_water_geohash(geohash: Geohash) -> bool:
-    return geohash in ["9ny", "9nz", "9vj", "f04", "dpv", "9ug", "dqg", "9pw"]
-
-
-def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[Geohash]) -> None:
+def show_dendrogram(Z: np.ndarray, ordered_seen_geohash: List[geohash.Geohash]) -> None:
     plt.figure()
     dendrogram(
         Z,
         labels=ordered_seen_geohash,
         leaf_label_func=lambda id: (
             ordered_seen_geohash[id]
-            if is_water_geohash(ordered_seen_geohash[id])
+            if geohash.is_water(ordered_seen_geohash[id])
             else ""
         ),
     )
