@@ -1,0 +1,16 @@
+name: Unit tests
+
+on: push
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run unit tests
+        run: uv run python -m unittest
