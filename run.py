@@ -1,26 +1,21 @@
 # TODO: Don't include geohashes that extend beyond the bounds of the dataset
 # so those clusters will have artificially fewer counts
 
-from sklearn.manifold import TSNE
-import random
 import logging
 import numpy as np
 import geojson  # type: ignore
 import polars as pl
 from sklearn.decomposition import IncrementalPCA
-from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
+from sklearn.preprocessing import RobustScaler
 from contexttimer import Timer
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
-from typing import Callable, List
+from typing import Callable
 import typer
-from src import cluster_index, geohash, dendrogram, cli_output
-from src.cluster_color_builder import ClusterColorBuilder
+from src import cluster_index, cli_output, dendrogram
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.render import plot_clusters
-from src.cluster import ClusterId
-import matplotlib.pyplot as plt
 from src.geojson import build_geojson_feature_collection
 import os
 
