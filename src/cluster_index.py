@@ -1,10 +1,9 @@
 from typing import Iterator, List, NewType, Tuple
 import polars as pl
-from src.cluster import ClusterId
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
-from src.geohash import Geohash
+from src.types import Geohash, ClusterId
 
 ClusterIndex = NewType("ClusterIndex", pl.DataFrame)
 """

@@ -3,8 +3,7 @@ from typing import List
 from src.geohash import geohash_to_bbox, Geohash
 from typing import Iterator, Tuple
 import shapely
-
-from src.cluster import ClusterId
+from src.types import Geohash, ClusterId
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> shapely.Polygon:
@@ -43,9 +42,9 @@ def build_geojson_feature_collection(
     for cluster, geohashes, color in cluster_and_geohashes_and_colors:
         features.append(
             build_geojson_feature(
-                shapely.union_all([
-                    build_geojson_geohash_polygon(geohash) for geohash in geohashes
-                ]),
+                shapely.union_all(
+                    [build_geojson_geohash_polygon(geohash) for geohash in geohashes]
+                ),
                 cluster,
                 color,
             )

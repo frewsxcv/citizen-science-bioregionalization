@@ -3,6 +3,7 @@ from src import cluster_index, geohash
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from typing import List
+from src.types import Geohash
 import logging
 
 logger = logging.getLogger(__name__)

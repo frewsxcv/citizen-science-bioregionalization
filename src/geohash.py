@@ -2,8 +2,7 @@ import geohashr
 import polars as pl
 from src.bbox import Bbox
 from src.point import Point
-
-type Geohash = str
+from src.types import Geohash
 
 
 def geohash_to_bbox(geohash: str) -> Bbox:
