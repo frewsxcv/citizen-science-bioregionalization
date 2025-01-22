@@ -1,9 +1,12 @@
 import geojson
+import polars as pl
 from typing import List
 from src.geohash import geohash_to_bbox, Geohash
 from typing import Iterator, Tuple
 import shapely
 from src.types import Geohash, ClusterId
+from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 
 
 def build_geojson_geohash_polygon(geohash: Geohash) -> shapely.Polygon:
@@ -36,10 +39,17 @@ def build_geojson_feature(
 
 
 def build_geojson_feature_collection(
-    cluster_and_geohashes_and_colors: Iterator[Tuple[ClusterId, List[Geohash], str]],
+    geohash_cluster_dataframe: GeohashClusterDataFrame,
+    cluster_colors_dataframe: ClusterColorDataFrame,
 ) -> geojson.FeatureCollection:
     features: List[geojson.Feature] = []
-    for cluster, geohashes, color in cluster_and_geohashes_and_colors:
+    for cluster, geohashes, color in (
+        geohash_cluster_dataframe
+        .group_by("cluster")
+        .agg(pl.col("geohash"))
+        .join(cluster_colors_dataframe, left_on="cluster", right_on="cluster")
+        .iter_rows()
+    ):
         features.append(
             build_geojson_feature(
                 shapely.union_all(

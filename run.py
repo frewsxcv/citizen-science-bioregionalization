@@ -7,6 +7,7 @@ import typer
 from src import cli_output, cluster
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection
@@ -35,7 +36,7 @@ def run(
         input_file, geohash_precision
     )
 
-    cluster_dataframe = cluster.run(
+    geohash_cluster_dataframe = cluster.run(
         darwin_core_aggregations,
         num_clusters,
         show_dendrogram,
@@ -45,18 +46,16 @@ def run(
     # Find the top averages of taxon
     all_stats = Stats.build(darwin_core_aggregations)
 
-    feature_collection = build_geojson_feature_collection(
-        (
-            cluster,
-            geohashes,
-            cluster_dataframe.determine_color_for_cluster(
-                darwin_core_aggregations, cluster
-            ),
-        )
-        for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
+    cluster_colors_dataframe = ClusterColorDataFrame(
+        geohash_cluster_dataframe["cluster"].unique().to_list()
     )
 
-    cli_output.print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
+    feature_collection = build_geojson_feature_collection(
+        geohash_cluster_dataframe,
+        cluster_colors_dataframe,
+    )
+
+    cli_output.print_results(darwin_core_aggregations, all_stats, geohash_cluster_dataframe)
 
     if plot:
         plot_clusters(feature_collection)
