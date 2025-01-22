@@ -123,4 +123,4 @@ def run(
     if show_dendrogram_opt:
         dendrogram.show(Z, ordered_seen_geohash)
 
-    return GeohashClusterDataFrame(ordered_seen_geohash, clusters)
+    return GeohashClusterDataFrame.from_lists(ordered_seen_geohash, clusters)

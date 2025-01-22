@@ -14,6 +14,7 @@ class TaxonRank(Enum):
     """
     Each of these values is also the name of a Darwin Core column
     """
+
     phylum = "phylum"
     class_ = "class"
     order = "order"
@@ -128,7 +129,8 @@ class GeohashTaxaCountsDataFrame:
     # @functools.cache
     def ordered_geohashes(self) -> List[Geohash]:
         return (
-            self.filtered().select("geohash")
+            self.filtered()
+            .select("geohash")
             .unique()
             .sort(by="geohash")
             .get_column("geohash")
