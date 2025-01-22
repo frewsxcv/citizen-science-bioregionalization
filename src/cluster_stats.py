@@ -2,7 +2,7 @@ from typing import List, NamedTuple, Optional, Self
 
 import polars as pl
 
-from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.geohash import Geohash
 
 
@@ -32,7 +32,7 @@ class Stats(NamedTuple):
     @classmethod
     def build(
         cls,
-        darwin_core_aggregations: DarwinCoreAggregations,
+        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
         geohash_filter: Optional[List[Geohash]] = None,
     ) -> Self:
         geohash_filter_clause = (
@@ -45,7 +45,7 @@ class Stats(NamedTuple):
         # - `taxonKey`: `int`
         # - `count`: `int`
         taxon_counts: pl.LazyFrame = (
-            darwin_core_aggregations.taxon_counts.lazy()
+            geohash_taxa_counts_dataframe.filtered().lazy()
             .filter(geohash_filter_clause)
             .select(["kingdom", "species", "count"])
             .group_by("kingdom", "species")
@@ -65,7 +65,7 @@ class Stats(NamedTuple):
         )
 
         order_counts = (
-            darwin_core_aggregations.unfiltered_taxon_counts.lazy()
+            geohash_taxa_counts_dataframe.df.lazy()
             .filter(
                 geohash_filter_clause,
                 pl.col("rank") == "order",
@@ -75,7 +75,7 @@ class Stats(NamedTuple):
         )
 
         class_counts = (
-            darwin_core_aggregations.unfiltered_taxon_counts.lazy()
+            geohash_taxa_counts_dataframe.df.lazy()
             .filter(geohash_filter_clause, pl.col("rank") == "class")
             .group_by("name")
             .agg(pl.col("count").sum())

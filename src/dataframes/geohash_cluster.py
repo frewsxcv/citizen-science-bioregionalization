@@ -2,7 +2,7 @@ from typing import Iterator, List, NewType, Tuple
 import polars as pl
 from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
-from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.types import Geohash, ClusterId
 
 class GeohashClusterDataFrame:
@@ -45,11 +45,11 @@ class GeohashClusterDataFrame:
 
     def determine_color_for_cluster(
         self,
-        darwin_core_aggregations: DarwinCoreAggregations,
+        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
         cluster: ClusterId,
     ) -> str:
         stats = Stats.build(
-            darwin_core_aggregations,
+            geohash_taxa_counts_dataframe,
             geohash_filter=self.geohashes_for_cluster(cluster),
         )
         return ClusterColorBuilder.determine_color_for_cluster(stats)

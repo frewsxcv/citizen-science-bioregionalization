@@ -7,7 +7,8 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.decomposition import IncrementalPCA
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
-from src import darwin_core_aggregations, dendrogram
+from src import dendrogram
+from src.dataframes import geohash_taxa_counts
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.logging import log_action
 from contexttimer import Timer
@@ -36,11 +37,11 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_X(
-    darwin_core_aggregations: darwin_core_aggregations.DarwinCoreAggregations,
+    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
 ) -> pl.DataFrame:
     X = log_action(
         "Building matrix",
-        lambda: darwin_core_aggregations.taxon_counts.pipe(pivot_taxon_counts),
+        lambda: geohash_taxa_counts_dataframe.filtered().pipe(pivot_taxon_counts),
     )
 
     assert X.height > 1, "More than one geohash is required to cluster"
@@ -48,7 +49,7 @@ def build_X(
     # fill null values with 0
     X = log_action("Filling null values", lambda: X.fill_null(np.uint32(0)))
 
-    assert X["geohash"].to_list() == darwin_core_aggregations.ordered_geohashes()
+    assert X["geohash"].to_list() == geohash_taxa_counts_dataframe.ordered_geohashes()
 
     X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
@@ -66,7 +67,7 @@ def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_condensed_distance_matrix(
-    darwin_core_aggregations: darwin_core_aggregations.DarwinCoreAggregations,
+    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
     use_cache: bool,
 ) -> np.ndarray:
     cache_file = "condensed_distance_matrix.parquet"
@@ -77,7 +78,7 @@ def build_condensed_distance_matrix(
             matrix_df = pl.read_parquet(cache_file)
             return matrix_df.to_numpy().flatten()
 
-    X = build_X(darwin_core_aggregations)
+    X = build_X(geohash_taxa_counts_dataframe)
 
     # tsne = TSNE(metric="braycurtis")
     # tsne_result = tsne.fit_transform(X)
@@ -108,13 +109,13 @@ def build_condensed_distance_matrix(
 
 
 def run(
-    darwin_core_aggregations: darwin_core_aggregations.DarwinCoreAggregations,
+    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
     num_clusters: int,
     show_dendrogram_opt: bool,
     use_cache: bool,
 ) -> GeohashClusterDataFrame:
-    ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
-    Y = build_condensed_distance_matrix(darwin_core_aggregations, use_cache)
+    ordered_seen_geohash = geohash_taxa_counts_dataframe.ordered_geohashes()
+    Y = build_condensed_distance_matrix(geohash_taxa_counts_dataframe, use_cache)
     Z = linkage(Y, "ward")
 
     clusters = list(map(int, fcluster(Z, t=num_clusters, criterion="maxclust")))

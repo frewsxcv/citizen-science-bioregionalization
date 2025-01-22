@@ -3,54 +3,39 @@ import logging
 import polars as pl
 from typing import List, NamedTuple, Self
 from src.darwin_core import read_rows, kingdom_enum
-from src.geohash import Geohash, build_geohash_series, build_geohash_series_lazy
+from src.geohash import Geohash, build_geohash_series_lazy
 from contexttimer import Timer
 
 
 logger = logging.getLogger(__name__)
 
 
-class DarwinCoreAggregations(NamedTuple):
-    taxon_counts: pl.DataFrame
+class TaxonRank(Enum):
     """
-    Schema:
-    - `geohash`: `str`
-    - `kingdom`: `enum`
-    - `species`: `str` species name
-    - `count`: `int`
+    Each of these values is also the name of a Darwin Core column
     """
+    phylum = "phylum"
+    class_ = "class"
+    order = "order"
+    family = "family"
+    genus = "genus"
+    species = "species"
 
-    unfiltered_taxon_counts: pl.DataFrame
-    """
-    Schema:
-    - `geohash`: `str`
-    - `kingdom`: `enum`
-    - `rank`: `enum`
-    - `name`: `str`
-    - `count`: `int`
-    """
 
-    @classmethod
-    def build(cls, input_file: str, geohash_precision: int) -> Self:
-        class TaxonRank(Enum):
-            phylum = "phylum"
-            class_ = "class"
-            order = "order"
-            family = "family"
-            genus = "genus"
-            species = "species"
+class GeohashTaxaCountsDataFrame:
+    df: pl.DataFrame
 
-        # Each of these values is also the name of a Darwin Core column
-        taxon_rank_enum = pl.Enum(TaxonRank)
+    SCHEMA = {
+        "geohash": pl.String(),
+        "kingdom": kingdom_enum,
+        "rank": pl.Enum(TaxonRank),
+        "name": pl.String(),
+        "count": pl.UInt32(),
+    }
 
+    def __init__(self, input_file: str, geohash_precision: int):
         unfiltered_taxon_counts = pl.DataFrame(
-            schema={
-                "geohash": pl.String,
-                "kingdom": kingdom_enum,
-                "rank": taxon_rank_enum,
-                "name": pl.String,
-                "count": pl.UInt32,
-            }
+            schema=self.SCHEMA,
         )
 
         # Will this work for eBird?
@@ -69,6 +54,9 @@ class DarwinCoreAggregations(NamedTuple):
                     *map(lambda rank: rank.value, TaxonRank),
                 ],
             ):
+                # Temporary: Filter out orders that are not Diptera
+                read_dataframe = read_dataframe.filter(pl.col("order") == "Diptera")
+
                 for variant in TaxonRank:
                     # `aggregated` is a dataframe that looks like this:
                     #
@@ -94,7 +82,7 @@ class DarwinCoreAggregations(NamedTuple):
                         )
                         .rename({variant.value: "name"})
                         .with_columns(
-                            pl.lit(variant, dtype=taxon_rank_enum).alias("rank"),
+                            pl.lit(variant, dtype=pl.Enum(TaxonRank)).alias("rank"),
                         )
                         .select(["geohash", "kingdom", "rank", "name", "count"])
                         .collect()
@@ -119,7 +107,7 @@ class DarwinCoreAggregations(NamedTuple):
                 #     ):
                 #         continue
 
-        unfiltered_taxon_counts = (
+        self.df = (
             unfiltered_taxon_counts.lazy()
             .group_by(["geohash", "kingdom", "rank", "name"])
             .agg(pl.col("count").sum())
@@ -127,8 +115,9 @@ class DarwinCoreAggregations(NamedTuple):
             .collect()
         )
 
-        taxon_counts = (
-            unfiltered_taxon_counts.lazy()
+    def filtered(self) -> pl.DataFrame:
+        return (
+            self.df.lazy()
             .filter(pl.col("rank") == "species", pl.col("name").is_not_null())
             .select("geohash", "kingdom", "name", "count")
             .rename({"name": "species"})
@@ -136,15 +125,10 @@ class DarwinCoreAggregations(NamedTuple):
             .collect()
         )
 
-        return cls(
-            taxon_counts=taxon_counts,
-            unfiltered_taxon_counts=unfiltered_taxon_counts,
-        )
-
     # @functools.cache
     def ordered_geohashes(self) -> List[Geohash]:
         return (
-            self.taxon_counts.select("geohash")
+            self.filtered().select("geohash")
             .unique()
             .sort(by="geohash")
             .get_column("geohash")

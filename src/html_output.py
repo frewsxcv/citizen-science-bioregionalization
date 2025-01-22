@@ -1,12 +1,12 @@
 import polars as pl
 from src.cluster_stats import Stats
-from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 
 
 def build_html_output(
-    darwin_core_aggregations: DarwinCoreAggregations,
+    geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
     all_stats: Stats,
@@ -22,7 +22,7 @@ def build_html_output(
     ):
         html = f"<h1>Cluster {cluster}</h1>"
         html += f"<li>Color: <span style='color: {color};'>{color}</span></li>"
-        stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
+        stats = Stats.build(geohash_taxa_counts_dataframe, geohash_filter=geohashes)
 
         for kingdom, species, count in (
             stats.taxon.sort(by="count", descending=True)
