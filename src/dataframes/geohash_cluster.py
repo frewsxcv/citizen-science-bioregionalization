@@ -5,7 +5,9 @@ from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.types import Geohash, ClusterId
 
-class GeohashClusterDataFrame(pl.DataFrame):
+class GeohashClusterDataFrame:
+    df: pl.DataFrame
+
     SCHEMA = {
         "geohash": pl.String,
         "cluster": pl.UInt32,
@@ -17,7 +19,7 @@ class GeohashClusterDataFrame(pl.DataFrame):
         clusters: List[ClusterId],
     ) -> None:
         assert len(ordered_seen_geohash) == len(clusters)
-        super().__init__(
+        self.df = pl.DataFrame(
             data={
                 "geohash": ordered_seen_geohash,
                 "cluster": clusters,
@@ -25,17 +27,20 @@ class GeohashClusterDataFrame(pl.DataFrame):
             schema=self.SCHEMA,
         )
 
+    def cluster_ids(self) -> List[ClusterId]:
+        return self.df["cluster"].unique().to_list()
+
     def iter_clusters_and_geohashes(
         self,
     ) -> Iterator[Tuple[ClusterId, List[Geohash]]]:
-        for row in (self.group_by("cluster").all().sort("cluster")).iter_rows(
+        for row in (self.df.group_by("cluster").all().sort("cluster")).iter_rows(
             named=True
         ):
             yield row["cluster"], row["geohash"]
 
 
     def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
-        return self.filter(pl.col("cluster") == cluster)["geohash"].to_list()
+        return self.df.filter(pl.col("cluster") == cluster)["geohash"].to_list()
 
 
     def determine_color_for_cluster(
@@ -51,6 +56,6 @@ class GeohashClusterDataFrame(pl.DataFrame):
 
 
     def num_clusters(self) -> int:
-        num = self["cluster"].max()
+        num = self.df["cluster"].max()
         assert isinstance(num, int)
         return num

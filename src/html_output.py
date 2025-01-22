@@ -1,15 +1,27 @@
 import polars as pl
 from src.cluster_stats import Stats
+from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 
 
-def build_html_output(cluster_index, clusters, darwin_core_aggregations, all_stats, cluster_colors):
+def build_html_output(
+    darwin_core_aggregations: DarwinCoreAggregations,
+    geohash_cluster_dataframe: GeohashClusterDataFrame,
+    cluster_colors_dataframe: ClusterColorDataFrame,
+    all_stats: Stats,
+) -> str:
     html = ""
-    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes(clusters):
-        # Print cluster stats
-
-        color = cluster_colors[cluster]
+    for cluster, geohashes, color in (
+        geohash_cluster_dataframe
+        .df
+        .group_by("cluster")
+        .agg(pl.col("geohash"))
+        .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
+        .iter_rows()
+    ):
         html = f"<h1>Cluster {cluster}</h1>"
-        html += f"<li>Color: <span style='color: {cluster_colors[cluster]};'>{cluster_colors[cluster]}</span></li>"
+        html += f"<li>Color: <span style='color: {color};'>{color}</span></li>"
         stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
 
         for kingdom, species, count in (

@@ -6,7 +6,9 @@ from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.types import ClusterId
 
 
-class ClusterColorDataFrame(pl.DataFrame):
+class ClusterColorDataFrame:
+    df: pl.DataFrame
+
     SCHEMA = {
         "cluster": pl.UInt32,
         "color": pl.String,
@@ -18,7 +20,7 @@ class ClusterColorDataFrame(pl.DataFrame):
             ClusterColorBuilder.random()
             for _ in clusters
         ]
-        super().__init__(
+        self.df = pl.DataFrame(
             data={
                 "cluster": clusters,
                 "color": colors,

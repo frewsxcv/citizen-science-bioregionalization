@@ -8,7 +8,6 @@ from src import cli_output, cluster
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from src.dataframes.cluster_color import ClusterColorDataFrame
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection
 
@@ -47,7 +46,7 @@ def run(
     all_stats = Stats.build(darwin_core_aggregations)
 
     cluster_colors_dataframe = ClusterColorDataFrame(
-        geohash_cluster_dataframe["cluster"].unique().to_list()
+        geohash_cluster_dataframe.cluster_ids()
     )
 
     feature_collection = build_geojson_feature_collection(

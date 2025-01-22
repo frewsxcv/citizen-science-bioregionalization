@@ -45,9 +45,10 @@ def build_geojson_feature_collection(
     features: List[geojson.Feature] = []
     for cluster, geohashes, color in (
         geohash_cluster_dataframe
+        .df
         .group_by("cluster")
         .agg(pl.col("geohash"))
-        .join(cluster_colors_dataframe, left_on="cluster", right_on="cluster")
+        .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
         .iter_rows()
     ):
         features.append(
