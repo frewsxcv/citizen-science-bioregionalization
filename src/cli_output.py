@@ -1,16 +1,16 @@
 import polars as pl
-from src import cluster_index, geohash
+from src import geohash
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
 from typing import List
-from src.types import Geohash
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 def print_cluster_stats(
-    cluster: cluster_index.ClusterId,
+    cluster: GeohashClusterDataFrame,
     geohashes: List[geohash.Geohash],
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
@@ -81,12 +81,12 @@ def print_all_cluster_stats(
 def print_results(
     darwin_core_aggregations: DarwinCoreAggregations,
     all_stats: Stats,
-    clusters: cluster_index.ClusterIndex,
+    geohash_cluster_dataframe: GeohashClusterDataFrame,
 ) -> None:
     # For each top count taxon, print the average per geohash
     print_all_cluster_stats(darwin_core_aggregations, all_stats)
 
-    logger.info(f"Number of clusters: {cluster_index.num_clusters(clusters)}")
+    logger.info(f"Number of clusters: {geohash_cluster_dataframe.num_clusters()}")
 
-    for cluster, geohashes in cluster_index.iter_clusters_and_geohashes(clusters):
-        print_cluster_stats(cluster, geohashes, darwin_core_aggregations, all_stats)
+    for _cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+        print_cluster_stats(geohash_cluster_dataframe, geohashes, darwin_core_aggregations, all_stats)

@@ -7,7 +7,8 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.decomposition import IncrementalPCA
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
-from src import darwin_core_aggregations, cluster_index, dendrogram
+from src import darwin_core_aggregations, dendrogram
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.logging import log_action
 from contexttimer import Timer
 
@@ -111,7 +112,7 @@ def run(
     num_clusters: int,
     show_dendrogram_opt: bool,
     use_cache: bool,
-) -> cluster_index.ClusterIndex:
+) -> GeohashClusterDataFrame:
     ordered_seen_geohash = darwin_core_aggregations.ordered_geohashes()
     Y = build_condensed_distance_matrix(darwin_core_aggregations, use_cache)
     Z = linkage(Y, "ward")
@@ -121,4 +122,4 @@ def run(
     if show_dendrogram_opt:
         dendrogram.show(Z, ordered_seen_geohash)
 
-    return cluster_index.build(ordered_seen_geohash, clusters)
+    return GeohashClusterDataFrame(ordered_seen_geohash, clusters)

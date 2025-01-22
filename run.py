@@ -4,9 +4,10 @@
 import logging
 import geojson  # type: ignore
 import typer
-from src import cluster_index, cli_output, cluster
+from src import cli_output, cluster
 from src.cluster_stats import Stats
 from src.darwin_core_aggregations import DarwinCoreAggregations
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection
 
@@ -48,13 +49,11 @@ def run(
         (
             cluster,
             geohashes,
-            cluster_index.determine_color_for_cluster(
-                cluster_dataframe, cluster, darwin_core_aggregations
+            cluster_dataframe.determine_color_for_cluster(
+                darwin_core_aggregations, cluster
             ),
         )
-        for cluster, geohashes in cluster_index.iter_clusters_and_geohashes(
-            cluster_dataframe
-        )
+        for cluster, geohashes in cluster_dataframe.iter_clusters_and_geohashes()
     )
 
     cli_output.print_results(darwin_core_aggregations, all_stats, cluster_dataframe)
