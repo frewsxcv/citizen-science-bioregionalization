@@ -2,7 +2,7 @@
 # so those clusters will have artificially fewer counts
 
 import logging
-import geojson  # type: ignore
+import geojson
 import typer
 from src import cli_output, cluster
 from src.cluster_stats import Stats

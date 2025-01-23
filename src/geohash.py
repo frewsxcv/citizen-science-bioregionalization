@@ -6,7 +6,7 @@ from src.types import Geohash
 
 
 def geohash_to_bbox(geohash: str) -> Bbox:
-    lat, lon, lat_err, lon_err = geohashr.decode_exact(geohash)  # type: ignore
+    lat, lon, lat_err, lon_err = geohashr.decode_exact(geohash)
     return Bbox(
         sw=Point(lon - lon_err, lat - lat_err),
         ne=Point(lon + lon_err, lat + lat_err),
@@ -19,7 +19,7 @@ def build_geohash_series(
     return data_frame.with_columns(
         pl.struct([lat_col.alias("lat"), lon_col.alias("lon")])
         .map_elements(
-            lambda series: geohashr.encode(series["lat"], series["lon"], precision),  # type: ignore
+            lambda series: geohashr.encode(series["lat"], series["lon"], precision),
             return_dtype=pl.String,
         )
         .alias("geohash")
@@ -32,7 +32,7 @@ def build_geohash_series_lazy(
     return lazy_frame.with_columns(
         pl.struct([lat_col.alias("lat"), lon_col.alias("lon")])
         .map_elements(
-            lambda series: geohashr.encode(series["lat"], series["lon"], precision),  # type: ignore
+            lambda series: geohashr.encode(series["lat"], series["lon"], precision),
             return_dtype=pl.String,
         )
         .alias("geohash")
