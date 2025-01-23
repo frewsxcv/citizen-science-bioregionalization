@@ -264,6 +264,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "scipy-stubs" },
+    { name = "shapely" },
     { name = "typer" },
 ]
 
@@ -280,6 +281,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.6.0" },
     { name = "scipy", specifier = ">=1.11.3" },
     { name = "scipy-stubs", specifier = ">=1.14.1.5" },
+    { name = "shapely", specifier = ">=2.0.6" },
     { name = "typer", specifier = ">=0.15.1" },
 ]
 

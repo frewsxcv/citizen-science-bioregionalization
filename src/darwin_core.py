@@ -5,7 +5,17 @@ import os
 
 
 kingdom_enum = pl.Enum(
-    ["Animalia", "Archaea", "Bacteria", "Chromista", "Fungi", "Plantae", "Protozoa", "Viruses", "incertae sedis"],
+    [
+        "Animalia",
+        "Archaea",
+        "Bacteria",
+        "Chromista",
+        "Fungi",
+        "Plantae",
+        "Protozoa",
+        "Viruses",
+        "incertae sedis",
+    ],
 )
 
 schema: Dict[str, pl.DataType] = {

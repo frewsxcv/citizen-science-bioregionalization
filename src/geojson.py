@@ -34,7 +34,7 @@ def build_geojson_feature(
             "stroke-width": 0,
             "cluster": cluster,
         },
-        geometry=geometry.__geo_interface__,
+        geometry=shapely.geometry.mapping(geometry),  # type: ignore
     )
 
 
@@ -44,9 +44,7 @@ def build_geojson_feature_collection(
 ) -> geojson.FeatureCollection:
     features: List[geojson.Feature] = []
     for cluster, geohashes, color in (
-        geohash_cluster_dataframe
-        .df
-        .group_by("cluster")
+        geohash_cluster_dataframe.df.group_by("cluster")
         .agg(pl.col("geohash"))
         .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
         .iter_rows()

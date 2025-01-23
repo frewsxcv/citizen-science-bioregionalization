@@ -17,6 +17,7 @@ dependencies = [
     "polars>=1.17.1",
     "scikit-learn>=1.6.0",
     "typer>=0.15.1",
+    "shapely>=2.0.6",
 ]
 
 [tool.mypy]
