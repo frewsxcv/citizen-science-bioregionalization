@@ -13,11 +13,11 @@ def build_geojson_geohash_polygon(geohash: Geohash) -> shapely.Polygon:
     bbox = geohash_to_bbox(geohash)
     return shapely.Polygon(
         [
-            (bbox.sw.lon, bbox.sw.lat),
-            (bbox.ne.lon, bbox.sw.lat),
-            (bbox.ne.lon, bbox.ne.lat),
-            (bbox.sw.lon, bbox.ne.lat),
-            (bbox.sw.lon, bbox.sw.lat),
+            (bbox.sw.x, bbox.sw.y),
+            (bbox.ne.x, bbox.sw.y),
+            (bbox.ne.x, bbox.ne.y),
+            (bbox.sw.x, bbox.ne.y),
+            (bbox.sw.x, bbox.sw.y),
         ]
     )
 

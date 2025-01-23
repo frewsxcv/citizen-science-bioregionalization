@@ -1,15 +1,15 @@
 import geohashr
 import polars as pl
 from src.bbox import Bbox
-from src.point import Point
+from shapely.geometry import Point
 from src.types import Geohash
 
 
 def geohash_to_bbox(geohash: str) -> Bbox:
-    lat, lon, lat_err, lon_err = geohashr.decode_exact(geohash)
+    lat, lon, lat_err, lon_err = geohashr.decode_exact(geohash)  # type: ignore
     return Bbox(
-        sw=Point(lat=lat - lat_err, lon=lon - lon_err),
-        ne=Point(lat=lat + lat_err, lon=lon + lon_err),
+        sw=Point(lon - lon_err, lat - lat_err),
+        ne=Point(lon + lon_err, lat + lat_err),
     )
 
 
@@ -19,7 +19,7 @@ def build_geohash_series(
     return data_frame.with_columns(
         pl.struct([lat_col.alias("lat"), lon_col.alias("lon")])
         .map_elements(
-            lambda series: geohashr.encode(series["lat"], series["lon"], precision),
+            lambda series: geohashr.encode(series["lat"], series["lon"], precision),  # type: ignore
             return_dtype=pl.String,
         )
         .alias("geohash")
@@ -32,7 +32,7 @@ def build_geohash_series_lazy(
     return lazy_frame.with_columns(
         pl.struct([lat_col.alias("lat"), lon_col.alias("lon")])
         .map_elements(
-            lambda series: geohashr.encode(series["lat"], series["lon"], precision),
+            lambda series: geohashr.encode(series["lat"], series["lon"], precision),  # type: ignore
             return_dtype=pl.String,
         )
         .alias("geohash")
