@@ -19,7 +19,15 @@ schema: Dict[str, pl.DataType] = {
 }
 
 
-class ProgressLogger:
+class Logger:
+    def log_progress(self):
+        pass
+
+    def update(self, lines_processed: int):
+        pass
+
+
+class ProgressLogger(Logger):
     logger: logging.Logger
     num_lines: int
     processed_lines: int
@@ -51,7 +59,7 @@ class ProgressLogger:
         self.log_progress()
 
 
-class VoidLogger:
+class VoidLogger(Logger):
     def log_progress(self):
         pass
 
@@ -65,7 +73,7 @@ def read_rows(
     n_batches: int = 5,
     log_progress: bool = True,
 ) -> Generator[pl.DataFrame, None, None]:
-    logger = ProgressLogger(input_file) if log_progress else VoidLogger()
+    logger: Logger = ProgressLogger(input_file) if log_progress else VoidLogger()
 
     reader = pl.read_csv_batched(
         input_file,

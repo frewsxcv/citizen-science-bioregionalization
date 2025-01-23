@@ -1,9 +1,9 @@
-import geojson
 import unittest
 
-from src.cluster_stats import Stats
+import polars as pl
+
 from src.geojson import build_geojson_feature_collection
-from src.geohash import Geohash
+from src.geojson import GeohashClusterDataFrame, ClusterColorDataFrame
 
 
 class TestGeojson(unittest.TestCase):
