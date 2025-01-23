@@ -31,7 +31,7 @@ def run(
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
-    geohash_taxa_counts_dataframe = GeohashTaxaCountsDataFrame(
+    geohash_taxa_counts_dataframe = GeohashTaxaCountsDataFrame.build(
         input_file, geohash_precision
     )
 
@@ -45,7 +45,7 @@ def run(
     # Find the top averages of taxon
     all_stats = Stats.build(geohash_taxa_counts_dataframe)
 
-    cluster_colors_dataframe = ClusterColorDataFrame(
+    cluster_colors_dataframe = ClusterColorDataFrame.from_clusters(
         geohash_cluster_dataframe.cluster_ids()
     )
 

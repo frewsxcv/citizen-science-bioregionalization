@@ -34,9 +34,13 @@ class GeohashTaxaCountsDataFrame:
         "count": pl.UInt32(),
     }
 
-    def __init__(self, input_file: str, geohash_precision: int):
+    def __init__(self, df: pl.DataFrame) -> None:
+        self.df = df
+
+    @classmethod
+    def build(cls, input_file: str, geohash_precision: int):
         unfiltered_taxon_counts = pl.DataFrame(
-            schema=self.SCHEMA,
+            schema=cls.SCHEMA,
         )
 
         # Will this work for eBird?
@@ -108,12 +112,14 @@ class GeohashTaxaCountsDataFrame:
                 #     ):
                 #         continue
 
-        self.df = (
-            unfiltered_taxon_counts.lazy()
-            .group_by(["geohash", "kingdom", "rank", "name"])
-            .agg(pl.col("count").sum())
-            .sort(by="geohash")
-            .collect()
+        return cls(
+            df=(
+                unfiltered_taxon_counts.lazy()
+                .group_by(["geohash", "kingdom", "rank", "name"])
+                .agg(pl.col("count").sum())
+                .sort(by="geohash")
+                .collect()
+            )
         )
 
     def filtered(self) -> pl.DataFrame:
