@@ -8,12 +8,24 @@ from src.geojson import GeohashClusterDataFrame, ClusterColorDataFrame
 
 class TestGeojson(unittest.TestCase):
     def test_build_geojson_feature_collection(self):
-        cluster_and_geohashes_and_colors = [
-            (1, ["gcpv"], "red"),
-            (2, ["gcpv", "gcpw"], "blue"),
-        ]
         actual = build_geojson_feature_collection(
-            cluster_and_geohashes_and_colors
+            geohash_cluster_dataframe=GeohashClusterDataFrame(
+                df=pl.DataFrame(
+                    [
+                        {"geohash": "gcpv", "cluster": 1},
+                        {"geohash": "gcpw", "cluster": 2},
+                        {"geohash": "gcpx", "cluster": 2},
+                    ]
+                ),
+            ),
+            cluster_colors_dataframe=ClusterColorDataFrame(
+                df=pl.DataFrame(
+                    [
+                        {"cluster": 1, "color": "#ff0000"},
+                        {"cluster": 2, "color": "#0000ff"},
+                    ]
+                )
+            ),
         )
         expected = {
             "features": [
