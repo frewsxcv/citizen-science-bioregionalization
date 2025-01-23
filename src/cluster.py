@@ -58,12 +58,12 @@ def build_X(
 
 def scale_values(X: pl.DataFrame) -> pl.DataFrame:
     scaler = RobustScaler()
-    return pl.from_numpy(scaler.fit_transform(X))
+    return pl.from_numpy(scaler.fit_transform(X.to_numpy()))
 
 
 def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
     pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
-    return pl.from_numpy(pca.fit_transform(X))
+    return pl.from_numpy(pca.fit_transform(X.to_numpy()))
 
 
 def build_condensed_distance_matrix(
