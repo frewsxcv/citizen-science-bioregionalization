@@ -42,34 +42,25 @@ class TestGeojson(unittest.TestCase):
                         ],
                         "type": "Polygon",
                     },
-                    "properties": {"cluster": 1, "fill": "red", "stroke-width": 0},
+                    "properties": {"cluster": 1, "fill": "#ff0000", "stroke-width": 0},
                     "type": "Feature",
                 },
                 {
                     "geometry": {
                         "coordinates": [
                             [
-                                [
-                                    [0.0, 51.679688],
-                                    [0.0, 51.503906],
-                                    [-0.351562, 51.503906],
-                                    [-0.351562, 51.679688],
-                                    [0.0, 51.679688],
-                                ]
-                            ],
-                            [
-                                [
-                                    [-0.703125, 51.679688],
-                                    [-0.703125, 51.855469],
-                                    [-0.351562, 51.855469],
-                                    [-0.351562, 51.679688],
-                                    [-0.703125, 51.679688],
-                                ]
-                            ],
+                                [-0.351562, 51.679688],
+                                [-0.703125, 51.679688],
+                                [-0.703125, 51.855469],
+                                [-0.703125, 52.03125],
+                                [-0.351562, 52.03125],
+                                [-0.351562, 51.855469],
+                                [-0.351562, 51.679688],
+                            ]
                         ],
-                        "type": "MultiPolygon",
+                        "type": "Polygon",
                     },
-                    "properties": {"cluster": 2, "fill": "blue", "stroke-width": 0},
+                    "properties": {"cluster": 2, "fill": "#0000ff", "stroke-width": 0},
                     "type": "Feature",
                 },
             ],
