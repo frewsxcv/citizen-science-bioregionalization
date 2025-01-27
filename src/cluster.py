@@ -20,15 +20,51 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
     """
     Create a matrix where each row is a geohash and each column is a taxon ID
 
-    Example:
+    Example input:
 
+    ```txt
+    ┌─────────┬──────────┬────────────────────────┬───────┐
+    │ geohash ┆ kingdom  ┆ species                ┆ count │
+    │ ---     ┆ ---      ┆ ---                    ┆ ---   │
+    │ str     ┆ enum     ┆ str                    ┆ u32   │
+    ╞═════════╪══════════╪════════════════════════╪═══════╡
+    │ 9eu     ┆ Animalia ┆ Mydas xanthopterus     ┆ 1     │
+    │ 9ev     ┆ Animalia ┆ Plecia plagiata        ┆ 1     │
+    │ 9ev     ┆ Animalia ┆ Palpada vinetorum      ┆ 1     │
+    │ 9ev     ┆ Animalia ┆ Dioprosopa clavatus    ┆ 2     │
+    │ 9ev     ┆ Animalia ┆ Toxomerus politus      ┆ 4     │
+    │ …       ┆ …        ┆ …                      ┆ …     │
+    │ f8k     ┆ Animalia ┆ Polydontomyia curvipes ┆ 1     │
+    │ f8k     ┆ Animalia ┆ Eristalis arbustorum   ┆ 3     │
+    │ f8k     ┆ Animalia ┆ Lucilia sericata       ┆ 3     │
+    │ f8k     ┆ Animalia ┆ Bittacomorpha clavipes ┆ 1     │
+    │ f8k     ┆ Animalia ┆ Pollenia vagabunda     ┆ 2     │
+    └─────────┴──────────┴────────────────────────┴───────┘
     ```
-    [
-        [1, 0, 0, 0],  # geohash 1 has 1 occurrence of taxon 1, 0 occurrences of taxon 2, 0 occurrences of taxon 3, 0 occurrences of taxon 4
-        [0, 2, 0, 1],  # geohash 2 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 1 occurrences of taxon 4
-        [0, 0, 3, 0],  # geohash 3 has 0 occurrences of taxon 1, 0 occurrences of taxon 2, 3 occurrences of taxon 3, 0 occurrences of taxon 4
-        [0, 2, 0, 4],  # geohash 4 has 0 occurrences of taxon 1, 2 occurrences of taxon 2, 0 occurrences of taxon 3, 4 occurrences of taxon 4
-    ]
+
+    Example output:
+
+    ```txt
+    ┌─────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
+    │ geohash ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ … ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ {"Animali │
+    │ ---     ┆ a","Mydas ┆ a","Pleci ┆ a","Palpa ┆   ┆ a","Pegom ┆ a","Phyto ┆ a","Dolic ┆ a","Cysti │
+    │ str     ┆ xanthopte ┆ a plagiat ┆ da vineto ┆   ┆ ya solenn ┆ myza      ┆ hopus     ┆ phora     │
+    │         ┆ ru…       ┆ a"}       ┆ rum…      ┆   ┆ is"…      ┆ lineata…  ┆ palaes…   ┆ taraxa…   │
+    │         ┆ ---       ┆ ---       ┆ ---       ┆   ┆ ---       ┆ ---       ┆ ---       ┆ ---       │
+    │         ┆ u32       ┆ u32       ┆ u32       ┆   ┆ u32       ┆ u32       ┆ u32       ┆ u32       │
+    ╞═════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
+    │ 9eu     ┆ 1         ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ 9ev     ┆ null      ┆ 1         ┆ 1         ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ 9ey     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ 9ez     ┆ null      ┆ null      ┆ 1         ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ 9gb     ┆ 2         ┆ 1         ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ …       ┆ …         ┆ …         ┆ …         ┆ … ┆ …         ┆ …         ┆ …         ┆ …         │
+    │ f8c     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ f8d     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ f8e     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ f8h     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    │ f8k     ┆ null      ┆ null      ┆ null      ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+    └─────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
     ```
     """
     return taxon_counts.pivot(
