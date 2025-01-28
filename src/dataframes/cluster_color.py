@@ -15,6 +15,9 @@ class ClusterColorDataFrame:
     def __init__(self, df: pl.DataFrame) -> None:
         self.df = df
 
+    def get_color_for_cluster(self, cluster: ClusterId) -> str:
+        return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
+
     @classmethod
     def from_clusters(cls, clusters: List[ClusterId]) -> Self:
         colors = [

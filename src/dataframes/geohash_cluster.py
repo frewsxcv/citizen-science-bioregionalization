@@ -45,6 +45,9 @@ class GeohashClusterDataFrame:
         ):
             yield row["cluster"], row["geohash"]
 
+    def cluster_for_geohash(self, geohash: Geohash) -> ClusterId:
+        return self.df.filter(pl.col("geohash") == geohash)["cluster"].to_list()[0]
+
     def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
         return self.df.filter(pl.col("cluster") == cluster)["geohash"].to_list()
 
