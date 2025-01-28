@@ -1,6 +1,5 @@
 from typing import Iterator, List, Self, Tuple
 import polars as pl
-from src.cluster_color_builder import ClusterColorBuilder
 from src.cluster_stats import Stats
 from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.types import Geohash, ClusterId
@@ -50,17 +49,6 @@ class GeohashClusterDataFrame:
 
     def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
         return self.df.filter(pl.col("cluster") == cluster)["geohash"].to_list()
-
-    def determine_color_for_cluster(
-        self,
-        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
-        cluster: ClusterId,
-    ) -> str:
-        stats = Stats.build(
-            geohash_taxa_counts_dataframe,
-            geohash_filter=self.geohashes_for_cluster(cluster),
-        )
-        return ClusterColorBuilder.determine_color_for_cluster(stats)
 
     def num_clusters(self) -> int:
         num = self.df["cluster"].max()
