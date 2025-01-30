@@ -60,7 +60,7 @@ class GeohashTaxaCountsDataFrame:
                 ],
             ):
                 # Temporary: Filter out orders that are not Diptera
-                read_dataframe = read_dataframe.filter(pl.col("order") == "Diptera")
+                # read_dataframe = read_dataframe.filter(pl.col("order") == "Diptera")
 
                 for variant in TaxonRank:
                     # `aggregated` is a dataframe that looks like this:
