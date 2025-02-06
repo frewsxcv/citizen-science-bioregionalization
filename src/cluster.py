@@ -116,9 +116,6 @@ def build_condensed_distance_matrix(
 
     X = build_X(geohash_taxa_counts_dataframe)
 
-    # tsne = TSNE(metric="braycurtis")
-    # tsne_result = tsne.fit_transform(X)
-
     # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
     logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
