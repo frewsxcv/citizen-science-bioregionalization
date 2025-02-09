@@ -39,21 +39,39 @@ def build_geohash_series_lazy(
     )
 
 
-def geohash_to_lat_lon(df: pl.DataFrame, geohash_col: pl.Expr) -> pl.DataFrame:
+def geohash_to_lat_lon(
+    df: pl.DataFrame,
+    geohash_col: pl.Expr,
+    lat_alias: str = "geohash_lat",
+    lon_alias: str = "geohash_lon",
+) -> pl.DataFrame:
     return df.with_columns(
         geohash_col.map_elements(
-            lambda geohash: list(geohashr.decode(geohash)),
-            return_dtype=pl.List(pl.Float64),
-        ).alias("lat_lon").list.to_array(2)
+            lambda geohash: geohashr.decode(geohash)[0],
+            return_dtype=pl.Float64,
+        ).alias(lat_alias),
+        geohash_col.map_elements(
+            lambda geohash: geohashr.decode(geohash)[1],
+            return_dtype=pl.Float64,
+        ).alias(lon_alias),
     )
 
 
-def geohash_to_lat_lon_lazy(lazy_frame: pl.LazyFrame, geohash_col: pl.Expr) -> pl.LazyFrame:
+def geohash_to_lat_lon_lazy(
+    lazy_frame: pl.LazyFrame,
+    geohash_col: pl.Expr,
+    lat_alias: str = "geohash_lat",
+    lon_alias: str = "geohash_lon",
+) -> pl.LazyFrame:
     return lazy_frame.with_columns(
         geohash_col.map_elements(
-            lambda geohash: list(geohashr.decode(geohash)),
-            return_dtype=pl.List(pl.Float64),
-        ).alias("lat_lon").list.to_array(2)
+            lambda geohash: geohashr.decode(geohash)[0],
+            return_dtype=pl.Float64,
+        ).alias(lat_alias),
+        geohash_col.map_elements(
+            lambda geohash: geohashr.decode(geohash)[1],
+            return_dtype=pl.Float64,
+        ).alias(lon_alias),
     )
 
 
