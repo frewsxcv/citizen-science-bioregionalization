@@ -8,6 +8,7 @@ from src import cli_output, cluster
 from src.cluster_stats import Stats
 from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection
 
@@ -40,6 +41,10 @@ def run(
         num_clusters,
         show_dendrogram,
         use_cache,
+    )
+
+    taxa_geographic_mean_dataframe = TaxaGeographicMeanDataFrame.build(
+        geohash_taxa_counts_dataframe
     )
 
     # Find the top averages of taxon
