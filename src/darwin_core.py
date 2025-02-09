@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Generator, List, Dict
 import logging
 import polars as pl
@@ -99,3 +100,16 @@ def read_rows(
             logger.update(len(batch))
             yield batch
         batches = reader.next_batches(n=n_batches)
+
+
+class TaxonRank(Enum):
+    """
+    Each of these values is also the name of a Darwin Core column
+    """
+
+    phylum = "phylum"
+    class_ = "class"
+    order = "order"
+    family = "family"
+    genus = "genus"
+    species = "species"
