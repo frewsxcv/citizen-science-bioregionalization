@@ -28,7 +28,6 @@ def run(
     log_file: str = typer.Option(..., help="Path to the log file"),
     input_file: str = typer.Argument(..., help="Path to the input file"),
     output_file: str = typer.Argument(..., help="Path to the output file"),
-    show_dendrogram: bool = typer.Option(False, help="Show the dendrogram"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
     use_cache: bool = typer.Option(False, help="Use the cache"),
 ):
@@ -49,7 +48,6 @@ def run(
         geohash_taxa_counts_dataframe,
         distance_matrix,
         num_clusters,
-        show_dendrogram,
     )
 
     taxa_geographic_mean_dataframe = TaxaGeographicMeanDataFrame.build(
