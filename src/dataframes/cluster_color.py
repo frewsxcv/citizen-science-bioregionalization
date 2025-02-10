@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import Dict, List, Self
 import polars as pl
 from src.types import ClusterId
 import seaborn as sns
@@ -30,6 +30,12 @@ class ClusterColorDataFrame:
                 schema=cls.SCHEMA,
             )
         )
+
+    def to_dict(self) -> Dict[ClusterId, str]:
+        return {
+            x: self.get_color_for_cluster(x) for x in self.df["cluster"]
+        }
+
 
 def rgb_to_hex(r: float, g: float, b: float) -> str:
   return "#{0:02x}{1:02x}{2:02x}".format(int(r * 255), int(g * 255), int(b * 255))
