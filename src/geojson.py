@@ -59,3 +59,10 @@ def build_geojson_feature_collection(
             )
         )
     return geojson.FeatureCollection(features=features)
+
+
+def write_geojson(
+    feature_collection: geojson.FeatureCollection, output_file: str
+) -> None:
+    with open(output_file, "w") as geojson_writer:
+        geojson.dump(feature_collection, geojson_writer)

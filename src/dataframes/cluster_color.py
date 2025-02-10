@@ -1,7 +1,9 @@
 from typing import Dict, List, Self
 import polars as pl
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.types import ClusterId
 import seaborn as sns
+
 
 class ClusterColorDataFrame:
     df: pl.DataFrame
@@ -18,7 +20,8 @@ class ClusterColorDataFrame:
         return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
     @classmethod
-    def from_clusters(cls, clusters: List[ClusterId]) -> Self:
+    def from_clusters(cls, geohash_cluster_dataframe: GeohashClusterDataFrame) -> Self:
+        clusters = geohash_cluster_dataframe.cluster_ids()
         palette = sns.color_palette("Spectral", n_colors=len(clusters))
         colors = [rgb_to_hex(*palette[i]) for i in range(len(clusters))]
         return cls(
@@ -32,10 +35,8 @@ class ClusterColorDataFrame:
         )
 
     def to_dict(self) -> Dict[ClusterId, str]:
-        return {
-            x: self.get_color_for_cluster(x) for x in self.df["cluster"]
-        }
+        return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}
 
 
 def rgb_to_hex(r: float, g: float, b: float) -> str:
-  return "#{0:02x}{1:02x}{2:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+    return "#{0:02x}{1:02x}{2:02x}".format(int(r * 255), int(g * 255), int(b * 255))

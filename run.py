@@ -2,24 +2,17 @@
 # so those clusters will have artificially fewer counts
 
 import logging
-import geojson
 import typer
-from src import cli_output, cluster
+from src import cli_output
 from src.cluster_stats import Stats
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.distance_matrix import DistanceMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
-from src.geojson import build_geojson_feature_collection
-
-
-def write_geojson(
-    feature_collection: geojson.FeatureCollection, output_file: str
-) -> None:
-    with open(output_file, "w") as geojson_writer:
-        geojson.dump(feature_collection, geojson_writer)
+from src.geojson import build_geojson_feature_collection, write_geojson
 
 
 def run(
@@ -44,7 +37,7 @@ def run(
         use_cache,
     )
 
-    geohash_cluster_dataframe = cluster.run(
+    geohash_cluster_dataframe = GeohashClusterDataFrame.build(
         geohash_taxa_counts_dataframe,
         distance_matrix,
         num_clusters,
@@ -58,7 +51,7 @@ def run(
     all_stats = Stats.build(geohash_taxa_counts_dataframe)
 
     cluster_colors_dataframe = ClusterColorDataFrame.from_clusters(
-        geohash_cluster_dataframe.cluster_ids()
+        geohash_cluster_dataframe
     )
 
     feature_collection = build_geojson_feature_collection(

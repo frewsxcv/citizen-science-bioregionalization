@@ -1,8 +1,12 @@
 from typing import Iterator, List, Self, Tuple
+import logging
 import polars as pl
-from src.cluster_stats import Stats
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.types import Geohash, ClusterId
+from scipy.cluster.hierarchy import linkage, fcluster
+from src.distance_matrix import DistanceMatrix
+
+logger = logging.getLogger(__name__)
 
 
 class GeohashClusterDataFrame:
@@ -32,6 +36,18 @@ class GeohashClusterDataFrame:
                 schema=cls.SCHEMA,
             )
         )
+
+    @classmethod
+    def build(
+        cls,
+        geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
+        distance_matrix: DistanceMatrix,
+        num_clusters: int,
+    ) -> Self:
+        ordered_seen_geohash = geohash_taxa_counts_dataframe.ordered_geohashes()
+        Z = linkage(distance_matrix.condensed(), "ward")
+        clusters = list(map(int, fcluster(Z, t=num_clusters, criterion="maxclust")))
+        return cls.from_lists(ordered_seen_geohash, clusters)
 
     def cluster_ids(self) -> List[ClusterId]:
         return self.df["cluster"].unique().to_list()
