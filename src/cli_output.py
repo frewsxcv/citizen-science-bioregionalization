@@ -1,7 +1,7 @@
 import polars as pl
 from src import geohash
 from src.cluster_stats import Stats
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
+from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from typing import List
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 import logging
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def print_cluster_stats(
     cluster: GeohashClusterDataFrame,
     geohashes: List[geohash.Geohash],
-    darwin_core_aggregations: GeohashTaxaCountsDataFrame,
+    darwin_core_aggregations: GeohashSpeciesCountsDataFrame,
     all_stats: Stats,
 ) -> None:
     stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
@@ -56,7 +56,7 @@ def print_cluster_stats(
 
 
 def print_all_cluster_stats(
-    geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame, all_stats: Stats
+    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame, all_stats: Stats
 ) -> None:
     for kingdom, species, count in (
         all_stats.taxon.sort(by="count", descending=True)
@@ -79,7 +79,7 @@ def print_all_cluster_stats(
 
 
 def print_results(
-    geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
+    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
     all_stats: Stats,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
 ) -> None:

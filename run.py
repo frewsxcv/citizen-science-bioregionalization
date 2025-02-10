@@ -6,7 +6,7 @@ import geojson
 import typer
 from src import cli_output, cluster
 from src.cluster_stats import Stats
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
+from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
@@ -35,7 +35,7 @@ def run(
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.from_file(input_file)
 
-    geohash_taxa_counts_dataframe = GeohashTaxaCountsDataFrame.build(
+    geohash_taxa_counts_dataframe = GeohashSpeciesCountsDataFrame.build(
         darwin_core_csv_lazy_frame, geohash_precision
     )
 

@@ -1,12 +1,12 @@
 import polars as pl
 from src.cluster_stats import Stats
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
+from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 
 
 def build_html_output(
-    geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
+    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
     all_stats: Stats,

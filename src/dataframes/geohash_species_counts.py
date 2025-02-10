@@ -11,7 +11,7 @@ from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 logger = logging.getLogger(__name__)
 
 
-class GeohashTaxaCountsDataFrame:
+class GeohashSpeciesCountsDataFrame:
     df: pl.DataFrame
 
     SCHEMA = {

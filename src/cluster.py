@@ -8,7 +8,7 @@ from sklearn.decomposition import IncrementalPCA
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
 from src import dendrogram
-from src.dataframes import geohash_taxa_counts
+from src.dataframes import geohash_species_counts
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.logging import log_action
 from contexttimer import Timer
@@ -73,7 +73,7 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_X(
-    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
+    geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
 ) -> pl.DataFrame:
     X = log_action(
         "Building matrix",
@@ -103,7 +103,7 @@ def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_condensed_distance_matrix(
-    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
+    geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
     use_cache: bool,
 ) -> np.ndarray:
     cache_file = "condensed_distance_matrix.parquet"
@@ -142,7 +142,7 @@ def build_condensed_distance_matrix(
 
 
 def run(
-    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
+    geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
     num_clusters: int,
     show_dendrogram_opt: bool,
     use_cache: bool,

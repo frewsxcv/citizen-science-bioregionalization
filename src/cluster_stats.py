@@ -2,7 +2,7 @@ from typing import List, NamedTuple, Optional, Self
 
 import polars as pl
 
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
+from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.geohash import Geohash
 
 
@@ -32,7 +32,7 @@ class Stats(NamedTuple):
     @classmethod
     def build(
         cls,
-        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
+        geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
         geohash_filter: Optional[List[Geohash]] = None,
     ) -> Self:
         geohash_filter_clause = (
