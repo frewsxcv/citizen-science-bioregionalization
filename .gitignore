@@ -10,3 +10,6 @@ wheels/
 .venv
 
 .ipynb_checkpoints/
+
+data/
+*.log
