@@ -9,6 +9,7 @@ from src.cluster_stats import Stats
 from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
+from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection
 
@@ -32,8 +33,10 @@ def run(
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
+    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.from_file(input_file)
+
     geohash_taxa_counts_dataframe = GeohashTaxaCountsDataFrame.build(
-        input_file, geohash_precision
+        darwin_core_csv_lazy_frame, geohash_precision
     )
 
     geohash_cluster_dataframe = cluster.run(

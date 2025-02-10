@@ -1,8 +1,7 @@
-from enum import Enum
 import logging
 import polars as pl
-from typing import List, NamedTuple, Self
-from src.darwin_core import read_rows, kingdom_enum, TaxonRank
+from typing import List
+from src.darwin_core import kingdom_enum, TaxonRank
 from src.geohash import Geohash, build_geohash_series_lazy
 from contexttimer import Timer
 
