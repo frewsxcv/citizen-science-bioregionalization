@@ -22,28 +22,25 @@ def build_html_output(
     ):
         html = f"<h1>Cluster {cluster}</h1>"
         html += f"<li>Color: <span style='color: {color};'>{color}</span></li>"
-        stats = Stats.build(geohash_taxa_counts_dataframe, geohash_filter=geohashes)
+        stats = Stats.build(geohash_taxa_counts_dataframe, geohash_cluster_dataframe)
 
         for kingdom, species, count in (
-            stats.taxon.sort(by="count", descending=True)
+            stats.df.sort(by="count", descending=True)
             .limit(10)
             .select(["kingdom", "species", "count"])
-            .collect()
             .iter_rows(named=False)
         ):
             average = (
-                stats.taxon.filter(
+                stats.df.filter(
                     pl.col("kingdom") == kingdom, pl.col("species") == species
                 )
-                .collect()
                 .get_column("average")
                 .item()
             )
             all_average = (
-                all_stats.taxon.filter(
+                all_stats.df.filter(
                     pl.col("kingdom") == kingdom, pl.col("species") == species
                 )
-                .collect()
                 .get_column("average")
                 .item()
             )

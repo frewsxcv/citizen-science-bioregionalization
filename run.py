@@ -9,6 +9,7 @@ from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
+from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.distance_matrix import DistanceMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
@@ -27,6 +28,10 @@ def run(
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.from_file(input_file)
+
+    taxonomy_dataframe = TaxonomyDataFrame.build(
+        darwin_core_csv_lazy_frame,
+    )
 
     geohash_taxa_counts_dataframe = GeohashSpeciesCountsDataFrame.build(
         darwin_core_csv_lazy_frame, geohash_precision
@@ -48,7 +53,11 @@ def run(
     )
 
     # Find the top averages of taxon
-    all_stats = Stats.build(geohash_taxa_counts_dataframe)
+    all_stats = Stats.build(
+        geohash_taxa_counts_dataframe,
+        geohash_cluster_dataframe,
+        taxonomy_dataframe,
+    )
 
     cluster_colors_dataframe = ClusterColorDataFrame.from_clusters(
         geohash_cluster_dataframe

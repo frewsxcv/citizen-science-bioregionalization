@@ -15,30 +15,27 @@ def print_cluster_stats(
     darwin_core_aggregations: GeohashSpeciesCountsDataFrame,
     all_stats: Stats,
 ) -> None:
-    stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
+    # stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
 
     for kingdom, species, count in (
-        stats.taxon.sort(by="count", descending=True)
+        stats.df.sort(by="count", descending=True)
         .limit(5)
         .select(["kingdom", "species", "count"])
-        .collect()
         .iter_rows(named=False)
     ):
         average = (
-            stats.taxon.filter(
+            stats.df.filter(
                 pl.col("kingdom") == kingdom, pl.col("species") == species
             )
-            .collect()
             .get_column("average")
             .item()
         )
         all_average = (
-            all_stats.taxon.filter(
+            all_stats.df.filter(
                 pl.col("kingdom") == kingdom, pl.col("species") == species
             )
-            .collect()
             .get_column("average")
             .item()
         )
@@ -59,17 +56,15 @@ def print_all_cluster_stats(
     geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame, all_stats: Stats
 ) -> None:
     for kingdom, species, count in (
-        all_stats.taxon.sort(by="count", descending=True)
+        all_stats.df.sort(by="count", descending=True)
         .limit(5)
         .select(["kingdom", "species", "count"])
-        .collect()
         .iter_rows(named=False)
     ):
         average = (
-            all_stats.taxon.filter(
+            all_stats.df.filter(
                 pl.col("kingdom") == kingdom, pl.col("species") == species
             )
-            .collect()
             .get_column("average")
             .item()
         )

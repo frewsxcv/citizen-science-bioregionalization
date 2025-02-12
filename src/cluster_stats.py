@@ -1,113 +1,96 @@
-from typing import List, NamedTuple, Optional, Self
+from typing import List, Optional, Self
 
 import polars as pl
 
+from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.geohash import Geohash
+from src.darwin_core import TaxonRank, kingdom_enum
 
 
-class Stats(NamedTuple):
-    taxon: pl.LazyFrame
-    """
-    Schema:
-    - `name`: `str` species name
-    - `count`: `int`
-    - `average`: `float`
-    """
+class Stats:
+    df: pl.DataFrame
+    SCHEMA = {
+        "cluster": pl.UInt32(),  # `null` if stats for all clusters
+        "kingdom": kingdom_enum,
+        "rank": pl.Enum(TaxonRank),
+        "name": pl.String(),
+        "count": pl.UInt32(),
+        "average": pl.Float64(),  # average of taxa with `name` at `rank` within `cluster`
+    }
 
-    order_counts: pl.LazyFrame
-    """
-    Schema:
-    - `order`: `str`
-    - `count`: `int`
-    """
-
-    class_counts: pl.LazyFrame
-    """
-    Schema:
-    - `class`: `str`
-    - `count`: `int`
-    """
+    def __init__(self, df: pl.DataFrame) -> None:
+        self.df = df
 
     @classmethod
     def build(
         cls,
         geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
-        geohash_filter: Optional[List[Geohash]] = None,
+        geohash_cluster_dataframe: GeohashClusterDataFrame,
+        taxonomy_dataframe: TaxonomyDataFrame,
     ) -> Self:
-        geohash_filter_clause = (
-            pl.col("geohash").is_in(geohash_filter)
-            if geohash_filter
-            else pl.lit(True)
-        )
+        df = pl.DataFrame(schema=Stats.SCHEMA)
 
         # Schema:
-        # - `taxonKey`: `int`
-        # - `count`: `int`
-        taxon_counts: pl.LazyFrame = (
-            geohash_taxa_counts_dataframe.filtered().lazy()
-            .filter(geohash_filter_clause)
-            .select(["kingdom", "species", "count"])
-            .group_by("kingdom", "species")
-            .agg(pl.col("count").sum())
+        #   - geohash: String
+        #   - kingdom: Enum
+        #   - species: String
+        #   - count: UInt32
+        #   - phylum: String
+        #   - class: String
+        #   - order: String
+        #   - family: String
+        #   - genus: String
+        joined = geohash_taxa_counts_dataframe.filtered().join(
+            taxonomy_dataframe.df, on=["kingdom", "species"]
         )
 
-        # Total observation count all filtered geohashes
-        total_count: int = taxon_counts.select("count").sum().collect()["count"].item()
-
-        # Schema:
-        # - `kingdom`: `str`
-        # - `species`: `str`
-        # - `count`: `int`
-        # - `average`: `float`
-        taxon: pl.LazyFrame = taxon_counts.with_columns(
-            (pl.col("count") / total_count).alias("average")
-        )
-
-        order_counts = (
-            geohash_taxa_counts_dataframe.df.lazy()
-            .filter(
-                geohash_filter_clause,
-                pl.col("rank") == "order",
+        for rank in TaxonRank:
+            # Calculate stats for all clusters
+            df.vstack(
+                joined.group_by(["kingdom", rank.value])
+                .agg(
+                    pl.col("count").sum(),
+                    (pl.col("count").sum() / joined["count"].sum()).alias("average"),
+                )
+                .with_columns(
+                    pl.lit(None).alias("cluster"),
+                    pl.lit(rank.value).cast(pl.Enum(TaxonRank)).alias("rank"),
+                )
+                .rename({rank.value: "name"})
+                .select(Stats.SCHEMA.keys()),
+                in_place=True,
             )
-            .group_by("name")
-            .agg(pl.col("count").sum())
-        )
 
-        class_counts = (
-            geohash_taxa_counts_dataframe.df.lazy()
-            .filter(geohash_filter_clause, pl.col("rank") == "class")
-            .group_by("name")
-            .agg(pl.col("count").sum())
-        )
+            # Calculate stats for each cluster
+            # df.vstack(
+            #     joined.group_by(["kingdom", rank.value, "cluster"])
+            #     .agg(
+            #         pl.col("count").sum(),
+            #         (pl.col("count").sum() / joined["count"].sum()).alias("average"),
+            #     )
+            # )
 
-        return cls(
-            taxon=taxon,
-            order_counts=order_counts,
-            class_counts=class_counts,
-        )
+        import pdb
+        pdb.set_trace()
+
+        return cls(df=taxa)
+
+    def _get_count_by_rank_and_name(self, rank: str, name: str) -> int:
+        counts = self.df.filter(
+            (pl.col("rank") == rank) & (pl.col("name") == name)
+        ).get_column("count")
+        assert len(counts) <= 1
+        sum = counts.sum()
+        assert isinstance(sum, int)
+        return sum
 
     def order_count(self, order: str) -> int:
-        counts = (
-            self.order_counts.filter(pl.col("name") == order)
-            .collect()
-            .get_column("count")
-        )
-        assert len(counts) <= 1
-        sum = counts.sum()
-        assert isinstance(sum, int)
-        return sum
+        return self._get_count_by_rank_and_name("order", order)
 
     def class_count(self, class_name: str) -> int:
-        counts = (
-            self.class_counts.filter(pl.col("name") == class_name)
-            .collect()
-            .get_column("count")
-        )
-        assert len(counts) <= 1
-        sum = counts.sum()
-        assert isinstance(sum, int)
-        return sum
+        return self._get_count_by_rank_and_name("class", class_name)
 
     def waterfowl_count(self) -> int:
         return (
