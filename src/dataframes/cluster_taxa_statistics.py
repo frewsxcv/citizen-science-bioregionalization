@@ -9,7 +9,7 @@ from src.geohash import Geohash
 from src.darwin_core import TaxonRank, kingdom_enum
 
 
-class Stats:
+class ClusterTaxaStatisticsDataFrame:
     df: pl.DataFrame
     SCHEMA = {
         "cluster": pl.UInt32(),  # `null` if stats for all clusters
@@ -30,7 +30,7 @@ class Stats:
         geohash_cluster_dataframe: GeohashClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
     ) -> Self:
-        df = pl.DataFrame(schema=Stats.SCHEMA)
+        df = pl.DataFrame(schema=cls.SCHEMA)
 
         # Schema:
         #   - geohash: String
@@ -60,7 +60,7 @@ class Stats:
                 .pipe(add_cluster_column, value=None)
                 .pipe(add_rank_column, taxon_rank=rank)
                 .rename({rank.value: "name"})
-                .select(Stats.SCHEMA.keys()),  # Reorder columns
+                .select(cls.SCHEMA.keys()),  # Reorder columns
                 in_place=True,
             )
 
@@ -81,7 +81,7 @@ class Stats:
                     .pipe(add_cluster_column, value=cluster)
                     .pipe(add_rank_column, taxon_rank=rank)
                     .rename({rank.value: "name"})
-                    .select(Stats.SCHEMA.keys()),  # Reorder columns
+                    .select(cls.SCHEMA.keys()),  # Reorder columns
                     in_place=True,
                 )
 

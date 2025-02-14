@@ -1,5 +1,5 @@
 import polars as pl
-from src.cluster_stats import Stats
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.darwin_core import TaxonRank
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
@@ -9,7 +9,7 @@ from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 def build_html_output(
     geohash_cluster_dataframe: GeohashClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
-    all_stats: Stats,
+    all_stats: ClusterTaxaStatisticsDataFrame,
 ) -> str:
     html = ""
     for cluster, geohashes, color in (

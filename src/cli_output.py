@@ -1,6 +1,6 @@
 import polars as pl
 from src import geohash
-from src.cluster_stats import Stats
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.darwin_core import TaxonRank
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from typing import List
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def print_cluster_stats(
     cluster: int,
     geohashes: List[geohash.Geohash],
-    all_stats: Stats,
+    all_stats: ClusterTaxaStatisticsDataFrame,
 ) -> None:
     # stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
@@ -53,7 +53,7 @@ def print_cluster_stats(
             print(f"  - Count: {count}")
 
 
-def print_all_cluster_stats(all_stats: Stats) -> None:
+def print_all_cluster_stats(all_stats: ClusterTaxaStatisticsDataFrame) -> None:
     for kingdom, species, count, average in (
         all_stats.df
         .filter(
@@ -71,7 +71,7 @@ def print_all_cluster_stats(all_stats: Stats) -> None:
 
 
 def print_results(
-    all_stats: Stats,
+    all_stats: ClusterTaxaStatisticsDataFrame,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
 ) -> None:
     # For each top count taxon, print the average per geohash

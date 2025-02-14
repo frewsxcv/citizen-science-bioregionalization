@@ -4,7 +4,7 @@
 import logging
 import typer
 from src import cli_output
-from src.cluster_stats import Stats
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
@@ -53,7 +53,7 @@ def run(
     )
 
     # Find the top averages of taxon
-    all_stats = Stats.build(
+    all_stats = ClusterTaxaStatisticsDataFrame.build(
         geohash_taxa_counts_dataframe,
         geohash_cluster_dataframe,
         taxonomy_dataframe,
