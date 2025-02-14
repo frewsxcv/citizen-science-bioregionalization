@@ -68,9 +68,7 @@ def run(
         cluster_colors_dataframe,
     )
 
-    cli_output.print_results(
-        geohash_taxa_counts_dataframe, all_stats, geohash_cluster_dataframe
-    )
+    cli_output.print_results(all_stats, geohash_cluster_dataframe)
 
     if plot:
         plot_clusters(feature_collection)

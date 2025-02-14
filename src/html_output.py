@@ -1,12 +1,12 @@
 import polars as pl
 from src.cluster_stats import Stats
+from src.darwin_core import TaxonRank
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 
 
 def build_html_output(
-    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
     all_stats: Stats,
@@ -20,26 +20,26 @@ def build_html_output(
         .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
         .iter_rows()
     ):
-        html = f"<h1>Cluster {cluster}</h1>"
+        html += f"<h1>Cluster {cluster}</h1>"
         html += f"<li>Color: <span style='color: {color};'>{color}</span></li>"
-        stats = Stats.build(geohash_taxa_counts_dataframe, geohash_cluster_dataframe)
 
-        for kingdom, species, count in (
-            stats.df.sort(by="count", descending=True)
-            .limit(10)
-            .select(["kingdom", "species", "count"])
+        for kingdom, species, count, average in (
+            all_stats.df
+            .filter(
+                pl.col("cluster") == cluster,
+                pl.col("rank") == TaxonRank.species,
+            )
+            .sort(by="count", descending=True)
+            .limit(20)
+            .select(["kingdom", "name", "count", "average"])
             .iter_rows(named=False)
         ):
-            average = (
-                stats.df.filter(
-                    pl.col("kingdom") == kingdom, pl.col("species") == species
-                )
-                .get_column("average")
-                .item()
-            )
             all_average = (
                 all_stats.df.filter(
-                    pl.col("kingdom") == kingdom, pl.col("species") == species
+                    pl.col("kingdom") == kingdom,
+                    pl.col("name") == species,
+                    pl.col("cluster").is_null(),
+                    pl.col("rank") == TaxonRank.species,
                 )
                 .get_column("average")
                 .item()
@@ -47,7 +47,7 @@ def build_html_output(
 
             # If the difference between the average of the cluster and the average of all is greater than 20%, print it
             percent_diff = (average / all_average * 100) - 100
-            if abs(percent_diff) > 20:
+            if abs(percent_diff) > 10:
                 # Print the percentage difference
                 html += f"<h2>{species} ({kingdom}):</h2>"
                 html += "<ul>"

@@ -1,6 +1,7 @@
 import polars as pl
 from src import geohash
 from src.cluster_stats import Stats
+from src.darwin_core import TaxonRank
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from typing import List
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
@@ -10,31 +11,31 @@ logger = logging.getLogger(__name__)
 
 
 def print_cluster_stats(
-    cluster: GeohashClusterDataFrame,
+    cluster: int,
     geohashes: List[geohash.Geohash],
-    darwin_core_aggregations: GeohashSpeciesCountsDataFrame,
     all_stats: Stats,
 ) -> None:
     # stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
 
-    for kingdom, species, count in (
-        stats.df.sort(by="count", descending=True)
-        .limit(5)
-        .select(["kingdom", "species", "count"])
+    for kingdom, species, count, average in (
+        all_stats.df
+        .filter(
+            pl.col("cluster") == cluster,
+            pl.col("rank") == TaxonRank.species,
+        )
+        .sort(by="count", descending=True)
+        .limit(20)
+        .select(["kingdom", "name", "count", "average"])
         .iter_rows(named=False)
     ):
-        average = (
-            stats.df.filter(
-                pl.col("kingdom") == kingdom, pl.col("species") == species
-            )
-            .get_column("average")
-            .item()
-        )
         all_average = (
             all_stats.df.filter(
-                pl.col("kingdom") == kingdom, pl.col("species") == species
+                pl.col("kingdom") == kingdom,
+                pl.col("name") == species,
+                pl.col("cluster").is_null(),
+                pl.col("rank") == TaxonRank.species,
             )
             .get_column("average")
             .item()
@@ -42,7 +43,7 @@ def print_cluster_stats(
 
         # If the difference between the average of the cluster and the average of all is greater than 20%, print it
         percent_diff = (average / all_average * 100) - 100
-        if abs(percent_diff) > 20:
+        if abs(percent_diff) > 10:
             # Print the percentage difference
             print(f"{species} ({kingdom}):")
             print(
@@ -52,41 +53,35 @@ def print_cluster_stats(
             print(f"  - Count: {count}")
 
 
-def print_all_cluster_stats(
-    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame, all_stats: Stats
-) -> None:
-    for kingdom, species, count in (
-        all_stats.df.sort(by="count", descending=True)
+def print_all_cluster_stats(all_stats: Stats) -> None:
+    for kingdom, species, count, average in (
+        all_stats.df
+        .filter(
+            pl.col("cluster").is_null(),
+            pl.col("rank") == TaxonRank.species,
+        )
+        .sort(by="count", descending=True)
         .limit(5)
-        .select(["kingdom", "species", "count"])
+        .select(["kingdom", "name", "count", "average"])
         .iter_rows(named=False)
     ):
-        average = (
-            all_stats.df.filter(
-                pl.col("kingdom") == kingdom, pl.col("species") == species
-            )
-            .get_column("average")
-            .item()
-        )
         print(f"{species} ({kingdom}):")
         print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 
 
 def print_results(
-    geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
     all_stats: Stats,
     geohash_cluster_dataframe: GeohashClusterDataFrame,
 ) -> None:
     # For each top count taxon, print the average per geohash
-    print_all_cluster_stats(geohash_taxa_counts_dataframe, all_stats)
+    print_all_cluster_stats(all_stats)
 
     logger.info(f"Number of clusters: {geohash_cluster_dataframe.num_clusters()}")
 
-    for _cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+    for cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
         print_cluster_stats(
-            geohash_cluster_dataframe,
+            cluster,
             geohashes,
-            geohash_taxa_counts_dataframe,
             all_stats,
         )

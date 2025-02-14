@@ -17,7 +17,7 @@ class Stats:
         "rank": pl.Enum(TaxonRank),
         "name": pl.String(),
         "count": pl.UInt32(),
-        "average": pl.Float64(),  # average of taxa with `name` at `rank` within `cluster`
+        "average": pl.Float64(),  # average of taxa with `name` within `rank` and `cluster`
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
@@ -46,36 +46,46 @@ class Stats:
             taxonomy_dataframe.df, on=["kingdom", "species"]
         )
 
+        # Total count of all observations
+        total_count = joined["count"].sum()
+
         for rank in TaxonRank:
             # Calculate stats for all clusters
             df.vstack(
                 joined.group_by(["kingdom", rank.value])
                 .agg(
-                    pl.col("count").sum(),
-                    (pl.col("count").sum() / joined["count"].sum()).alias("average"),
+                    pl.col("count").sum().alias("count"),
+                    (pl.col("count").sum() / total_count).alias("average"),
                 )
-                .with_columns(
-                    pl.lit(None).alias("cluster"),
-                    pl.lit(rank.value).cast(pl.Enum(TaxonRank)).alias("rank"),
-                )
+                .pipe(add_cluster_column, value=None)
+                .pipe(add_rank_column, taxon_rank=rank)
                 .rename({rank.value: "name"})
-                .select(Stats.SCHEMA.keys()),
+                .select(Stats.SCHEMA.keys()),  # Reorder columns
                 in_place=True,
             )
 
-            # Calculate stats for each cluster
-            # df.vstack(
-            #     joined.group_by(["kingdom", rank.value, "cluster"])
-            #     .agg(
-            #         pl.col("count").sum(),
-            #         (pl.col("count").sum() / joined["count"].sum()).alias("average"),
-            #     )
-            # )
+            for cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+                total_count_in_cluster = joined.filter(
+                    pl.col("geohash").is_in(geohashes)
+                )["count"].sum()
 
-        import pdb
-        pdb.set_trace()
+                df.vstack(
+                    joined.filter(pl.col("geohash").is_in(geohashes))
+                    .group_by(["kingdom", rank.value])
+                    .agg(
+                        pl.col("count").sum().alias("count"),
+                        (pl.col("count").sum() / total_count_in_cluster).alias(
+                            "average"
+                        ),
+                    )
+                    .pipe(add_cluster_column, value=cluster)
+                    .pipe(add_rank_column, taxon_rank=rank)
+                    .rename({rank.value: "name"})
+                    .select(Stats.SCHEMA.keys()),  # Reorder columns
+                    in_place=True,
+                )
 
-        return cls(df=taxa)
+        return cls(df=df)
 
     def _get_count_by_rank_and_name(self, rank: str, name: str) -> int:
         counts = self.df.filter(
@@ -101,3 +111,13 @@ class Stats:
 
     def aves_count(self) -> int:
         return self.class_count("Aves")
+
+
+def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
+    return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))
+
+
+def add_rank_column(df: pl.DataFrame, taxon_rank: TaxonRank) -> pl.DataFrame:
+    return df.with_columns(
+        pl.lit(taxon_rank.value).cast(pl.Enum(TaxonRank)).alias("rank")
+    )
