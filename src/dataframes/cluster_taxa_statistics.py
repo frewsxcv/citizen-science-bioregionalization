@@ -7,6 +7,7 @@ from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.geohash import Geohash
 from src.darwin_core import TaxonRank, kingdom_enum
+from src.types import ClusterId
 
 
 class ClusterTaxaStatisticsDataFrame:
@@ -22,6 +23,9 @@ class ClusterTaxaStatisticsDataFrame:
 
     def __init__(self, df: pl.DataFrame) -> None:
         self.df = df
+
+    def iter_cluster_ids(self) -> list[ClusterId]:
+        return self.df["cluster"].unique().to_list()
 
     @classmethod
     def build(
@@ -64,7 +68,10 @@ class ClusterTaxaStatisticsDataFrame:
                 in_place=True,
             )
 
-            for cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+            for (
+                cluster,
+                geohashes,
+            ) in geohash_cluster_dataframe.iter_clusters_and_geohashes():
                 total_count_in_cluster = joined.filter(
                     pl.col("geohash").is_in(geohashes)
                 )["count"].sum()

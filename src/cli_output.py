@@ -10,6 +10,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# TODO: Refactor this to use the new ClusterSignificantDifferencesDataFrame
+
+
 def print_cluster_stats(
     cluster: int,
     geohashes: List[geohash.Geohash],
@@ -20,8 +23,7 @@ def print_cluster_stats(
     print(f"cluster {cluster} (count: {len(geohashes)})")
 
     for kingdom, species, count, average in (
-        all_stats.df
-        .filter(
+        all_stats.df.filter(
             pl.col("cluster") == cluster,
             pl.col("rank") == TaxonRank.species,
         )
@@ -55,8 +57,7 @@ def print_cluster_stats(
 
 def print_all_cluster_stats(all_stats: ClusterTaxaStatisticsDataFrame) -> None:
     for kingdom, species, count, average in (
-        all_stats.df
-        .filter(
+        all_stats.df.filter(
             pl.col("cluster").is_null(),
             pl.col("rank") == TaxonRank.species,
         )
