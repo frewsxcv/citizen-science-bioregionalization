@@ -12,8 +12,7 @@ from src.dataframes import (
     cluster_significant_differences,
 )
 from src.lazyframes import darwin_core_csv
-from src import distance_matrix
-from src import connectivity_matrix
+from src.matrices import distance, connectivity
 
 
 def build_mermaid_graph() -> md.Mermaid:

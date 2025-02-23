@@ -4,7 +4,7 @@ import polars as pl
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.types import Geohash, ClusterId
 from scipy.cluster.hierarchy import linkage, fcluster
-from src.distance_matrix import DistanceMatrix
+from src.matrices.distance import DistanceMatrix
 from src.data_container import DataContainer
 
 logger = logging.getLogger(__name__)
