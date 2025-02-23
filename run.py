@@ -10,7 +10,7 @@ from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.distance_matrix import DistanceMatrix
+from src.matrices.distance import DistanceMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
@@ -23,7 +23,6 @@ def run(
     input_file: str = typer.Argument(..., help="Path to the input file"),
     output_file: str = typer.Argument(..., help="Path to the output file"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
-    use_cache: bool = typer.Option(False, help="Use the cache"),
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
@@ -37,10 +36,7 @@ def run(
         darwin_core_csv_lazy_frame, geohash_precision
     )
 
-    distance_matrix = DistanceMatrix.build(
-        geohash_taxa_counts_dataframe,
-        use_cache,
-    )
+    distance_matrix = DistanceMatrix.build(geohash_taxa_counts_dataframe)
 
     geohash_cluster_dataframe = GeohashClusterDataFrame.build(
         geohash_taxa_counts_dataframe,

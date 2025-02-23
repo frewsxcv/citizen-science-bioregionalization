@@ -109,16 +109,7 @@ class DistanceMatrix(DataContainer):
     def build(
         cls,
         geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
-        use_cache: bool,
     ) -> Self:
-        cache_file = "condensed_distance_matrix.parquet"
-
-        # Try to load from cache
-        if use_cache and os.path.exists(cache_file):
-            with Timer(output=logger.info, prefix="Loading cached distance matrix"):
-                matrix_df = pl.read_parquet(cache_file)
-                return cls(matrix_df.to_numpy().flatten())
-
         X = build_X(geohash_taxa_counts_dataframe)
 
         # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
@@ -136,12 +127,6 @@ class DistanceMatrix(DataContainer):
             f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs",
             lambda: pdist(X, metric="braycurtis"),
         )
-
-        if use_cache:
-            with Timer(output=logger.info, prefix="Caching distance matrix"):
-                # Convert the condensed distance matrix to a DataFrame and save
-                matrix_df = pl.DataFrame({"values": Y})
-                matrix_df.write_parquet(cache_file)
 
         return cls(Y)
 
