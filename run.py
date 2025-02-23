@@ -27,7 +27,7 @@ def run(
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
-    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.from_file(input_file)
+    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(input_file)
 
     taxonomy_dataframe = TaxonomyDataFrame.build(
         darwin_core_csv_lazy_frame,
@@ -59,9 +59,7 @@ def run(
         taxonomy_dataframe,
     )
 
-    cluster_colors_dataframe = ClusterColorDataFrame.from_clusters(
-        geohash_cluster_dataframe
-    )
+    cluster_colors_dataframe = ClusterColorDataFrame.build(geohash_cluster_dataframe)
 
     feature_collection = build_geojson_feature_collection(
         geohash_cluster_dataframe,

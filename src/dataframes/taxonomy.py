@@ -1,10 +1,11 @@
 import polars as pl
 from typing import Self
+from src.data_container import DataContainer
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
 
-class TaxonomyDataFrame:
+class TaxonomyDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {

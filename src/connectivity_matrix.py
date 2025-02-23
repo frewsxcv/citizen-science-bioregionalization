@@ -2,9 +2,10 @@ import geohashr
 import numpy as np
 from typing import Self
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.data_container import DataContainer
 
 
-class ConnectivityMatrix:
+class ConnectivityMatrix(DataContainer):
     _connectivity_matrix: np.ndarray
 
     def __init__(self, connectivity_matrix: np.ndarray):

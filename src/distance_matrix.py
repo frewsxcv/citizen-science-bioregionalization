@@ -7,6 +7,7 @@ from sklearn.decomposition import IncrementalPCA
 from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
 
+from src.data_container import DataContainer
 from src.dataframes import geohash_species_counts
 from src.logging import log_action, logger
 from contexttimer import Timer
@@ -98,7 +99,7 @@ def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(pca.fit_transform(X.to_numpy()))
 
 
-class DistanceMatrix:
+class DistanceMatrix(DataContainer):
     _condensed: np.ndarray
 
     def __init__(self, condensed: np.ndarray):

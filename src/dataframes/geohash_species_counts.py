@@ -6,12 +6,12 @@ from src.geohash import Geohash, build_geohash_series_lazy
 from contexttimer import Timer
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
-
+from src.data_container import DataContainer
 
 logger = logging.getLogger(__name__)
 
 
-class GeohashSpeciesCountsDataFrame:
+class GeohashSpeciesCountsDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {

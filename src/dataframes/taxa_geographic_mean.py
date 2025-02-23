@@ -4,11 +4,12 @@ from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.geohash import geohash_to_lat_lon, geohash_to_lat_lon_lazy
 from typing import Self
 import logging
+from src.data_container import DataContainer
 
 logger = logging.getLogger(__name__)
 
 
-class TaxaGeographicMeanDataFrame:
+class TaxaGeographicMeanDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {

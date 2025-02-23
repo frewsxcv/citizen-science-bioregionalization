@@ -1,8 +1,10 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
+from src.data_container import DataContainer
+from typing import Self
 
 
-class DarwinCoreCsvLazyFrame:
+class DarwinCoreCsvLazyFrame(DataContainer):
     lf: pl.LazyFrame
 
     SCHEMA_OVERRIDES = {
@@ -19,7 +21,7 @@ class DarwinCoreCsvLazyFrame:
         self.lf = lf
 
     @classmethod
-    def from_file(cls, csv_path: str):
+    def build(cls, csv_path: str) -> Self:
         return cls(
             pl.scan_csv(
                 csv_path,

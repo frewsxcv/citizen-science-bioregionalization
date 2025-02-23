@@ -1,12 +1,11 @@
 import polars as pl
 from src.darwin_core import TaxonRank
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.data_container import DataContainer
 from typing import Self
 
 
-class ClusterSignificantDifferencesDataFrame:
+class ClusterSignificantDifferencesDataFrame(DataContainer):
     """
     A dataframe that contains the significant differences between clusters.
     """

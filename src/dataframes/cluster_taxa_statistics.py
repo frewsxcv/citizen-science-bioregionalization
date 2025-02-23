@@ -8,9 +8,10 @@ from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.geohash import Geohash
 from src.darwin_core import TaxonRank, kingdom_enum
 from src.types import ClusterId
+from src.data_container import DataContainer
 
 
-class ClusterTaxaStatisticsDataFrame:
+class ClusterTaxaStatisticsDataFrame(DataContainer):
     df: pl.DataFrame
     SCHEMA = {
         "cluster": pl.UInt32(),  # `null` if stats for all clusters

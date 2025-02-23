@@ -259,6 +259,7 @@ dependencies = [
     { name = "geojson" },
     { name = "geopandas" },
     { name = "matplotlib" },
+    { name = "mermaid-py" },
     { name = "mypy" },
     { name = "polars" },
     { name = "scikit-learn" },
@@ -277,6 +278,7 @@ requires-dist = [
     { name = "geojson", specifier = ">=3.1.0" },
     { name = "geopandas", specifier = ">=1.0.1" },
     { name = "matplotlib", specifier = ">=3.9.3" },
+    { name = "mermaid-py", specifier = ">=0.7.0" },
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "polars", specifier = ">=1.17.1" },
     { name = "scikit-learn", specifier = ">=1.6.0" },
@@ -394,6 +396,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d2/c6/87409bcb26fb68c393fa8cf58ba09363aa7298cfb438a0109b5cb14bc98b/mercantile-1.2.1.tar.gz", hash = "sha256:fa3c6db15daffd58454ac198b31887519a19caccee3f9d63d17ae7ff61b3b56b", size = 26352 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/d6/de0cc74f8d36976aeca0dd2e9cbf711882ff8e177495115fd82459afdc4d/mercantile-1.2.1-py3-none-any.whl", hash = "sha256:30f457a73ee88261aab787b7069d85961a5703bb09dc57a170190bc042cd023f", size = 14779 },
+]
+
+[[package]]
+name = "mermaid-py"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/85/36c503afd5aa004965d8545e2b1ecfd3c7250fbff88a283a0d318cec71a4/mermaid_py-0.7.0.tar.gz", hash = "sha256:f06a68573faf815861afe29e1621aca433cf718f066d6a2adcd554eeebe2e3b6", size = 22139 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/cc/1d3f42b29e9b5070914cc4b36e561e7ac2e8b7527d7dacf1c5ab01820786/mermaid_py-0.7.0-py3-none-any.whl", hash = "sha256:2752d3fb42983014ea284a4c2f5ee9df7c42cff55702222de2c8c38744e0c57b", size = 31723 },
 ]
 
 [[package]]
