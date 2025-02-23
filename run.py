@@ -11,6 +11,7 @@ from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.matrices.distance import DistanceMatrix
+from src.matrices.connectivity import ConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
@@ -38,9 +39,12 @@ def run(
 
     distance_matrix = DistanceMatrix.build(geohash_taxa_counts_dataframe)
 
+    connectivity_matrix = ConnectivityMatrix.build(geohash_taxa_counts_dataframe)
+
     geohash_cluster_dataframe = GeohashClusterDataFrame.build(
         geohash_taxa_counts_dataframe,
         distance_matrix,
+        connectivity_matrix,
         num_clusters,
     )
 

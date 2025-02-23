@@ -1,7 +1,10 @@
 from typing import Iterator, List, Self, Tuple
 import logging
 import polars as pl
+from scipy.sparse import csr_matrix
+from sklearn.cluster import AgglomerativeClustering
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.matrices.connectivity import ConnectivityMatrix
 from src.types import Geohash, ClusterId
 from scipy.cluster.hierarchy import linkage, fcluster
 from src.matrices.distance import DistanceMatrix
@@ -43,11 +46,15 @@ class GeohashClusterDataFrame(DataContainer):
         cls,
         geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
         distance_matrix: DistanceMatrix,
+        connectivity_matrix: ConnectivityMatrix,
         num_clusters: int,
     ) -> Self:
         ordered_seen_geohash = geohash_taxa_counts_dataframe.ordered_geohashes()
-        Z = linkage(distance_matrix.condensed(), "ward")
-        clusters = list(map(int, fcluster(Z, t=num_clusters, criterion="maxclust")))
+        clusters = AgglomerativeClustering(
+            n_clusters=num_clusters,
+            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
+            linkage="ward",
+        ).fit_predict(distance_matrix.squareform())
         return cls.from_lists(ordered_seen_geohash, clusters)
 
     def cluster_ids(self) -> List[ClusterId]:
