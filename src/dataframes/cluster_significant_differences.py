@@ -29,7 +29,9 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
         for cluster in all_stats.iter_cluster_ids():
             for kingdom, species, average in (
                 all_stats.df.filter(
-                    pl.col("cluster") == cluster,
+                    pl.col("cluster").is_null()
+                    if cluster is None
+                    else pl.col("cluster") == cluster,
                     pl.col("rank") == TaxonRank.species,
                 )
                 .sort(by="count", descending=True)
