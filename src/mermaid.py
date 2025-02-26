@@ -13,6 +13,7 @@ from src.dataframes import (
 )
 from src.lazyframes import darwin_core_csv
 from src.matrices import distance, connectivity
+from src.series import geohash
 
 
 def build_mermaid_graph() -> md.Mermaid:

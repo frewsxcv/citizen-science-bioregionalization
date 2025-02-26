@@ -1,7 +1,7 @@
 import geohashr
 import numpy as np
 from typing import Self
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.series.geohash import GeohashSeries
 from src.data_container import DataContainer
 
 
@@ -13,9 +13,9 @@ class ConnectivityMatrix(DataContainer):
 
     @classmethod
     def build(
-        cls, geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame
+        cls, geohash_series: GeohashSeries
     ) -> Self:
-        ordered_geohashes = geohash_taxa_counts_dataframe.ordered_geohashes()
+        ordered_geohashes = geohash_series.series.to_list()
 
         # Step 1: Create a dictionary mapping each geohash to its neighbors
         geohash_neighbors = {
