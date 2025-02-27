@@ -6,6 +6,10 @@ from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
 
 class TaxonomyDataFrame(DataContainer):
+    """
+    A dataframe of taxonomy information. Note that this may include taxa for geohashes that were filtered out.
+    """
+
     df: pl.DataFrame
 
     SCHEMA = {
@@ -19,6 +23,7 @@ class TaxonomyDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
+        assert df.schema == self.SCHEMA
         self.df = df
 
     @classmethod

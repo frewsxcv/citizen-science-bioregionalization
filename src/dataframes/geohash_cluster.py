@@ -4,7 +4,7 @@ import polars as pl
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
 from src.matrices.connectivity import ConnectivityMatrix
-from src.series.geohash import GeohashSeries
+from src.dataframes.geohash import GeohashDataFrame
 from src.types import Geohash, ClusterId
 from src.matrices.distance import DistanceMatrix
 from src.data_container import DataContainer
@@ -24,11 +24,19 @@ class GeohashClusterDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def from_lists(
+    def build(
         cls,
-        geohashes: List[Geohash],
-        clusters: List[ClusterId],
+        geohash_dataframe: GeohashDataFrame,
+        distance_matrix: DistanceMatrix,
+        connectivity_matrix: ConnectivityMatrix,
+        num_clusters: int,
     ) -> Self:
+        geohashes = geohash_dataframe.df["geohash"]
+        clusters = AgglomerativeClustering(
+            n_clusters=num_clusters,
+            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
+            linkage="ward",
+        ).fit_predict(distance_matrix.squareform())
         assert len(geohashes) == len(clusters)
         return cls(
             df=pl.DataFrame(
@@ -39,22 +47,6 @@ class GeohashClusterDataFrame(DataContainer):
                 schema=cls.SCHEMA,
             )
         )
-
-    @classmethod
-    def build(
-        cls,
-        geohash_series: GeohashSeries,
-        distance_matrix: DistanceMatrix,
-        connectivity_matrix: ConnectivityMatrix,
-        num_clusters: int,
-    ) -> Self:
-        ordered_seen_geohash = geohash_series.series.to_list()
-        clusters = AgglomerativeClustering(
-            n_clusters=num_clusters,
-            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
-            linkage="ward",
-        ).fit_predict(distance_matrix.squareform())
-        return cls.from_lists(ordered_seen_geohash, clusters)
 
     def cluster_ids(self) -> List[ClusterId]:
         return self.df["cluster"].unique().to_list()

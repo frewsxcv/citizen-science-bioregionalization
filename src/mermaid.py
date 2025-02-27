@@ -10,10 +10,10 @@ from src.dataframes import (
     taxonomy,
     taxa_geographic_mean,
     cluster_significant_differences,
+    geohash,
 )
 from src.lazyframes import darwin_core_csv
 from src.matrices import distance, connectivity
-from src.series import geohash
 
 
 def build_mermaid_graph() -> md.Mermaid:

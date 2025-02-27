@@ -7,6 +7,7 @@ from contexttimer import Timer
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import DataContainer
+from src.dataframes.geohash import GeohashDataFrame
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
     def build(
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
+        geohash_dataframe: GeohashDataFrame,
         geohash_precision: int,
     ):
         # Will this work for eBird?
@@ -55,9 +57,12 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
                     lon_col=pl.col("decimalLongitude"),
                     precision=geohash_precision,
                 )
+                # Filter out geohashes that aren't in the geohash series
+                .filter(pl.col("geohash").is_in(geohash_dataframe.df["geohash"]))
+                # TODO: DONT DO THIS. THIS LOSES DATA
                 .filter(
                     pl.col("species").is_not_null()
-                )  # TODO: DONT DO THIS. THIS LOSES DATA
+                )
                 .group_by(["geohash", "kingdom", "species"])
                 .agg(pl.len().alias("count"))
                 .rename({"species": "name"})

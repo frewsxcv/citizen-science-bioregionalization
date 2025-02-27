@@ -15,7 +15,7 @@ from src.matrices.connectivity import ConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
-from src.series.geohash import GeohashSeries
+from src.dataframes.geohash import GeohashDataFrame
 
 
 def run(
@@ -30,22 +30,27 @@ def run(
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(input_file)
 
+    geohash_dataframe = GeohashDataFrame.build(
+        darwin_core_csv_lazy_frame,
+        geohash_precision,
+    )
+
     taxonomy_dataframe = TaxonomyDataFrame.build(
         darwin_core_csv_lazy_frame,
     )
 
     geohash_taxa_counts_dataframe = GeohashSpeciesCountsDataFrame.build(
-        darwin_core_csv_lazy_frame, geohash_precision
+        darwin_core_csv_lazy_frame,
+        geohash_dataframe,
+        geohash_precision,
     )
 
     distance_matrix = DistanceMatrix.build(geohash_taxa_counts_dataframe)
 
-    geohash_series = GeohashSeries.build(geohash_taxa_counts_dataframe)
-
-    connectivity_matrix = ConnectivityMatrix.build(geohash_series)
+    connectivity_matrix = ConnectivityMatrix.build(geohash_dataframe)
 
     geohash_cluster_dataframe = GeohashClusterDataFrame.build(
-        geohash_series,
+        geohash_dataframe,
         distance_matrix,
         connectivity_matrix,
         num_clusters,
