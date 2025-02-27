@@ -16,7 +16,14 @@ def plot_clusters(
     ax = geojson_gdf_wm.plot(
         color=geojson_gdf_wm["fill"],
         categorical=True,
+        linewidth=0,
         alpha=0.5,
+    )
+    geojson_gdf_wm.boundary.plot(
+        ax=ax,
+        color=geojson_gdf_wm["fill"],
+        linewidth=0.5,
+        alpha=1,
     )
 
     # Add a legend
