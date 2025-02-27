@@ -31,7 +31,10 @@ class GeohashDataFrame(DataContainer):
         geohash_precision: int,
     ) -> Self:
         df = (
-            darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
+            darwin_core_csv_lazy_frame.lf
+            # TODO: DONT DO THIS. THIS LOSES DATA
+            .filter(pl.col("species").is_not_null())
+            .select("decimalLatitude", "decimalLongitude")
             .pipe(
                 build_geohash_series_lazy,
                 lat_col=pl.col("decimalLatitude"),
@@ -51,7 +54,7 @@ class GeohashDataFrame(DataContainer):
         )
 
         # Filter out geohashes that don't have neighbors
-        df = df.filter(pl.col("neighbors").len() > 0)
+        df = df.filter(pl.col("neighbors").list.len() > 0)
 
         return cls(df)
 
