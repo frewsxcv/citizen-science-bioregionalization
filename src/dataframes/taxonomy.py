@@ -1,6 +1,7 @@
 import polars as pl
 from typing import Self
 from src.data_container import DataContainer
+from src.darwin_core import kingdom_enum
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
@@ -13,7 +14,7 @@ class TaxonomyDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "kingdom": pl.String(),
+        "kingdom": kingdom_enum,
         "phylum": pl.String(),
         "class": pl.String(),
         "order": pl.String(),
@@ -23,7 +24,7 @@ class TaxonomyDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA
+        assert df.schema == self.SCHEMA, f"Schema mismatch: {df.schema} != {self.SCHEMA}"
         self.df = df
 
     @classmethod
