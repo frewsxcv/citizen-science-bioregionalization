@@ -3,10 +3,9 @@ import logging
 import polars as pl
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.matrices.connectivity import ConnectivityMatrix
+from src.series.geohash import GeohashSeries
 from src.types import Geohash, ClusterId
-from scipy.cluster.hierarchy import linkage, fcluster
 from src.matrices.distance import DistanceMatrix
 from src.data_container import DataContainer
 
@@ -44,12 +43,12 @@ class GeohashClusterDataFrame(DataContainer):
     @classmethod
     def build(
         cls,
-        geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
+        geohash_series: GeohashSeries,
         distance_matrix: DistanceMatrix,
         connectivity_matrix: ConnectivityMatrix,
         num_clusters: int,
     ) -> Self:
-        ordered_seen_geohash = geohash_taxa_counts_dataframe.ordered_geohashes()
+        ordered_seen_geohash = geohash_series.series.to_list()
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,
             connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
