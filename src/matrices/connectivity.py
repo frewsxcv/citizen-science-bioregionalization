@@ -15,22 +15,14 @@ class ConnectivityMatrix(DataContainer):
     def build(
         cls, geohash_dataframe: GeohashDataFrame
     ) -> Self:
-        ordered_geohashes = geohash_dataframe.df["geohash"].to_list()
-
-        # Step 1: Create a dictionary mapping each geohash to its neighbors
-        geohash_neighbors = {
-            gh: set(geohashr.neighbors(gh).values()) for gh in ordered_geohashes
-        }
-
-        # Step 2: Construct a connectivity matrix
-        num_geohashes = len(ordered_geohashes)
+        num_geohashes = len(geohash_dataframe.df)
         connectivity_matrix = np.zeros((num_geohashes, num_geohashes), dtype=int)
 
-        for i, geoh1 in enumerate(ordered_geohashes):
-            for j, geoh2 in enumerate(ordered_geohashes):
-                if (
-                    i != j and geoh2 in geohash_neighbors[geoh1]
-                ):  # Check if geoh2 is a neighbor of geoh1
-                    connectivity_matrix[i, j] = 1
+        for i, neighbors in enumerate(geohash_dataframe.df["neighbors"]):
+            for neighbor in neighbors:
+                j = geohash_dataframe.df["geohash"].index_of(neighbor)
+                if j is None:
+                    raise ValueError(f"Neighbor {neighbor} not found in GeohashDataFrame")
+                connectivity_matrix[i, j] = 1
 
         return cls(connectivity_matrix)
