@@ -101,17 +101,6 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
             .collect()
         )
 
-    # @functools.cache
-    def ordered_geohashes(self) -> List[Geohash]:
-        return (
-            self.filtered()
-            .select("geohash")
-            .unique()
-            .sort(by="geohash")
-            .get_column("geohash")
-            .to_list()
-        )
-
     # # @functools.cache
     # def ordered_taxon_keys(self) -> List[int]:
     #     return (

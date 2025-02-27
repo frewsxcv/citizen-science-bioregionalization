@@ -9,6 +9,7 @@ from scipy.spatial.distance import pdist, squareform
 
 from src.data_container import DataContainer
 from src.dataframes import geohash_species_counts
+from src.dataframes.geohash import GeohashDataFrame
 from src.logging import log_action, logger
 from contexttimer import Timer
 
@@ -71,6 +72,7 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
 def build_X(
     geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
+    geohash_dataframe: GeohashDataFrame,
 ) -> pl.DataFrame:
     X = log_action(
         "Building matrix",
@@ -82,7 +84,7 @@ def build_X(
     # fill null values with 0
     X = log_action("Filling null values", lambda: X.fill_null(np.uint32(0)))
 
-    assert X["geohash"].to_list() == geohash_taxa_counts_dataframe.ordered_geohashes()
+    assert X["geohash"].to_list() == geohash_dataframe.df["geohash"].to_list()
 
     X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
 
@@ -109,8 +111,9 @@ class DistanceMatrix(DataContainer):
     def build(
         cls,
         geohash_taxa_counts_dataframe: geohash_species_counts.GeohashSpeciesCountsDataFrame,
+        geohash_dataframe: GeohashDataFrame,
     ) -> Self:
-        X = build_X(geohash_taxa_counts_dataframe)
+        X = build_X(geohash_taxa_counts_dataframe, geohash_dataframe)
 
         # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
