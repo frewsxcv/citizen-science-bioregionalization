@@ -45,7 +45,10 @@ def run(
         geohash_precision,
     )
 
-    distance_matrix = DistanceMatrix.build(geohash_taxa_counts_dataframe)
+    distance_matrix = DistanceMatrix.build(
+        geohash_taxa_counts_dataframe,
+        geohash_dataframe,
+    )
 
     connectivity_matrix = ConnectivityMatrix.build(geohash_dataframe)
 
