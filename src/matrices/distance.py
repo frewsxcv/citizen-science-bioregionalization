@@ -22,7 +22,7 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
     ```txt
     ┌─────────┬──────────┬────────────────────────┬───────┐
-    │ geohash ┆ kingdom  ┆ species                ┆ count │
+    │ geohash ┆ kingdom  ┆ scientificName         ┆ count │
     │ ---     ┆ ---      ┆ ---                    ┆ ---   │
     │ str     ┆ enum     ┆ str                    ┆ u32   │
     ╞═════════╪══════════╪════════════════════════╪═══════╡
@@ -66,7 +66,10 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
     ```
     """
     return taxon_counts.pivot(
-        on=["kingdom", "species"], index="geohash", values="count"
+        # There are some scientific names that are repeated with different taxon ranks, so we need to include the taxon rank in the pivot
+        on=["kingdom", "scientificName", "taxonRank"],
+        index="geohash",
+        values="count",
     )
 
 
@@ -76,7 +79,7 @@ def build_X(
 ) -> pl.DataFrame:
     X = log_action(
         "Building matrix",
-        lambda: geohash_taxa_counts_dataframe.filtered().pipe(pivot_taxon_counts),
+        lambda: geohash_taxa_counts_dataframe.df.pipe(pivot_taxon_counts),
     )
 
     assert X.height > 1, "More than one geohash is required to cluster"

@@ -1,8 +1,6 @@
 import polars as pl
 from src import geohash
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.darwin_core import TaxonRank
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from typing import List
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 import logging
@@ -22,22 +20,21 @@ def print_cluster_stats(
     print("-" * 10)
     print(f"cluster {cluster} (count: {len(geohashes)})")
 
-    for kingdom, species, count, average in (
+    for kingdom, taxonRank, scientificName, count, average in (
         all_stats.df.filter(
             pl.col("cluster") == cluster,
-            pl.col("rank") == TaxonRank.species,
         )
         .sort(by="count", descending=True)
         .limit(20)
-        .select(["kingdom", "name", "count", "average"])
+        .select(["kingdom", "taxonRank", "scientificName", "count", "average"])
         .iter_rows(named=False)
     ):
         all_average = (
             all_stats.df.filter(
                 pl.col("kingdom") == kingdom,
-                pl.col("name") == species,
+                pl.col("scientificName") == scientificName,
+                pl.col("taxonRank") == taxonRank,
                 pl.col("cluster").is_null(),
-                pl.col("rank") == TaxonRank.species,
             )
             .get_column("average")
             .item()
@@ -47,7 +44,7 @@ def print_cluster_stats(
         percent_diff = (average / all_average * 100) - 100
         if abs(percent_diff) > 10:
             # Print the percentage difference
-            print(f"{species} ({kingdom}):")
+            print(f"{scientificName} ({kingdom}) {taxonRank}:")
             print(
                 f"  - Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%"
             )
@@ -56,17 +53,16 @@ def print_cluster_stats(
 
 
 def print_all_cluster_stats(all_stats: ClusterTaxaStatisticsDataFrame) -> None:
-    for kingdom, species, count, average in (
+    for kingdom, taxonRank, scientificName, count, average in (
         all_stats.df.filter(
             pl.col("cluster").is_null(),
-            pl.col("rank") == TaxonRank.species,
         )
         .sort(by="count", descending=True)
         .limit(5)
-        .select(["kingdom", "name", "count", "average"])
+        .select(["kingdom", "taxonRank", "scientificName", "count", "average"])
         .iter_rows(named=False)
     ):
-        print(f"{species} ({kingdom}):")
+        print(f"{scientificName} ({kingdom}) {taxonRank}:")
         print(f"  - Proportion: {average * 100:.2f}%")
         print(f"  - Count: {count}")
 

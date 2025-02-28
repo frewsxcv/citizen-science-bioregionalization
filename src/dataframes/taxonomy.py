@@ -21,6 +21,8 @@ class TaxonomyDataFrame(DataContainer):
         "family": pl.String(),
         "genus": pl.String(),
         "species": pl.String(),
+        "taxonRank": pl.String(),
+        "scientificName": pl.String(),
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
@@ -38,6 +40,8 @@ class TaxonomyDataFrame(DataContainer):
                 "family",
                 "genus",
                 "species",
+                "taxonRank",
+                "scientificName",
             )
             .unique()
             .collect()

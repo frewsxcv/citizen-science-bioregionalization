@@ -1,5 +1,4 @@
 import polars as pl
-from src.darwin_core import TaxonRank
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.data_container import DataContainer
 from typing import Self
@@ -27,24 +26,23 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
         significant_differences = []
 
         for cluster in all_stats.iter_cluster_ids():
-            for kingdom, species, average in (
+            for kingdom, taxonRank, scientificName, average in (
                 all_stats.df.filter(
                     pl.col("cluster").is_null()
                     if cluster is None
                     else pl.col("cluster") == cluster,
-                    pl.col("rank") == TaxonRank.species,
                 )
                 .sort(by="count", descending=True)
                 .limit(20)  # TODO: Does this need to happen?
-                .select(["kingdom", "name", "average"])
+                .select(["kingdom", "taxonRank", "scientificName", "average"])
                 .iter_rows(named=False)
             ):
                 all_average = (
                     all_stats.df.filter(
                         pl.col("kingdom") == kingdom,
-                        pl.col("name") == species,
+                        pl.col("taxonRank") == taxonRank,
+                        pl.col("scientificName") == scientificName,
                         pl.col("cluster").is_null(),
-                        pl.col("rank") == TaxonRank.species,
                     )
                     .get_column("average")
                     .item()
@@ -55,7 +53,7 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
                     significant_differences.append(
                         {
                             "cluster": cluster,
-                            "taxon": species,
+                            "taxon": scientificName,
                             "percentage_difference": percent_diff,
                         }
                     )

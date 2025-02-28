@@ -32,8 +32,6 @@ class GeohashDataFrame(DataContainer):
     ) -> Self:
         df = (
             darwin_core_csv_lazy_frame.lf
-            # TODO: DONT DO THIS. THIS LOSES DATA
-            .filter(pl.col("species").is_not_null())
             .select("decimalLatitude", "decimalLongitude")
             .pipe(
                 build_geohash_series_lazy,

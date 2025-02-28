@@ -1,5 +1,5 @@
 import polars as pl
-from src.darwin_core import kingdom_enum, TaxonRank
+from src.darwin_core import kingdom_enum
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.geohash import geohash_to_lat_lon, geohash_to_lat_lon_lazy
 from typing import Self
@@ -14,8 +14,8 @@ class TaxaGeographicMeanDataFrame(DataContainer):
 
     SCHEMA = {
         "kingdom": kingdom_enum,
-        "rank": pl.Enum(TaxonRank),
-        "name": pl.String(),
+        "taxonRank": pl.String(),
+        "scientificName": pl.String(),
         "mean_lat": pl.Float64(),
         "mean_lon": pl.Float64(),
     }
@@ -33,7 +33,7 @@ class TaxaGeographicMeanDataFrame(DataContainer):
                 (pl.col("geohash_lat") * pl.col("count")).alias("lat_scaled"),
                 (pl.col("geohash_lon") * pl.col("count")).alias("lon_scaled"),
             )
-            .group_by("kingdom", "rank", "name")
+            .group_by("kingdom", "taxonRank", "scientificName")
             .agg(
                 (pl.col("lat_scaled").sum() / pl.col("count").sum()).alias("mean_lat"),
                 (pl.col("lon_scaled").sum() / pl.col("count").sum()).alias("mean_lon"),

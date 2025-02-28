@@ -6,7 +6,7 @@ from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.geohash import Geohash
-from src.darwin_core import TaxonRank, kingdom_enum
+from src.darwin_core import kingdom_enum
 from src.types import ClusterId
 from src.data_container import DataContainer
 
@@ -16,8 +16,8 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     SCHEMA = {
         "cluster": pl.UInt32(),  # `null` if stats for all clusters
         "kingdom": kingdom_enum,
-        "rank": pl.Enum(TaxonRank),
-        "name": pl.String(),
+        "taxonRank": pl.String(),
+        "scientificName": pl.String(),
         "count": pl.UInt32(),
         "average": pl.Float64(),  # average of taxa with `name` within `rank` and `cluster`
     }
@@ -40,58 +40,55 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         # Schema:
         #   - geohash: String
         #   - kingdom: Enum
-        #   - species: String
+        #   - taxonRank: String
+        #   - scientificName: String
         #   - count: UInt32
         #   - phylum: String
         #   - class: String
         #   - order: String
         #   - family: String
         #   - genus: String
-        joined = geohash_taxa_counts_dataframe.filtered().join(
-            taxonomy_dataframe.df, on=["kingdom", "species"]
+        #   - species: String
+        joined = geohash_taxa_counts_dataframe.df.join(
+            taxonomy_dataframe.df, on=["kingdom", "scientificName", "taxonRank"]
         )
 
         # Total count of all observations
         total_count = joined["count"].sum()
 
-        for rank in TaxonRank:
-            # Calculate stats for all clusters
+        # Calculate stats for all clusters
+        df.vstack(
+            joined.group_by(["kingdom", "scientificName", "taxonRank"])
+            .agg(
+                pl.col("count").sum().alias("count"),
+                (pl.col("count").sum() / total_count).alias("average"),
+            )
+            .pipe(add_cluster_column, value=None)
+            .select(cls.SCHEMA.keys()),  # Reorder columns
+            in_place=True,
+        )
+
+        for (
+            cluster,
+            geohashes,
+        ) in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+            total_count_in_cluster = joined.filter(
+                pl.col("geohash").is_in(geohashes)
+            )["count"].sum()
+
             df.vstack(
-                joined.group_by(["kingdom", rank.value])
+                joined.filter(pl.col("geohash").is_in(geohashes))
+                .group_by(["kingdom", "taxonRank", "scientificName"])
                 .agg(
                     pl.col("count").sum().alias("count"),
-                    (pl.col("count").sum() / total_count).alias("average"),
+                    (pl.col("count").sum() / total_count_in_cluster).alias(
+                        "average"
+                    ),
                 )
-                .pipe(add_cluster_column, value=None)
-                .pipe(add_rank_column, taxon_rank=rank)
-                .rename({rank.value: "name"})
+                .pipe(add_cluster_column, value=cluster)
                 .select(cls.SCHEMA.keys()),  # Reorder columns
                 in_place=True,
             )
-
-            for (
-                cluster,
-                geohashes,
-            ) in geohash_cluster_dataframe.iter_clusters_and_geohashes():
-                total_count_in_cluster = joined.filter(
-                    pl.col("geohash").is_in(geohashes)
-                )["count"].sum()
-
-                df.vstack(
-                    joined.filter(pl.col("geohash").is_in(geohashes))
-                    .group_by(["kingdom", rank.value])
-                    .agg(
-                        pl.col("count").sum().alias("count"),
-                        (pl.col("count").sum() / total_count_in_cluster).alias(
-                            "average"
-                        ),
-                    )
-                    .pipe(add_cluster_column, value=cluster)
-                    .pipe(add_rank_column, taxon_rank=rank)
-                    .rename({rank.value: "name"})
-                    .select(cls.SCHEMA.keys()),  # Reorder columns
-                    in_place=True,
-                )
 
         return cls(df=df)
 
@@ -123,9 +120,3 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
     return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))
-
-
-def add_rank_column(df: pl.DataFrame, taxon_rank: TaxonRank) -> pl.DataFrame:
-    return df.with_columns(
-        pl.lit(taxon_rank.value).cast(pl.Enum(TaxonRank)).alias("rank")
-    )

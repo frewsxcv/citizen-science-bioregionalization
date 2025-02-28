@@ -1,9 +1,5 @@
 import polars as pl
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.darwin_core import TaxonRank
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesDataFrame,
 )

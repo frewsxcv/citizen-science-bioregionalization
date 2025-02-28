@@ -1,7 +1,7 @@
 import logging
 import polars as pl
 from typing import List
-from src.darwin_core import kingdom_enum, TaxonRank
+from src.darwin_core import kingdom_enum
 from src.geohash import Geohash, build_geohash_series_lazy
 from contexttimer import Timer
 
@@ -12,19 +12,20 @@ from src.dataframes.geohash import GeohashDataFrame
 logger = logging.getLogger(__name__)
 
 
+# TODO: Rename to GeohashTaxaCountsDataFrame
 class GeohashSpeciesCountsDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
         "geohash": pl.String(),
         "kingdom": kingdom_enum,
-        # "species": pl.String(),
-        "rank": pl.Enum(TaxonRank),
-        "name": pl.String(),
+        "taxonRank": pl.String(),
+        "scientificName": pl.String(),
         "count": pl.UInt32(),
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
+        assert df.schema == self.SCHEMA
         self.df = df
 
     @classmethod
@@ -59,17 +60,9 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
                 )
                 # Filter out geohashes that aren't in the geohash series
                 .filter(pl.col("geohash").is_in(geohash_dataframe.df["geohash"]))
-                # TODO: DONT DO THIS. THIS LOSES DATA
-                .filter(
-                    pl.col("species").is_not_null()
-                )
-                .group_by(["geohash", "kingdom", "species"])
+                .group_by(["geohash", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
-                .rename({"species": "name"})
-                .with_columns(
-                    pl.lit("species", dtype=pl.Enum(TaxonRank)).alias("rank"),
-                )
-                .select(["geohash", "kingdom", "rank", "name", "count"])
+                .select(["geohash", "kingdom", "taxonRank", "scientificName", "count"])
                 .sort(by="geohash")
                 .collect()
             )
@@ -90,23 +83,3 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
             #         continue
 
             return cls(aggregated)
-
-    def filtered(self) -> pl.DataFrame:
-        return (
-            self.df.lazy()
-            .filter(pl.col("rank") == "species", pl.col("name").is_not_null())
-            .select("geohash", "kingdom", "name", "count")
-            .rename({"name": "species"})
-            .sort(by="geohash")
-            .collect()
-        )
-
-    # # @functools.cache
-    # def ordered_taxon_keys(self) -> List[int]:
-    #     return (
-    #         self.taxon_counts.select("taxonKey")
-    #         .unique()
-    #         .sort(by="taxonKey")
-    #         .get_column("taxonKey")
-    #         .to_list()
-    #     )
