@@ -13,7 +13,9 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
 
     SCHEMA = {
         "cluster": pl.UInt32,
-        "taxon": pl.String,
+        "kingdom": pl.String,
+        "taxonRank": pl.String,
+        "scientificName": pl.String,
         "percentage_difference": pl.Float64,  # TODO: should this a p-value?
     }
 
@@ -53,7 +55,9 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
                     significant_differences.append(
                         {
                             "cluster": cluster,
-                            "taxon": scientificName,
+                            "kingdom": kingdom,
+                            "taxonRank": taxonRank,
+                            "scientificName": scientificName,
                             "percentage_difference": percent_diff,
                         }
                     )

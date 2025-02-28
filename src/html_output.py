@@ -16,13 +16,13 @@ def build_html_output(
         html += f"<h1>Cluster {cluster}</h1>"
         html += f"<li>Color: <span style='color: {color};'>{color}</span></li>"
 
-        for taxon, percent_diff in (
+        for kingdom, taxonRank, scientificName, percent_diff in (
             significant_differences_df.df.filter(pl.col("cluster") == cluster)
-            .select(["taxon", "percentage_difference"])
+            .select(["kingdom", "taxonRank", "scientificName", "percentage_difference"])
             .iter_rows(named=False)
         ):
             if abs(percent_diff) > ClusterSignificantDifferencesDataFrame.THRESHOLD:
-                html += f"<h2>{taxon}:</h2>"
+                html += f"<h2>{scientificName} ({kingdom}) {taxonRank}:</h2>"
                 html += "<ul>"
                 html += f"<li>Percentage difference: {'+' if percent_diff > 0 else ''}{percent_diff:.2f}%</li>"
                 html += "</ul>"
