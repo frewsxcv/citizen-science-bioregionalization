@@ -3,7 +3,7 @@ from typing import List, Optional, Self
 import polars as pl
 
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.geohash import Geohash
 from src.darwin_core import kingdom_enum
@@ -31,7 +31,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     @classmethod
     def build(
         cls,
-        geohash_taxa_counts_dataframe: GeohashSpeciesCountsDataFrame,
+        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
         geohash_cluster_dataframe: GeohashClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
     ) -> Self:

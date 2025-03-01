@@ -12,8 +12,7 @@ from src.dataframes.geohash import GeohashDataFrame
 logger = logging.getLogger(__name__)
 
 
-# TODO: Rename to GeohashTaxaCountsDataFrame
-class GeohashSpeciesCountsDataFrame(DataContainer):
+class GeohashTaxaCountsDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {

@@ -6,7 +6,7 @@ import typer
 from src import cli_output
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.dataframes.geohash_cluster import GeohashClusterDataFrame
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
@@ -39,7 +39,7 @@ def run(
         darwin_core_csv_lazy_frame,
     )
 
-    geohash_taxa_counts_dataframe = GeohashSpeciesCountsDataFrame.build(
+    geohash_taxa_counts_dataframe = GeohashTaxaCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
         geohash_precision,
     )

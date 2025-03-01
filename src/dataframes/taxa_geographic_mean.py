@@ -1,6 +1,6 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
-from src.dataframes.geohash_species_counts import GeohashSpeciesCountsDataFrame
+from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
 from src.geohash import geohash_to_lat_lon, geohash_to_lat_lon_lazy
 from typing import Self
 import logging
@@ -24,7 +24,7 @@ class TaxaGeographicMeanDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, geohash_taxa_counts: GeohashSpeciesCountsDataFrame) -> Self:
+    def build(cls, geohash_taxa_counts: GeohashTaxaCountsDataFrame) -> Self:
         # TODO: this doesn't handle the international date line
         df = (
             geohash_taxa_counts.df.lazy()
