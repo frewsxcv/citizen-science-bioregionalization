@@ -20,6 +20,7 @@ dependencies = [
     "shapely>=2.0.6",
     "seaborn>=0.13.2",
     "mermaid-py>=0.7.0",
+    "networkx>=3.4.2",
 ]
 
 [tool.mypy]

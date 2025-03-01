@@ -32,7 +32,6 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
     def build(
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
-        geohash_dataframe: GeohashDataFrame,
         geohash_precision: int,
     ):
         # Will this work for eBird?
@@ -58,8 +57,6 @@ class GeohashSpeciesCountsDataFrame(DataContainer):
                     lon_col=pl.col("decimalLongitude"),
                     precision=geohash_precision,
                 )
-                # Filter out geohashes that aren't in the geohash series
-                .filter(pl.col("geohash").is_in(geohash_dataframe.df["geohash"]))
                 .group_by(["geohash", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geohash", "kingdom", "taxonRank", "scientificName", "count"])

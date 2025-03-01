@@ -11,12 +11,16 @@ class GeohashDataFrame(DataContainer):
     A dataframe of unique, in-order geohashes that are connected to another known geohash.
     """
 
-    # TODO: Only keep the largest connected component
-
     df: pl.DataFrame
 
     SCHEMA = {
         "geohash": pl.String(),
+        "center": pl.Struct(
+            {
+                "lat": pl.Float64(),
+                "lon": pl.Float64(),
+            }
+        ),
         "neighbors": pl.List(pl.String()),
     }
 
@@ -31,8 +35,7 @@ class GeohashDataFrame(DataContainer):
         geohash_precision: int,
     ) -> Self:
         df = (
-            darwin_core_csv_lazy_frame.lf
-            .select("decimalLatitude", "decimalLongitude")
+            darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
             .pipe(
                 build_geohash_series_lazy,
                 lat_col=pl.col("decimalLatitude"),
@@ -46,15 +49,33 @@ class GeohashDataFrame(DataContainer):
         )
 
         df = df.with_columns(
+            build_geohash_center_series(known_geohashes=df["geohash"]).alias(
+                "center"
+            ),
+        )
+
+        df = df.with_columns(
             build_geohash_neighbors_series(known_geohashes=df["geohash"]).alias(
                 "neighbors"
             ),
         )
 
-        # Filter out geohashes that don't have neighbors
-        df = df.filter(pl.col("neighbors").list.len() > 0)
-
         return cls(df)
+
+
+def build_geohash_center_series(known_geohashes: pl.Series) -> pl.Series:
+    return pl.Series(
+        [
+            {
+                "lat": lat,
+                "lon": lon,
+            }
+            for lat, lon in (
+                geohashr.decode(known_geohash) for known_geohash in known_geohashes
+            )
+        ],
+        dtype=pl.Struct({"lat": pl.Float64(), "lon": pl.Float64()}),
+    )
 
 
 def build_geohash_neighbors_series(known_geohashes: pl.Series) -> pl.Series:

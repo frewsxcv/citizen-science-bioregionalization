@@ -41,7 +41,6 @@ def run(
 
     geohash_taxa_counts_dataframe = GeohashSpeciesCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geohash_dataframe,
         geohash_precision,
     )
 
