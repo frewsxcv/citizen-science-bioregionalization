@@ -6,7 +6,7 @@ from src.dataframes import (
     cluster_color,
     cluster_taxa_statistics,
     geohash_cluster,
-    geohash_species_counts,
+    geohash_taxa_counts,
     taxonomy,
     taxa_geographic_mean,
     cluster_significant_differences,
