@@ -1,7 +1,7 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
-from src.geohash import geohash_to_lat_lon, geohash_to_lat_lon_lazy
+from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
+from src.geocode import geohash_to_lat_lon, geohash_to_lat_lon_lazy
 from typing import Self
 import logging
 from src.data_container import DataContainer
@@ -24,14 +24,14 @@ class TaxaGeographicMeanDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, geohash_taxa_counts: GeohashTaxaCountsDataFrame) -> Self:
+    def build(cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame) -> Self:
         # TODO: this doesn't handle the international date line
         df = (
-            geohash_taxa_counts.df.lazy()
-            .pipe(geohash_to_lat_lon_lazy, pl.col("geohash"))
+            geocode_taxa_counts.df.lazy()
+            .pipe(geohash_to_lat_lon_lazy, pl.col("geocode"))
             .with_columns(
-                (pl.col("geohash_lat") * pl.col("count")).alias("lat_scaled"),
-                (pl.col("geohash_lon") * pl.col("count")).alias("lon_scaled"),
+                (pl.col("geocode_lat") * pl.col("count")).alias("lat_scaled"),
+                (pl.col("geocode_lon") * pl.col("count")).alias("lon_scaled"),
             )
             .group_by("kingdom", "taxonRank", "scientificName")
             .agg(

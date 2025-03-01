@@ -2,10 +2,10 @@ from typing import List, Optional, Self
 
 import polars as pl
 
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
-from src.dataframes.geohash_taxa_counts import GeohashTaxaCountsDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.geohash import Geohash
+from src.geocode import Geocode
 from src.darwin_core import kingdom_enum
 from src.types import ClusterId
 from src.data_container import DataContainer
@@ -31,14 +31,14 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     @classmethod
     def build(
         cls,
-        geohash_taxa_counts_dataframe: GeohashTaxaCountsDataFrame,
-        geohash_cluster_dataframe: GeohashClusterDataFrame,
+        geocode_taxa_counts_dataframe: GeocodeTaxaCountsDataFrame,
+        geocode_cluster_dataframe: GeocodeClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
     ) -> Self:
         df = pl.DataFrame(schema=cls.SCHEMA)
 
         # Schema:
-        #   - geohash: String
+        #   - geocode: String
         #   - kingdom: Enum
         #   - taxonRank: String
         #   - scientificName: String
@@ -49,7 +49,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         #   - family: String
         #   - genus: String
         #   - species: String
-        joined = geohash_taxa_counts_dataframe.df.join(
+        joined = geocode_taxa_counts_dataframe.df.join(
             taxonomy_dataframe.df, on=["kingdom", "scientificName", "taxonRank"]
         )
 
@@ -70,14 +70,14 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
 
         for (
             cluster,
-            geohashes,
-        ) in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+            geocodees,
+        ) in geocode_cluster_dataframe.iter_clusters_and_geocodees():
             total_count_in_cluster = joined.filter(
-                pl.col("geohash").is_in(geohashes)
+                pl.col("geocode").is_in(geocodees)
             )["count"].sum()
 
             df.vstack(
-                joined.filter(pl.col("geohash").is_in(geohashes))
+                joined.filter(pl.col("geocode").is_in(geocodees))
                 .group_by(["kingdom", "taxonRank", "scientificName"])
                 .agg(
                     pl.col("count").sum().alias("count"),

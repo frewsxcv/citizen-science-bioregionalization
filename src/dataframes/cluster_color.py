@@ -1,6 +1,6 @@
 from typing import Dict, List, Self
 import polars as pl
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.types import ClusterId
 from src.data_container import DataContainer
 import seaborn as sns
@@ -21,8 +21,8 @@ class ClusterColorDataFrame(DataContainer):
         return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
     @classmethod
-    def build(cls, geohash_cluster_dataframe: GeohashClusterDataFrame) -> Self:
-        clusters = geohash_cluster_dataframe.cluster_ids()
+    def build(cls, geocode_cluster_dataframe: GeocodeClusterDataFrame) -> Self:
+        clusters = geocode_cluster_dataframe.cluster_ids()
         palette = sns.color_palette("Spectral", n_colors=len(clusters))
         colors = [rgb_to_hex(*palette[i]) for i in range(len(clusters))]
         return cls(

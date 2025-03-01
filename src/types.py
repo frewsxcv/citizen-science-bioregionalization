@@ -1,2 +1,2 @@
 type ClusterId = int
-type Geohash = str
+type Geocode = str

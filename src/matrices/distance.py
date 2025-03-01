@@ -8,21 +8,21 @@ from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
 
 from src.data_container import DataContainer
-from src.dataframes import geohash_taxa_counts
-from src.dataframes.geohash import GeohashDataFrame
+from src.dataframes import geocode_taxa_counts
+from src.dataframes.geocode import GeocodeDataFrame
 from src.logging import log_action, logger
 from contexttimer import Timer
 
 
 def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
     """
-    Create a matrix where each row is a geohash and each column is a taxon ID
+    Create a matrix where each row is a geocode and each column is a taxon ID
 
     Example input:
 
     ```txt
     ┌─────────┬──────────┬────────────────────────┬───────┐
-    │ geohash ┆ kingdom  ┆ scientificName         ┆ count │
+    │ geocode ┆ kingdom  ┆ scientificName         ┆ count │
     │ ---     ┆ ---      ┆ ---                    ┆ ---   │
     │ str     ┆ enum     ┆ str                    ┆ u32   │
     ╞═════════╪══════════╪════════════════════════╪═══════╡
@@ -44,7 +44,7 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
     ```txt
     ┌─────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
-    │ geohash ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ … ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ {"Animali │
+    │ geocode ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ … ┆ {"Animali ┆ {"Animali ┆ {"Animali ┆ {"Animali │
     │ ---     ┆ a","Mydas ┆ a","Pleci ┆ a","Palpa ┆   ┆ a","Pegom ┆ a","Phyto ┆ a","Dolic ┆ a","Cysti │
     │ str     ┆ xanthopte ┆ a plagiat ┆ da vineto ┆   ┆ ya solenn ┆ myza      ┆ hopus     ┆ phora     │
     │         ┆ ru…       ┆ a"}       ┆ rum…      ┆   ┆ is"…      ┆ lineata…  ┆ palaes…   ┆ taraxa…   │
@@ -68,28 +68,28 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
     return taxon_counts.pivot(
         # There are some scientific names that are repeated with different taxon ranks, so we need to include the taxon rank in the pivot
         on=["kingdom", "scientificName", "taxonRank"],
-        index="geohash",
+        index="geocode",
         values="count",
     )
 
 
 def build_X(
-    geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
-    geohash_dataframe: GeohashDataFrame,
+    geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
+    geocode_dataframe: GeocodeDataFrame,
 ) -> pl.DataFrame:
     X = log_action(
         "Building matrix",
-        lambda: geohash_taxa_counts_dataframe.df.pipe(pivot_taxon_counts),
+        lambda: geocode_taxa_counts_dataframe.df.pipe(pivot_taxon_counts),
     )
 
-    assert X.height > 1, "More than one geohash is required to cluster"
+    assert X.height > 1, "More than one geocode is required to cluster"
 
     # fill null values with 0
     X = log_action("Filling null values", lambda: X.fill_null(np.uint32(0)))
 
-    assert X["geohash"].to_list() == geohash_dataframe.df["geohash"].to_list()
+    assert X["geocode"].to_list() == geocode_dataframe.df["geocode"].to_list()
 
-    X = log_action("Dropping geohash column", lambda: X.drop("geohash"))
+    X = log_action("Dropping geocode column", lambda: X.drop("geocode"))
 
     return log_action("Scaling values", lambda: X.pipe(scale_values))
 
@@ -113,12 +113,12 @@ class DistanceMatrix(DataContainer):
     @classmethod
     def build(
         cls,
-        geohash_taxa_counts_dataframe: geohash_taxa_counts.GeohashTaxaCountsDataFrame,
-        geohash_dataframe: GeohashDataFrame,
+        geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
+        geocode_dataframe: GeocodeDataFrame,
     ) -> Self:
-        X = build_X(geohash_taxa_counts_dataframe, geohash_dataframe)
+        X = build_X(geocode_taxa_counts_dataframe, geocode_dataframe)
 
-        # filtered.group_by("geohash").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
+        # filtered.group_by("geocode").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
 
         logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
@@ -126,11 +126,11 @@ class DistanceMatrix(DataContainer):
         X = log_action("Fitting PCA", lambda: X.pipe(reduce_dimensions))
 
         logger.info(
-            f"Reduced dimensions with PCA. Now: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs"
+            f"Reduced dimensions with PCA. Now: {X.shape[0]} geocodees, {X.shape[1]} taxon IDs"
         )
 
         Y = log_action(
-            f"Running pdist on matrix: {X.shape[0]} geohashes, {X.shape[1]} taxon IDs",
+            f"Running pdist on matrix: {X.shape[0]} geocodees, {X.shape[1]} taxon IDs",
             lambda: pdist(X, metric="braycurtis"),
         )
 

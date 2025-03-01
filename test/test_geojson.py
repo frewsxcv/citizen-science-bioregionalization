@@ -3,18 +3,18 @@ import unittest
 import polars as pl
 
 from src.geojson import build_geojson_feature_collection
-from src.geojson import GeohashClusterDataFrame, ClusterColorDataFrame
+from src.geojson import GeocodeClusterDataFrame, ClusterColorDataFrame
 
 
 class TestGeojson(unittest.TestCase):
     def test_build_geojson_feature_collection(self):
         actual = build_geojson_feature_collection(
-            geohash_cluster_dataframe=GeohashClusterDataFrame(
+            geocode_cluster_dataframe=GeocodeClusterDataFrame(
                 df=pl.DataFrame(
                     [
-                        {"geohash": "gcpv", "cluster": 1},
-                        {"geohash": "gcpw", "cluster": 2},
-                        {"geohash": "gcpx", "cluster": 2},
+                        {"geocode": "gcpv", "cluster": 1},
+                        {"geocode": "gcpw", "cluster": 2},
+                        {"geocode": "gcpx", "cluster": 2},
                     ]
                 ),
             ),

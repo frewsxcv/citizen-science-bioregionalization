@@ -4,19 +4,19 @@ import polars as pl
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
 from src.matrices.connectivity import ConnectivityMatrix
-from src.dataframes.geohash import GeohashDataFrame
-from src.types import Geohash, ClusterId
+from src.dataframes.geocode import GeocodeDataFrame
+from src.types import Geocode, ClusterId
 from src.matrices.distance import DistanceMatrix
 from src.data_container import DataContainer
 
 logger = logging.getLogger(__name__)
 
 
-class GeohashClusterDataFrame(DataContainer):
+class GeocodeClusterDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geohash": pl.String,
+        "geocode": pl.String,
         "cluster": pl.UInt32,
     }
 
@@ -26,22 +26,22 @@ class GeohashClusterDataFrame(DataContainer):
     @classmethod
     def build(
         cls,
-        geohash_dataframe: GeohashDataFrame,
+        geocode_dataframe: GeocodeDataFrame,
         distance_matrix: DistanceMatrix,
         connectivity_matrix: ConnectivityMatrix,
         num_clusters: int,
     ) -> Self:
-        geohashes = geohash_dataframe.df["geohash"]
+        geocodees = geocode_dataframe.df["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,
             connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
             linkage="ward",
         ).fit_predict(distance_matrix.squareform())
-        assert len(geohashes) == len(clusters)
+        assert len(geocodees) == len(clusters)
         return cls(
             df=pl.DataFrame(
                 data={
-                    "geohash": geohashes,
+                    "geocode": geocodees,
                     "cluster": clusters,
                 },
                 schema=cls.SCHEMA,
@@ -51,19 +51,19 @@ class GeohashClusterDataFrame(DataContainer):
     def cluster_ids(self) -> List[ClusterId]:
         return self.df["cluster"].unique().to_list()
 
-    def iter_clusters_and_geohashes(
+    def iter_clusters_and_geocodees(
         self,
-    ) -> Iterator[Tuple[ClusterId, List[Geohash]]]:
+    ) -> Iterator[Tuple[ClusterId, List[Geocode]]]:
         for row in (self.df.group_by("cluster").all().sort("cluster")).iter_rows(
             named=True
         ):
-            yield row["cluster"], row["geohash"]
+            yield row["cluster"], row["geocode"]
 
-    def cluster_for_geohash(self, geohash: Geohash) -> ClusterId:
-        return self.df.filter(pl.col("geohash") == geohash)["cluster"].to_list()[0]
+    def cluster_for_geocode(self, geocode: Geocode) -> ClusterId:
+        return self.df.filter(pl.col("geocode") == geocode)["cluster"].to_list()[0]
 
-    def geohashes_for_cluster(self, cluster: ClusterId) -> List[Geohash]:
-        return self.df.filter(pl.col("cluster") == cluster)["geohash"].to_list()
+    def geocodees_for_cluster(self, cluster: ClusterId) -> List[Geocode]:
+        return self.df.filter(pl.col("cluster") == cluster)["geocode"].to_list()
 
     def num_clusters(self) -> int:
         num = self.df["cluster"].max()

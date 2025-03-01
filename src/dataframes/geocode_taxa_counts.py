@@ -2,21 +2,21 @@ import logging
 import polars as pl
 from typing import List
 from src.darwin_core import kingdom_enum
-from src.geohash import Geohash, build_geohash_series_lazy
+from src.geocode import Geocode, build_geohash_series_lazy
 from contexttimer import Timer
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import DataContainer
-from src.dataframes.geohash import GeohashDataFrame
+from src.dataframes.geocode import GeocodeDataFrame
 
 logger = logging.getLogger(__name__)
 
 
-class GeohashTaxaCountsDataFrame(DataContainer):
+class GeocodeTaxaCountsDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geohash": pl.String(),
+        "geocode": pl.String(),
         "kingdom": kingdom_enum,
         "taxonRank": pl.String(),
         "scientificName": pl.String(),
@@ -31,11 +31,11 @@ class GeohashTaxaCountsDataFrame(DataContainer):
     def build(
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
-        geohash_precision: int,
+        geocode_precision: int,
     ):
         # Will this work for eBird?
-        # geohash_to_taxon_id_to_user_to_count: DefaultDict[
-        #     Geohash, DefaultDict[TaxonId, Counter[str]]
+        # geocode_to_taxon_id_to_user_to_count: DefaultDict[
+        #     Geocode, DefaultDict[TaxonId, Counter[str]]
         # ] = defaultdict(lambda: defaultdict(Counter))
 
         with Timer(output=logger.info, prefix="Reading rows"):
@@ -45,7 +45,7 @@ class GeohashTaxaCountsDataFrame(DataContainer):
             # `aggregated` is a dataframe that looks like this:
             #
             # +------------+----------+---------+--------------+-------+
-            # | geohash    | kingdom  | rank    | name         | count |
+            # | geocode    | kingdom  | rank    | name         | count |
             # +------------+----------+---------+--------------+-------+
             # | u4pruydqqvj| Animalia | species | Panthera leo | 42    |
             # +------------+----------+---------+--------------+-------+
@@ -54,24 +54,24 @@ class GeohashTaxaCountsDataFrame(DataContainer):
                     build_geohash_series_lazy,
                     lat_col=pl.col("decimalLatitude"),
                     lon_col=pl.col("decimalLongitude"),
-                    precision=geohash_precision,
+                    precision=geocode_precision,
                 )
-                .group_by(["geohash", "kingdom", "scientificName", "taxonRank"])
+                .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
-                .select(["geohash", "kingdom", "taxonRank", "scientificName", "count"])
-                .sort(by="geohash")
+                .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
+                .sort(by="geocode")
                 .collect()
             )
 
-            # for row in dataframe_with_geohash.collect(streaming=True).iter_rows(
+            # for row in dataframe_with_geocode.collect(streaming=True).iter_rows(
             #     named=True
             # ):
-            #     geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+            #     geocode_to_taxon_id_to_user_to_count[row["geocode"]][
             #         row["taxonKey"]
             #     ][row["recordedBy"]] += 1
             #     # If the observer has seen the taxon more than 5 times, skip it
             #     if (
-            #         geohash_to_taxon_id_to_user_to_count[row["geohash"]][
+            #         geocode_to_taxon_id_to_user_to_count[row["geocode"]][
             #             row["taxonKey"]
             #         ][row["recordedBy"]]
             #         > 5

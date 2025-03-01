@@ -1,16 +1,16 @@
 import geojson
 import polars as pl
 from typing import List
-from src.geohash import geohash_to_bbox, Geohash
+from src.geocode import geohash_to_bbox, Geocode
 from typing import Iterator, Tuple
 import shapely
-from src.types import Geohash, ClusterId
+from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorDataFrame
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 
 
-def build_geojson_geohash_polygon(geohash: Geohash) -> shapely.Polygon:
-    bbox = geohash_to_bbox(geohash)
+def build_geojson_geocode_polygon(geocode: Geocode) -> shapely.Polygon:
+    bbox = geohash_to_bbox(geocode)
     return shapely.Polygon(
         [
             (bbox.sw.x, bbox.sw.y),
@@ -29,7 +29,7 @@ def build_geojson_feature(
 ) -> geojson.Feature:
     return geojson.Feature(
         properties={
-            # "label": ", ".join(geohashes),
+            # "label": ", ".join(geocodees),
             "fill": color,
             "stroke-width": 0,
             "cluster": cluster,
@@ -39,20 +39,20 @@ def build_geojson_feature(
 
 
 def build_geojson_feature_collection(
-    geohash_cluster_dataframe: GeohashClusterDataFrame,
+    geocode_cluster_dataframe: GeocodeClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
 ) -> geojson.FeatureCollection:
     features: List[geojson.Feature] = []
-    for cluster, geohashes, color in (
-        geohash_cluster_dataframe.df.group_by("cluster")
-        .agg(pl.col("geohash"))
+    for cluster, geocodees, color in (
+        geocode_cluster_dataframe.df.group_by("cluster")
+        .agg(pl.col("geocode"))
         .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
         .iter_rows()
     ):
         features.append(
             build_geojson_feature(
                 shapely.union_all(
-                    [build_geojson_geohash_polygon(geohash) for geohash in geohashes]
+                    [build_geojson_geocode_polygon(geocode) for geocode in geocodees]
                 ),
                 cluster,
                 color,

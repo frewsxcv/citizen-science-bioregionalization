@@ -2,19 +2,19 @@ import polars as pl
 import geohashr
 from typing import Self
 from src.data_container import DataContainer
-from src.geohash import build_geohash_series_lazy
+from src.geocode import build_geohash_series_lazy
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
 
-class GeohashDataFrame(DataContainer):
+class GeocodeDataFrame(DataContainer):
     """
-    A dataframe of unique, in-order geohashes that are connected to another known geohash.
+    A dataframe of unique, in-order geocodees that are connected to another known geocode.
     """
 
     df: pl.DataFrame
 
     SCHEMA = {
-        "geohash": pl.String(),
+        "geocode": pl.String(),
         "center": pl.Struct(
             {
                 "lat": pl.Float64(),
@@ -32,7 +32,7 @@ class GeohashDataFrame(DataContainer):
     def build(
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
-        geohash_precision: int,
+        geocode_precision: int,
     ) -> Self:
         df = (
             darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
@@ -40,22 +40,22 @@ class GeohashDataFrame(DataContainer):
                 build_geohash_series_lazy,
                 lat_col=pl.col("decimalLatitude"),
                 lon_col=pl.col("decimalLongitude"),
-                precision=geohash_precision,
+                precision=geocode_precision,
             )
-            .select("geohash")
+            .select("geocode")
             .unique()
-            .sort(by="geohash")
+            .sort(by="geocode")
             .collect()
         )
 
         df = df.with_columns(
-            build_geohash_center_series(known_geohashes=df["geohash"]).alias(
+            build_geocode_center_series(known_geocodees=df["geocode"]).alias(
                 "center"
             ),
         )
 
         df = df.with_columns(
-            build_geohash_neighbors_series(known_geohashes=df["geohash"]).alias(
+            build_geocode_neighbors_series(known_geocodees=df["geocode"]).alias(
                 "neighbors"
             ),
         )
@@ -63,7 +63,7 @@ class GeohashDataFrame(DataContainer):
         return cls(df)
 
 
-def build_geohash_center_series(known_geohashes: pl.Series) -> pl.Series:
+def build_geocode_center_series(known_geocodees: pl.Series) -> pl.Series:
     return pl.Series(
         [
             {
@@ -71,22 +71,22 @@ def build_geohash_center_series(known_geohashes: pl.Series) -> pl.Series:
                 "lon": lon,
             }
             for lat, lon in (
-                geohashr.decode(known_geohash) for known_geohash in known_geohashes
+                geohashr.decode(known_geocode) for known_geocode in known_geocodees
             )
         ],
         dtype=pl.Struct({"lat": pl.Float64(), "lon": pl.Float64()}),
     )
 
 
-def build_geohash_neighbors_series(known_geohashes: pl.Series) -> pl.Series:
+def build_geocode_neighbors_series(known_geocodees: pl.Series) -> pl.Series:
     return pl.Series(
         [
             [
-                geohash
-                for geohash in geohashr.neighbors(known_geohash).values()
-                if geohash in known_geohashes
+                geocode
+                for geocode in geohashr.neighbors(known_geocode).values()
+                if geocode in known_geocodees
             ]
-            for known_geohash in known_geohashes
+            for known_geocode in known_geocodees
         ],
         dtype=pl.List(pl.String()),
     )

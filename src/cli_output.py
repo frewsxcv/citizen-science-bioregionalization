@@ -1,8 +1,8 @@
 import polars as pl
-from src import geohash
+from src import geocode
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from typing import List
-from src.dataframes.geohash_cluster import GeohashClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 import logging
 
 logger = logging.getLogger(__name__)
@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 def print_cluster_stats(
     cluster: int,
-    geohashes: List[geohash.Geohash],
+    geocodees: List[geocode.Geocode],
     all_stats: ClusterTaxaStatisticsDataFrame,
 ) -> None:
-    # stats = Stats.build(darwin_core_aggregations, geohash_filter=geohashes)
+    # stats = Stats.build(darwin_core_aggregations, geocode_filter=geocodees)
     print("-" * 10)
-    print(f"cluster {cluster} (count: {len(geohashes)})")
+    print(f"cluster {cluster} (count: {len(geocodees)})")
 
     for kingdom, taxonRank, scientificName, count, average in (
         all_stats.df.filter(
@@ -69,16 +69,16 @@ def print_all_cluster_stats(all_stats: ClusterTaxaStatisticsDataFrame) -> None:
 
 def print_results(
     all_stats: ClusterTaxaStatisticsDataFrame,
-    geohash_cluster_dataframe: GeohashClusterDataFrame,
+    geocode_cluster_dataframe: GeocodeClusterDataFrame,
 ) -> None:
-    # For each top count taxon, print the average per geohash
+    # For each top count taxon, print the average per geocode
     print_all_cluster_stats(all_stats)
 
-    logger.info(f"Number of clusters: {geohash_cluster_dataframe.num_clusters()}")
+    logger.info(f"Number of clusters: {geocode_cluster_dataframe.num_clusters()}")
 
-    for cluster, geohashes in geohash_cluster_dataframe.iter_clusters_and_geohashes():
+    for cluster, geocodees in geocode_cluster_dataframe.iter_clusters_and_geocodees():
         print_cluster_stats(
             cluster,
-            geohashes,
+            geocodees,
             all_stats,
         )

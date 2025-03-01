@@ -5,12 +5,12 @@ from src.data_container import DataContainer
 from src.dataframes import (
     cluster_color,
     cluster_taxa_statistics,
-    geohash_cluster,
-    geohash_taxa_counts,
+    geocode_cluster,
+    geocode_taxa_counts,
     taxonomy,
     taxa_geographic_mean,
     cluster_significant_differences,
-    geohash,
+    geocode,
 )
 from src.lazyframes import darwin_core_csv
 from src.matrices import distance, connectivity
