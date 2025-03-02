@@ -13,7 +13,6 @@ dependencies = [
     "geopandas>=1.0.1",
     "contextily>=1.6.2",
     "contexttimer>=0.3.3",
-    "geohashr>=1.4.0",
     "polars>=1.17.1",
     "scikit-learn>=1.6.0",
     "typer>=0.15.1",
@@ -21,6 +20,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "mermaid-py>=0.7.0",
     "networkx>=3.4.2",
+    "polars-h3>=0.5.1",
 ]
 
 [tool.mypy]

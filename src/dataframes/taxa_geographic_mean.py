@@ -1,7 +1,6 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
-from src.geocode import geohash_to_lat_lon, geohash_to_lat_lon_lazy
 from typing import Self
 import logging
 from src.data_container import DataContainer

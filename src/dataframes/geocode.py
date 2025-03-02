@@ -1,14 +1,13 @@
 import polars as pl
-import geohashr
 from typing import Self
 from src.data_container import DataContainer
-from src.geocode import build_geohash_series_lazy
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
+import polars_h3
 
 
 class GeocodeDataFrame(DataContainer):
     """
-    A dataframe of unique, in-order geocodees that are connected to another known geocode.
+    A dataframe of unique, in-order geocodes that are connected to another known geocode.
     """
 
     df: pl.DataFrame
@@ -25,7 +24,9 @@ class GeocodeDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame):
-        assert df.schema == self.SCHEMA
+        assert (
+            df.schema == self.SCHEMA
+        ), f"Schema mismatch: {df.schema} != {self.SCHEMA}"
         self.df = df
 
     @classmethod
@@ -36,57 +37,34 @@ class GeocodeDataFrame(DataContainer):
     ) -> Self:
         df = (
             darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
-            .pipe(
-                build_geohash_series_lazy,
-                lat_col=pl.col("decimalLatitude"),
-                lon_col=pl.col("decimalLongitude"),
-                precision=geocode_precision,
+            .with_columns(
+                polars_h3.latlng_to_cell(
+                    "decimalLatitude",
+                    "decimalLongitude",
+                    resolution=geocode_precision,
+                    return_dtype=pl.Utf8,
+                ).alias("geocode"),
             )
             .select("geocode")
             .unique()
             .sort(by="geocode")
+            .with_columns(
+                polars_h3.cell_to_latlng(pl.col("geocode"))
+                .list.to_struct(fields=["lat", "lon"])
+                .alias("center")
+            )
             .collect()
         )
 
         df = df.with_columns(
-            build_geocode_center_series(known_geocodees=df["geocode"]).alias(
-                "center"
+            allNeighbors=polars_h3.grid_ring(pl.col("geocode"), 1),
+            knownGeocodes=pl.lit(
+                df["geocode"].unique().to_list(), dtype=pl.List(pl.Utf8)
+            ),
+        ).with_columns(
+            neighbors=pl.col("allNeighbors").list.set_intersection(
+                pl.col("knownGeocodes")
             ),
         )
 
-        df = df.with_columns(
-            build_geocode_neighbors_series(known_geocodees=df["geocode"]).alias(
-                "neighbors"
-            ),
-        )
-
-        return cls(df)
-
-
-def build_geocode_center_series(known_geocodees: pl.Series) -> pl.Series:
-    return pl.Series(
-        [
-            {
-                "lat": lat,
-                "lon": lon,
-            }
-            for lat, lon in (
-                geohashr.decode(known_geocode) for known_geocode in known_geocodees
-            )
-        ],
-        dtype=pl.Struct({"lat": pl.Float64(), "lon": pl.Float64()}),
-    )
-
-
-def build_geocode_neighbors_series(known_geocodees: pl.Series) -> pl.Series:
-    return pl.Series(
-        [
-            [
-                geocode
-                for geocode in geohashr.neighbors(known_geocode).values()
-                if geocode in known_geocodees
-            ]
-            for known_geocode in known_geocodees
-        ],
-        dtype=pl.List(pl.String()),
-    )
+        return cls(df.select(cls.SCHEMA.keys()))

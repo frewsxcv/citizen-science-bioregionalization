@@ -5,7 +5,6 @@ import polars as pl
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.geocode import Geocode
 from src.darwin_core import kingdom_enum
 from src.types import ClusterId
 from src.data_container import DataContainer

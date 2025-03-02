@@ -2,8 +2,8 @@ import logging
 import polars as pl
 from typing import List
 from src.darwin_core import kingdom_enum
-from src.geocode import Geocode, build_geohash_series_lazy
 from contexttimer import Timer
+import polars_h3
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import DataContainer
@@ -50,11 +50,13 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
             # | u4pruydqqvj| Animalia | species | Panthera leo | 42    |
             # +------------+----------+---------+--------------+-------+
             aggregated = (
-                darwin_core_csv_lazy_frame.lf.pipe(
-                    build_geohash_series_lazy,
-                    lat_col=pl.col("decimalLatitude"),
-                    lon_col=pl.col("decimalLongitude"),
-                    precision=geocode_precision,
+                darwin_core_csv_lazy_frame.lf.with_columns(
+                    polars_h3.latlng_to_cell(
+                        "decimalLatitude",
+                        "decimalLongitude",
+                        resolution=geocode_precision,
+                        return_dtype=pl.Utf8
+                    ).alias("geocode"),
                 )
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))

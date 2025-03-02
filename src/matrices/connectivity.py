@@ -8,6 +8,11 @@ from src.data_container import DataContainer
 import networkx as nx
 from shapely.geometry import Point
 import shapely.ops
+import logging
+
+logger = logging.getLogger(__name__)
+
+MAX_NUM_NEIGHBORS = 6
 
 
 class ConnectivityMatrix(DataContainer):
@@ -34,7 +39,7 @@ class ConnectivityMatrix(DataContainer):
         # As long as there are more than one connected component, connect the first with the closest node not in that component
         number_of_connected_components = nx.number_connected_components(graph)
         while number_of_connected_components > 1:
-            print(
+            logger.info(
                 f"More than one connected component (n={number_of_connected_components}), connecting the first with the closest node not in that component"
             )
             components = nx.connected_components(graph)
@@ -55,7 +60,7 @@ class ConnectivityMatrix(DataContainer):
             other_component_nodes = list(
                 geocode_dataframe.df
                 # Filter out nodes that are not on the edge of the grid
-                .filter(pl.col("neighbors").list.len() != 8)
+                .filter(pl.col("neighbors").list.len() != MAX_NUM_NEIGHBORS)
                 .filter(pl.col("geocode").is_in(first_component).not_())
                 .select("center", "geocode")
                 .iter_rows()
@@ -86,7 +91,7 @@ class ConnectivityMatrix(DataContainer):
                 raise ValueError("No closest pair found")
 
             # Add edge between the closest nodes in both the graph and connectivity matrix
-            print(f"Adding edge between {geocode1} and {geocode2}")
+            logger.info(f"Adding edge between {geocode1} and {geocode2}")
             geocode1_idx = index_of_geocode_in_geocode_dataframe(
                 geocode1, geocode_dataframe
             )

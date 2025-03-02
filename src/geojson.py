@@ -1,7 +1,6 @@
 import geojson
 import polars as pl
 from typing import List
-from src.geocode import geohash_to_bbox, Geocode
 from typing import Iterator, Tuple
 import shapely
 from src.types import Geocode, ClusterId
