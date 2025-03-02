@@ -2,23 +2,11 @@ import geojson
 import polars as pl
 from typing import List
 from typing import Iterator, Tuple
+import polars_h3
 import shapely
 from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-
-
-def build_geojson_geocode_polygon(geocode: Geocode) -> shapely.Polygon:
-    bbox = geohash_to_bbox(geocode)
-    return shapely.Polygon(
-        [
-            (bbox.sw.x, bbox.sw.y),
-            (bbox.ne.x, bbox.sw.y),
-            (bbox.ne.x, bbox.ne.y),
-            (bbox.sw.x, bbox.ne.y),
-            (bbox.sw.x, bbox.sw.y),
-        ]
-    )
 
 
 def build_geojson_feature(
@@ -37,21 +25,31 @@ def build_geojson_feature(
     )
 
 
+def latlng_list_to_lnglat_list(latlng_list: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    return [
+        (lng, lat)
+        for lat, lng in latlng_list
+    ]
+
+
 def build_geojson_feature_collection(
     geocode_cluster_dataframe: GeocodeClusterDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
 ) -> geojson.FeatureCollection:
     features: List[geojson.Feature] = []
-    for cluster, geocodees, color in (
-        geocode_cluster_dataframe.df.group_by("cluster")
-        .agg(pl.col("geocode"))
+    for boundaries, cluster, color in (
+        geocode_cluster_dataframe.df
+        .with_columns(boundary=polars_h3.cell_to_boundary("geocode"))
+        .group_by("cluster")
+        .agg(pl.col("boundary"))
         .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
+        .select("boundary", "cluster", "color")
         .iter_rows()
     ):
         features.append(
             build_geojson_feature(
                 shapely.union_all(
-                    [build_geojson_geocode_polygon(geocode) for geocode in geocodees]
+                    [shapely.Polygon(latlng_list_to_lnglat_list(boundary)) for boundary in boundaries]
                 ),
                 cluster,
                 color,
