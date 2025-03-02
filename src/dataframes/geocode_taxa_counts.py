@@ -55,7 +55,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                         "decimalLatitude",
                         "decimalLongitude",
                         resolution=geocode_precision,
-                        return_dtype=pl.Utf8
+                        return_dtype=pl.Utf8,
                     ).alias("geocode"),
                 )
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])

@@ -25,11 +25,10 @@ def build_geojson_feature(
     )
 
 
-def latlng_list_to_lnglat_list(latlng_list: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
-    return [
-        (lng, lat)
-        for lat, lng in latlng_list
-    ]
+def latlng_list_to_lnglat_list(
+    latlng_list: List[Tuple[float, float]],
+) -> List[Tuple[float, float]]:
+    return [(lng, lat) for lat, lng in latlng_list]
 
 
 def build_geojson_feature_collection(
@@ -38,8 +37,9 @@ def build_geojson_feature_collection(
 ) -> geojson.FeatureCollection:
     features: List[geojson.Feature] = []
     for boundaries, cluster, color in (
-        geocode_cluster_dataframe.df
-        .with_columns(boundary=polars_h3.cell_to_boundary("geocode"))
+        geocode_cluster_dataframe.df.with_columns(
+            boundary=polars_h3.cell_to_boundary("geocode")
+        )
         .group_by("cluster")
         .agg(pl.col("boundary"))
         .join(cluster_colors_dataframe.df, left_on="cluster", right_on="cluster")
@@ -49,7 +49,10 @@ def build_geojson_feature_collection(
         features.append(
             build_geojson_feature(
                 shapely.union_all(
-                    [shapely.Polygon(latlng_list_to_lnglat_list(boundary)) for boundary in boundaries]
+                    [
+                        shapely.Polygon(latlng_list_to_lnglat_list(boundary))
+                        for boundary in boundaries
+                    ]
                 ),
                 cluster,
                 color,

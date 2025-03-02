@@ -30,9 +30,11 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
         for cluster in all_stats.iter_cluster_ids():
             for kingdom, taxonRank, scientificName, average in (
                 all_stats.df.filter(
-                    pl.col("cluster").is_null()
-                    if cluster is None
-                    else pl.col("cluster") == cluster,
+                    (
+                        pl.col("cluster").is_null()
+                        if cluster is None
+                        else pl.col("cluster") == cluster
+                    ),
                 )
                 .sort(by="count", descending=True)
                 .limit(20)  # TODO: Does this need to happen?

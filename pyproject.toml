@@ -21,6 +21,7 @@ dependencies = [
     "mermaid-py>=0.7.0",
     "networkx>=3.4.2",
     "polars-h3>=0.5.1",
+    "black[jupyter]>=25.1.0",
 ]
 
 [tool.mypy]

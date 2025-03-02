@@ -71,18 +71,16 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
             cluster,
             geocodees,
         ) in geocode_cluster_dataframe.iter_clusters_and_geocodees():
-            total_count_in_cluster = joined.filter(
-                pl.col("geocode").is_in(geocodees)
-            )["count"].sum()
+            total_count_in_cluster = joined.filter(pl.col("geocode").is_in(geocodees))[
+                "count"
+            ].sum()
 
             df.vstack(
                 joined.filter(pl.col("geocode").is_in(geocodees))
                 .group_by(["kingdom", "taxonRank", "scientificName"])
                 .agg(
                     pl.col("count").sum().alias("count"),
-                    (pl.col("count").sum() / total_count_in_cluster).alias(
-                        "average"
-                    ),
+                    (pl.col("count").sum() / total_count_in_cluster).alias("average"),
                 )
                 .pipe(add_cluster_column, value=cluster)
                 .select(cls.SCHEMA.keys()),  # Reorder columns

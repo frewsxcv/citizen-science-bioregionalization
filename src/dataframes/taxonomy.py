@@ -26,7 +26,9 @@ class TaxonomyDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA, f"Schema mismatch: {df.schema} != {self.SCHEMA}"
+        assert (
+            df.schema == self.SCHEMA
+        ), f"Schema mismatch: {df.schema} != {self.SCHEMA}"
         self.df = df
 
     @classmethod
