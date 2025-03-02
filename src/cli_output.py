@@ -1,5 +1,4 @@
 import polars as pl
-from src import geocode
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from typing import List
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def print_cluster_stats(
     cluster: int,
-    geocodees: List[geocode.Geocode],
+    geocodees: List[str],
     all_stats: ClusterTaxaStatisticsDataFrame,
 ) -> None:
     # stats = Stats.build(darwin_core_aggregations, geocode_filter=geocodees)
