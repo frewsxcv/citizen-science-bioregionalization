@@ -4,6 +4,7 @@ from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from typing import Self
 import logging
 from src.data_container import DataContainer
+import polars_h3
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +28,9 @@ class TaxaGeographicMeanDataFrame(DataContainer):
         # TODO: this doesn't handle the international date line
         df = (
             geocode_taxa_counts.df.lazy()
-            .pipe(geohash_to_lat_lon_lazy, pl.col("geocode"))
             .with_columns(
-                (pl.col("geocode_lat") * pl.col("count")).alias("lat_scaled"),
-                (pl.col("geocode_lon") * pl.col("count")).alias("lon_scaled"),
+                (pl.col("lat") * pl.col("count")).alias("lat_scaled"),
+                (pl.col("lon") * pl.col("count")).alias("lon_scaled"),
             )
             .group_by("kingdom", "taxonRank", "scientificName")
             .agg(
