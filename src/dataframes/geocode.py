@@ -28,7 +28,10 @@ class GeocodeDataFrame(DataContainer):
                 "lon": pl.Float64(),
             }
         ),
-        "neighbors": pl.List(pl.String()),
+        # Direct neighbors from H3 grid adjacency
+        "direct_neighbors": pl.List(pl.String()),
+        # Direct and indirect neighbors (includes both H3 adjacency and added connections)
+        "direct_and_indirect_neighbors": pl.List(pl.String()),
     }
 
     def __init__(self, df: pl.DataFrame):
@@ -64,15 +67,23 @@ class GeocodeDataFrame(DataContainer):
             .collect()
         )
 
-        df = df.with_columns(
-            allNeighbors=polars_h3.grid_ring(pl.col("geocode"), 1),
-            knownGeocodes=pl.lit(
-                df["geocode"].unique().to_list(), dtype=pl.List(pl.Utf8)
-            ),
-        ).with_columns(
-            neighbors=pl.col("allNeighbors").list.set_intersection(
-                pl.col("knownGeocodes")
-            ),
+        df = (
+            df.with_columns(
+                direct_neighbors_including_unknown=polars_h3.grid_ring(
+                    pl.col("geocode"), 1
+                ),
+                known_geocodes=pl.lit(
+                    df["geocode"].unique().to_list(), dtype=pl.List(pl.Utf8)
+                ),
+            )
+            .with_columns(
+                direct_neighbors=pl.col(
+                    "direct_neighbors_including_unknown"
+                ).list.set_intersection(pl.col("known_geocodes")),
+            )
+            .with_columns(
+                direct_and_indirect_neighbors=pl.col("direct_neighbors"),
+            )
         )
 
         return cls(_reduce_connected_components_to_one(df).select(cls.SCHEMA.keys()))
@@ -81,11 +92,17 @@ class GeocodeDataFrame(DataContainer):
         return _df_to_graph(self.df)
 
 
-def _df_to_graph(df: pl.DataFrame) -> nx.Graph:
+def _df_to_graph(
+    df: pl.DataFrame, include_indirect_neighbors: bool = False
+) -> nx.Graph:
     graph = nx.Graph()
     for geocode in df["geocode"]:
         graph.add_node(geocode)
-    for geocode, neighbors in df.select("geocode", "neighbors").iter_rows():
+    column = "direct_and_indirect_neighbors" if include_indirect_neighbors else "direct_neighbors"
+    for geocode, neighbors in df.select(
+        "geocode",
+        column,
+    ).iter_rows():
         for neighbor in neighbors:
             graph.add_edge(geocode, neighbor)
     return graph
@@ -116,7 +133,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
         other_component_nodes = list(
             df
             # Filter out nodes that are not on the edge of the grid
-            .filter(pl.col("neighbors").list.len() != MAX_NUM_NEIGHBORS)
+            .filter(pl.col("direct_neighbors").list.len() != MAX_NUM_NEIGHBORS)
             .filter(pl.col("geocode").is_in(first_component).not_())
             .select("center", "geocode")
             .iter_rows()
@@ -151,17 +168,19 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
         graph.add_edge(geocode1, geocode2)
         df = df.with_columns(
             pl.when(pl.col("geocode") == geocode1)
-            .then(pl.concat_list([
-                pl.col("neighbors"),
-                pl.lit(geocode2)
-            ]))
+            .then(
+                pl.concat_list(
+                    [pl.col("direct_and_indirect_neighbors"), pl.lit(geocode2)]
+                )
+            )
             .when(pl.col("geocode") == geocode2)
-            .then(pl.concat_list([
-                pl.col("neighbors"),
-                pl.lit(geocode1)
-            ]))
-            .otherwise(pl.col("neighbors"))
-            .alias("neighbors")
+            .then(
+                pl.concat_list(
+                    [pl.col("direct_and_indirect_neighbors"), pl.lit(geocode1)]
+                )
+            )
+            .otherwise(pl.col("direct_and_indirect_neighbors"))
+            .alias("direct_and_indirect_neighbors")
         )
 
         number_of_connected_components = nx.number_connected_components(graph)
