@@ -12,8 +12,8 @@ class ClusterColorDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "cluster": pl.UInt32,
-        "color": pl.Utf8,
+        "cluster": pl.UInt32(),
+        "color": pl.Utf8(),
     }
 
     def __init__(self, df: pl.DataFrame) -> None:

@@ -11,11 +11,11 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
     THRESHOLD = 10  # Percent difference
 
     SCHEMA = {
-        "cluster": pl.UInt32,
-        "kingdom": pl.String,
-        "taxonRank": pl.String,
-        "scientificName": pl.String,
-        "percentage_difference": pl.Float64,  # TODO: should this a p-value?
+        "cluster": pl.UInt32(),
+        "kingdom": pl.String(),
+        "taxonRank": pl.String(),
+        "scientificName": pl.String(),
+        "percentage_difference": pl.Float64(),  # TODO: should this a p-value?
     }
 
     def __init__(self, df: pl.DataFrame):

@@ -16,8 +16,8 @@ class GeocodeClusterDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geocode": pl.String,
-        "cluster": pl.UInt32,
+        "geocode": pl.String(),
+        "cluster": pl.UInt32(),
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
