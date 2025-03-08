@@ -69,14 +69,14 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
 
         for (
             cluster,
-            geocodees,
-        ) in geocode_cluster_dataframe.iter_clusters_and_geocodees():
-            total_count_in_cluster = joined.filter(pl.col("geocode").is_in(geocodees))[
+            geocodes,
+        ) in geocode_cluster_dataframe.iter_clusters_and_geocodes():
+            total_count_in_cluster = joined.filter(pl.col("geocode").is_in(geocodes))[
                 "count"
             ].sum()
 
             df.vstack(
-                joined.filter(pl.col("geocode").is_in(geocodees))
+                joined.filter(pl.col("geocode").is_in(geocodes))
                 .group_by(["kingdom", "taxonRank", "scientificName"])
                 .agg(
                     pl.col("count").sum().alias("count"),
