@@ -3,7 +3,7 @@ name = "inaturalist-ecoregions"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9,<3.10"
+requires-python = ">=3.10,<3.11"
 dependencies = [
     "matplotlib>=3.9.3",
     "mypy>=1.13.0",
