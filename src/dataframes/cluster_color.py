@@ -17,7 +17,7 @@ class ClusterColorDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA
+        assert df.schema == self.SCHEMA, f"Schema mismatch: {df.schema} != {self.SCHEMA}"
         self.df = df
 
     def get_color_for_cluster(self, cluster: ClusterId) -> str:
@@ -38,7 +38,7 @@ class ClusterColorDataFrame(DataContainer):
             for cluster, color_index in colors.items()
         ]
 
-        return cls(pl.DataFrame(rows))
+        return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
 
     def to_dict(self) -> Dict[ClusterId, str]:
         return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}

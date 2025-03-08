@@ -23,7 +23,8 @@ class TestGeojson(unittest.TestCase):
                     [
                         {"cluster": 1, "color": "#ff0000"},
                         {"cluster": 2, "color": "#0000ff"},
-                    ]
+                    ],
+                    schema=ClusterColorDataFrame.SCHEMA,
                 )
             ),
         )
