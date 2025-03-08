@@ -16,7 +16,7 @@ def build_geojson_feature(
 ) -> geojson.Feature:
     return geojson.Feature(
         properties={
-            # "label": ", ".join(geocodees),
+            # "label": ", ".join(geocodes),
             "fill": color,
             "stroke-width": 0,
             "cluster": cluster,

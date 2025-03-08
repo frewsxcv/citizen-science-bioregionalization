@@ -7,7 +7,7 @@ from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
 class TaxonomyDataFrame(DataContainer):
     """
-    A dataframe of taxonomy information. Note that this may include taxa for geocodees that were filtered out.
+    A dataframe of taxonomy information. Note that this may include taxa for geocodes that were filtered out.
     """
 
     df: pl.DataFrame

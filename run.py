@@ -1,4 +1,4 @@
-# TODO: Don't include geocodees that extend beyond the bounds of the dataset
+# TODO: Don't include geocodes that extend beyond the bounds of the dataset
 # so those clusters will have artificially fewer counts
 
 import logging

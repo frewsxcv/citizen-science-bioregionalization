@@ -143,11 +143,11 @@ class DistanceMatrix(DataContainer):
         X = log_action("Fitting PCA", lambda: X.pipe(reduce_dimensions_umap))
 
         logger.info(
-            f"Reduced dimensions with PCA. Now: {X.shape[0]} geocodees, {X.shape[1]} taxon IDs"
+            f"Reduced dimensions with PCA. Now: {X.shape[0]} geocodes, {X.shape[1]} taxon IDs"
         )
 
         Y = log_action(
-            f"Running pdist on matrix: {X.shape[0]} geocodees, {X.shape[1]} taxon IDs",
+            f"Running pdist on matrix: {X.shape[0]} geocodes, {X.shape[1]} taxon IDs",
             lambda: pdist(X, metric="braycurtis"),
         )
 

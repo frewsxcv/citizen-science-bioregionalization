@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 def print_cluster_stats(
     cluster: int,
-    geocodees: List[str],
+    geocodes: List[str],
     all_stats: ClusterTaxaStatisticsDataFrame,
 ) -> None:
-    # stats = Stats.build(darwin_core_aggregations, geocode_filter=geocodees)
+    # stats = Stats.build(darwin_core_aggregations, geocode_filter=geocodes)
     print("-" * 10)
-    print(f"cluster {cluster} (count: {len(geocodees)})")
+    print(f"cluster {cluster} (count: {len(geocodes)})")
 
     for kingdom, taxonRank, scientificName, count, average in (
         all_stats.df.filter(
@@ -75,9 +75,9 @@ def print_results(
 
     logger.info(f"Number of clusters: {geocode_cluster_dataframe.num_clusters()}")
 
-    for cluster, geocodees in geocode_cluster_dataframe.iter_clusters_and_geocodees():
+    for cluster, geocodes in geocode_cluster_dataframe.iter_clusters_and_geocodes():
         print_cluster_stats(
             cluster,
-            geocodees,
+            geocodes,
             all_stats,
         )

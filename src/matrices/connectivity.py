@@ -20,8 +20,8 @@ class ConnectivityMatrix(DataContainer):
 
     @classmethod
     def build(cls, geocode_dataframe: GeocodeDataFrame) -> 'ConnectivityMatrix':
-        num_geocodees = len(geocode_dataframe.df)
-        connectivity_matrix = np.zeros((num_geocodees, num_geocodees), dtype=int)
+        num_geocodes = len(geocode_dataframe.df)
+        connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
         for i, neighbors in enumerate(geocode_dataframe.df["direct_and_indirect_neighbors"]):
             for neighbor in neighbors:
