@@ -38,12 +38,7 @@ class ClusterColorDataFrame(DataContainer):
             for cluster, color_index in colors.items()
         ]
 
-        df = pl.DataFrame(rows).with_columns([
-            pl.col("cluster").cast(pl.UInt32),
-            pl.col("color").cast(pl.Utf8),
-        ])
-
-        return cls(df)
+        return cls(pl.DataFrame(rows))
 
     def to_dict(self) -> Dict[ClusterId, str]:
         return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}
