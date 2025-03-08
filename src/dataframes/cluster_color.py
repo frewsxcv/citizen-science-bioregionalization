@@ -1,9 +1,11 @@
 from typing import Dict, List
 import polars as pl
+from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.types import ClusterId
 from src.data_container import DataContainer
 import seaborn as sns
+import networkx as nx
 
 
 class ClusterColorDataFrame(DataContainer):
@@ -11,29 +13,37 @@ class ClusterColorDataFrame(DataContainer):
 
     SCHEMA = {
         "cluster": pl.UInt32,
-        "color": pl.String,
+        "color": pl.Utf8,
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
+        assert df.schema == self.SCHEMA
         self.df = df
 
     def get_color_for_cluster(self, cluster: ClusterId) -> str:
         return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
     @classmethod
-    def build(cls, geocode_cluster_dataframe: GeocodeClusterDataFrame) -> 'ClusterColorDataFrame':
-        clusters = geocode_cluster_dataframe.cluster_ids()
-        palette = sns.color_palette("Spectral", n_colors=len(clusters))
-        colors = [rgb_to_hex(*palette[i]) for i in range(len(clusters))]
-        return cls(
-            df=pl.DataFrame(
-                data={
-                    "cluster": clusters,
-                    "color": colors,
-                },
-                schema=cls.SCHEMA,
-            )
-        )
+    def build(
+        cls,
+        cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
+    ) -> "ClusterColorDataFrame":
+        G = cluster_neighbors_dataframe.graph()
+
+        colors = nx.coloring.greedy_color(G)
+
+        color_palette = sns.color_palette("hsv", max(colors.values()) + 1).as_hex()
+        rows = [
+            {"cluster": cluster, "color": color_palette[color_index]}
+            for cluster, color_index in colors.items()
+        ]
+
+        df = pl.DataFrame(rows).with_columns([
+            pl.col("cluster").cast(pl.UInt32),
+            pl.col("color").cast(pl.Utf8),
+        ])
+
+        return cls(df)
 
     def to_dict(self) -> Dict[ClusterId, str]:
         return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}

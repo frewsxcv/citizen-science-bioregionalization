@@ -4,6 +4,7 @@
 import logging
 import typer
 from src import cli_output
+from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
@@ -69,8 +70,14 @@ def run(
         taxonomy_dataframe,
     )
 
-    cluster_colors_dataframe = ClusterColorDataFrame.build(geocode_cluster_dataframe)
+    cluster_neighbors_dataframe = ClusterNeighborsDataFrame.build(
+        geocode_dataframe,
+        geocode_cluster_dataframe,
+    )
 
+    cluster_colors_dataframe = ClusterColorDataFrame.build(
+        cluster_neighbors_dataframe,
+    )
     feature_collection = build_geojson_feature_collection(
         geocode_cluster_dataframe,
         cluster_colors_dataframe,
