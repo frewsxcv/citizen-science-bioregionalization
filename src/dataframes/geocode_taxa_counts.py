@@ -42,13 +42,6 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
             # Temporary: Filter out orders that are not Diptera
             # read_dataframe = read_dataframe.filter(pl.col("order") == "Diptera")
 
-            # `aggregated` is a dataframe that looks like this:
-            #
-            # +------------+----------+---------+--------------+-------+
-            # | geocode    | kingdom  | rank    | name         | count |
-            # +------------+----------+---------+--------------+-------+
-            # | u4pruydqqvj| Animalia | species | Panthera leo | 42    |
-            # +------------+----------+---------+--------------+-------+
             aggregated = (
                 darwin_core_csv_lazy_frame.lf.with_columns(
                     polars_h3.latlng_to_cell(
