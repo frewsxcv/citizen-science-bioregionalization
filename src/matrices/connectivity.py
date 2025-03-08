@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Self
 
 from src.dataframes.geocode import (
     GeocodeDataFrame,
@@ -20,11 +19,11 @@ class ConnectivityMatrix(DataContainer):
         self._connectivity_matrix = connectivity_matrix
 
     @classmethod
-    def build(cls, geocode_dataframe: GeocodeDataFrame) -> Self:
+    def build(cls, geocode_dataframe: GeocodeDataFrame) -> 'ConnectivityMatrix':
         num_geocodees = len(geocode_dataframe.df)
         connectivity_matrix = np.zeros((num_geocodees, num_geocodees), dtype=int)
 
-        for i, neighbors in enumerate(geocode_dataframe.df["neighbors"]):
+        for i, neighbors in enumerate(geocode_dataframe.df["direct_and_indirect_neighbors"]):
             for neighbor in neighbors:
                 j = index_of_geocode_in_geocode_dataframe(neighbor, geocode_dataframe)
                 connectivity_matrix[i, j] = 1

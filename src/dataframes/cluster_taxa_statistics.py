@@ -1,4 +1,4 @@
-from typing import List, Optional, Self
+from typing import List, Optional
 
 import polars as pl
 
@@ -33,7 +33,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         geocode_taxa_counts_dataframe: GeocodeTaxaCountsDataFrame,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
-    ) -> Self:
+    ) -> 'ClusterTaxaStatisticsDataFrame':
         df = pl.DataFrame(schema=cls.SCHEMA)
 
         # Schema:

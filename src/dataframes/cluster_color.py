@@ -1,4 +1,4 @@
-from typing import Dict, List, Self
+from typing import Dict, List
 import polars as pl
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.types import ClusterId
@@ -21,7 +21,7 @@ class ClusterColorDataFrame(DataContainer):
         return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
     @classmethod
-    def build(cls, geocode_cluster_dataframe: GeocodeClusterDataFrame) -> Self:
+    def build(cls, geocode_cluster_dataframe: GeocodeClusterDataFrame) -> 'ClusterColorDataFrame':
         clusters = geocode_cluster_dataframe.cluster_ids()
         palette = sns.color_palette("Spectral", n_colors=len(clusters))
         colors = [rgb_to_hex(*palette[i]) for i in range(len(clusters))]

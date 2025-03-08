@@ -1,4 +1,4 @@
-from typing import Iterator, List, Self, Tuple
+from typing import Iterator, List, Tuple
 import logging
 import polars as pl
 from scipy.sparse import csr_matrix
@@ -30,18 +30,18 @@ class GeocodeClusterDataFrame(DataContainer):
         distance_matrix: DistanceMatrix,
         connectivity_matrix: ConnectivityMatrix,
         num_clusters: int,
-    ) -> Self:
-        geocodees = geocode_dataframe.df["geocode"]
+    ) -> 'GeocodeClusterDataFrame':
+        geocodes = geocode_dataframe.df["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,
             connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
             linkage="ward",
         ).fit_predict(distance_matrix.squareform())
-        assert len(geocodees) == len(clusters)
+        assert len(geocodes) == len(clusters)
         return cls(
             df=pl.DataFrame(
                 data={
-                    "geocode": geocodees,
+                    "geocode": geocodes,
                     "cluster": clusters,
                 },
                 schema=cls.SCHEMA,
@@ -51,9 +51,9 @@ class GeocodeClusterDataFrame(DataContainer):
     def cluster_ids(self) -> List[ClusterId]:
         return self.df["cluster"].unique().to_list()
 
-    def iter_clusters_and_geocodees(
+    def iter_clusters_and_geocodes(
         self,
-    ) -> Iterator[Tuple[ClusterId, List[Geocode]]]:
+    ) -> Iterator[Tuple[ClusterId, List[str]]]:
         for row in (self.df.group_by("cluster").all().sort("cluster")).iter_rows(
             named=True
         ):
@@ -62,7 +62,7 @@ class GeocodeClusterDataFrame(DataContainer):
     def cluster_for_geocode(self, geocode: Geocode) -> ClusterId:
         return self.df.filter(pl.col("geocode") == geocode)["cluster"].to_list()[0]
 
-    def geocodees_for_cluster(self, cluster: ClusterId) -> List[Geocode]:
+    def geocodes_for_cluster(self, cluster: ClusterId) -> List[Geocode]:
         return self.df.filter(pl.col("cluster") == cluster)["geocode"].to_list()
 
     def num_clusters(self) -> int:

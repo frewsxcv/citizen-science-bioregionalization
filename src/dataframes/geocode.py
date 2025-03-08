@@ -1,5 +1,4 @@
 import polars as pl
-from typing import Self
 import logging
 from shapely import MultiPoint, Point
 import shapely.ops
@@ -45,7 +44,7 @@ class GeocodeDataFrame(DataContainer):
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
         geocode_precision: int,
-    ) -> Self:
+    ) -> 'GeocodeDataFrame':
         df = (
             darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
             .with_columns(
@@ -148,13 +147,13 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
             MultiPoint(other_component_points),
         )
 
-        geocode1: None | str = None
+        geocode1 = None
         for i, node in enumerate(first_component_points.geoms):
             if node.equals_exact(p1, 1e-6):
                 geocode1 = first_component_nodes[i][1]
                 break
 
-        geocode2: None | str = None
+        geocode2 = None
         for i, node in enumerate(other_component_points):
             if node.equals_exact(p2, 1e-6):
                 geocode2 = other_component_nodes[i][1]

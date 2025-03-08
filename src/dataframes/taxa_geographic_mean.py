@@ -1,7 +1,6 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
-from typing import Self
 import logging
 from src.data_container import DataContainer
 import polars_h3
@@ -24,7 +23,7 @@ class TaxaGeographicMeanDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame) -> Self:
+    def build(cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame) -> 'TaxaGeographicMeanDataFrame':
         # TODO: this doesn't handle the international date line
         df = (
             geocode_taxa_counts.df.lazy()

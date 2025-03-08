@@ -1,7 +1,6 @@
 import polars as pl
 from src.darwin_core import kingdom_enum
 from src.data_container import DataContainer
-from typing import Self
 
 
 class DarwinCoreCsvLazyFrame(DataContainer):
@@ -21,7 +20,7 @@ class DarwinCoreCsvLazyFrame(DataContainer):
         self.lf = lf
 
     @classmethod
-    def build(cls, csv_path: str) -> Self:
+    def build(cls, csv_path: str) -> 'DarwinCoreCsvLazyFrame':
         return cls(
             pl.scan_csv(
                 csv_path,

@@ -1,4 +1,3 @@
-from typing import Self
 import os
 
 import numpy as np
@@ -6,7 +5,8 @@ import polars as pl
 from sklearn.decomposition import IncrementalPCA
 from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
-
+from sklearn.manifold import TSNE
+import umap
 from src.data_container import DataContainer
 from src.dataframes import geocode_taxa_counts
 from src.dataframes.geocode import GeocodeDataFrame
@@ -99,9 +99,26 @@ def scale_values(X: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(scaler.fit_transform(X.to_numpy()))
 
 
-def reduce_dimensions(X: pl.DataFrame) -> pl.DataFrame:
+def reduce_dimensions_pca(X: pl.DataFrame) -> pl.DataFrame:
     pca = IncrementalPCA(n_components=3000, copy=True, batch_size=3000)
     return pl.from_numpy(pca.fit_transform(X.to_numpy()))
+
+
+def reduce_dimensions_umap(X: pl.DataFrame) -> pl.DataFrame:
+    reducer = umap.UMAP(n_components=7_000, metric="braycurtis")
+    return pl.from_numpy(reducer.fit_transform(X.to_numpy()))
+
+
+def reduce_dimensions_tsne(X: pl.DataFrame) -> pl.DataFrame:
+    tsne = TSNE(
+        n_components=3000,
+        random_state=42,
+        metric="braycurtis",
+        method="exact",
+        init="random",
+        # perplexity=min(30, X.shape[0] - 1), # HACK FOR SMALLER DATASETS
+    )
+    return pl.from_numpy(tsne.fit_transform(X.to_numpy()))
 
 
 class DistanceMatrix(DataContainer):
@@ -115,7 +132,7 @@ class DistanceMatrix(DataContainer):
         cls,
         geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
         geocode_dataframe: GeocodeDataFrame,
-    ) -> Self:
+    ) -> 'DistanceMatrix':
         X = build_X(geocode_taxa_counts_dataframe, geocode_dataframe)
 
         # filtered.group_by("geocode").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
@@ -123,7 +140,7 @@ class DistanceMatrix(DataContainer):
         logger.info(f"Reducing dimensions with PCA. Previously: {X.shape}")
 
         # Use PCA to reduce the number of dimensions
-        X = log_action("Fitting PCA", lambda: X.pipe(reduce_dimensions))
+        X = log_action("Fitting PCA", lambda: X.pipe(reduce_dimensions_umap))
 
         logger.info(
             f"Reduced dimensions with PCA. Now: {X.shape[0]} geocodees, {X.shape[1]} taxon IDs"
