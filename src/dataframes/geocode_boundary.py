@@ -40,19 +40,12 @@ class GeocodeBoundaryDataFrame(DataContainer):
             )
             geocodes.append(geocode)
 
-
-        series = pl.Series(
-            values=polygons,
-            dtype=pl.Object,
-        )
-
         df = pl.DataFrame(
             data={
                 "geocode": geocodes,
-                "boundary": series,
+                "boundary": polygons,
             },
-        )
-        df = df.with_columns(
+        ).with_columns(
             polars_st.from_shapely(pl.col("boundary")).alias("boundary"),
         )
         return cls(df)
