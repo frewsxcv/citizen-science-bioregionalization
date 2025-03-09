@@ -12,6 +12,7 @@ from src.dataframes import (
     taxa_geographic_mean,
     cluster_significant_differences,
     geocode,
+    cluster_boundary,
 )
 from src.lazyframes import darwin_core_csv
 from src.matrices import distance, connectivity
