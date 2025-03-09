@@ -24,12 +24,12 @@ def plot_dependency_graph():
     G = build_dependency_graph()
 
     plt.figure(figsize=(12, 8))
-    pos = nx.shell_layout(G)
+    pos = nx.nx_pydot.graphviz_layout(G, prog="dot")
 
-    nx.draw_networkx_nodes(G, pos, node_color='lightblue')
-    nx.draw_networkx_edges(G, pos, edge_color='gray')
-    nx.draw_networkx_labels(G, pos, font_size=10, font_weight='bold')
+    nx.draw_networkx_nodes(G, pos, node_color="lightblue")
+    nx.draw_networkx_edges(G, pos, edge_color="gray", arrowsize=20)
+    nx.draw_networkx_labels(G, pos, font_size=10, font_weight="bold")
 
     plt.title("DataContainer Dependency Graph")
-    plt.axis('off')
+    plt.axis("off")
     plt.show()
