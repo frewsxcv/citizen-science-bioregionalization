@@ -17,11 +17,11 @@ dependencies = [
     "typer>=0.15.1",
     "shapely>=2.0.6",
     "seaborn>=0.13.2",
-    "mermaid-py>=0.7.0",
     "networkx>=3.2.0",
     "polars-h3>=0.5.1",
     "black[jupyter]>=25.1.0",
     "umap-learn>=0.5.7",
+    "polars-st>=0.1.0a10",
 ]
 
 [tool.mypy]

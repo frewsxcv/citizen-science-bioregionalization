@@ -6,6 +6,7 @@ import typer
 from src import cli_output
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.dataframes.geocode_boundary import GeocodeBoundaryDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
@@ -78,7 +79,13 @@ def run(
     cluster_colors_dataframe = ClusterColorDataFrame.build(
         cluster_neighbors_dataframe,
     )
+
+    geocode_boundary_dataframe = GeocodeBoundaryDataFrame.build(
+        geocode_cluster_dataframe,
+    )
+
     feature_collection = build_geojson_feature_collection(
+        geocode_boundary_dataframe,
         geocode_cluster_dataframe,
         cluster_colors_dataframe,
     )
