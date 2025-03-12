@@ -105,7 +105,11 @@ def reduce_dimensions_pca(X: pl.DataFrame) -> pl.DataFrame:
 
 
 def reduce_dimensions_umap(X: pl.DataFrame) -> pl.DataFrame:
-    reducer = umap.UMAP(n_components=7_000, metric="braycurtis")
+    # https://github.com/lmcinnes/umap/issues/201
+    assert (
+        X.height > 10
+    ), "Temporary constraint until I have a better understanding of this operation"
+    reducer = umap.UMAP(n_components=X.height - 2, metric="braycurtis")
     return pl.from_numpy(reducer.fit_transform(X.to_numpy()))
 
 
