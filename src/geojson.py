@@ -1,7 +1,7 @@
 import geojson
 import polars as pl
 import shapely
-from src.dataframes.geocode_boundary import GeocodeBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -24,25 +24,19 @@ def build_geojson_feature(
 
 
 def build_geojson_feature_collection(
-    geocode_boundary_dataframe: GeocodeBoundaryDataFrame,
-    geocode_cluster_dataframe: GeocodeClusterDataFrame,
+    cluster_boundary_dataframe: ClusterBoundaryDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
 ) -> geojson.FeatureCollection:
     features: list[geojson.Feature] = []
 
-    for cluster, boundaries, color in (
-        geocode_boundary_dataframe
-        .df
-        .join(geocode_cluster_dataframe.df, on="geocode")
-        .drop("geocode")
-        .group_by("cluster")
-        .agg(pl.all())
+    for cluster, boundary, color in (
+        cluster_boundary_dataframe.df
         .join(cluster_colors_dataframe.df, on="cluster")
         .iter_rows()
     ):
         features.append(
             build_geojson_feature(
-                shapely.union_all([shapely.from_wkb(boundary) for boundary in boundaries]),
+                shapely.from_wkb(boundary),
                 cluster,
                 color,
             )

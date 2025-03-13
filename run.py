@@ -10,6 +10,7 @@ from src.dataframes.geocode_boundary import GeocodeBoundaryDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.matrices.distance import DistanceMatrix
@@ -60,9 +61,9 @@ def run(
         num_clusters,
     )
 
-    taxa_geographic_mean_dataframe = TaxaGeographicMeanDataFrame.build(
-        geocode_taxa_counts_dataframe
-    )
+    # taxa_geographic_mean_dataframe = TaxaGeographicMeanDataFrame.build(
+    #     geocode_taxa_counts_dataframe
+    # )
 
     # Find the top averages of taxon
     all_stats = ClusterTaxaStatisticsDataFrame.build(
@@ -84,19 +85,27 @@ def run(
         geocode_cluster_dataframe,
     )
 
-    feature_collection = build_geojson_feature_collection(
-        geocode_boundary_dataframe,
+    cluster_boundary_dataframe = ClusterBoundaryDataFrame.build(
         geocode_cluster_dataframe,
+        geocode_boundary_dataframe,
+    )
+
+    feature_collection = build_geojson_feature_collection(
+        cluster_boundary_dataframe,
         cluster_colors_dataframe,
     )
 
     cli_output.print_results(all_stats, geocode_cluster_dataframe)
 
+    write_geojson(feature_collection, output_file)
+
     if plot:
         plot_clusters(feature_collection)
 
-    write_geojson(feature_collection, output_file)
+
+def main() -> None:
+    typer.run(run)
 
 
 if __name__ == "__main__":
-    typer.run(run)
+    main()
