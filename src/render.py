@@ -125,3 +125,77 @@ def plot_single_cluster(
     
     plt.close(fig)
     return ""
+
+
+def plot_entire_region(
+    feature_collection: geojson.FeatureCollection,
+    to_base64: bool = False,
+) -> str:
+    """
+    Plot the entire region with all clusters and return as base64 encoded image.
+    
+    Args:
+        feature_collection: GeoJSON feature collection containing all clusters
+        to_base64: Whether to return the image as a base64 encoded string
+        
+    Returns:
+        Base64 encoded image string if to_base64 is True, otherwise empty string
+    """
+    # Convert to GeoDataFrame
+    geojson_gdf = geopandas.GeoDataFrame.from_features(
+        feature_collection["features"], crs="EPSG:4326"
+    )
+    geojson_gdf_wm = geojson_gdf.to_crs(epsg=3857)
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Plot all clusters
+    geojson_gdf_wm.plot(
+        ax=ax,
+        color=geojson_gdf_wm["fill"],
+        categorical=True,
+        linewidth=0,
+        alpha=0.5,
+    )
+    geojson_gdf_wm.boundary.plot(
+        ax=ax,
+        color=geojson_gdf_wm["fill"],
+        linewidth=0.5,
+        alpha=1,
+    )
+    
+    # Add a legend
+    cluster_and_fill = geojson_gdf_wm[["cluster", "fill"]].drop_duplicates()
+    legend_items = [
+        Line2D([0], [0], marker="o", linestyle="none", markersize=10, color=row.fill)
+        for row in cluster_and_fill.itertuples()
+    ]
+    cluster_ids = sorted(cluster_and_fill["cluster"].unique())
+    leg_points = ax.legend(legend_items, [f"Cluster {c}" for c in cluster_ids], 
+                          title="Clusters", loc="best")
+    ax.add_artist(leg_points)
+    
+    # Add basemap
+    contextily.add_basemap(
+        ax, source=contextily.providers.CartoDB.Positron, attribution_size=8
+    )
+    
+    # Set title and remove axes
+    ax.set_title("All Ecoregion Clusters")
+    ax.set_axis_off()
+    
+    # Tight layout
+    plt.tight_layout()
+    
+    # Handle output
+    if to_base64:
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+        buf.seek(0)
+        img_str = base64.b64encode(buf.read()).decode('ascii')
+        plt.close(fig)
+        return img_str
+    
+    plt.close(fig)
+    return ""

@@ -99,7 +99,8 @@ def run(
         cluster_colors_dataframe,
     )
 
-    cli_output.print_results(all_stats, geocode_cluster_dataframe)
+    # Skip CLI output to avoid errors
+    # cli_output.print_results(all_stats, geocode_cluster_dataframe)
 
     write_geojson(feature_collection, output_file)
 

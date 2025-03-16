@@ -4,7 +4,7 @@ from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesDataFrame,
 )
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.render import plot_single_cluster
+from src.render import plot_single_cluster, plot_entire_region
 import geojson
 
 
@@ -69,13 +69,22 @@ def build_html_output_with_maps(
     .cluster-header { display: flex; align-items: center; margin-bottom: 20px; }
     .cluster-title { margin: 0 20px 0 0; }
     .cluster-map { max-width: 600px; margin-bottom: 20px; border: 1px solid #eee; }
+    .full-region-map { max-width: 800px; margin: 20px auto; display: block; border: 1px solid #eee; }
     ul { margin-top: 10px; }
     h2 { margin-top: 20px; margin-bottom: 5px; }
     .color-sample { display: inline-block; width: 20px; height: 20px; margin-right: 10px; border: 1px solid #000; }
+    .region-overview { text-align: center; margin-bottom: 30px; }
     """
     html += "</style></head><body>"
     
     html += "<h1>Ecoregion Cluster Analysis</h1>"
+    
+    # Add overview map of the entire region at the top
+    html += '<div class="region-overview">'
+    html += '<h2>Complete Ecoregion Map</h2>'
+    img_base64 = plot_entire_region(feature_collection, to_base64=True)
+    html += f'<img class="full-region-map" src="data:image/png;base64,{img_base64}" alt="Map of All Ecoregion Clusters">'
+    html += '</div>'
     
     # Get unique clusters and sort them
     clusters = sorted(cluster_colors_dataframe.df["cluster"].unique().to_list())
