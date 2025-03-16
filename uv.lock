@@ -161,12 +161,6 @@ wheels = [
 ]
 
 [[package]]
-name = "contexttimer"
-version = "0.3.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/1d/e0/504aa08a83dc2ff90f61a83b5f70d689e1f5138ab30576124ea2ff9f5076/contexttimer-0.3.3.tar.gz", hash = "sha256:35a1efd389af3f1ca509f33ff23e17d98b66c8fde5ba2a4eb8a8b7fa456598a5", size = 4875 }
-
-[[package]]
 name = "contourpy"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -306,7 +300,6 @@ source = { virtual = "." }
 dependencies = [
     { name = "black", extra = ["jupyter"] },
     { name = "contextily" },
-    { name = "contexttimer" },
     { name = "geojson" },
     { name = "geopandas" },
     { name = "jinja2" },
@@ -329,7 +322,6 @@ dependencies = [
 requires-dist = [
     { name = "black", extras = ["jupyter"], specifier = ">=25.1.0" },
     { name = "contextily", specifier = ">=1.6.2" },
-    { name = "contexttimer", specifier = ">=0.3.3" },
     { name = "geojson", specifier = ">=3.1.0" },
     { name = "geopandas", specifier = ">=1.0.1" },
     { name = "jinja2", specifier = ">=3.1.6" },

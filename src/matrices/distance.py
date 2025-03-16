@@ -11,7 +11,6 @@ from src.data_container import DataContainer
 from src.dataframes import geocode_taxa_counts
 from src.dataframes.geocode import GeocodeDataFrame
 from src.logging import log_action, logger
-from contexttimer import Timer
 
 
 def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:

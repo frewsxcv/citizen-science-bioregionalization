@@ -2,7 +2,7 @@ import logging
 import polars as pl
 from typing import List
 from src.darwin_core import kingdom_enum
-from contexttimer import Timer
+from src.logging import Timer
 import polars_h3
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
