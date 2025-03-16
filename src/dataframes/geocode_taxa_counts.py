@@ -24,7 +24,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA
+        assert df.schema == self.SCHEMA, f"Schema mismatch. Expected: {self.SCHEMA}, got: {df.schema}"
         self.df = df
 
     @classmethod

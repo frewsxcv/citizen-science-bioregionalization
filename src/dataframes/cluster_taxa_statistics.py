@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import polars as pl
 
@@ -22,6 +22,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     def iter_cluster_ids(self) -> list[ClusterId]:
@@ -33,7 +34,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         geocode_taxa_counts_dataframe: GeocodeTaxaCountsDataFrame,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
-    ) -> 'ClusterTaxaStatisticsDataFrame':
+    ) -> "ClusterTaxaStatisticsDataFrame":
         df = pl.DataFrame(schema=cls.SCHEMA)
 
         # Schema:
@@ -51,6 +52,22 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         joined = geocode_taxa_counts_dataframe.df.join(
             taxonomy_dataframe.df, on=["kingdom", "scientificName", "taxonRank"]
         )
+        assert_dataframe_schema(
+            joined,
+            {
+                "geocode": pl.String(),
+                "kingdom": kingdom_enum,
+                "taxonRank": pl.String(),
+                "scientificName": pl.String(),
+                "count": pl.UInt32(),
+                "phylum": pl.String(),
+                "class": pl.String(),
+                "order": pl.String(),
+                "family": pl.String(),
+                "genus": pl.String(),
+                "species": pl.String(),
+            },
+        )
 
         # Total count of all observations
         total_count = joined["count"].sum()
@@ -67,31 +84,53 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
             in_place=True,
         )
 
-        for (
-            cluster,
-            geocodes,
-        ) in geocode_cluster_dataframe.iter_clusters_and_geocodes():
-            total_count_in_cluster = joined.filter(pl.col("geocode").is_in(geocodes))[
-                "count"
-            ].sum()
-
-            df.vstack(
-                joined.filter(pl.col("geocode").is_in(geocodes))
-                .group_by(["kingdom", "taxonRank", "scientificName"])
-                .agg(
-                    pl.col("count").sum().alias("count"),
-                    (pl.col("count").sum() / total_count_in_cluster).alias("average"),
-                )
-                .pipe(add_cluster_column, value=cluster)
-                .select(cls.SCHEMA.keys()),  # Reorder columns
-                in_place=True,
+        # Create a mapping from geocode to cluster
+        geocode_to_cluster = geocode_cluster_dataframe.df.select(
+            ["geocode", "cluster"]
+        )
+        
+        # Join the cluster information with the data
+        joined_with_cluster = joined.join(
+            geocode_to_cluster,
+            on="geocode",
+            how="inner"
+        )
+        
+        # Calculate total counts per cluster
+        cluster_totals = (
+            joined_with_cluster
+            .group_by("cluster")
+            .agg(
+                pl.col("count").sum().alias("total_count_in_cluster")
             )
+        )
+        
+        # Calculate stats for each cluster in one operation
+        cluster_stats = (
+            joined_with_cluster
+            .group_by(["cluster", "kingdom", "taxonRank", "scientificName"])
+            .agg(
+                pl.col("count").sum().alias("count"),
+            )
+            .join(
+                cluster_totals,
+                on="cluster"
+            )
+            .with_columns([
+                (pl.col("count") / pl.col("total_count_in_cluster")).alias("average")
+            ])
+            .drop("total_count_in_cluster")
+            .select(cls.SCHEMA.keys())  # Ensure columns are in the right order
+        )
+        
+        # Add cluster-specific stats to the dataframe
+        df.vstack(cluster_stats, in_place=True)
 
         return cls(df=df)
 
     def _get_count_by_rank_and_name(self, rank: str, name: str) -> int:
         counts = self.df.filter(
-            (pl.col("rank") == rank) & (pl.col("name") == name)
+            (pl.col("taxonRank") == rank) & (pl.col("scientificName") == name)
         ).get_column("count")
         assert len(counts) <= 1
         sum = counts.sum()
@@ -117,3 +156,12 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
     return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))
+
+
+def assert_dataframe_schema(
+    df: pl.DataFrame,
+    expected_schema: Dict[str, pl.DataType],
+) -> None:
+    assert (
+        df.schema == expected_schema
+    ), f"Dataframe schema mismatch. Expected: {expected_schema}, got: {df.schema}"
