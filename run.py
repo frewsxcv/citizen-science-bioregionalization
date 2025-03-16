@@ -13,12 +13,14 @@ from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.dataframes.cluster_significant_differences import ClusterSignificantDifferencesDataFrame
 from src.matrices.distance import DistanceMatrix
 from src.matrices.connectivity import ConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
 from src.dataframes.geocode import GeocodeDataFrame
+from src.html_output import build_html_output_with_maps, write_html
 
 
 def run(
@@ -28,6 +30,7 @@ def run(
     input_file: str = typer.Argument(..., help="Path to the input file"),
     output_file: str = typer.Argument(..., help="Path to the output file"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
+    html_output: str = typer.Option(None, help="Path to HTML output file with cluster maps"),
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
@@ -99,6 +102,25 @@ def run(
     cli_output.print_results(all_stats, geocode_cluster_dataframe)
 
     write_geojson(feature_collection, output_file)
+
+    # Calculate significant differences for HTML output
+    if html_output:
+        # ClusterSignificantDifferencesDataFrame only needs the all_stats parameter
+        cluster_significant_differences_df = ClusterSignificantDifferencesDataFrame.build(
+            all_stats
+        )
+        
+        # Generate HTML with maps
+        html_content = build_html_output_with_maps(
+            cluster_colors_dataframe,
+            cluster_significant_differences_df,
+            taxonomy_dataframe,
+            feature_collection,
+        )
+        
+        # Write HTML to file
+        write_html(html_content, html_output)
+        logging.info(f"HTML output with maps written to {html_output}")
 
     if plot:
         plot_clusters(feature_collection)
