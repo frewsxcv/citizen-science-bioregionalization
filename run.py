@@ -20,7 +20,7 @@ from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
 from src.dataframes.geocode import GeocodeDataFrame
-from src.html_output import build_html_output_with_maps, write_html
+from src.html_output import prepare_full_report_data, render_html, write_html
 
 
 def run(
@@ -111,12 +111,13 @@ def run(
     )
     
     # Generate HTML with maps
-    html_content = build_html_output_with_maps(
+    report_data = prepare_full_report_data(
         cluster_colors_dataframe,
         cluster_significant_differences_df,
         taxonomy_dataframe,
         feature_collection,
     )
+    html_content = render_html('cluster_report.html', report_data)
     
     # Write HTML to file
     write_html(html_content, html_output)
