@@ -3,7 +3,7 @@ import polars as pl
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.types import ClusterId
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 import seaborn as sns
 import networkx as nx
 
@@ -17,7 +17,7 @@ class ClusterColorDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA, f"Schema mismatch: {df.schema} != {self.SCHEMA}"
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     def get_color_for_cluster(self, cluster: ClusterId) -> str:

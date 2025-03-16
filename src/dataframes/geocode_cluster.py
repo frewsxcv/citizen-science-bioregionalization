@@ -7,7 +7,7 @@ from src.matrices.connectivity import ConnectivityMatrix
 from src.dataframes.geocode import GeocodeDataFrame
 from src.types import Geocode, ClusterId
 from src.matrices.distance import DistanceMatrix
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ class GeocodeClusterDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     @classmethod

@@ -4,7 +4,7 @@ import polars_st
 import shapely
 from typing import List, Tuple
 
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 
 
@@ -17,7 +17,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame):
-        assert df.schema == self.SCHEMA
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     @classmethod

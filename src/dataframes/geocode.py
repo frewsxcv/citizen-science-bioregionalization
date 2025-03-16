@@ -2,7 +2,7 @@ import polars as pl
 import logging
 from shapely import MultiPoint, Point
 import shapely.ops
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 import polars_h3
 import networkx as nx
@@ -34,9 +34,7 @@ class GeocodeDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame):
-        assert (
-            df.schema == self.SCHEMA
-        ), f"Schema mismatch: {df.schema} != {self.SCHEMA}"
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     @classmethod

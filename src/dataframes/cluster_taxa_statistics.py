@@ -7,7 +7,7 @@ from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.darwin_core import kingdom_enum
 from src.types import ClusterId
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 
 
 class ClusterTaxaStatisticsDataFrame(DataContainer):
@@ -156,12 +156,3 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
     return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))
-
-
-def assert_dataframe_schema(
-    df: pl.DataFrame,
-    expected_schema: Dict[str, pl.DataType],
-) -> None:
-    assert (
-        df.schema == expected_schema
-    ), f"Dataframe schema mismatch. Expected: {expected_schema}, got: {df.schema}"

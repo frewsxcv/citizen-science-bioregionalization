@@ -6,7 +6,7 @@ from contexttimer import Timer
 import polars_h3
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
-        assert df.schema == self.SCHEMA, f"Schema mismatch. Expected: {self.SCHEMA}, got: {df.schema}"
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     @classmethod
