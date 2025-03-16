@@ -45,6 +45,7 @@ def run(
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
         geohash_precision,
+        taxonomy_dataframe,
     )
 
     distance_matrix = DistanceMatrix.build(

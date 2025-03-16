@@ -8,6 +8,7 @@ import polars_h3
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame
+from src.dataframes.taxonomy import TaxonomyDataFrame
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +18,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
 
     SCHEMA = {
         "geocode": pl.String(),
-        "kingdom": kingdom_enum,
-        "taxonRank": pl.String(),
-        "scientificName": pl.String(),
+        "taxonId": pl.UInt32(),
         "count": pl.UInt32(),
     }
 
@@ -32,17 +31,11 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
         geocode_precision: int,
+        taxonomy_dataframe: TaxonomyDataFrame,
     ):
-        # Will this work for eBird?
-        # geocode_to_taxon_id_to_user_to_count: DefaultDict[
-        #     Geocode, DefaultDict[TaxonId, Counter[str]]
-        # ] = defaultdict(lambda: defaultdict(Counter))
-
         with Timer(output=logger.info, prefix="Reading rows"):
-            # Temporary: Filter out orders that are not Diptera
-            # read_dataframe = read_dataframe.filter(pl.col("order") == "Diptera")
-
-            aggregated = (
+            # First, create the raw aggregation with the old schema
+            raw_aggregated = (
                 darwin_core_csv_lazy_frame.lf.with_columns(
                     polars_h3.latlng_to_cell(
                         "decimalLatitude",
@@ -57,20 +50,21 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                 .sort(by="geocode")
                 .collect()
             )
-
-            # for row in dataframe_with_geocode.collect(streaming=True).iter_rows(
-            #     named=True
-            # ):
-            #     geocode_to_taxon_id_to_user_to_count[row["geocode"]][
-            #         row["taxonKey"]
-            #     ][row["recordedBy"]] += 1
-            #     # If the observer has seen the taxon more than 5 times, skip it
-            #     if (
-            #         geocode_to_taxon_id_to_user_to_count[row["geocode"]][
-            #             row["taxonKey"]
-            #         ][row["recordedBy"]]
-            #         > 5
-            #     ):
-            #         continue
-
+            
+            # Join with taxonomy dataframe to get taxonId
+            joined = raw_aggregated.join(
+                taxonomy_dataframe.df.select(["taxonId", "kingdom", "scientificName", "taxonRank"]),
+                on=["kingdom", "scientificName", "taxonRank"],
+                how="left"
+            )
+            
+            # Select only the columns we need for our new schema
+            aggregated = joined.select(["geocode", "taxonId", "count"])
+            
+            # Handle any missing taxonId values (this shouldn't happen if taxonomy is comprehensive)
+            if aggregated.filter(pl.col("taxonId").is_null()).height > 0:
+                logger.warning(f"Found {aggregated.filter(pl.col('taxonId').is_null()).height} records with no matching taxonomy entry")
+                # Drop records with no matching taxonomy as they can't be handled in the new schema
+                aggregated = aggregated.filter(pl.col("taxonId").is_not_null())
+            
             return cls(aggregated)

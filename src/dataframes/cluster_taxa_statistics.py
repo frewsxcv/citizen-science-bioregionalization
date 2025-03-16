@@ -37,37 +37,27 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     ) -> "ClusterTaxaStatisticsDataFrame":
         df = pl.DataFrame(schema=cls.SCHEMA)
 
-        # Schema:
-        #   - geocode: String
-        #   - kingdom: Enum
-        #   - taxonRank: String
-        #   - scientificName: String
-        #   - count: UInt32
-        #   - taxonId: UInt32
-        #   - phylum: String
-        #   - class: String
-        #   - order: String
-        #   - family: String
-        #   - genus: String
-        #   - species: String
+        # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
         joined = geocode_taxa_counts_dataframe.df.join(
-            taxonomy_dataframe.df, on=["kingdom", "scientificName", "taxonRank"]
+            taxonomy_dataframe.df, on="taxonId"
         )
+        
+        # Verify the schema of the joined dataframe
         assert_dataframe_schema(
             joined,
             {
                 "geocode": pl.String(),
-                "kingdom": kingdom_enum,
-                "taxonRank": pl.String(),
-                "scientificName": pl.String(),
-                "count": pl.UInt32(),
                 "taxonId": pl.UInt32(),
+                "count": pl.UInt32(),
+                "kingdom": kingdom_enum,
                 "phylum": pl.String(),
                 "class": pl.String(),
                 "order": pl.String(),
                 "family": pl.String(),
                 "genus": pl.String(),
                 "species": pl.String(),
+                "taxonRank": pl.String(),
+                "scientificName": pl.String(),
             },
         )
 

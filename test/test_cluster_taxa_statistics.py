@@ -42,12 +42,12 @@ class TestClusterTaxaStatistics(unittest.TestCase):
 
         # 2. Create geocode_taxa_counts dataframe
         geocode_taxa_counts_data = [
-            {"geocode": "geo1", "kingdom": "Animalia", "taxonRank": "species", "scientificName": "Panthera leo", "count": 5},
-            {"geocode": "geo1", "kingdom": "Animalia", "taxonRank": "species", "scientificName": "Canis lupus", "count": 3},
-            {"geocode": "geo2", "kingdom": "Animalia", "taxonRank": "species", "scientificName": "Panthera leo", "count": 2},
-            {"geocode": "geo2", "kingdom": "Plantae", "taxonRank": "species", "scientificName": "Quercus robur", "count": 8},
-            {"geocode": "geo3", "kingdom": "Plantae", "taxonRank": "species", "scientificName": "Quercus robur", "count": 4},
-            {"geocode": "geo3", "kingdom": "Animalia", "taxonRank": "order", "scientificName": "Anseriformes", "count": 6},
+            {"geocode": "geo1", "taxonId": 0, "count": 5},  # Panthera leo
+            {"geocode": "geo1", "taxonId": 1, "count": 3},  # Canis lupus
+            {"geocode": "geo2", "taxonId": 0, "count": 2},  # Panthera leo
+            {"geocode": "geo2", "taxonId": 2, "count": 8},  # Quercus robur
+            {"geocode": "geo3", "taxonId": 2, "count": 4},  # Quercus robur
+            {"geocode": "geo3", "taxonId": 3, "count": 6},  # Anseriformes
         ]
 
         # Create a geocode_taxa_counts DataFrame with proper schema
