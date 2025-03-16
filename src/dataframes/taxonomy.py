@@ -13,6 +13,7 @@ class TaxonomyDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
+        "taxonId": pl.UInt32(),  # Unique identifier for each taxon
         "kingdom": kingdom_enum,
         "phylum": pl.String(),
         "class": pl.String(),
@@ -45,4 +46,10 @@ class TaxonomyDataFrame(DataContainer):
             .unique()
             .collect()
         )
+        
+        # Add a unique taxonId for each row
+        df = df.with_row_index("taxonId").with_columns(
+            pl.col("taxonId").cast(pl.UInt32())
+        )
+        
         return cls(df)

@@ -19,16 +19,16 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         """
         # 1. Create taxonomy dataframe
         taxonomy_data = [
-            {"kingdom": "Animalia", "phylum": "Chordata", "class": "Mammalia", "order": "Carnivora",
-             "family": "Felidae", "genus": "Panthera", "species": "Panthera leo",
+            {"taxonId": 0, "kingdom": "Animalia", "phylum": "Chordata", "class": "Mammalia", "order": "Carnivora",
+             "family": "Felidae", "genus": "Panthera", "species": "leo",
              "taxonRank": "species", "scientificName": "Panthera leo"},
-            {"kingdom": "Animalia", "phylum": "Chordata", "class": "Mammalia", "order": "Carnivora",
-             "family": "Canidae", "genus": "Canis", "species": "Canis lupus",
+            {"taxonId": 1, "kingdom": "Animalia", "phylum": "Chordata", "class": "Mammalia", "order": "Carnivora",
+             "family": "Canidae", "genus": "Canis", "species": "lupus",
              "taxonRank": "species", "scientificName": "Canis lupus"},
-            {"kingdom": "Plantae", "phylum": "Tracheophyta", "class": "Magnoliopsida", "order": "Fagales",
-             "family": "Fagaceae", "genus": "Quercus", "species": "Quercus robur",
+            {"taxonId": 2, "kingdom": "Plantae", "phylum": "Tracheophyta", "class": "Magnoliopsida", "order": "Fagales",
+             "family": "Fagaceae", "genus": "Quercus", "species": "robur",
              "taxonRank": "species", "scientificName": "Quercus robur"},
-            {"kingdom": "Animalia", "phylum": "Chordata", "class": "Aves", "order": "Anseriformes",
+            {"taxonId": 3, "kingdom": "Animalia", "phylum": "Chordata", "class": "Aves", "order": "Anseriformes",
              "family": "", "genus": "", "species": "",
              "taxonRank": "order", "scientificName": "Anseriformes"},
         ]

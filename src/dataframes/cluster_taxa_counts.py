@@ -42,6 +42,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         #   - taxonRank: String
         #   - scientificName: String
         #   - count: UInt32
+        #   - taxonId: UInt32
         #   - phylum: String
         #   - class: String
         #   - order: String
@@ -59,6 +60,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
                 "taxonRank": pl.String(),
                 "scientificName": pl.String(),
                 "count": pl.UInt32(),
+                "taxonId": pl.UInt32(),
                 "phylum": pl.String(),
                 "class": pl.String(),
                 "order": pl.String(),
