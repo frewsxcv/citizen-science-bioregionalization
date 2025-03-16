@@ -5,7 +5,6 @@ import polars as pl
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.darwin_core import kingdom_enum
 from src.types import ClusterId
 from src.data_container import DataContainer, assert_dataframe_schema
 
@@ -14,11 +13,9 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
     df: pl.DataFrame
     SCHEMA = {
         "cluster": pl.UInt32(),  # `null` if stats for all clusters
-        "kingdom": kingdom_enum,
-        "taxonRank": pl.String(),
-        "scientificName": pl.String(),
+        "taxonId": pl.UInt32(),
         "count": pl.UInt32(),
-        "average": pl.Float64(),  # average of taxa with `name` within `rank` and `cluster`
+        "average": pl.Float64(),  # average of taxa with `taxonId` within `cluster`
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
@@ -41,32 +38,13 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         joined = geocode_taxa_counts_dataframe.df.join(
             taxonomy_dataframe.df, on="taxonId"
         )
-        
-        # Verify the schema of the joined dataframe
-        assert_dataframe_schema(
-            joined,
-            {
-                "geocode": pl.String(),
-                "taxonId": pl.UInt32(),
-                "count": pl.UInt32(),
-                "kingdom": kingdom_enum,
-                "phylum": pl.String(),
-                "class": pl.String(),
-                "order": pl.String(),
-                "family": pl.String(),
-                "genus": pl.String(),
-                "species": pl.String(),
-                "taxonRank": pl.String(),
-                "scientificName": pl.String(),
-            },
-        )
 
         # Total count of all observations
         total_count = joined["count"].sum()
 
         # Calculate stats for all clusters
         df.vstack(
-            joined.group_by(["kingdom", "scientificName", "taxonRank"])
+            joined.group_by(["taxonId"])
             .agg(
                 pl.col("count").sum().alias("count"),
                 (pl.col("count").sum() / total_count).alias("average"),
@@ -100,7 +78,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         # Calculate stats for each cluster in one operation
         cluster_stats = (
             joined_with_cluster
-            .group_by(["cluster", "kingdom", "taxonRank", "scientificName"])
+            .group_by(["cluster", "taxonId"])
             .agg(
                 pl.col("count").sum().alias("count"),
             )
@@ -119,31 +97,6 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         df.vstack(cluster_stats, in_place=True)
 
         return cls(df=df)
-
-    def _get_count_by_rank_and_name(self, rank: str, name: str) -> int:
-        counts = self.df.filter(
-            (pl.col("taxonRank") == rank) & (pl.col("scientificName") == name)
-        ).get_column("count")
-        assert len(counts) <= 1
-        sum = counts.sum()
-        assert isinstance(sum, int)
-        return sum
-
-    def order_count(self, order: str) -> int:
-        return self._get_count_by_rank_and_name("order", order)
-
-    def class_count(self, class_name: str) -> int:
-        return self._get_count_by_rank_and_name("class", class_name)
-
-    def waterfowl_count(self) -> int:
-        return (
-            self.order_count("Anseriformes")
-            + self.order_count("Charadriiformes")
-            + self.order_count("Gaviiformes")
-        )
-
-    def aves_count(self) -> int:
-        return self.class_count("Aves")
 
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:

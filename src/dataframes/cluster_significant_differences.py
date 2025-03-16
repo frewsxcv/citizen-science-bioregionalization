@@ -1,6 +1,6 @@
 import polars as pl
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.data_container import DataContainer
+from src.data_container import DataContainer, assert_dataframe_schema
 
 
 class ClusterSignificantDifferencesDataFrame(DataContainer):
@@ -12,13 +12,12 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
 
     SCHEMA = {
         "cluster": pl.UInt32(),
-        "kingdom": pl.String(),
-        "taxonRank": pl.String(),
-        "scientificName": pl.String(),
+        "taxonId": pl.UInt32(),
         "percentage_difference": pl.Float64(),  # TODO: should this a p-value?
     }
 
     def __init__(self, df: pl.DataFrame):
+        assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
     @classmethod
@@ -27,7 +26,7 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
         significant_differences = []
 
         for cluster in all_stats.iter_cluster_ids():
-            for kingdom, taxonRank, scientificName, average in (
+            for taxonId, average in (
                 all_stats.df.filter(
                     (
                         pl.col("cluster").is_null()
@@ -37,14 +36,12 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
                 )
                 .sort(by="count", descending=True)
                 .limit(20)  # TODO: Does this need to happen?
-                .select(["kingdom", "taxonRank", "scientificName", "average"])
+                .select(["taxonId", "average"])
                 .iter_rows(named=False)
             ):
                 all_average = (
                     all_stats.df.filter(
-                        pl.col("kingdom") == kingdom,
-                        pl.col("taxonRank") == taxonRank,
-                        pl.col("scientificName") == scientificName,
+                        pl.col("taxonId") == taxonId,
                         pl.col("cluster").is_null(),
                     )
                     .get_column("average")
@@ -56,9 +53,7 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
                     significant_differences.append(
                         {
                             "cluster": cluster,
-                            "kingdom": kingdom,
-                            "taxonRank": taxonRank,
-                            "scientificName": scientificName,
+                            "taxonId": taxonId,
                             "percentage_difference": percent_diff,
                         }
                     )

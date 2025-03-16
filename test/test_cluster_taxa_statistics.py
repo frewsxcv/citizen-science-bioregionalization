@@ -84,8 +84,9 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         # Test that resulting dataframe structure is correct
         self.assertIsNotNone(result.df)
         self.assertIn("cluster", result.df.columns)
-        self.assertIn("kingdom", result.df.columns)
-        self.assertIn("scientificName", result.df.columns)
+        self.assertIn("taxonId", result.df.columns)
+        self.assertIn("count", result.df.columns)
+        self.assertIn("average", result.df.columns)
 
         # Test the summary row (null cluster) is present
         summary_rows = result.df.filter(pl.col("cluster").is_null())
@@ -97,10 +98,10 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         self.assertGreater(len(cluster0_rows), 0)
         self.assertGreater(len(cluster1_rows), 0)
 
-        # Test that counts are correctly aggregated for Panthera leo (lions)
+        # Test that counts are correctly aggregated for Panthera leo (taxonId 0)
         leo_in_cluster0 = result.df.filter(
             (pl.col("cluster") == 0) &
-            (pl.col("scientificName") == "Panthera leo")
+            (pl.col("taxonId") == 0)
         )
         self.assertEqual(leo_in_cluster0["count"][0], 7)  # 5 from geo1 + 2 from geo2
 
