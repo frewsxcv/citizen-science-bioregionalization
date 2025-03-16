@@ -30,7 +30,7 @@ def run(
     input_file: str = typer.Argument(..., help="Path to the input file"),
     output_file: str = typer.Argument(..., help="Path to the output file"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
-    html_output: str = typer.Option(None, help="Path to HTML output file with cluster maps"),
+    html_output: str = typer.Option("output.html", help="Path to HTML output file with cluster maps"),
 ):
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
@@ -104,23 +104,22 @@ def run(
     write_geojson(feature_collection, output_file)
 
     # Calculate significant differences for HTML output
-    if html_output:
-        # ClusterSignificantDifferencesDataFrame only needs the all_stats parameter
-        cluster_significant_differences_df = ClusterSignificantDifferencesDataFrame.build(
-            all_stats
-        )
-        
-        # Generate HTML with maps
-        html_content = build_html_output_with_maps(
-            cluster_colors_dataframe,
-            cluster_significant_differences_df,
-            taxonomy_dataframe,
-            feature_collection,
-        )
-        
-        # Write HTML to file
-        write_html(html_content, html_output)
-        logging.info(f"HTML output with maps written to {html_output}")
+    # ClusterSignificantDifferencesDataFrame only needs the all_stats parameter
+    cluster_significant_differences_df = ClusterSignificantDifferencesDataFrame.build(
+        all_stats
+    )
+    
+    # Generate HTML with maps
+    html_content = build_html_output_with_maps(
+        cluster_colors_dataframe,
+        cluster_significant_differences_df,
+        taxonomy_dataframe,
+        feature_collection,
+    )
+    
+    # Write HTML to file
+    write_html(html_content, html_output)
+    logging.info(f"HTML output with maps written to {html_output}")
 
     if plot:
         plot_clusters(feature_collection)
