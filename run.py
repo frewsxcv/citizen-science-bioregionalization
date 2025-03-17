@@ -81,10 +81,6 @@ def run(
         geocode_cluster_dataframe,
     )
 
-    cluster_colors_dataframe = ClusterColorDataFrame.build(
-        cluster_neighbors_dataframe,
-    )
-
     geocode_boundary_dataframe = GeocodeBoundaryDataFrame.build(
         geocode_cluster_dataframe,
     )
@@ -92,6 +88,12 @@ def run(
     cluster_boundary_dataframe = ClusterBoundaryDataFrame.build(
         geocode_cluster_dataframe,
         geocode_boundary_dataframe,
+    )
+
+    # Use the updated build method to color ocean clusters blue
+    cluster_colors_dataframe = ClusterColorDataFrame.build(
+        cluster_neighbors_dataframe,
+        cluster_boundary_dataframe,
     )
 
     feature_collection = build_geojson_feature_collection(
