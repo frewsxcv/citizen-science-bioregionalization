@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import contextily
 import geojson
 from matplotlib.lines import Line2D
+import polars as pl
 import io
 import base64
 import os
@@ -24,8 +25,8 @@ def plot_clusters(
     )
     geojson_gdf_wm.boundary.plot(
         ax=ax,
-        color=geojson_gdf_wm["fill"],
-        linewidth=0.5,
+        color=darken_hex_colors_series(geojson_gdf_wm["fill"], factor=0.5),
+        linewidth=1.0,
         alpha=1,
     )
 
@@ -93,8 +94,8 @@ def plot_single_cluster(
     )
     geojson_gdf_wm.boundary.plot(
         ax=ax,
-        color=geojson_gdf_wm["fill"],
-        linewidth=0.5,
+        color=darken_hex_colors_series(geojson_gdf_wm["fill"], factor=0.5),
+        linewidth=1.0,
         alpha=1,
     )
     
@@ -156,12 +157,12 @@ def plot_entire_region(
         color=geojson_gdf_wm["fill"],
         categorical=True,
         linewidth=0,
-        alpha=0.5,
+        alpha=0.7,
     )
     geojson_gdf_wm.boundary.plot(
         ax=ax,
-        color=geojson_gdf_wm["fill"],
-        linewidth=0.5,
+        color=darken_hex_colors_series(geojson_gdf_wm["fill"], factor=0.3),
+        linewidth=0.8,
         alpha=1,
     )
     
@@ -199,3 +200,49 @@ def plot_entire_region(
     
     plt.close(fig)
     return ""
+
+
+def darken_hex_color(hex_color, factor=0.5):
+    """
+    Darkens a hex color by multiplying RGB components by the given factor.
+    
+    Args:
+        hex_color: A hex color string like '#ff0000' or '#f00'
+        factor: A float between 0 and 1 (0 = black, 1 = original color)
+    
+    Returns:
+        A darkened hex color string
+    """
+    # Remove the # if present
+    hex_color = hex_color.lstrip('#')
+    
+    # Handle shorthand hex format (#rgb)
+    if len(hex_color) == 3:
+        hex_color = ''.join([c*2 for c in hex_color])
+    
+    # Convert hex to RGB
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    
+    # Darken each component
+    r = int(r * factor)
+    g = int(g * factor)
+    b = int(b * factor)
+    
+    # Convert back to hex
+    return f'#{r:02x}{g:02x}{b:02x}'
+
+
+def darken_hex_colors_series(hex_colors_series: geopandas.GeoSeries, factor=0.5):
+    """
+    Darkens each hex color in a pandas Series by the given factor.
+    
+    Args:
+        hex_colors_series: A pandas Series of hex color strings
+        factor: A float between 0 and 1 (0 = black, 1 = original color)
+    
+    Returns:
+        A pandas Series of darkened hex colors
+    """
+    return hex_colors_series.apply(lambda x: darken_hex_color(x, factor))
