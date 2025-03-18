@@ -7,10 +7,13 @@ import polars as pl
 import io
 import base64
 import os
+from typing import Optional
+from src import output
 
 
 def plot_clusters(
     feature_collection: geojson.FeatureCollection,
+    save_path: Optional[str] = None
 ) -> None:
     geojson_gdf = geopandas.GeoDataFrame.from_features(
         feature_collection["features"], crs="EPSG:4326"
@@ -43,15 +46,19 @@ def plot_clusters(
         ax, source=contextily.providers.CartoDB.Positron, attribution_size=0
     )
     ax.set_axis_off()
+    
+    if save_path:
+        # Prepare the output file path
+        save_path = output.prepare_file_path(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
+    
     plt.show()
-    # os.makedirs("output", exist_ok=True)
-    # plt.savefig(f"output/{num_clusters}.png")
 
 
 def plot_single_cluster(
     feature_collection: geojson.FeatureCollection,
     cluster_id: int,
-    save_path: str | None = None,
+    save_path: Optional[str] = None,
     to_base64: bool = False,
 ) -> str:
     """
@@ -113,7 +120,7 @@ def plot_single_cluster(
     
     # Handle output
     if save_path:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        save_path = output.prepare_file_path(save_path)
         plt.savefig(save_path, bbox_inches='tight')
     
     if to_base64:

@@ -8,6 +8,9 @@ from src.render import plot_single_cluster, plot_entire_region
 import geojson
 import os
 import jinja2
+import json
+import base64
+from src import output
 
 
 def prepare_cluster_data(
@@ -163,5 +166,8 @@ def write_html(html_content: str, output_file: str) -> None:
         html_content: HTML string to write
         output_file: Path to output file
     """
+    # Prepare the output file path
+    output_file = output.prepare_file_path(output_file)
+        
     with open(output_file, "w") as html_writer:
         html_writer.write(html_content)

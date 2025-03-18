@@ -6,6 +6,7 @@ from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src import output
 
 
 def build_geojson_feature(
@@ -48,6 +49,9 @@ def build_geojson_feature_collection(
 def write_geojson(
     feature_collection: geojson.FeatureCollection, output_file: str
 ) -> None:
+    # Prepare the output file path
+    output_file = output.prepare_file_path(output_file)
+    
     with open(output_file, "w") as geojson_writer:
         geojson.dump(feature_collection, geojson_writer)
 

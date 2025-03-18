@@ -13,5 +13,4 @@ wheels/
 
 data/
 *.log
-*.geojson
-output.html
+output/

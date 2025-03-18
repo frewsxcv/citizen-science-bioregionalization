@@ -18,7 +18,7 @@ pip install -r pyproject.toml
 Run the script with the following command:
 
 ```bash
-python run.py [OPTIONS] INPUT_FILE OUTPUT_FILE
+python run.py [OPTIONS] INPUT_FILE
 ```
 
 ### Options:
@@ -31,8 +31,15 @@ python run.py [OPTIONS] INPUT_FILE OUTPUT_FILE
 ### Example:
 
 ```bash
-python run.py --geohash-precision 5 --num-clusters 10 --log-file run.log data/input.csv output.geojson --plot
+python run.py --geohash-precision 5 --num-clusters 10 data/input.csv --plot
 ```
+
+### Outputs:
+
+All outputs are saved to the `output/` directory:
+- GeoJSON file: `output/output.geojson`
+- HTML report: `output/output.html`
+- Log file: depends on the path provided in `--log-file` option, but defaults to the output directory
 
 ## License
 

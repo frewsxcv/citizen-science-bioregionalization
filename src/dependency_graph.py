@@ -1,6 +1,9 @@
 from inspect import signature
 import networkx as nx
 import matplotlib.pyplot as plt
+import os
+from typing import Optional
+from src import output
 
 from src.data_container import DataContainer
 from run import *
@@ -20,7 +23,7 @@ def build_dependency_graph():
     return G
 
 
-def plot_dependency_graph():
+def plot_dependency_graph(save_path: Optional[str] = None):
     G = build_dependency_graph()
 
     plt.figure(figsize=(12, 8))
@@ -32,4 +35,10 @@ def plot_dependency_graph():
 
     plt.title("DataContainer Dependency Graph")
     plt.axis("off")
+    
+    if save_path:
+        # Prepare the output file path
+        save_path = output.prepare_file_path(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
+        
     plt.show()

@@ -21,6 +21,8 @@ from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
 from src.dataframes.geocode import GeocodeDataFrame
 from src.html_output import prepare_full_report_data, render_html, write_html
+import os
+from src import output
 
 
 def run(
@@ -28,10 +30,18 @@ def run(
     num_clusters: int = typer.Option(..., help="Number of clusters to generate"),
     log_file: str = typer.Option(..., help="Path to the log file"),
     input_file: str = typer.Argument(..., help="Path to the input file"),
-    output_file: str = typer.Argument(..., help="Path to the output file"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
-    html_output: str = typer.Option("output.html", help="Path to HTML output file with cluster maps"),
 ):
+    # Get standardized output paths
+    output_file = output.get_geojson_path()
+    html_output = output.get_html_path()
+    
+    # Normalize log file path to ensure it's in the output directory
+    log_file = output.normalize_path(log_file)
+    
+    # Ensure output directory exists
+    output.ensure_output_dir()
+    
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(input_file)
