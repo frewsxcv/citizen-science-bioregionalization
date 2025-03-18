@@ -3,10 +3,15 @@ import polars as pl
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
 from src.data_container import DataContainer, assert_dataframe_schema
 import seaborn as sns
 import networkx as nx
+import numpy as np
+from sklearn.manifold import MDS
+import matplotlib.colors as mcolors
 
 
 class ClusterColorDataFrame(DataContainer):
@@ -71,6 +76,47 @@ class ClusterColorDataFrame(DataContainer):
 
             rows.append({"cluster": cluster, "color": color})
 
+        return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
+
+    @classmethod
+    def build_taxon_similarity_based(
+        cls,
+        cluster_taxa_statistics_dataframe: ClusterTaxaStatisticsDataFrame,
+    ) -> "ClusterColorDataFrame":
+        """
+        Creates a coloring where clusters with similar taxonomic composition
+        have similar colors.
+        """
+        # Build the distance matrix based on taxonomic composition
+        distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_statistics_dataframe)
+        
+        clusters = distance_matrix.cluster_ids()
+        
+        # Get the square-form distance matrix for MDS
+        square_matrix = distance_matrix.squareform()
+        
+        # Use Multidimensional Scaling to map clusters to a 3D color space
+        mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
+        positions = mds.fit_transform(square_matrix)
+        
+        # Normalize positions to [0,1] range for RGB color mapping
+        positions_min = positions.min(axis=0)
+        positions_max = positions.max(axis=0)
+        positions_normalized = (positions - positions_min) / (positions_max - positions_min)
+        
+        # Create colors based on taxonomic similarity
+        rows = []
+        for i, cluster in enumerate(clusters):
+            # Use a full spectrum of hues for all clusters
+            h = positions_normalized[i, 0]       # Full hue range (0-1)
+            s = 0.5 + (positions_normalized[i, 1] * 0.5)  # Saturation (0.5-1.0)
+            v = 0.7 + (positions_normalized[i, 2] * 0.3)  # Value/brightness (0.7-1.0)
+            rgb = mcolors.hsv_to_rgb([h, s, v])
+            
+            # Convert RGB to hex
+            hex_color = mcolors.rgb2hex((rgb[0], rgb[1], rgb[2]))
+            rows.append({"cluster": cluster, "color": hex_color})
+            
         return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
 
     def to_dict(self) -> Dict[ClusterId, str]:
