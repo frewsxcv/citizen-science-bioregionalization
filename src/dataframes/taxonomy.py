@@ -30,7 +30,9 @@ class TaxonomyDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame) -> 'TaxonomyDataFrame':
+    def build(
+        cls, darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame
+    ) -> "TaxonomyDataFrame":
         df = (
             darwin_core_csv_lazy_frame.lf.select(
                 "kingdom",
@@ -46,10 +48,10 @@ class TaxonomyDataFrame(DataContainer):
             .unique()
             .collect()
         )
-        
+
         # Add a unique taxonId for each row
         df = df.with_row_index("taxonId").with_columns(
             pl.col("taxonId").cast(pl.UInt32())
         )
-        
+
         return cls(df)

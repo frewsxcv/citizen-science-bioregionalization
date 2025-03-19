@@ -50,21 +50,25 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                 .sort(by="geocode")
                 .collect()
             )
-            
+
             # Join with taxonomy dataframe to get taxonId
             joined = raw_aggregated.join(
-                taxonomy_dataframe.df.select(["taxonId", "kingdom", "scientificName", "taxonRank"]),
+                taxonomy_dataframe.df.select(
+                    ["taxonId", "kingdom", "scientificName", "taxonRank"]
+                ),
                 on=["kingdom", "scientificName", "taxonRank"],
-                how="left"
+                how="left",
             )
-            
+
             # Select only the columns we need for our new schema
             aggregated = joined.select(["geocode", "taxonId", "count"])
-            
+
             # Handle any missing taxonId values (this shouldn't happen if taxonomy is comprehensive)
             if aggregated.filter(pl.col("taxonId").is_null()).height > 0:
-                logger.warning(f"Found {aggregated.filter(pl.col('taxonId').is_null()).height} records with no matching taxonomy entry")
+                logger.warning(
+                    f"Found {aggregated.filter(pl.col('taxonId').is_null()).height} records with no matching taxonomy entry"
+                )
                 # Drop records with no matching taxonomy as they can't be handled in the new schema
                 aggregated = aggregated.filter(pl.col("taxonId").is_not_null())
-            
+
             return cls(aggregated)

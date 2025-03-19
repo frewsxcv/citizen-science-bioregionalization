@@ -40,7 +40,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         joined = geocode_taxa_counts_dataframe.df.join(
             taxonomy_dataframe.df, on="taxonId"
         )
-        
+
         # Verify the schema of the joined dataframe
         assert_dataframe_schema(
             joined,
@@ -70,25 +70,20 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         )
 
         # Create a mapping from geocode to cluster
-        geocode_to_cluster = geocode_cluster_dataframe.df.select(
-            ["geocode", "cluster"]
-        )
-        
+        geocode_to_cluster = geocode_cluster_dataframe.df.select(["geocode", "cluster"])
+
         # Join the cluster information with the data
-        joined_with_cluster = joined.join(
-            geocode_to_cluster,
-            on="geocode",
-            how="inner"
-        )
-        
+        joined_with_cluster = joined.join(geocode_to_cluster, on="geocode", how="inner")
+
         # Calculate counts for each cluster
         cluster_counts = (
-            joined_with_cluster
-            .group_by(["cluster", "kingdom", "taxonRank", "scientificName"])
+            joined_with_cluster.group_by(
+                ["cluster", "kingdom", "taxonRank", "scientificName"]
+            )
             .agg(pl.col("count").sum().alias("count"))
             .select(cls.SCHEMA.keys())  # Ensure columns are in the right order
         )
-        
+
         # Add cluster-specific counts to the dataframe
         df.vstack(cluster_counts, in_place=True)
 
@@ -102,7 +97,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         sum = counts.sum()
         assert isinstance(sum, int)
         return sum
-    
+
     def filter_by_cluster(self, cluster_id: ClusterId) -> "ClusterTaxaCountsDataFrame":
         """
         Returns a new dataframe filtered to only include data for the specified cluster.
@@ -112,4 +107,4 @@ class ClusterTaxaCountsDataFrame(DataContainer):
 
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
-    return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster")) 
+    return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))

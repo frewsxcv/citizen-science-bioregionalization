@@ -42,7 +42,7 @@ class GeocodeDataFrame(DataContainer):
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame,
         geocode_precision: int,
-    ) -> 'GeocodeDataFrame':
+    ) -> "GeocodeDataFrame":
         df = (
             darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
             .with_columns(
@@ -95,7 +95,11 @@ def _df_to_graph(
     graph = nx.Graph()
     for geocode in df["geocode"]:
         graph.add_node(geocode)
-    column = "direct_and_indirect_neighbors" if include_indirect_neighbors else "direct_neighbors"
+    column = (
+        "direct_and_indirect_neighbors"
+        if include_indirect_neighbors
+        else "direct_neighbors"
+    )
     for geocode, neighbors in df.select(
         "geocode",
         column,

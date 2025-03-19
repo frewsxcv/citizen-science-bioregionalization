@@ -35,9 +35,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
             .select("geocode", "boundary")
             .iter_rows()
         ):
-            polygons.append(
-                shapely.Polygon(latlng_list_to_lnglat_list(boundary))
-            )
+            polygons.append(shapely.Polygon(latlng_list_to_lnglat_list(boundary)))
             geocodes.append(geocode)
 
         df = pl.DataFrame(
@@ -55,4 +53,3 @@ def latlng_list_to_lnglat_list(
     latlng_list: List[Tuple[float, float]],
 ) -> List[Tuple[float, float]]:
     return [(lng, lat) for lat, lng in latlng_list]
-

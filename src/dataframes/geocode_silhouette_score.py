@@ -31,23 +31,30 @@ class GeocodeSilhouetteScoreDataFrame(DataContainer):
 
         # The first entry will be for all geocodes, with cluster=null
         geocodes.append(None)
-        silhouette_scores.append(silhouette_score(
-            X=distance_matrix.squareform(),
-            labels=geocode_cluster_dataframe.df["cluster"],
-            metric="precomputed",
-        ))
+        silhouette_scores.append(
+            silhouette_score(
+                X=distance_matrix.squareform(),
+                labels=geocode_cluster_dataframe.df["cluster"],
+                metric="precomputed",
+            )
+        )
 
         # Add the clusters and their scores
         geocodes.extend(geocode_cluster_dataframe.df["geocode"])
-        silhouette_scores.extend(silhouette_samples(
-            X=distance_matrix.squareform(),
-            labels=geocode_cluster_dataframe.df["cluster"],
-            metric="precomputed",
-        ))
+        silhouette_scores.extend(
+            silhouette_samples(
+                X=distance_matrix.squareform(),
+                labels=geocode_cluster_dataframe.df["cluster"],
+                metric="precomputed",
+            )
+        )
 
-        df = pl.DataFrame({
-            "geocode": geocodes,
-            "silhouette_score": silhouette_scores,
-        }, schema=cls.SCHEMA)
+        df = pl.DataFrame(
+            {
+                "geocode": geocodes,
+                "silhouette_score": silhouette_scores,
+            },
+            schema=cls.SCHEMA,
+        )
 
         return cls(df)

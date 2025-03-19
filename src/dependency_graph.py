@@ -35,10 +35,10 @@ def plot_dependency_graph(save_path: Optional[str] = None):
 
     plt.title("DataContainer Dependency Graph")
     plt.axis("off")
-    
+
     if save_path:
         # Prepare the output file path
         save_path = output.prepare_file_path(save_path)
-        plt.savefig(save_path, bbox_inches='tight')
-        
+        plt.savefig(save_path, bbox_inches="tight")
+
     plt.show()

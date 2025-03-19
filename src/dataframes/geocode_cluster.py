@@ -31,7 +31,7 @@ class GeocodeClusterDataFrame(DataContainer):
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
-    ) -> 'GeocodeClusterDataFrame':
+    ) -> "GeocodeClusterDataFrame":
         geocodes = geocode_dataframe.df["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,

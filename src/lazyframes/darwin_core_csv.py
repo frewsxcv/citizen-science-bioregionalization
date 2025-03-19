@@ -20,7 +20,7 @@ class DarwinCoreCsvLazyFrame(DataContainer):
         self.lf = lf
 
     @classmethod
-    def build(cls, csv_path: str) -> 'DarwinCoreCsvLazyFrame':
+    def build(cls, csv_path: str) -> "DarwinCoreCsvLazyFrame":
         return cls(
             pl.scan_csv(
                 csv_path,

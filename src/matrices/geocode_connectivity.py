@@ -19,11 +19,13 @@ class GeocodeConnectivityMatrix(DataContainer):
         self._connectivity_matrix = connectivity_matrix
 
     @classmethod
-    def build(cls, geocode_dataframe: GeocodeDataFrame) -> 'GeocodeConnectivityMatrix':
+    def build(cls, geocode_dataframe: GeocodeDataFrame) -> "GeocodeConnectivityMatrix":
         num_geocodes = len(geocode_dataframe.df)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
-        for i, neighbors in enumerate(geocode_dataframe.df["direct_and_indirect_neighbors"]):
+        for i, neighbors in enumerate(
+            geocode_dataframe.df["direct_and_indirect_neighbors"]
+        ):
             for neighbor in neighbors:
                 j = index_of_geocode_in_geocode_dataframe(neighbor, geocode_dataframe)
                 connectivity_matrix[i, j] = 1
@@ -41,4 +43,4 @@ def assert_one_connected_component(connectivity_matrix: np.ndarray):
             )
         )
         == 1
-    ) 
+    )

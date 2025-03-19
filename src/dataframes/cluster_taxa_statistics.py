@@ -55,44 +55,30 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         )
 
         # Create a mapping from geocode to cluster
-        geocode_to_cluster = geocode_cluster_dataframe.df.select(
-            ["geocode", "cluster"]
-        )
-        
+        geocode_to_cluster = geocode_cluster_dataframe.df.select(["geocode", "cluster"])
+
         # Join the cluster information with the data
-        joined_with_cluster = joined.join(
-            geocode_to_cluster,
-            on="geocode",
-            how="inner"
-        )
-        
+        joined_with_cluster = joined.join(geocode_to_cluster, on="geocode", how="inner")
+
         # Calculate total counts per cluster
-        cluster_totals = (
-            joined_with_cluster
-            .group_by("cluster")
-            .agg(
-                pl.col("count").sum().alias("total_count_in_cluster")
-            )
+        cluster_totals = joined_with_cluster.group_by("cluster").agg(
+            pl.col("count").sum().alias("total_count_in_cluster")
         )
-        
+
         # Calculate stats for each cluster in one operation
         cluster_stats = (
-            joined_with_cluster
-            .group_by(["cluster", "taxonId"])
+            joined_with_cluster.group_by(["cluster", "taxonId"])
             .agg(
                 pl.col("count").sum().alias("count"),
             )
-            .join(
-                cluster_totals,
-                on="cluster"
+            .join(cluster_totals, on="cluster")
+            .with_columns(
+                [(pl.col("count") / pl.col("total_count_in_cluster")).alias("average")]
             )
-            .with_columns([
-                (pl.col("count") / pl.col("total_count_in_cluster")).alias("average")
-            ])
             .drop("total_count_in_cluster")
             .select(cls.SCHEMA.keys())  # Ensure columns are in the right order
         )
-        
+
         # Add cluster-specific stats to the dataframe
         df.vstack(cluster_stats, in_place=True)
 

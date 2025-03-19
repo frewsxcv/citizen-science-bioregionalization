@@ -23,7 +23,9 @@ class TaxaGeographicMeanDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame) -> 'TaxaGeographicMeanDataFrame':
+    def build(
+        cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame
+    ) -> "TaxaGeographicMeanDataFrame":
         # TODO: this doesn't handle the international date line
         df = (
             geocode_taxa_counts.df.lazy()

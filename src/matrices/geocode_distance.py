@@ -152,4 +152,4 @@ class GeocodeDistanceMatrix(DataContainer):
         return self._condensed
 
     def squareform(self) -> np.ndarray:
-        return squareform(self._condensed) 
+        return squareform(self._condensed)

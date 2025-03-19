@@ -27,10 +27,10 @@ def ensure_output_dir() -> None:
 def get_output_path(filename: str) -> str:
     """
     Gets the full path for an output file in the output directory.
-    
+
     Args:
         filename: The filename to place in the output directory
-        
+
     Returns:
         The full path to the file in the output directory
     """
@@ -41,10 +41,10 @@ def get_output_path(filename: str) -> str:
 def normalize_path(path: str) -> str:
     """
     Normalize a path to ensure it's in the output directory if it doesn't have a directory component.
-    
+
     Args:
         path: The path to normalize
-        
+
     Returns:
         The normalized path
     """
@@ -56,7 +56,7 @@ def normalize_path(path: str) -> str:
 def get_geojson_path() -> str:
     """
     Get the standard path for the GeoJSON output file.
-    
+
     Returns:
         Path to the GeoJSON output file
     """
@@ -66,7 +66,7 @@ def get_geojson_path() -> str:
 def get_html_path() -> str:
     """
     Get the standard path for the HTML output file.
-    
+
     Returns:
         Path to the HTML output file
     """
@@ -76,14 +76,14 @@ def get_html_path() -> str:
 def prepare_file_path(path: str) -> str:
     """
     Prepare a file path for writing by ensuring its directory exists.
-    
+
     Args:
         path: The path to prepare
-        
+
     Returns:
         The same path after ensuring its directory exists
     """
     directory = os.path.dirname(path)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    return path 
+    return path

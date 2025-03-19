@@ -13,7 +13,9 @@ from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.dataframes.cluster_significant_differences import ClusterSignificantDifferencesDataFrame
+from src.dataframes.cluster_significant_differences import (
+    ClusterSignificantDifferencesDataFrame,
+)
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
@@ -35,13 +37,13 @@ def run(
     # Get standardized output paths
     output_file = output.get_geojson_path()
     html_output = output.get_html_path()
-    
+
     # Normalize log file path to ensure it's in the output directory
     log_file = output.normalize_path(log_file)
-    
+
     # Ensure output directory exists
     output.ensure_output_dir()
-    
+
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(input_file)
@@ -121,7 +123,7 @@ def run(
     cluster_significant_differences_df = ClusterSignificantDifferencesDataFrame.build(
         all_stats
     )
-    
+
     # Generate HTML with maps
     report_data = prepare_full_report_data(
         cluster_colors_dataframe,
@@ -129,8 +131,8 @@ def run(
         taxonomy_dataframe,
         feature_collection,
     )
-    html_content = render_html('cluster_report.html', report_data)
-    
+    html_content = render_html("cluster_report.html", report_data)
+
     # Write HTML to file
     write_html(html_content, html_output)
     logging.info(f"HTML output with maps written to {html_output}")

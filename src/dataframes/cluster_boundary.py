@@ -38,7 +38,10 @@ class ClusterBoundaryDataFrame(DataContainer):
             geocode_to_boundary[row["geocode"]] = row["boundary"]
 
         # Iterate through each cluster and combine the boundaries of its geocodes
-        for cluster_id, geocodes in geocode_cluster_dataframe.iter_clusters_and_geocodes():
+        for (
+            cluster_id,
+            geocodes,
+        ) in geocode_cluster_dataframe.iter_clusters_and_geocodes():
             # Get all geocode boundaries for this cluster
             cluster_geocode_boundaries = []
             for geocode in geocodes:
@@ -47,7 +50,7 @@ class ClusterBoundaryDataFrame(DataContainer):
                     geom = shapely.from_wkb(geocode_to_boundary[geocode])
                     if geom is not None:
                         cluster_geocode_boundaries.append(geom)
-            
+
             if cluster_geocode_boundaries:
                 # Union all polygons to create a single boundary for the cluster
                 if len(cluster_geocode_boundaries) == 1:
@@ -55,7 +58,7 @@ class ClusterBoundaryDataFrame(DataContainer):
                 else:
                     # First dissolve/union all geometries
                     cluster_boundary = shapely.unary_union(cluster_geocode_boundaries)
-                
+
                 clusters.append(cluster_id)
                 boundaries.append(cluster_boundary)
 
@@ -66,16 +69,20 @@ class ClusterBoundaryDataFrame(DataContainer):
                 "boundary": boundaries,
             },
         )
-        
+
         # Cast to the correct types to match our schema
-        df = df.with_columns([
-            pl.col("cluster").cast(pl.UInt32()),
-            polars_st.from_shapely(pl.col("boundary")).alias("boundary"),
-        ])
-        
+        df = df.with_columns(
+            [
+                pl.col("cluster").cast(pl.UInt32()),
+                polars_st.from_shapely(pl.col("boundary")).alias("boundary"),
+            ]
+        )
+
         return cls(df)
-    
+
     def get_boundary_for_cluster(self, cluster_id: ClusterId) -> shapely.Polygon:
         """Get the boundary polygon for a specific cluster."""
-        boundary = self.df.filter(pl.col("cluster") == cluster_id).select("boundary").item()
-        return boundary 
+        boundary = (
+            self.df.filter(pl.col("cluster") == cluster_id).select("boundary").item()
+        )
+        return boundary

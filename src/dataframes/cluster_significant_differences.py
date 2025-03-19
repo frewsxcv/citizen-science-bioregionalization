@@ -21,7 +21,9 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
         self.df = df
 
     @classmethod
-    def build(cls, all_stats: ClusterTaxaStatisticsDataFrame) -> 'ClusterSignificantDifferencesDataFrame':
+    def build(
+        cls, all_stats: ClusterTaxaStatisticsDataFrame
+    ) -> "ClusterSignificantDifferencesDataFrame":
         # Calculate significant differences
         significant_differences = []
 
