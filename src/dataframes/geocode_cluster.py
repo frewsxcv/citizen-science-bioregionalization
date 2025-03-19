@@ -3,10 +3,10 @@ import logging
 import polars as pl
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
-from src.matrices.connectivity import ConnectivityMatrix
+from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.dataframes.geocode import GeocodeDataFrame
 from src.types import Geocode, ClusterId
-from src.matrices.distance import DistanceMatrix
+from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.data_container import DataContainer, assert_dataframe_schema
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ class GeocodeClusterDataFrame(DataContainer):
     def build(
         cls,
         geocode_dataframe: GeocodeDataFrame,
-        distance_matrix: DistanceMatrix,
-        connectivity_matrix: ConnectivityMatrix,
+        distance_matrix: GeocodeDistanceMatrix,
+        connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
     ) -> 'GeocodeClusterDataFrame':
         geocodes = geocode_dataframe.df["geocode"]

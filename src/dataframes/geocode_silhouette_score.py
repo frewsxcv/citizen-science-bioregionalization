@@ -4,7 +4,7 @@ from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from sklearn.metrics import silhouette_score, silhouette_samples
 
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.matrices.distance import DistanceMatrix
+from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 
 class GeocodeSilhouetteScoreDataFrame(DataContainer):
@@ -23,7 +23,7 @@ class GeocodeSilhouetteScoreDataFrame(DataContainer):
     def build(
         cls,
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
-        distance_matrix: DistanceMatrix,
+        distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
     ) -> "GeocodeSilhouetteScoreDataFrame":
         geocodes: list[str | None] = []

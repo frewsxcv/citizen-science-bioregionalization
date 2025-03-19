@@ -14,8 +14,8 @@ from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.dataframes.taxa_geographic_mean import TaxaGeographicMeanDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.dataframes.cluster_significant_differences import ClusterSignificantDifferencesDataFrame
-from src.matrices.distance import DistanceMatrix
-from src.matrices.connectivity import ConnectivityMatrix
+from src.matrices.geocode_distance import GeocodeDistanceMatrix
+from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.render import plot_clusters
 from src.geojson import build_geojson_feature_collection, write_geojson
@@ -61,12 +61,12 @@ def run(
         taxonomy_dataframe,
     )
 
-    distance_matrix = DistanceMatrix.build(
+    distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_dataframe,
         geocode_dataframe,
     )
 
-    connectivity_matrix = ConnectivityMatrix.build(geocode_dataframe)
+    connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_dataframe)
 
     geocode_cluster_dataframe = GeocodeClusterDataFrame.build(
         geocode_dataframe,

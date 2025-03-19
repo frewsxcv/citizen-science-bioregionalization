@@ -109,7 +109,7 @@ def reduce_dimensions_tsne(X: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(tsne.fit_transform(X.to_numpy()))
 
 
-class DistanceMatrix(DataContainer):
+class GeocodeDistanceMatrix(DataContainer):
     """
     A distance matrix where each column and row is a geocode, and the cell at the intersection of a
     column and row is the similarity (or distance) between the two geocodes. Internally it is stored
@@ -127,7 +127,7 @@ class DistanceMatrix(DataContainer):
         cls,
         geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
         geocode_dataframe: GeocodeDataFrame,
-    ) -> "DistanceMatrix":
+    ) -> "GeocodeDistanceMatrix":
         X = build_X(geocode_taxa_counts_dataframe, geocode_dataframe)
 
         # filtered.group_by("geocode").agg(pl.col("len").filter(on == value).sum().alias(str(value)) for value in set(taxonKeys)).collect()
@@ -152,4 +152,4 @@ class DistanceMatrix(DataContainer):
         return self._condensed
 
     def squareform(self) -> np.ndarray:
-        return squareform(self._condensed)
+        return squareform(self._condensed) 

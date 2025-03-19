@@ -12,14 +12,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ConnectivityMatrix(DataContainer):
+class GeocodeConnectivityMatrix(DataContainer):
     _connectivity_matrix: np.ndarray
 
     def __init__(self, connectivity_matrix: np.ndarray):
         self._connectivity_matrix = connectivity_matrix
 
     @classmethod
-    def build(cls, geocode_dataframe: GeocodeDataFrame) -> 'ConnectivityMatrix':
+    def build(cls, geocode_dataframe: GeocodeDataFrame) -> 'GeocodeConnectivityMatrix':
         num_geocodes = len(geocode_dataframe.df)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
@@ -41,4 +41,4 @@ def assert_one_connected_component(connectivity_matrix: np.ndarray):
             )
         )
         == 1
-    )
+    ) 
