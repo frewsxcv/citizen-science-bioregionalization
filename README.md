@@ -1,8 +1,8 @@
-# Citizen Science Ecoregions
+# Citizen Science Bioregionalization
 
 ## Overview
 
-This project analyzes biodiversity data to identify and visualize ecological regions (ecoregions) based on species distribution. It processes Darwin Core formatted CSV data, clusters geographic locations based on species similarity, and outputs the results as GeoJSON for visualization.
+This project analyzes citizen science data to identify and visualize biological regions (bioregions) based on species distribution. It processes Darwin Core formatted CSV data, clusters geographic locations based on species similarity, and outputs the results as GeoJSON for visualization.
 
 ![sample output map](https://github.com/user-attachments/assets/8e72d089-dbb8-4b78-b645-4dd88d420384)
 
