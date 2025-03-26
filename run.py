@@ -25,6 +25,7 @@ from src.dataframes.geocode import GeocodeDataFrame
 from src.html_output import prepare_full_report_data, render_html, write_html
 import os
 from src import output
+from typing import Optional
 
 
 def run(
@@ -33,6 +34,9 @@ def run(
     log_file: str = typer.Option(..., help="Path to the log file"),
     input_file: str = typer.Argument(..., help="Path to the input file"),
     plot: bool = typer.Option(False, help="Plot the clusters"),
+    taxon_filter: Optional[str] = typer.Option(
+        None, help="Filter to a specific taxon (e.g., 'Aves')"
+    ),
 ):
     # Get standardized output paths
     output_file = output.get_geojson_path()
@@ -46,7 +50,9 @@ def run(
 
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
 
-    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(input_file)
+    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(
+        input_file, taxon_filter=taxon_filter
+    )
 
     geocode_dataframe = GeocodeDataFrame.build(
         darwin_core_csv_lazy_frame,

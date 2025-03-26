@@ -1,5 +1,6 @@
 from enum import Enum
 import polars as pl
+from typing import List
 
 
 kingdom_enum = pl.Enum(
@@ -15,3 +16,14 @@ kingdom_enum = pl.Enum(
         "incertae sedis",
     ],
 )
+
+# Taxonomic ranks in hierarchical order
+TAXONOMIC_RANKS: List[str] = [
+    "kingdom",
+    "phylum",
+    "class",
+    "order",
+    "family",
+    "genus",
+    "species",
+]

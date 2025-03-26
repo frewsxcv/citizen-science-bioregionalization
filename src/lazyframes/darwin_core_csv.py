@@ -1,6 +1,10 @@
 import polars as pl
-from src.darwin_core import kingdom_enum
+import logging
+from typing import Optional, List
+from src.darwin_core import kingdom_enum, TAXONOMIC_RANKS
 from src.data_container import DataContainer
+
+logger = logging.getLogger(__name__)
 
 
 class DarwinCoreCsvLazyFrame(DataContainer):
@@ -20,15 +24,36 @@ class DarwinCoreCsvLazyFrame(DataContainer):
         self.lf = lf
 
     @classmethod
-    def build(cls, csv_path: str) -> "DarwinCoreCsvLazyFrame":
-        return cls(
-            pl.scan_csv(
-                csv_path,
-                has_header=True,
-                separator="\t",
-                quote_char=None,
-                schema_overrides=cls.SCHEMA_OVERRIDES,
-                infer_schema=False,
-                infer_schema_length=None,
-            )
+    def build(
+        cls, csv_path: str, taxon_filter: Optional[str] = None
+    ) -> "DarwinCoreCsvLazyFrame":
+        lf = pl.scan_csv(
+            csv_path,
+            has_header=True,
+            separator="\t",
+            quote_char=None,
+            schema_overrides=cls.SCHEMA_OVERRIDES,
+            infer_schema=False,
+            infer_schema_length=None,
         )
+
+        # Apply taxon filter if provided
+        if taxon_filter:
+            logger.info(f"Filtering data to taxon: {taxon_filter}")
+
+            # Convert taxon_filter to lowercase for case-insensitive comparison
+            taxon_filter_lower = taxon_filter.lower()
+
+            # Create a filter for any rank matching the taxon (case insensitive)
+            conditions = [
+                pl.col(rank).str.to_lowercase().eq(taxon_filter_lower)
+                for rank in TAXONOMIC_RANKS
+            ]
+            combined_filter = conditions[0]
+            for condition in conditions[1:]:
+                combined_filter = combined_filter | condition
+
+            # Apply the filter
+            lf = lf.filter(combined_filter)
+
+        return cls(lf)
