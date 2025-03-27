@@ -45,10 +45,23 @@ class DarwinCoreCsvLazyFrame(DataContainer):
             taxon_filter_lower = taxon_filter.lower()
 
             # Create a filter for any rank matching the taxon (case insensitive)
-            conditions = [
-                pl.col(rank).str.to_lowercase().eq(taxon_filter_lower)
-                for rank in TAXONOMIC_RANKS
-            ]
+            conditions = []
+            for rank in TAXONOMIC_RANKS:
+                # Special handling for enum types (like kingdom)
+                if rank == "kingdom":
+                    # Cast enum to string before applying string operations
+                    condition = (
+                        pl.col(rank)
+                        .cast(pl.Utf8)
+                        .str.to_lowercase()
+                        .eq(taxon_filter_lower)
+                    )
+                else:
+                    # Regular string columns
+                    condition = pl.col(rank).str.to_lowercase().eq(taxon_filter_lower)
+                conditions.append(condition)
+
+            # Combine all conditions with OR
             combined_filter = conditions[0]
             for condition in conditions[1:]:
                 combined_filter = combined_filter | condition
