@@ -25,6 +25,7 @@ dependencies = [
     "typer>=0.15.1",
     "umap-learn>=0.5.7",
     "scikit-bio>=0.6.3",
+    "ipykernel>=6.29.5",
 ]
 
 [tool.mypy]
