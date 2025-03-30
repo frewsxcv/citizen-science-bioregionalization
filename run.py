@@ -129,9 +129,7 @@ def run(
 
     # Print CLI results, including PERMANOVA
     cli_output.print_results(
-        all_stats=all_stats,
         geocode_cluster_dataframe=geocode_cluster_dataframe,
-        taxonomy_dataframe=taxonomy_dataframe,
         permanova_results_dataframe=permanova_results_dataframe,
     )
 
