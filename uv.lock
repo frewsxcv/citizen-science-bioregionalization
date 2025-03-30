@@ -377,7 +377,7 @@ wheels = [
 [[package]]
 name = "inaturalist-ecoregions"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "black", extra = ["jupyter"] },
     { name = "contextily" },

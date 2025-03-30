@@ -1,3 +1,7 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
 [project]
 name = "inaturalist-ecoregions"
 version = "0.1.0"
@@ -27,6 +31,9 @@ dependencies = [
     "scikit-bio>=0.6.3",
     "ipykernel>=6.29.5",
 ]
+
+[tool.maturin]
+manifest-path = "rust_src/Cargo.toml" # Tell maturin where the Rust project is
 
 [tool.mypy]
 ignore_missing_imports = true
