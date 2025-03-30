@@ -3,11 +3,11 @@ import polars as pl
 import networkx as nx
 import shapely
 import numpy as np
-from src.dataframes.cluster_color import ClusterColorDataFrame
-from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.geojson import find_ocean_clusters
+from inaturalist_ecoregions.dataframes.cluster_color import ClusterColorDataFrame
+from inaturalist_ecoregions.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
+from inaturalist_ecoregions.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from inaturalist_ecoregions.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from inaturalist_ecoregions.geojson import find_ocean_clusters
 
 
 class TestClusterColorDataFrame(unittest.TestCase):

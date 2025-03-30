@@ -15,4 +15,4 @@ data/
 *.log
 output/
 
-rust_src/target
+target

@@ -1,7 +1,7 @@
 import unittest
 import os
 import shutil
-from src import output
+from inaturalist_ecoregions import output
 
 
 class TestOutput(unittest.TestCase):

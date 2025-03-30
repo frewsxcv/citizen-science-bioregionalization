@@ -5,13 +5,13 @@ import shapely
 import geojson
 import os
 
-from src.geojson import (
+from inaturalist_ecoregions.geojson import (
     build_geojson_feature_collection,
     is_cluster_mostly_ocean,
     find_ocean_clusters,
 )
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from inaturalist_ecoregions.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from inaturalist_ecoregions.dataframes.cluster_color import ClusterColorDataFrame
 
 
 class TestGeojson(unittest.TestCase):

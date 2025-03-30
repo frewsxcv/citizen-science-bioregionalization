@@ -1,12 +1,12 @@
 import unittest
 import polars as pl
 import numpy as np
-from src.matrices.cluster_distance import (
+from inaturalist_ecoregions.matrices.cluster_distance import (
     ClusterDistanceMatrix,
     pivot_taxon_counts_for_clusters,
     build_X,
 )
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from inaturalist_ecoregions.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 
 
 class TestClusterDistanceMatrix(unittest.TestCase):

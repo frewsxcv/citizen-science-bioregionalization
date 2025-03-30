@@ -1,15 +1,15 @@
 import unittest
 import polars as pl
-from src.darwin_core import kingdom_enum
+from inaturalist_ecoregions.darwin_core import kingdom_enum
 from unittest.mock import patch
 
-from src.dataframes.cluster_taxa_statistics import (
+from inaturalist_ecoregions.dataframes.cluster_taxa_statistics import (
     ClusterTaxaStatisticsDataFrame,
     assert_dataframe_schema,
 )
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
-from src.dataframes.taxonomy import TaxonomyDataFrame
+from inaturalist_ecoregions.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from inaturalist_ecoregions.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
+from inaturalist_ecoregions.dataframes.taxonomy import TaxonomyDataFrame
 
 
 class TestClusterTaxaStatistics(unittest.TestCase):

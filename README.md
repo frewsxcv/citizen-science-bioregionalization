@@ -21,7 +21,7 @@ pip install -r pyproject.toml
 Run the script with the following command:
 
 ```bash
-python run.py [OPTIONS] INPUT_FILE
+python -m inaturalist-ecoregions
 ```
 
 ### Options:

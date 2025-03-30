@@ -7,7 +7,7 @@ name = "inaturalist-ecoregions"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "black[jupyter]>=25.1.0",
     "contextily>=1.6.2",
@@ -20,7 +20,7 @@ dependencies = [
     "numba>=0.61.0",
     "polars-h3>=0.5.1",
     "polars-st>=0.1.0a10",
-    "polars>=1.25.0,<1.26.0",
+    "polars>=1.9.0,<1.10.0",
     "pydot>=3.0.4",
     "scikit-learn>=1.6.0",
     "scipy>=1.11.3",
@@ -30,15 +30,12 @@ dependencies = [
     "umap-learn>=0.5.7",
     "scikit-bio>=0.6.3",
     "ipykernel>=6.29.5",
+    "maturin>=1.8.3",
 ]
-
-[tool.maturin]
-manifest-path = "rust_src/Cargo.toml" # Tell maturin where the Rust project is
 
 [tool.mypy]
 ignore_missing_imports = true
 files = [
-    "*.py",
-    "src/**/*.py",
+    "inaturalist_ecoregions/**/*.py",
     "test/**/*.py",
 ]
