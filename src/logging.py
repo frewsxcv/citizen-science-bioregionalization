@@ -22,7 +22,7 @@ class Timer:
         self.output(f"{self.prefix} completed in {elapsed:.4f}s")
 
 
-def log_action(action: str, func: Callable[[], Any]) -> Any:
+def log_action[T](action: str, func: Callable[[], T]) -> T:
     logger.info(f"Running {action}")
     with Timer(output=logger.info, prefix=action):
         return func()
