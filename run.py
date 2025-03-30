@@ -16,6 +16,7 @@ from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesDataFrame,
 )
+from src.dataframes.permanova_results import PermanovaResultsDataFrame
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
@@ -119,13 +120,19 @@ def run(
         cluster_colors_dataframe,
     )
 
+    # Calculate PERMANOVA results
+    permanova_results_dataframe = PermanovaResultsDataFrame.build(
+        geocode_distance_matrix=distance_matrix,
+        geocode_cluster_dataframe=geocode_cluster_dataframe,
+        geocode_dataframe=geocode_dataframe,
+    )
+
     # Print CLI results, including PERMANOVA
     cli_output.print_results(
         all_stats=all_stats,
         geocode_cluster_dataframe=geocode_cluster_dataframe,
-        geocode_distance_matrix=distance_matrix, # Pass distance matrix
-        geocode_dataframe=geocode_dataframe, # Pass geocode dataframe
-        taxonomy_dataframe=taxonomy_dataframe, # Pass taxonomy dataframe
+        taxonomy_dataframe=taxonomy_dataframe,
+        permanova_results_dataframe=permanova_results_dataframe,
     )
 
     write_geojson(feature_collection, output_file)

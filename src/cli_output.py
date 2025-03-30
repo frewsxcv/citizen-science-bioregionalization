@@ -2,10 +2,8 @@ import polars as pl
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from typing import List
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.matrices.geocode_distance import GeocodeDistanceMatrix # Added import
-from src.dataframes.geocode import GeocodeDataFrame # Added import
-from src.dataframes.taxonomy import TaxonomyDataFrame # Added import
-from src.stats.permanova import run_permanova_test, format_permanova_results # Updated import path
+from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.dataframes.permanova_results import PermanovaResultsDataFrame
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +15,7 @@ logger = logging.getLogger(__name__)
 def print_cluster_stats(
     cluster: int,
     geocodes: List[str],
-    stats_with_taxonomy: pl.DataFrame, # Changed type hint
+    stats_with_taxonomy: pl.DataFrame,
 ) -> None:
     # stats = Stats.build(darwin_core_aggregations, geocode_filter=geocodes)
     print("-" * 10)
@@ -83,9 +81,8 @@ def print_all_cluster_stats(stats_with_taxonomy: pl.DataFrame) -> None: # Change
 def print_results(
     all_stats: ClusterTaxaStatisticsDataFrame,
     geocode_cluster_dataframe: GeocodeClusterDataFrame,
-    geocode_distance_matrix: GeocodeDistanceMatrix,
-    geocode_dataframe: GeocodeDataFrame,
-    taxonomy_dataframe: TaxonomyDataFrame, # Added argument
+    taxonomy_dataframe: TaxonomyDataFrame,
+    permanova_results_dataframe: PermanovaResultsDataFrame,
 ) -> None:
     # Join stats with taxonomy info
     stats_with_taxonomy = all_stats.df.join(
@@ -99,16 +96,8 @@ def print_results(
     print_all_cluster_stats(stats_with_taxonomy) # Pass joined dataframe
     print("-" * 24)
 
-    # Print PERMANOVA results
-    try:
-        permanova_results = run_permanova_test(
-            geocode_distance_matrix=geocode_distance_matrix,
-            geocode_cluster_dataframe=geocode_cluster_dataframe,
-            geocode_dataframe=geocode_dataframe,
-        )
-        print("\n" + format_permanova_results(permanova_results) + "\n")
-    except Exception as e:
-        logger.error(f"Failed to run or format PERMANOVA test: {e}")
+    # Print PERMANOVA results using the new dataframe's method
+    print("\n" + permanova_results_dataframe.format_results() + "\n")
 
     # Print stats per cluster using the joined dataframe
     logger.info(f"Number of clusters: {geocode_cluster_dataframe.num_clusters()}")
