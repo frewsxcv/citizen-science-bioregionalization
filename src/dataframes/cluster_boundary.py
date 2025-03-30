@@ -17,7 +17,7 @@ class ClusterBoundaryDataFrame(DataContainer):
         "boundary": pl.Binary(),
     }
 
-    def __init__(self, df: pl.DataFrame):
+    def __init__(self, df: polars_st.GeoDataFrame):
         assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
@@ -63,19 +63,11 @@ class ClusterBoundaryDataFrame(DataContainer):
                 boundaries.append(cluster_boundary)
 
         # Create the dataframe with the correct schema
-        df = pl.DataFrame(
+        df = polars_st.GeoDataFrame(
             data={
-                "cluster": clusters,
-                "boundary": boundaries,
+                "cluster": pl.Series(clusters).cast(pl.UInt32()),
+                "boundary": pl.select(polars_st.from_shapely(pl.Series(boundaries))),
             },
-        )
-
-        # Cast to the correct types to match our schema
-        df = df.with_columns(
-            [
-                pl.col("cluster").cast(pl.UInt32()),
-                polars_st.from_shapely(pl.col("boundary")).alias("boundary"),
-            ]
         )
 
         return cls(df)

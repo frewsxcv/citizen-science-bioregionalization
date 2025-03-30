@@ -16,7 +16,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
         "boundary": pl.Binary(),
     }
 
-    def __init__(self, df: pl.DataFrame):
+    def __init__(self, df: polars_st.GeoDataFrame):
         assert_dataframe_schema(df, self.SCHEMA)
         self.df = df
 
@@ -38,14 +38,14 @@ class GeocodeBoundaryDataFrame(DataContainer):
             polygons.append(shapely.Polygon(latlng_list_to_lnglat_list(boundary)))
             geocodes.append(geocode)
 
-        df = pl.DataFrame(
+        # Create the GeoDataFrame directly with both columns
+        df = polars_st.GeoDataFrame(
             data={
-                "geocode": geocodes,
-                "boundary": polygons,
-            },
-        ).with_columns(
-            polars_st.from_shapely(pl.col("boundary")).alias("boundary"),
+                "geocode": pl.Series(geocodes),
+                "boundary": pl.select(polars_st.from_shapely(pl.Series(polygons))),
+            }
         )
+
         return cls(df)
 
 
