@@ -119,8 +119,14 @@ def run(
         cluster_colors_dataframe,
     )
 
-    # Skip CLI output to avoid errors
-    # cli_output.print_results(all_stats, geocode_cluster_dataframe)
+    # Print CLI results, including PERMANOVA
+    cli_output.print_results(
+        all_stats=all_stats,
+        geocode_cluster_dataframe=geocode_cluster_dataframe,
+        geocode_distance_matrix=distance_matrix, # Pass distance matrix
+        geocode_dataframe=geocode_dataframe, # Pass geocode dataframe
+        taxonomy_dataframe=taxonomy_dataframe, # Pass taxonomy dataframe
+    )
 
     write_geojson(feature_collection, output_file)
 
