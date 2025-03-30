@@ -3,6 +3,7 @@ from src.data_container import DataContainer, assert_dataframe_schema
 from src.darwin_core import kingdom_enum
 
 from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
+import rust_dataframe_utils # Import the Rust extension module
 
 
 class TaxonomyDataFrame(DataContainer):
@@ -33,25 +34,10 @@ class TaxonomyDataFrame(DataContainer):
     def build(
         cls, darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame
     ) -> "TaxonomyDataFrame":
-        df = (
-            darwin_core_csv_lazy_frame.lf.select(
-                "kingdom",
-                "phylum",
-                "class",
-                "order",
-                "family",
-                "genus",
-                "species",
-                "taxonRank",
-                "scientificName",
-            )
-            .unique()
-            .collect()
+        # Call the Rust function to perform the dataframe operations
+        df = rust_dataframe_utils.build_taxonomy_dataframe_rust(
+            darwin_core_csv_lazy_frame.lf
         )
 
-        # Add a unique taxonId for each row
-        df = df.with_row_index("taxonId").with_columns(
-            pl.col("taxonId").cast(pl.UInt32())
-        )
-
+        # The Rust function returns a Polars DataFrame directly
         return cls(df)
