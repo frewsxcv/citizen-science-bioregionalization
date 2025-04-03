@@ -4,9 +4,15 @@ __generated_with = "0.12.2"
 app = marimo.App()
 
 
+@app.cell
+def _():
+    import marimo as mo
+    return (mo,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# Dynamic ecoregions""")
+    mo.md(r"""# Citizen Science Bioregionalization""")
     return
 
 
@@ -818,12 +824,6 @@ def _(
         limit_species=5,
     )
     return (create_cluster_taxa_heatmap,)
-
-
-@app.cell
-def _():
-    import marimo as mo
-    return (mo,)
 
 
 if __name__ == "__main__":
