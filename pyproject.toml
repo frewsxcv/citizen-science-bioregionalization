@@ -26,6 +26,8 @@ dependencies = [
     "umap-learn>=0.5.7",
     "scikit-bio>=0.6.3",
     "ipykernel>=6.29.5",
+    "altair>=5.5.0",
+    "vl-convert-python>=1.7.0",
 ]
 
 [tool.mypy]
