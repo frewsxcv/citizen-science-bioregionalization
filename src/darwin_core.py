@@ -1,4 +1,3 @@
-from enum import Enum
 import polars as pl
 from typing import List
 

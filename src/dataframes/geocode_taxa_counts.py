@@ -1,7 +1,6 @@
 import logging
 import polars as pl
 from typing import List
-from src.darwin_core import kingdom_enum
 from src.logging import Timer
 import polars_h3
 
@@ -47,6 +46,9 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
+                .with_columns(
+                    pl.col("taxonRank").cast(pl.Categorical()),
+                )
                 .sort(by="geocode")
                 .collect()
             )

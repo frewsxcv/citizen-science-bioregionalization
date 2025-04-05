@@ -78,12 +78,12 @@ class TestClusterTaxaStatistics(unittest.TestCase):
 
         # 2. Create geocode_taxa_counts dataframe
         geocode_taxa_counts_data = [
-            {"geocode": "geo1", "taxonId": 0, "count": 5},  # Panthera leo
-            {"geocode": "geo1", "taxonId": 1, "count": 3},  # Canis lupus
-            {"geocode": "geo2", "taxonId": 0, "count": 2},  # Panthera leo
-            {"geocode": "geo2", "taxonId": 2, "count": 8},  # Quercus robur
-            {"geocode": "geo3", "taxonId": 2, "count": 4},  # Quercus robur
-            {"geocode": "geo3", "taxonId": 3, "count": 6},  # Anseriformes
+            {"geocode": 1000, "taxonId": 0, "count": 5},  # Panthera leo
+            {"geocode": 1000, "taxonId": 1, "count": 3},  # Canis lupus
+            {"geocode": 2000, "taxonId": 0, "count": 2},  # Panthera leo
+            {"geocode": 2000, "taxonId": 2, "count": 8},  # Quercus robur
+            {"geocode": 3000, "taxonId": 2, "count": 4},  # Quercus robur
+            {"geocode": 3000, "taxonId": 3, "count": 6},  # Anseriformes
         ]
 
         # Create a geocode_taxa_counts DataFrame with proper schema
@@ -96,9 +96,9 @@ class TestClusterTaxaStatistics(unittest.TestCase):
 
         # 3. Create geocode_cluster dataframe
         geocode_cluster_data = [
-            {"geocode": "geo1", "cluster": 0},
-            {"geocode": "geo2", "cluster": 0},
-            {"geocode": "geo3", "cluster": 1},
+            {"geocode": 1000, "cluster": 0},
+            {"geocode": 2000, "cluster": 0},
+            {"geocode": 3000, "cluster": 1},
         ]
 
         # Create a geocode_cluster DataFrame with proper schema
