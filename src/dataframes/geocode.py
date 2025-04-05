@@ -20,7 +20,7 @@ class GeocodeDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geocode": pl.String(),
+        "geocode": pl.UInt64(),
         "center": pl.Struct(
             {
                 "lat": pl.Float64(),
@@ -28,9 +28,9 @@ class GeocodeDataFrame(DataContainer):
             }
         ),
         # Direct neighbors from H3 grid adjacency
-        "direct_neighbors": pl.List(pl.String()),
+        "direct_neighbors": pl.List(pl.UInt64()),
         # Direct and indirect neighbors (includes both H3 adjacency and added connections)
-        "direct_and_indirect_neighbors": pl.List(pl.String()),
+        "direct_and_indirect_neighbors": pl.List(pl.UInt64()),
     }
 
     def __init__(self, df: pl.DataFrame):
@@ -50,7 +50,7 @@ class GeocodeDataFrame(DataContainer):
                     "decimalLatitude",
                     "decimalLongitude",
                     resolution=geocode_precision,
-                    return_dtype=pl.Utf8,
+                    return_dtype=pl.UInt64,
                 ).alias("geocode"),
             )
             .select("geocode")
@@ -70,7 +70,7 @@ class GeocodeDataFrame(DataContainer):
                     pl.col("geocode"), 1
                 ),
                 known_geocodes=pl.lit(
-                    df["geocode"].unique().to_list(), dtype=pl.List(pl.Utf8)
+                    df["geocode"].unique().to_list(), dtype=pl.List(pl.UInt64)
                 ),
             )
             .with_columns(
@@ -117,7 +117,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
             f"More than one connected component (n={number_of_connected_components}), connecting the first with the closest node not in that component"
         )
         components = nx.connected_components(graph)
-        first_component: set[str] = next(components)
+        first_component: set[int] = next(components)
 
         first_component_nodes = list(
             df.select("center", "geocode")
@@ -171,13 +171,19 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
             pl.when(pl.col("geocode") == geocode1)
             .then(
                 pl.concat_list(
-                    [pl.col("direct_and_indirect_neighbors"), pl.lit(geocode2)]
+                    [
+                        pl.col("direct_and_indirect_neighbors"),
+                        pl.lit([geocode2], dtype=pl.List(pl.UInt64)),
+                    ]
                 )
             )
             .when(pl.col("geocode") == geocode2)
             .then(
                 pl.concat_list(
-                    [pl.col("direct_and_indirect_neighbors"), pl.lit(geocode1)]
+                    [
+                        pl.col("direct_and_indirect_neighbors"),
+                        pl.lit([geocode1], dtype=pl.List(pl.UInt64)),
+                    ]
                 )
             )
             .otherwise(pl.col("direct_and_indirect_neighbors"))
