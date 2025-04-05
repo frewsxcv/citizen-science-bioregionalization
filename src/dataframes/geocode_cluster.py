@@ -16,7 +16,7 @@ class GeocodeClusterDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geocode": pl.String(),
+        "geocode": pl.UInt64(),
         "cluster": pl.UInt32(),
     }
 

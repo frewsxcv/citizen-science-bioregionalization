@@ -12,7 +12,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
     df: polars_st.GeoDataFrame
 
     SCHEMA = {
-        "geocode": pl.Utf8(),
+        "geocode": pl.UInt64(),
         "boundary": pl.Binary(),
     }
 
@@ -41,7 +41,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
         # Create the GeoDataFrame directly with both columns
         df = polars_st.GeoDataFrame(
             data={
-                "geocode": pl.Series(geocodes),
+                "geocode": pl.Series(geocodes, dtype=pl.UInt64),
                 "boundary": pl.select(polars_st.from_shapely(pl.Series(polygons))),
             }
         )

@@ -11,7 +11,7 @@ class GeocodeSilhouetteScoreDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geocode": pl.String(),
+        "geocode": pl.UInt64(),
         "silhouette_score": pl.Float64(),
     }
 

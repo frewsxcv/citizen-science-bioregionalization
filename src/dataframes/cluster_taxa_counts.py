@@ -45,7 +45,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         assert_dataframe_schema(
             joined,
             {
-                "geocode": pl.String(),
+                "geocode": pl.Uint64(),
                 "taxonId": pl.UInt32(),
                 "count": pl.UInt32(),
                 "kingdom": kingdom_enum,

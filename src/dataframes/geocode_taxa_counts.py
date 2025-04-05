@@ -17,7 +17,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
     df: pl.DataFrame
 
     SCHEMA = {
-        "geocode": pl.String(),
+        "geocode": pl.UInt64(),
         "taxonId": pl.UInt32(),
         "count": pl.UInt32(),
     }
@@ -41,7 +41,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                         "decimalLatitude",
                         "decimalLongitude",
                         resolution=geocode_precision,
-                        return_dtype=pl.Utf8,
+                        return_dtype=pl.UInt64,
                     ).alias("geocode"),
                 )
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
