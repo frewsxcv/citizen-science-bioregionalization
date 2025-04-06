@@ -582,6 +582,19 @@ def _(cluster_boundary_dataframe):
 
 
 @app.cell
+def _(cluster_boundary_dataframe, pl):
+    (
+        cluster_boundary_dataframe
+            .df
+            .select(pl.col("boundary").alias("geometry"))
+            .st
+            .plot(stroke="green")
+            .project(type="identity", reflectY=True)
+    )
+    return
+
+
+@app.cell
 def _(mo):
     mo.md(r"""## `ClusterDistanceMatrix`""")
     return
