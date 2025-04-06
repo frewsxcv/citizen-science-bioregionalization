@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.12.4"
-app = marimo.App()
+app = marimo.App(width="medium")
 
 
 @app.cell
@@ -22,13 +22,6 @@ def _(mo):
 def _(mo):
     mo.md(r"""## Define inputs""")
     return
-
-
-@app.cell
-def _(mo):
-    slider = mo.ui.slider(start=1, stop=20, label="Slider", value=3)
-    slider
-    return (slider,)
 
 
 @app.cell
