@@ -23,22 +23,25 @@ def build_dependency_graph():
     return G
 
 
-def plot_dependency_graph(save_path: Optional[str] = None):
+def plot_dependency_graph() -> str:
+    """
+    Generates a mermaid representation of the dependency graph.
+
+    Returns:
+        str: Mermaid formatted graph string
+    """
     G = build_dependency_graph()
 
-    plt.figure(figsize=(12, 8))
-    pos = nx.nx_pydot.graphviz_layout(G, prog="dot")
+    # Create mermaid graph string
+    mermaid_str = "graph TD;\n"
 
-    nx.draw_networkx_nodes(G, pos, node_color="lightblue")
-    nx.draw_networkx_edges(G, pos, edge_color="gray", arrowsize=20)
-    nx.draw_networkx_labels(G, pos, font_size=10, font_weight="bold")
+    # Add edges (which implicitly define nodes)
+    for source, target in G.edges():
+        mermaid_str += f"    {source}-->{target};\n"
 
-    plt.title("DataContainer Dependency Graph")
-    plt.axis("off")
+    # If there are isolated nodes with no edges, add them explicitly
+    for node in G.nodes():
+        if G.degree(node) == 0:
+            mermaid_str += f"    {node};\n"
 
-    if save_path:
-        # Prepare the output file path
-        save_path = output.prepare_file_path(save_path)
-        plt.savefig(save_path, bbox_inches="tight")
-
-    plt.show()
+    return mermaid_str
