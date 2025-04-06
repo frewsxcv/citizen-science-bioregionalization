@@ -72,10 +72,10 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(mo):
     from src.dependency_graph import plot_dependency_graph
 
-    plot_dependency_graph()
+    mo.mermaid(plot_dependency_graph())
     return (plot_dependency_graph,)
 
 
