@@ -28,6 +28,7 @@ dependencies = [
     "altair>=5.5.0",
     "vl-convert-python>=1.7.0",
     "marimo>=0.12.2",
+    "pyarrow>=19.0.1",
 ]
 
 [tool.mypy]
