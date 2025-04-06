@@ -384,7 +384,6 @@ dependencies = [
     { name = "polars" },
     { name = "polars-h3" },
     { name = "polars-st" },
-    { name = "pyarrow" },
     { name = "scikit-bio" },
     { name = "scikit-learn" },
     { name = "scipy" },
@@ -411,7 +410,6 @@ requires-dist = [
     { name = "polars", specifier = ">=1.25.0,<1.26.0" },
     { name = "polars-h3", specifier = ">=0.5.1" },
     { name = "polars-st", specifier = ">=0.1.0a10" },
-    { name = "pyarrow", specifier = ">=19.0.1" },
     { name = "scikit-bio", specifier = ">=0.6.3" },
     { name = "scikit-learn", specifier = ">=1.6.0" },
     { name = "scipy", specifier = ">=1.11.3" },
@@ -957,20 +955,21 @@ wheels = [
 
 [[package]]
 name = "polars-st"
-version = "0.1.0a18"
+version = "0.1.0a19"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "polars" },
+    { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pyogrio" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/e3/8a8c9eff6740cb74a4f414bed6e61fd6e7de068842c2b8a2fc2ecca8f0a2/polars_st-0.1.0a18.tar.gz", hash = "sha256:da5fe04c4ce75de37d615147eac3ba02dafd3c4800080a134f7cde778dfbf066", size = 178512 }
+sdist = { url = "https://files.pythonhosted.org/packages/27/8c/1dd3edb23a19be9426d71db6016a09a5332e367b12186085509c8b64db8c/polars_st-0.1.0a19.tar.gz", hash = "sha256:090e004fe0d5c75ba4fe6e40d306a9be5bee4a5097150294996bd8a9808d5434", size = 178477 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/e2/9762072e7ccf1a0b84847a8f37c6301455d0f06b2a4a5fedf6c80c7bb8f3/polars_st-0.1.0a18-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:b6a1ad009188f0bc5842a052dc7733ef9ac31dd519c8d28fc472ac8a8b66603e", size = 6088332 },
-    { url = "https://files.pythonhosted.org/packages/37/22/a929372230514c246dd0b6b2d06f2aaa5f485b9c72b8583e85534b24bec6/polars_st-0.1.0a18-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:73047707879e1ce8c8ec6d74fef2d0800e91a14fadfb3756d1074190181e7a35", size = 5639716 },
-    { url = "https://files.pythonhosted.org/packages/90/b3/838cfc81259de53e31eda850a9c53a02881bc582611d980077ccf0254cc1/polars_st-0.1.0a18-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:31a382ca028495c4e402ba88ca2d249870d74a9d8c22e171813f449fd34a0573", size = 5325760 },
-    { url = "https://files.pythonhosted.org/packages/d2/a1/5cf142582c733847ef45b2f4ffc2187dd74241b5f7fbd5c056a38be0c987/polars_st-0.1.0a18-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6fd25179a4f9ffbaa927c31df43adb59d15125a64fea7800af1ad5ebaaafcddb", size = 5918742 },
-    { url = "https://files.pythonhosted.org/packages/7b/61/287ae15c4bdeabe6ae47a51e132ab1f8dfe6412e60c755e6daa58fc2c4b3/polars_st-0.1.0a18-cp39-abi3-win_amd64.whl", hash = "sha256:46ed6b90f50716c83f5944b5ef84017556fe1111d5d4bdbba7c318a84538b190", size = 5855607 },
+    { url = "https://files.pythonhosted.org/packages/dd/fb/3b28f53f2b6802095e83dd94fa60cb1d49fa4e98fc52c28944da2e333475/polars_st-0.1.0a19-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:2c16d9fd7991db97aa403d745977ecefcd226a61ec128a745282912e17aa3390", size = 6070698 },
+    { url = "https://files.pythonhosted.org/packages/ec/fc/9057be79f1686e1679becbd9512edc7df05e1cb9f71350d28ed7064ad9bd/polars_st-0.1.0a19-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:56e613bc4e9cefb2ae781241235649b00326e63ccffbae69f7e8da8ddc88568b", size = 5639904 },
+    { url = "https://files.pythonhosted.org/packages/6a/6e/327bb8a8908bf6baab4ef562c766c5f994ffe5c4d8dd8dda73d5114d5378/polars_st-0.1.0a19-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:49455f8a1e53ec71bf29e75594c58e0c2ba0182add1f1ccd0b9e37458a7a6117", size = 5319439 },
+    { url = "https://files.pythonhosted.org/packages/c9/d3/3713cbc556a792992b079e7ee8d0c0e2a971f84edef8f3de913d0731e2d3/polars_st-0.1.0a19-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:184737c0e108d1ca1ab28aab5bad140fe622ec3fb73ed0052e27f5024ba0d314", size = 5918408 },
+    { url = "https://files.pythonhosted.org/packages/a1/85/cb444043f14b99542142625b97b8dde00c3e54f150826a739da840601b23/polars_st-0.1.0a19-cp39-abi3-win_amd64.whl", hash = "sha256:c85ce31ba877d65890c168fd08fa4ad25247d35ae9774e05bc56b1a6e02fcec9", size = 5867445 },
 ]
 
 [[package]]
