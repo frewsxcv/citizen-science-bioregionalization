@@ -10,7 +10,6 @@ from src import output
 
 def plot_clusters(
     feature_collection: geojson.FeatureCollection,
-    save_path: Optional[str] = None,
     file_obj: Optional[Union[TextIO, BinaryIO]] = None,
 ) -> None:
     """
@@ -18,7 +17,6 @@ def plot_clusters(
 
     Args:
         feature_collection: GeoJSON feature collection containing all clusters
-        save_path: Path to save the image to (optional)
         file_obj: File-like object to save the image to (optional)
     """
     df = features_to_polars_df(feature_collection["features"])
@@ -48,38 +46,26 @@ def plot_clusters(
         .encode(fill="properties.fill:N")
     )
 
-    if save_path:
-        save_path = output.prepare_file_path(save_path)
-        plot.save(save_path)
-
     if file_obj:
         # Save to the file-like object - specify format as png
         plot.save(file_obj, format="png")
-
-    # Display the plot if not saving
-    if not save_path and not file_obj:
+    else:
+        # Display the plot if not saving
         plot.show()
 
 
 def plot_single_cluster(
     feature_collection: geojson.FeatureCollection,
     cluster_id: int,
-    save_path: Optional[str] = None,
     file_obj: Optional[Union[TextIO, BinaryIO]] = None,
-    to_base64: bool = False,
-) -> str:
+) -> None:
     """
-    Plot a single cluster and optionally save it to a file or return as base64 encoded image.
+    Plot a single cluster and optionally save it to a file.
 
     Args:
         feature_collection: GeoJSON feature collection containing all clusters
         cluster_id: The ID of the cluster to plot
-        save_path: Path to save the image to (optional)
         file_obj: File-like object to save the image to (optional)
-        to_base64: Whether to return the image as a base64 encoded string
-
-    Returns:
-        Base64 encoded image string if to_base64 is True, otherwise empty string
     """
     # Filter features for the specific cluster
     cluster_features = [
@@ -104,56 +90,31 @@ def plot_single_cluster(
         )
         .st  # type: ignore
     )
-    plot = (
-        df_st.plot(
-            color="fill",
-            fillOpacity=0.5,
-            strokeWidth=1.0,
-            stroke="darkened_fill",
-        )
-        .project(type="mercator", reflectY=True)
-    )
+    plot = df_st.plot(
+        color="fill",
+        fillOpacity=0.5,
+        strokeWidth=1.0,
+        stroke="darkened_fill",
+    ).project(type="mercator", reflectY=True)
 
     # Handle output
-    if save_path:
-        save_path = output.prepare_file_path(save_path)
-        plot.save(save_path)
-
     if file_obj:
         # Save to the file-like object - specify format as png
         plot.save(file_obj, format="png")
-
-    if to_base64:
-        # Use BytesIO to capture the image data without creating a temporary file
-        buffer = io.BytesIO()
-        plot.save(buffer, format="png")
-        buffer.seek(0)
-        img_str = base64.b64encode(buffer.read()).decode("ascii")
-        return img_str
-
-    if not save_path and not file_obj and not to_base64:
+    else:
         plot.show()
-
-    return ""
 
 
 def plot_entire_region(
     feature_collection: geojson.FeatureCollection,
-    save_path: Optional[str] = None,
     file_obj: Optional[Union[TextIO, BinaryIO]] = None,
-    to_base64: bool = False,
-) -> str:
+) -> None:
     """
-    Plot the entire region with all clusters and return as base64 encoded image.
+    Plot the entire region with all clusters.
 
     Args:
         feature_collection: GeoJSON feature collection containing all clusters
-        save_path: Path to save the image to (optional)
         file_obj: File-like object to save the image to (optional)
-        to_base64: Whether to return the image as a base64 encoded string
-
-    Returns:
-        Base64 encoded image string if to_base64 is True, otherwise empty string
     """
     # Convert to polars DataFrame
     df = features_to_polars_df(feature_collection["features"])
@@ -184,26 +145,11 @@ def plot_entire_region(
     )
 
     # Handle output
-    if save_path:
-        save_path = output.prepare_file_path(save_path)
-        plot.save(save_path)
-
     if file_obj:
         # Save to the file-like object - specify format as png
         plot.save(file_obj, format="png")
-
-    if to_base64:
-        # Use BytesIO to capture the image data without creating a temporary file
-        buffer = io.BytesIO()
-        plot.save(buffer, format="png")
-        buffer.seek(0)
-        img_str = base64.b64encode(buffer.read()).decode("ascii")
-        return img_str
-
-    if not save_path and not file_obj and not to_base64:
+    else:
         plot.show()
-
-    return ""
 
 
 def features_to_polars_df(features: List[Dict[str, Any]]) -> pl.DataFrame:

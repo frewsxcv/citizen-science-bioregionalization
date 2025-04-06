@@ -11,6 +11,7 @@ import jinja2
 import json
 import base64
 from src import output
+import io
 
 
 def prepare_cluster_data(
@@ -94,9 +95,10 @@ def prepare_full_report_data(
         ].item()
 
         # Generate the cluster map image
-        map_img_base64 = plot_single_cluster(
-            feature_collection, cluster, to_base64=True
-        )
+        buffer = io.BytesIO()
+        plot_single_cluster(feature_collection, cluster, file_obj=buffer)
+        buffer.seek(0)
+        map_img_base64 = base64.b64encode(buffer.read()).decode("ascii")
 
         cluster_data = {
             "id": cluster,
@@ -131,7 +133,10 @@ def prepare_full_report_data(
         clusters_data.append(cluster_data)
 
     # Generate the overview map
-    overview_map_img = plot_entire_region(feature_collection, to_base64=True)
+    overview_buffer = io.BytesIO()
+    plot_entire_region(feature_collection, file_obj=overview_buffer)
+    overview_buffer.seek(0)
+    overview_map_img = base64.b64encode(overview_buffer.read()).decode("ascii")
 
     report_data = {"overview_map": overview_map_img, "clusters": clusters_data}
 
