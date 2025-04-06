@@ -541,7 +541,7 @@ def _(geocode_boundary_dataframe, pl):
             .select(pl.col("boundary").alias("geometry"))
             .st
             .plot(stroke="green")
-            .project(type="identity", reflectY=True)
+            .project(type="mercator")
     )
     return
 
@@ -589,7 +589,7 @@ def _(cluster_boundary_dataframe, pl):
             .select(pl.col("boundary").alias("geometry"))
             .st
             .plot(stroke="green")
-            .project(type="identity", reflectY=True)
+            .project(type="mercator")
     )
     return
 
