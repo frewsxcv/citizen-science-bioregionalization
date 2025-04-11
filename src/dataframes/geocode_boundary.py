@@ -13,7 +13,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
 
     SCHEMA = {
         "geocode": pl.UInt64(),
-        "boundary": pl.Binary(),
+        "geometry": pl.Binary(),
     }
 
     def __init__(self, df: polars_st.GeoDataFrame):
@@ -28,21 +28,21 @@ class GeocodeBoundaryDataFrame(DataContainer):
         geocodes: List[str] = []
         polygons: List[shapely.Polygon] = []
 
-        for geocode, boundary in (
+        for geocode, geometry in (
             geocode_cluster_dataframe.df.with_columns(
-                boundary=polars_h3.cell_to_boundary("geocode")
+                geometry=polars_h3.cell_to_boundary("geocode")
             )
-            .select("geocode", "boundary")
+            .select("geocode", "geometry")
             .iter_rows()
         ):
-            polygons.append(shapely.Polygon(latlng_list_to_lnglat_list(boundary)))
+            polygons.append(shapely.Polygon(latlng_list_to_lnglat_list(geometry)))
             geocodes.append(geocode)
 
         # Create the GeoDataFrame directly with both columns
         df = polars_st.GeoDataFrame(
             data={
                 "geocode": pl.Series(geocodes, dtype=pl.UInt64),
-                "boundary": pl.select(polars_st.from_shapely(pl.Series(polygons))),
+                "geometry": pl.select(polars_st.from_shapely(pl.Series(polygons))),
             }
         )
 

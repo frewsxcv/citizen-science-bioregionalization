@@ -14,7 +14,7 @@ class ClusterBoundaryDataFrame(DataContainer):
 
     SCHEMA = {
         "cluster": pl.UInt32(),
-        "boundary": pl.Binary(),
+        "geometry": pl.Binary(),
     }
 
     def __init__(self, df: polars_st.GeoDataFrame):
@@ -33,9 +33,9 @@ class ClusterBoundaryDataFrame(DataContainer):
         # Create a mapping of geocode to boundary for faster lookup
         geocode_to_boundary: Dict[str, bytes] = {}
         for row in geocode_boundary_dataframe.df.select(
-            "geocode", "boundary"
+            "geocode", "geometry"
         ).iter_rows(named=True):
-            geocode_to_boundary[row["geocode"]] = row["boundary"]
+            geocode_to_boundary[row["geocode"]] = row["geometry"]
 
         # Iterate through each cluster and combine the boundaries of its geocodes
         for (
@@ -66,7 +66,7 @@ class ClusterBoundaryDataFrame(DataContainer):
         df = polars_st.GeoDataFrame(
             data={
                 "cluster": pl.Series(clusters).cast(pl.UInt32()),
-                "boundary": pl.select(polars_st.from_shapely(pl.Series(boundaries))),
+                "geometry": pl.select(polars_st.from_shapely(pl.Series(boundaries))),
             },
         )
 
@@ -75,6 +75,6 @@ class ClusterBoundaryDataFrame(DataContainer):
     def get_boundary_for_cluster(self, cluster_id: ClusterId) -> shapely.Polygon:
         """Get the boundary polygon for a specific cluster."""
         boundary = (
-            self.df.filter(pl.col("cluster") == cluster_id).select("boundary").item()
+            self.df.filter(pl.col("cluster") == cluster_id).select("geometry").item()
         )
         return boundary

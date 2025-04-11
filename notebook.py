@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.12.4"
+__generated_with = "0.12.8"
 app = marimo.App(width="medium")
 
 
@@ -41,6 +41,12 @@ def _(mo):
     # Display inputs
     mo.vstack([input_file, geocode_precision, taxon_filter])
     return geocode_precision, input_file, log_file, num_clusters, taxon_filter
+
+
+@app.cell
+def _(input_file, mo):
+    mo.stop(not all([input_file.value]), "Required inputs not inputted")
+    return
 
 
 @app.cell(hide_code=True)
@@ -530,7 +536,7 @@ def _(geocode_boundary_dataframe, pl):
     (
         geocode_boundary_dataframe
             .df
-            .select(pl.col("boundary").alias("geometry"))
+            .select(pl.col("geometry"))
             .st
             .plot(stroke="green")
             .project(type="identity", reflectY=True)
@@ -578,11 +584,11 @@ def _(cluster_boundary_dataframe, pl):
     (
         cluster_boundary_dataframe
             .df
-            .select(pl.col("boundary").alias("geometry"))["geometry"]
+            .select(pl.col("geometry"))
             .st
             .plot(stroke="green")
             .project(type="identity", reflectY=True)
-        
+
     )
     return
 
