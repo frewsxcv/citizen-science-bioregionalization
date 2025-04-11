@@ -8,43 +8,42 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import polars as pl
-    import polars_h3
-    return mo, pl, polars_h3
+    return mo, pl
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""# Citizen Science Bioregionalization""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Define inputs""")
     return
 
 
 @app.cell
-def _():
+def _(mo):
     # Inputs
 
-    input_file = "data/data-continental-united-states.csv"
+    # input_file = "truncated.csv"
+    # input_file = "data/data-norweigan-nbic.csv"
     log_file = "run.log"
     num_clusters = 10
-    geocode_precision = 4
-    taxon_filter = None
+    # geocode_precision = 4
+    # taxon_filter = None
 
-    # inputs = mo.ui.dictionary({
-    #     "geocode_precision": mo.ui.slider(start=2, stop=5),
-    #     "num_clusters": mo.ui.slider(start=2, stop=200),
-    #     "taxon_filter": mo.ui.text(),
-    #     "input_file": mo.ui.file_browser(),
-    # })
-    # inputs
+    input_file = mo.ui.file_browser(multiple=False, label="Input file")
+    geocode_precision = mo.ui.slider(2, 5, value=4, label="Geocode precision")
+    taxon_filter = mo.ui.text("", label="Taxon filter (optional)")
+
+    # Display inputs
+    mo.vstack([input_file, geocode_precision, taxon_filter])
     return geocode_precision, input_file, log_file, num_clusters, taxon_filter
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Set up logging""")
     return
@@ -58,7 +57,7 @@ def _(log_file):
     return (logging,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Data flow""")
     return
@@ -72,13 +71,13 @@ def _(mo):
     return (plot_dependency_graph,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `DarwinCoreCsvLazyFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -89,12 +88,12 @@ def _(input_file, taxon_filter):
     from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(
-        input_file, taxon_filter=taxon_filter
+        str(input_file.path(index=0)), taxon_filter=taxon_filter.value
     )
     return DarwinCoreCsvLazyFrame, darwin_core_csv_lazy_frame
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -106,13 +105,13 @@ def _(darwin_core_csv_lazy_frame):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeohashDataFrame`""")
+    mo.md(r"""## `GeocodeDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -124,12 +123,12 @@ def _(darwin_core_csv_lazy_frame, geocode_precision):
 
     geocode_dataframe = GeocodeDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision,
+        geocode_precision.value,
     )
     return GeocodeDataFrame, geocode_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -141,13 +140,13 @@ def _(geocode_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `TaxonomyDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -161,7 +160,7 @@ def _(darwin_core_csv_lazy_frame):
     return TaxonomyDataFrame, taxonomy_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -173,13 +172,13 @@ def _(taxonomy_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeohashSpeciesCountsDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -191,13 +190,13 @@ def _(darwin_core_csv_lazy_frame, geocode_precision, taxonomy_dataframe):
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision,
+        geocode_precision.value,
         taxonomy_dataframe,
     )
     return GeocodeTaxaCountsDataFrame, geocode_taxa_counts_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -209,13 +208,13 @@ def _(geocode_taxa_counts_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeocodeConnectivityMatrix`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -229,7 +228,7 @@ def _(geocode_dataframe):
     return GeocodeConnectivityMatrix, geocode_connectivity_matrix
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Shape""")
     return
@@ -241,7 +240,7 @@ def _(geocode_connectivity_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -253,7 +252,7 @@ def _(geocode_connectivity_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeocodeDistanceMatrix`""")
     return
@@ -267,7 +266,7 @@ def _():
     return (GeocodeDistanceMatrix,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -282,7 +281,7 @@ def _(GeocodeDistanceMatrix, geocode_dataframe, geocode_taxa_counts_dataframe):
     return (geocode_distance_matrix,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Shape""")
     return
@@ -294,7 +293,7 @@ def _(geocode_distance_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -306,13 +305,13 @@ def _(geocode_distance_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeohashClusterDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -336,7 +335,7 @@ def _(
     return GeocodeClusterDataFrame, geocode_cluster_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -376,13 +375,13 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterNeighborsDataframe`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -399,7 +398,7 @@ def _(geocode_cluster_dataframe, geocode_dataframe):
     return ClusterNeighborsDataFrame, cluster_neighbors_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -411,13 +410,13 @@ def _(cluster_neighbors_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterTaxaStatisticsDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -439,7 +438,7 @@ def _(
     return ClusterTaxaStatisticsDataFrame, cluster_taxa_statistics_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -451,13 +450,13 @@ def _(cluster_taxa_statistics_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterSignificantDifferencesDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -480,7 +479,7 @@ def _(cluster_taxa_statistics_dataframe):
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -492,13 +491,13 @@ def _(cluster_significant_differences_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeocodeBoundaryDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -514,7 +513,7 @@ def _(geocode_cluster_dataframe):
     return GeocodeBoundaryDataFrame, geocode_boundary_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -534,18 +533,18 @@ def _(geocode_boundary_dataframe, pl):
             .select(pl.col("boundary").alias("geometry"))
             .st
             .plot(stroke="green")
-            .project(type="mercator")
+            .project(type="identity", reflectY=True)
     )
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterBoundaryDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -562,7 +561,7 @@ def _(geocode_boundary_dataframe, geocode_cluster_dataframe):
     return ClusterBoundaryDataFrame, cluster_boundary_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -579,21 +578,22 @@ def _(cluster_boundary_dataframe, pl):
     (
         cluster_boundary_dataframe
             .df
-            .select(pl.col("boundary").alias("geometry"))
+            .select(pl.col("boundary").alias("geometry"))["geometry"]
             .st
             .plot(stroke="green")
-            .project(type="mercator")
+            .project(type="identity", reflectY=True)
+        
     )
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterDistanceMatrix`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -609,7 +609,7 @@ def _(cluster_taxa_statistics_dataframe):
     return ClusterDistanceMatrix, cluster_distance_matrix
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -621,13 +621,13 @@ def _(cluster_distance_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `ClusterColorDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -651,7 +651,7 @@ def _(
     return ClusterColorDataFrame, cluster_colors_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -663,13 +663,13 @@ def _(cluster_colors_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## `GeocodeSilhouetteScoreDataFrame`""")
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Build""")
     return
@@ -691,7 +691,7 @@ def _(
     return GeocodeSilhouetteScoreDataFrame, geocode_silhouette_score_dataframe
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Preview""")
     return
@@ -721,7 +721,7 @@ def _(
     return (plot_silhouette_scores,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Build and plot GeoJSON feature collection""")
     return
@@ -754,7 +754,7 @@ def _(cluster_boundary_dataframe, cluster_colors_dataframe):
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Build and display HTML output""")
     return
@@ -789,7 +789,7 @@ def _(
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Dimensionality reduction plot""")
     return
@@ -812,7 +812,7 @@ def _(
     return (create_dimensionality_reduction_plot,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""## Clustermap visualization""")
     return

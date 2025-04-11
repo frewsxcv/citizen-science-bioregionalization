@@ -42,7 +42,7 @@ def plot_clusters(
             strokeWidth=1.0,
             stroke="darkened_fill",
         )
-        .project(type="mercator")
+        .project(type="identity")
         .encode(fill="properties.fill:N")
     )
 
@@ -95,7 +95,7 @@ def plot_single_cluster(
         fillOpacity=0.5,
         strokeWidth=1.0,
         stroke="darkened_fill",
-    ).project(type="mercator", reflectY=True)
+    ).project(type="identity", reflectY=True)
 
     # Handle output
     if file_obj:
@@ -141,7 +141,7 @@ def plot_entire_region(
             stroke="darkened_fill",
         )
         .encode(fill="properties.fill:N")
-        .project(type="mercator", reflectY=True)
+        .project(type="identity", reflectY=True)
     )
 
     # Handle output
