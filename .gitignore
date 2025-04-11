@@ -14,3 +14,4 @@ wheels/
 data/
 *.log
 output/
+__marimo__/
