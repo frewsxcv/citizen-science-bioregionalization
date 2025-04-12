@@ -2,7 +2,7 @@
 # so those clusters will have artificially fewer counts
 
 import logging
-import typer
+import argparse
 from src import cli_output
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
@@ -30,14 +30,12 @@ from typing import Optional
 
 
 def run(
-    geohash_precision: int = typer.Option(..., help="Precision of the geocode"),
-    num_clusters: int = typer.Option(..., help="Number of clusters to generate"),
-    log_file: str = typer.Option(..., help="Path to the log file"),
-    input_file: str = typer.Argument(..., help="Path to the input file"),
-    plot: bool = typer.Option(False, help="Plot the clusters"),
-    taxon_filter: Optional[str] = typer.Option(
-        None, help="Filter to a specific taxon (e.g., 'Aves')"
-    ),
+    geohash_precision: int,
+    num_clusters: int,
+    log_file: str,
+    input_file: str,
+    plot: bool = False,
+    taxon_filter: Optional[str] = None,
 ):
     # Get standardized output paths
     output_file = output.get_geojson_path()
@@ -159,7 +157,45 @@ def run(
 
 
 def main() -> None:
-    typer.run(run)
+    parser = argparse.ArgumentParser(
+        description="Process Darwin Core CSV data and generate clusters."
+    )
+
+    # Add required options
+    parser.add_argument(
+        "--geohash-precision", type=int, required=True, help="Precision of the geocode"
+    )
+    parser.add_argument(
+        "--num-clusters", type=int, required=True, help="Number of clusters to generate"
+    )
+    parser.add_argument(
+        "--log-file", type=str, required=True, help="Path to the log file"
+    )
+
+    # Add optional arguments
+    parser.add_argument(
+        "--plot", action="store_true", default=False, help="Plot the clusters"
+    )
+    parser.add_argument(
+        "--taxon-filter",
+        type=str,
+        default=None,
+        help="Filter to a specific taxon (e.g., 'Aves')",
+    )
+
+    # Positional arguments
+    parser.add_argument("input_file", type=str, help="Path to the input file")
+
+    args = parser.parse_args()
+
+    run(
+        geohash_precision=args.geohash_precision,
+        num_clusters=args.num_clusters,
+        log_file=args.log_file,
+        input_file=args.input_file,
+        plot=args.plot,
+        taxon_filter=args.taxon_filter,
+    )
 
 
 if __name__ == "__main__":

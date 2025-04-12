@@ -19,7 +19,6 @@ dependencies = [
     "scipy>=1.11.3",
     "seaborn>=0.13.2",
     "shapely>=2.0.6",
-    "typer>=0.15.1",
     "umap-learn>=0.5.7",
     "scikit-bio>=0.6.3",
     "altair>=5.5.0",
