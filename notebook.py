@@ -25,28 +25,65 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    # Inputs
-
-    # input_file = "truncated.csv"
-    # input_file = "data/data-norweigan-nbic.csv"
-    log_file = "run.log"
-    num_clusters = 10
-    # geocode_precision = 4
-    # taxon_filter = None
-
-    input_file = mo.ui.file_browser(multiple=False, label="Input file")
-    geocode_precision = mo.ui.slider(2, 5, value=4, label="Geocode precision")
-    taxon_filter = mo.ui.text("", label="Taxon filter (optional)")
+    if mo.running_in_notebook():
+        log_file_ui = mo.ui.text("run.log", label="Log file")
+        input_file_ui = mo.ui.file_browser(multiple=False, label="Input file")
+        geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
+        taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+        num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    else:
+        log_file_ui = None
+        input_file_ui = None
+        geocode_precision_ui = None
+        taxon_filter_ui = None
+        num_clusters_ui = None
 
     # Display inputs
-    mo.vstack([input_file, geocode_precision, taxon_filter])
-    return geocode_precision, input_file, log_file, num_clusters, taxon_filter
+    mo.vstack([input_file_ui, geocode_precision_ui, taxon_filter_ui, num_clusters_ui])
+    return (
+        geocode_precision_ui,
+        input_file_ui,
+        log_file_ui,
+        num_clusters_ui,
+        taxon_filter_ui,
+    )
 
 
 @app.cell
-def _(input_file, mo):
-    mo.stop(not all([input_file.value]), "Required inputs not inputted")
-    return
+def _(
+    geocode_precision_ui,
+    input_file_ui,
+    log_file_ui,
+    mo,
+    num_clusters_ui,
+    taxon_filter_ui,
+):
+    if mo.running_in_notebook():
+        mo.stop(not all([input_file_ui.value]), "Required inputs not inputted")
+
+        log_file = log_file_ui.value
+        input_file = str(input_file_ui.path(index=0))
+        geocode_precision = geocode_precision_ui.value
+        taxon_filter = taxon_filter_ui.value
+        num_clusters = num_clusters_ui.value
+    else:
+        from src.cli_input import parse_cli_input
+        cli_input = parse_cli_input()
+
+        log_file = cli_input.log_file
+        input_file = cli_input.input_file
+        geocode_precision = cli_input.geocode_precision
+        taxon_filter = cli_input.taxon_filter
+        num_clusters = cli_input.num_clusters
+    return (
+        cli_input,
+        geocode_precision,
+        input_file,
+        log_file,
+        num_clusters,
+        parse_cli_input,
+        taxon_filter,
+    )
 
 
 @app.cell(hide_code=True)
@@ -94,7 +131,7 @@ def _(input_file, taxon_filter):
     from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(
-        str(input_file.path(index=0)), taxon_filter=taxon_filter.value
+        input_file, taxon_filter=taxon_filter
     )
     return DarwinCoreCsvLazyFrame, darwin_core_csv_lazy_frame
 
@@ -129,7 +166,7 @@ def _(darwin_core_csv_lazy_frame, geocode_precision):
 
     geocode_dataframe = GeocodeDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision.value,
+        geocode_precision,
     )
     return GeocodeDataFrame, geocode_dataframe
 
@@ -196,7 +233,7 @@ def _(darwin_core_csv_lazy_frame, geocode_precision, taxonomy_dataframe):
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision.value,
+        geocode_precision,
         taxonomy_dataframe,
     )
     return GeocodeTaxaCountsDataFrame, geocode_taxa_counts_dataframe

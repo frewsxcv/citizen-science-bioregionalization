@@ -34,7 +34,6 @@ def run(
     num_clusters: int,
     log_file: str,
     input_file: str,
-    plot: bool = False,
     taxon_filter: Optional[str] = None,
 ):
     # Get standardized output paths
@@ -152,9 +151,6 @@ def run(
     write_html(html_content, html_output)
     logging.info(f"HTML output with maps written to {html_output}")
 
-    if plot:
-        plot_clusters(feature_collection)
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -174,9 +170,6 @@ def main() -> None:
 
     # Add optional arguments
     parser.add_argument(
-        "--plot", action="store_true", default=False, help="Plot the clusters"
-    )
-    parser.add_argument(
         "--taxon-filter",
         type=str,
         default=None,
@@ -193,7 +186,6 @@ def main() -> None:
         num_clusters=args.num_clusters,
         log_file=args.log_file,
         input_file=args.input_file,
-        plot=args.plot,
         taxon_filter=args.taxon_filter,
     )
 
