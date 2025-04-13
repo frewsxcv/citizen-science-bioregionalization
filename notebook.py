@@ -722,12 +722,10 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
-    permanova_results_dataframe.df`
-    """,
-    name="_"
-)
+@app.cell
+def _(permanova_results_dataframe):
+    permanova_results_dataframe.df
+    return
 
 
 @app.cell(hide_code=True)
