@@ -102,20 +102,6 @@ def _(log_file):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Data flow""")
-    return
-
-
-@app.cell
-def _(mo):
-    from src.dependency_graph import plot_dependency_graph
-
-    mo.mermaid(plot_dependency_graph())
-    return (plot_dependency_graph,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""## `DarwinCoreCsvLazyFrame`""")
     return
 
@@ -924,6 +910,20 @@ def _(
         limit_species=5,
     )
     return (create_cluster_taxa_heatmap,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""## Data flow""")
+    return
+
+
+@app.cell
+def _(mo):
+    from src.dependency_graph import plot_dependency_graph
+
+    mo.mermaid(plot_dependency_graph())
+    return (plot_dependency_graph,)
 
 
 if __name__ == "__main__":
