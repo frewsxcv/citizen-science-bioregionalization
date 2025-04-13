@@ -9,7 +9,6 @@ from src.matrices import *
 from src.output import *
 
 
-
 def build_dependency_graph():
     G = nx.DiGraph()
 

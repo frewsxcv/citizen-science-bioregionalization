@@ -8,6 +8,7 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import polars as pl
+
     return mo, pl
 
 
@@ -68,6 +69,7 @@ def _(
         num_clusters = num_clusters_ui.value
     else:
         from src.cli_input import parse_cli_input
+
         cli_input = parse_cli_input()
 
         log_file = cli_input.log_file
@@ -557,12 +559,9 @@ def _(geocode_boundary_dataframe):
 @app.cell
 def _(geocode_boundary_dataframe, pl):
     (
-        geocode_boundary_dataframe
-            .df
-            .select(pl.col("geometry"))
-            .st
-            .plot(stroke="green")
-            .project(type="identity", reflectY=True)
+        geocode_boundary_dataframe.df.select(pl.col("geometry"))
+        .st.plot(stroke="green")
+        .project(type="identity", reflectY=True)
     )
     return
 
@@ -605,13 +604,9 @@ def _(cluster_boundary_dataframe):
 @app.cell
 def _(cluster_boundary_dataframe, pl):
     (
-        cluster_boundary_dataframe
-            .df
-            .select(pl.col("geometry"))
-            .st
-            .plot(stroke="green")
-            .project(type="identity", reflectY=True)
-
+        cluster_boundary_dataframe.df.select(pl.col("geometry"))
+        .st.plot(stroke="green")
+        .project(type="identity", reflectY=True)
     )
     return
 

@@ -165,7 +165,9 @@ class GeocodeDistanceMatrix(DataContainer):
         geocode_dataframe: GeocodeDataFrame,
     ) -> "GeocodeDistanceMatrix":
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
-        scaled_feature_matrix = build_X(geocode_taxa_counts_dataframe, geocode_dataframe)
+        scaled_feature_matrix = build_X(
+            geocode_taxa_counts_dataframe, geocode_dataframe
+        )
 
         # Dimensionality Reduction using UMAP
         # UMAP is often effective for visualizing high-dimensional biological data.

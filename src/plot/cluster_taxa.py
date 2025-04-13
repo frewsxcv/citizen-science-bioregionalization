@@ -4,7 +4,7 @@ from typing import Dict, Union, TypeVar, cast
 from scipy.cluster.hierarchy import linkage
 
 # Define a type variable for numeric series
-NumericSeries = TypeVar('NumericSeries', bound=pl.Series)
+NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
 def create_cluster_taxa_heatmap(
@@ -138,15 +138,15 @@ def min_max_normalize(series: pl.Series) -> pl.Series:
     pl.Series
         The normalized series with values between 0 and 1
     """
-    # Since mypy cannot infer operations on pl.Series properly, 
+    # Since mypy cannot infer operations on pl.Series properly,
     # we proceed with the implementation knowing the series contains numeric values
     min_val = series.min()
     max_val = series.max()
-    
+
     # Handle the case where min and max are the same (constant series)
     if min_val == max_val:
         return pl.Series(values=[0.5] * len(series), name=series.name)
-    
+
     # This is a numerical operation that's valid for numeric series
     # but mypy can't verify it properly
     return (series - min_val) / (max_val - min_val)  # type: ignore
