@@ -21,6 +21,7 @@ class ClusterColorDataFrame(DataContainer):
     SCHEMA = {
         "cluster": pl.UInt32(),
         "color": pl.Utf8(),
+        "darkened_color": pl.Utf8(),
     }
 
     def __init__(self, df: pl.DataFrame) -> None:
@@ -124,7 +125,13 @@ class ClusterColorDataFrame(DataContainer):
             else:
                 color = land_palette_map[color_index]
 
-            rows.append({"cluster": cluster, "color": color})
+            rows.append(
+                {
+                    "cluster": cluster,
+                    "color": color,
+                    "darkened_color": darken_hex_color(color),
+                }
+            )
 
         return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
 
@@ -197,9 +204,47 @@ class ClusterColorDataFrame(DataContainer):
 
             # Convert RGB to hex
             hex_color = mcolors.rgb2hex((rgb[0], rgb[1], rgb[2]))
-            rows.append({"cluster": cluster, "color": hex_color})
+            rows.append(
+                {
+                    "cluster": cluster,
+                    "color": hex_color,
+                    "darkened_color": darken_hex_color(hex_color),
+                }
+            )
 
         return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
 
     def to_dict(self) -> Dict[ClusterId, str]:
         return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}
+
+
+def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:
+    """
+    Darkens a hex color by multiplying RGB components by the given factor.
+
+    Args:
+        hex_color: A hex color string like '#ff0000' or '#f00'
+        factor: A float between 0 and 1 (0 = black, 1 = original color)
+
+    Returns:
+        A darkened hex color string
+    """
+    # Remove the # if present
+    hex_color = hex_color.lstrip("#")
+
+    # Handle shorthand hex format (#rgb)
+    if len(hex_color) == 3:
+        hex_color = "".join([c * 2 for c in hex_color])
+
+    # Convert hex to RGB
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    # Darken each component
+    r = int(r * factor)
+    g = int(g * factor)
+    b = int(b * factor)
+
+    # Convert back to hex
+    return f"#{r:02x}{g:02x}{b:02x}"
