@@ -59,8 +59,8 @@ class TestGeojson(unittest.TestCase):
             cluster_colors_dataframe=ClusterColorDataFrame(
                 df=pl.DataFrame(
                     [
-                        {"cluster": 1, "color": "#ff0000"},
-                        {"cluster": 2, "color": "#0000ff"},
+                        {"cluster": 1, "color": "#ff0000", "darkened_color": "#800000"},
+                        {"cluster": 2, "color": "#0000ff", "darkened_color": "#000080"},
                     ],
                     schema=ClusterColorDataFrame.SCHEMA,
                 )
@@ -83,7 +83,13 @@ class TestGeojson(unittest.TestCase):
                         ],
                         "type": "Polygon",
                     },
-                    "properties": {"cluster": 1, "fill": "#ff0000", "stroke-width": 0},
+                    "properties": {
+                        "cluster": 1,
+                        "color": "#800000",
+                        "fillColor": "#ff0000",
+                        "fillOpacity": 0.7,
+                        "weight": 1,
+                    },
                     "type": "Feature",
                 },
                 {
@@ -105,7 +111,13 @@ class TestGeojson(unittest.TestCase):
                         ],
                         "type": "Polygon",
                     },
-                    "properties": {"cluster": 2, "fill": "#0000ff", "stroke-width": 0},
+                    "properties": {
+                        "cluster": 2,
+                        "color": "#000080",
+                        "fillColor": "#0000ff",
+                        "fillOpacity": 0.7,
+                        "weight": 1,
+                    },
                     "type": "Feature",
                 },
             ],

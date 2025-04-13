@@ -41,6 +41,7 @@ class TestRender(unittest.TestCase):
                     "properties": {
                         "cluster": 1,
                         "fill": "#ff0000",
+                        "color": "#800000",
                     },
                 },
                 {
@@ -60,6 +61,7 @@ class TestRender(unittest.TestCase):
                     "properties": {
                         "cluster": 2,
                         "fill": "#00ff00",
+                        "color": "#008000",
                     },
                 },
             ],
