@@ -708,6 +708,44 @@ def _(cluster_colors_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
+    mo.md(r"""## PermanovaResultsDataFrame""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""### Build""")
+    return
+
+
+@app.cell
+def _(geocode_cluster_dataframe, geocode_dataframe, geocode_distance_matrix):
+    from src.dataframes.permanova_results import PermanovaResultsDataFrame
+
+    permanova_results_dataframe = PermanovaResultsDataFrame.build(
+        geocode_distance_matrix=geocode_distance_matrix,
+        geocode_cluster_dataframe=geocode_cluster_dataframe,
+        geocode_dataframe=geocode_dataframe,
+    )
+    return PermanovaResultsDataFrame, permanova_results_dataframe
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""### Preview""")
+    return
+
+
+app._unparsable_cell(
+    r"""
+    permanova_results_dataframe.df`
+    """,
+    name="_"
+)
+
+
+@app.cell(hide_code=True)
+def _(mo):
     mo.md(r"""## `GeocodeSilhouetteScoreDataFrame`""")
     return
 
