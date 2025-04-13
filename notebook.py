@@ -8,8 +8,8 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import polars as pl
-
-    return mo, pl
+    import numpy as np
+    return mo, np, pl
 
 
 @app.cell(hide_code=True)
@@ -108,12 +108,6 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
 @app.cell
 def _(input_file, taxon_filter):
     from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
@@ -121,30 +115,14 @@ def _(input_file, taxon_filter):
     darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(
         input_file, taxon_filter=taxon_filter
     )
+
+    darwin_core_csv_lazy_frame.lf.limit(3).collect()
     return DarwinCoreCsvLazyFrame, darwin_core_csv_lazy_frame
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(darwin_core_csv_lazy_frame):
-    darwin_core_csv_lazy_frame.lf.limit(3).collect()
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""## `GeocodeDataFrame`""")
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
     return
 
 
@@ -156,19 +134,9 @@ def _(darwin_core_csv_lazy_frame, geocode_precision):
         darwin_core_csv_lazy_frame,
         geocode_precision,
     )
-    return GeocodeDataFrame, geocode_dataframe
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(geocode_dataframe):
     geocode_dataframe.df
-    return
+    return GeocodeDataFrame, geocode_dataframe
 
 
 @app.cell(hide_code=True)
@@ -177,41 +145,19 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
 @app.cell
 def _(darwin_core_csv_lazy_frame):
     from src.dataframes.taxonomy import TaxonomyDataFrame
 
     taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_csv_lazy_frame)
+
+    taxonomy_dataframe.df
     return TaxonomyDataFrame, taxonomy_dataframe
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(taxonomy_dataframe):
-    taxonomy_dataframe.df
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""## `GeohashSpeciesCountsDataFrame`""")
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
     return
 
 
@@ -224,19 +170,9 @@ def _(darwin_core_csv_lazy_frame, geocode_precision, taxonomy_dataframe):
         geocode_precision,
         taxonomy_dataframe,
     )
-    return GeocodeTaxaCountsDataFrame, geocode_taxa_counts_dataframe
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(geocode_taxa_counts_dataframe):
     geocode_taxa_counts_dataframe.df
-    return
+    return GeocodeTaxaCountsDataFrame, geocode_taxa_counts_dataframe
 
 
 @app.cell(hide_code=True)
@@ -245,42 +181,14 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
 @app.cell
 def _(geocode_dataframe):
     from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 
     geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_dataframe)
-    return GeocodeConnectivityMatrix, geocode_connectivity_matrix
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Shape""")
-    return
-
-
-@app.cell
-def _(geocode_connectivity_matrix):
-    geocode_connectivity_matrix._connectivity_matrix.shape
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(geocode_connectivity_matrix):
     geocode_connectivity_matrix._connectivity_matrix
-    return
+    return GeocodeConnectivityMatrix, geocode_connectivity_matrix
 
 
 @app.cell(hide_code=True)
@@ -290,50 +198,19 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
-    print(GeocodeDistanceMatrix.__doc__)
-    return (GeocodeDistanceMatrix,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
-@app.cell
-def _(GeocodeDistanceMatrix, geocode_dataframe, geocode_taxa_counts_dataframe):
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_dataframe,
         geocode_dataframe,
     )
-    return (geocode_distance_matrix,)
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Shape""")
-    return
-
-
-@app.cell
-def _(geocode_distance_matrix):
-    geocode_distance_matrix.squareform().shape
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(geocode_distance_matrix):
-    geocode_distance_matrix.squareform()
-    return
+    mo.vstack([
+        mo.md(GeocodeDistanceMatrix.__doc__),
+        mo.plain_text(np.array_repr(geocode_distance_matrix.squareform())),
+    ])
+    return GeocodeDistanceMatrix, geocode_distance_matrix
 
 
 @app.cell(hide_code=True)
