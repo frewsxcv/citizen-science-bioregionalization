@@ -47,8 +47,8 @@ class TestGeojson(unittest.TestCase):
         # Create a mock ClusterBoundaryDataFrame
         cluster_boundary_df = pl.DataFrame(
             [
-                {"cluster": 1, "boundary": shapely.to_wkb(polygon1)},
-                {"cluster": 2, "boundary": shapely.to_wkb(polygon2)},
+                {"cluster": 1, "geometry": shapely.to_wkb(polygon1)},
+                {"cluster": 2, "geometry": shapely.to_wkb(polygon2)},
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
@@ -137,9 +137,9 @@ class TestGeojson(unittest.TestCase):
         # Create a ClusterBoundaryDataFrame
         cluster_boundary_df = pl.DataFrame(
             [
-                {"cluster": 1, "boundary": shapely.to_wkb(polygon1)},
-                {"cluster": 2, "boundary": shapely.to_wkb(polygon2)},
-                {"cluster": 3, "boundary": shapely.to_wkb(polygon3)},
+                {"cluster": 1, "geometry": shapely.to_wkb(polygon1)},
+                {"cluster": 2, "geometry": shapely.to_wkb(polygon2)},
+                {"cluster": 3, "geometry": shapely.to_wkb(polygon3)},
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 

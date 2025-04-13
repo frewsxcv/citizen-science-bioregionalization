@@ -41,7 +41,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         boundaries_df = pl.DataFrame(
             {
                 "cluster": [1, 2, 3, 4],
-                "boundary": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
+                "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
         cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
@@ -105,7 +105,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         boundaries_df = pl.DataFrame(
             {
                 "cluster": [1, 2, 3, 4],
-                "boundary": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
+                "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
         cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
@@ -172,7 +172,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         boundaries_df = pl.DataFrame(
             {
                 "cluster": [1, 2, 3, 4],
-                "boundary": [ocean_wkb, ocean_wkb, ocean_wkb, ocean_wkb],
+                "geometry": [ocean_wkb, ocean_wkb, ocean_wkb, ocean_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
         cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
@@ -271,7 +271,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         ocean_wkb = shapely.to_wkb(ocean_polygon)
 
         boundaries_df = pl.DataFrame(
-            {"cluster": clusters, "boundary": [ocean_wkb for _ in range(12)]}
+            {"cluster": clusters, "geometry": [ocean_wkb for _ in range(12)]}
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
         cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
 

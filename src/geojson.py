@@ -168,7 +168,7 @@ def find_ocean_clusters(
 
     # Process each cluster
     for cluster_id, boundary_bytes in cluster_boundary_dataframe.df.select(
-        ["cluster", "boundary"]
+        ["cluster", "geometry"]
     ).iter_rows():
         cluster_boundary = shapely.from_wkb(boundary_bytes)
 

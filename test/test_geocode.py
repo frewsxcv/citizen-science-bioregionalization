@@ -3,8 +3,6 @@ import polars as pl
 import networkx as nx
 import tempfile
 import os
-import h3
-import polars_h3
 
 from src.dataframes.geocode import (
     GeocodeDataFrame,
