@@ -17,12 +17,14 @@ def build_geojson_feature(
     geometry: shapely.Geometry,
     cluster: ClusterId,
     color: str,
+    darkened_color: str,
 ) -> geojson.Feature:
     return geojson.Feature(
         properties={
-            # "label": ", ".join(geocodes),
-            "fill": color,
-            "stroke-width": 0,
+            "color": darkened_color,
+            "fillColor": color,
+            "fillOpacity": 0.7,
+            "weight": 1,
             "cluster": cluster,
         },
         geometry=shapely.geometry.mapping(geometry),  # type: ignore
@@ -35,7 +37,7 @@ def build_geojson_feature_collection(
 ) -> geojson.FeatureCollection:
     features: list[geojson.Feature] = []
 
-    for cluster, boundary, color in cluster_boundary_dataframe.df.join(
+    for cluster, boundary, color, darkened_color in cluster_boundary_dataframe.df.join(
         cluster_colors_dataframe.df, on="cluster"
     ).iter_rows():
         features.append(
@@ -43,6 +45,7 @@ def build_geojson_feature_collection(
                 shapely.from_wkb(boundary),
                 cluster,
                 color,
+                darkened_color,
             )
         )
     return geojson.FeatureCollection(features)

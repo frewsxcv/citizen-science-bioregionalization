@@ -21,29 +21,25 @@ def plot_clusters(
     """
     df = features_to_polars_df(feature_collection["features"])
 
-    # Darken fill colors for stroke
-    darkened_colors = darken_hex_colors_polars(df["fill"])
-
     # Create plot with polars-st
     df_st: polars_st.GeoDataFrameNameSpace = (
-        df.with_columns(darkened_fill=darkened_colors)
-        .select(
+        df.select(
             pl.col("geometry"),
             pl.col("cluster"),
-            pl.col("fill"),
-            pl.col("darkened_fill"),
+            pl.col("fillColor"),
+            pl.col("color"),
         )
         .st  # type: ignore
     )
     plot = (
         df_st.plot(
-            color="fill",
+            color="fillColor",
             fillOpacity=0.5,
             strokeWidth=1.0,
-            stroke="darkened_fill",
+            stroke="color",
         )
         .project(type="identity")
-        .encode(fill="properties.fill:N")
+        .encode(fill="properties.fillColor:N")
     )
 
     if file_obj:
@@ -77,24 +73,20 @@ def plot_single_cluster(
     # Convert to polars DataFrame
     df = features_to_polars_df(cluster_features)
 
-    # Darken fill colors for stroke
-    darkened_colors = darken_hex_colors_polars(df["fill"])
-
     # Create plot
     df_st: polars_st.GeoDataFrameNameSpace = (
-        df.with_columns(darkened_fill=darkened_colors)
-        .select(
+        df.select(
             pl.col("geometry"),
-            pl.col("fill"),
-            pl.col("darkened_fill"),
+            pl.col("fillColor"),
+            pl.col("color"),
         )
         .st  # type: ignore
     )
     plot = df_st.plot(
-        color="fill",
+        color="fillColor",
         fillOpacity=0.5,
         strokeWidth=1.0,
-        stroke="darkened_fill",
+        stroke="color",
     ).project(type="identity", reflectY=True)
 
     # Handle output
@@ -119,28 +111,24 @@ def plot_entire_region(
     # Convert to polars DataFrame
     df = features_to_polars_df(feature_collection["features"])
 
-    # Darken fill colors for stroke with a factor of 0.3
-    darkened_colors = darken_hex_colors_polars(df["fill"], factor=0.3)
-
     # Create plot
     df_st: polars_st.GeoDataFrameNameSpace = (
-        df.with_columns(darkened_fill=darkened_colors)
-        .select(
+        df.select(
             pl.col("geometry"),
             pl.col("cluster"),
-            pl.col("fill"),
-            pl.col("darkened_fill"),
+            pl.col("fillColor"),
+            pl.col("color"),
         )
         .st  # type: ignore
     )
     plot = (
         df_st.plot(
-            color="fill",
+            color="fillColor",
             fillOpacity=0.7,
             strokeWidth=0.8,
-            stroke="darkened_fill",
+            stroke="color",
         )
-        .encode(fill="properties.fill:N")
+        .encode(fill="properties.fillColor:N")
         .project(type="identity", reflectY=True)
     )
 
@@ -173,51 +161,3 @@ def features_to_polars_df(features: List[Dict[str, Any]]) -> pl.DataFrame:
         rows.append(row)
 
     return pl.DataFrame(rows)
-
-
-def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:
-    """
-    Darkens a hex color by multiplying RGB components by the given factor.
-
-    Args:
-        hex_color: A hex color string like '#ff0000' or '#f00'
-        factor: A float between 0 and 1 (0 = black, 1 = original color)
-
-    Returns:
-        A darkened hex color string
-    """
-    # Remove the # if present
-    hex_color = hex_color.lstrip("#")
-
-    # Handle shorthand hex format (#rgb)
-    if len(hex_color) == 3:
-        hex_color = "".join([c * 2 for c in hex_color])
-
-    # Convert hex to RGB
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-
-    # Darken each component
-    r = int(r * factor)
-    g = int(g * factor)
-    b = int(b * factor)
-
-    # Convert back to hex
-    return f"#{r:02x}{g:02x}{b:02x}"
-
-
-def darken_hex_colors_polars(hex_colors: pl.Series, factor: float = 0.5) -> pl.Series:
-    """
-    Darkens each hex color in a polars Series by the given factor.
-
-    Args:
-        hex_colors: A polars Series of hex color strings
-        factor: A float between 0 and 1 (0 = black, 1 = original color)
-
-    Returns:
-        A polars Series of darkened hex colors
-    """
-    return pl.Series(
-        [darken_hex_color(color, factor) for color in hex_colors.to_list()]
-    )

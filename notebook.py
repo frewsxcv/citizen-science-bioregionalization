@@ -528,12 +528,6 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
 @app.cell
 def _(
     cluster_boundary_dataframe,
@@ -549,24 +543,14 @@ def _(
         color_method="taxonomic",
         # color_method="geographic",
     )
+
+    cluster_colors_dataframe.df
     return ClusterColorDataFrame, cluster_colors_dataframe
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(cluster_colors_dataframe):
-    cluster_colors_dataframe.df
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""## PermanovaResultsDataFrame""")
+    mo.md(r"""## `PermanovaResultsDataFrame`""")
     return
 
 
@@ -689,6 +673,25 @@ def _(cluster_boundary_dataframe, cluster_colors_dataframe):
         plt,
         write_geojson,
     )
+
+
+@app.cell
+def _(feature_collection):
+    import folium
+
+    map = folium.Map(
+        tiles='Esri.WorldGrayCanvas',
+    )
+
+    folium.GeoJson(
+        feature_collection,
+        style_function=lambda feature: feature["properties"],
+    ).add_to(map)
+
+    map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
+
+    map
+    return folium, map
 
 
 @app.cell(hide_code=True)

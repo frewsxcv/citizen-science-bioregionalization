@@ -25,6 +25,7 @@ dependencies = [
     "vl-convert-python>=1.7.0",
     "marimo>=0.12.2",
     "ipython>=9.1.0",
+    "folium>=0.19.5",
 ]
 
 [tool.mypy]
