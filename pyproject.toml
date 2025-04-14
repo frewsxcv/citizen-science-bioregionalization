@@ -35,3 +35,4 @@ files = [
     "src/**/*.py",
     "test/**/*.py",
 ]
+mypy_path = "stubs"
