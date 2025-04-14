@@ -13,4 +13,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run Mypy
-        run: uv run mypy run.py
+        run: uv run mypy .
