@@ -25,18 +25,18 @@ def plot_clusters(
     df_st: polars_st.GeoDataFrameNameSpace = df.select(
         pl.col("geometry"),
         pl.col("cluster"),
-        pl.col("fill"),
+        pl.col("fillColor"),
         pl.col("color"),
     ).st  # type: ignore
     plot = (
         df_st.plot(
-            color="fill",
+            color="fillColor",
             fillOpacity=0.5,
             strokeWidth=1.0,
             stroke="color",
         )
         .project(type="identity")
-        .encode(fill="properties.fill:N")
+        .encode(fill="properties.fillColor:N")
     )
 
     if file_obj:
@@ -73,11 +73,11 @@ def plot_single_cluster(
     # Create plot
     df_st: polars_st.GeoDataFrameNameSpace = df.select(
         pl.col("geometry"),
-        pl.col("fill"),
+        pl.col("fillColor"),
         pl.col("color"),
     ).st  # type: ignore
     plot = df_st.plot(
-        color="fill",
+        color="fillColor",
         fillOpacity=0.5,
         strokeWidth=1.0,
         stroke="color",
@@ -109,17 +109,17 @@ def plot_entire_region(
     df_st: polars_st.GeoDataFrameNameSpace = df.select(
         pl.col("geometry"),
         pl.col("cluster"),
-        pl.col("fill"),
+        pl.col("fillColor"),
         pl.col("color"),
     ).st  # type: ignore
     plot = (
         df_st.plot(
-            color="fill",
+            color="fillColor",
             fillOpacity=0.7,
             strokeWidth=0.8,
             stroke="color",
         )
-        .encode(fill="properties.fill:N")
+        .encode(fill="properties.fillColor:N")
         .project(type="identity", reflectY=True)
     )
 
