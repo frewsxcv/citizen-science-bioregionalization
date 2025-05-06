@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.12.8"
+__generated_with = "0.13.4"
 app = marimo.App(width="medium")
 
 
@@ -77,15 +77,7 @@ def _(
         geocode_precision = cli_input.geocode_precision
         taxon_filter = cli_input.taxon_filter
         num_clusters = cli_input.num_clusters
-    return (
-        cli_input,
-        geocode_precision,
-        input_file,
-        log_file,
-        num_clusters,
-        parse_cli_input,
-        taxon_filter,
-    )
+    return geocode_precision, input_file, log_file, num_clusters, taxon_filter
 
 
 @app.cell(hide_code=True)
@@ -99,7 +91,7 @@ def _(log_file):
     import logging
 
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
-    return (logging,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -117,7 +109,7 @@ def _(input_file, taxon_filter):
     )
 
     darwin_core_csv_lazy_frame.lf.limit(3).collect()
-    return DarwinCoreCsvLazyFrame, darwin_core_csv_lazy_frame
+    return (darwin_core_csv_lazy_frame,)
 
 
 @app.cell(hide_code=True)
@@ -136,7 +128,7 @@ def _(darwin_core_csv_lazy_frame, geocode_precision):
     )
 
     geocode_dataframe.df
-    return GeocodeDataFrame, geocode_dataframe
+    return (geocode_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -152,7 +144,7 @@ def _(darwin_core_csv_lazy_frame):
     taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_csv_lazy_frame)
 
     taxonomy_dataframe.df
-    return TaxonomyDataFrame, taxonomy_dataframe
+    return (taxonomy_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -172,7 +164,7 @@ def _(darwin_core_csv_lazy_frame, geocode_precision, taxonomy_dataframe):
     )
 
     geocode_taxa_counts_dataframe.df
-    return GeocodeTaxaCountsDataFrame, geocode_taxa_counts_dataframe
+    return (geocode_taxa_counts_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -188,7 +180,7 @@ def _(geocode_dataframe):
     geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_dataframe)
 
     geocode_connectivity_matrix._connectivity_matrix
-    return GeocodeConnectivityMatrix, geocode_connectivity_matrix
+    return (geocode_connectivity_matrix,)
 
 
 @app.cell(hide_code=True)
@@ -210,7 +202,7 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
         mo.md(GeocodeDistanceMatrix.__doc__),
         mo.plain_text(np.array_repr(geocode_distance_matrix.squareform())),
     ])
-    return GeocodeDistanceMatrix, geocode_distance_matrix
+    return (geocode_distance_matrix,)
 
 
 @app.cell(hide_code=True)
@@ -240,7 +232,7 @@ def _(
         geocode_connectivity_matrix,
         num_clusters,
     )
-    return GeocodeClusterDataFrame, geocode_cluster_dataframe
+    return (geocode_cluster_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -303,7 +295,7 @@ def _(geocode_cluster_dataframe, geocode_dataframe):
         geocode_dataframe,
         geocode_cluster_dataframe,
     )
-    return ClusterNeighborsDataFrame, cluster_neighbors_dataframe
+    return (cluster_neighbors_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -343,7 +335,7 @@ def _(
         geocode_cluster_dataframe,
         taxonomy_dataframe,
     )
-    return ClusterTaxaStatisticsDataFrame, cluster_taxa_statistics_dataframe
+    return (cluster_taxa_statistics_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -381,10 +373,7 @@ def _(cluster_taxa_statistics_dataframe):
             cluster_taxa_statistics_dataframe,
         )
     )
-    return (
-        ClusterSignificantDifferencesDataFrame,
-        cluster_significant_differences_dataframe,
-    )
+    return (cluster_significant_differences_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -418,7 +407,7 @@ def _(geocode_cluster_dataframe):
     geocode_boundary_dataframe = GeocodeBoundaryDataFrame.build(
         geocode_cluster_dataframe,
     )
-    return GeocodeBoundaryDataFrame, geocode_boundary_dataframe
+    return (geocode_boundary_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -463,7 +452,7 @@ def _(geocode_boundary_dataframe, geocode_cluster_dataframe):
         geocode_cluster_dataframe,
         geocode_boundary_dataframe,
     )
-    return ClusterBoundaryDataFrame, cluster_boundary_dataframe
+    return (cluster_boundary_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -507,7 +496,7 @@ def _(cluster_taxa_statistics_dataframe):
     cluster_distance_matrix = ClusterDistanceMatrix.build(
         cluster_taxa_statistics_dataframe,
     )
-    return ClusterDistanceMatrix, cluster_distance_matrix
+    return (cluster_distance_matrix,)
 
 
 @app.cell(hide_code=True)
@@ -545,7 +534,7 @@ def _(
     )
 
     cluster_colors_dataframe.df
-    return ClusterColorDataFrame, cluster_colors_dataframe
+    return (cluster_colors_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -569,7 +558,7 @@ def _(geocode_cluster_dataframe, geocode_dataframe, geocode_distance_matrix):
         geocode_cluster_dataframe=geocode_cluster_dataframe,
         geocode_dataframe=geocode_dataframe,
     )
-    return PermanovaResultsDataFrame, permanova_results_dataframe
+    return (permanova_results_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -609,7 +598,7 @@ def _(
         geocode_distance_matrix,
         geocode_cluster_dataframe,
     )
-    return GeocodeSilhouetteScoreDataFrame, geocode_silhouette_score_dataframe
+    return (geocode_silhouette_score_dataframe,)
 
 
 @app.cell(hide_code=True)
@@ -639,7 +628,7 @@ def _(
         geocode_silhouette_score_dataframe,
         cluster_colors_dataframe,
     )
-    return (plot_silhouette_scores,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -665,14 +654,7 @@ def _(cluster_boundary_dataframe, cluster_colors_dataframe):
 
     write_geojson(feature_collection, output.get_geojson_path())
     plot_clusters(feature_collection)
-    return (
-        build_geojson_feature_collection,
-        feature_collection,
-        output,
-        plot_clusters,
-        plt,
-        write_geojson,
-    )
+    return feature_collection, output
 
 
 @app.cell
@@ -691,7 +673,7 @@ def _(feature_collection):
     map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
 
     map
-    return folium, map
+    return
 
 
 @app.cell(hide_code=True)
@@ -719,14 +701,7 @@ def _(
     html_content = render_html("cluster_report.html", report_data)
     html_output = output.get_html_path()
     write_html(html_content, html_output)
-    return (
-        html_content,
-        html_output,
-        prepare_full_report_data,
-        render_html,
-        report_data,
-        write_html,
-    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -749,7 +724,7 @@ def _(
         cluster_colors_dataframe,
         method="umap",
     )
-    return (create_dimensionality_reduction_plot,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -782,7 +757,7 @@ def _(
         cluster_taxa_statistics_dataframe=cluster_taxa_statistics_dataframe,
         limit_species=5,
     )
-    return (create_cluster_taxa_heatmap,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -796,7 +771,7 @@ def _(mo):
     from src.dependency_graph import plot_dependency_graph
 
     mo.mermaid(plot_dependency_graph())
-    return (plot_dependency_graph,)
+    return
 
 
 if __name__ == "__main__":
