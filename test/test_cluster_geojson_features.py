@@ -8,7 +8,6 @@ from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.cluster_geojson_features import ClusterGeojsonFeaturesDataFrame
 from src.geojson import (
     build_geojson_feature_collection,
-    build_geojson_feature_collection_from_dataframe,
 )
 
 
