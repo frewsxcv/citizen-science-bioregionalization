@@ -2,7 +2,7 @@
 from typing import Any
 import polars as pl
 import pandas as pd  # Import pandas for type hint
-from skbio.stats.distance import permanova, DistanceMatrix
+from skbio.stats.distance import permanova, DistanceMatrix  # type: ignore
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.matrices.geocode_distance import GeocodeDistanceMatrix

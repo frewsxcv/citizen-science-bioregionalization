@@ -1,7 +1,7 @@
 import unittest
 import polars as pl
 import shapely
-import geojson
+import geojson  # type: ignore
 
 from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 from src.dataframes.cluster_color import ClusterColorDataFrame

@@ -1,6 +1,6 @@
 from typing import Literal
-from sklearn.manifold import TSNE
-import umap
+from sklearn.manifold import TSNE # type: ignore
+import umap # type: ignore
 import seaborn as sns
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame

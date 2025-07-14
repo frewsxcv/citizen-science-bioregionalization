@@ -1,6 +1,6 @@
 import unittest
 import polars as pl
-from src.darwin_core import kingdom_enum
+from polars_darwin_core.darwin_core import kingdom_data_type
 from unittest.mock import patch
 
 from src.dataframes.cluster_taxa_statistics import (

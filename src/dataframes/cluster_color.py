@@ -10,9 +10,9 @@ from src.data_container import DataContainer, assert_dataframe_schema
 import seaborn as sns
 import networkx as nx
 import numpy as np
-from sklearn.manifold import MDS
+from sklearn.manifold import MDS  # type: ignore
 import matplotlib.colors as mcolors
-import umap
+import umap  # type: ignore
 
 
 class ClusterColorDataFrame(DataContainer):

@@ -60,7 +60,7 @@ class ClusterBoundaryDataFrame(DataContainer):
                     cluster_boundary = shapely.unary_union(cluster_geocode_boundaries)
 
                 clusters.append(cluster_id)
-                boundaries.append(cluster_boundary)
+                boundaries.append(cluster_boundary)  # type: ignore
 
         # Create the dataframe with the correct schema
         df = polars_st.GeoDataFrame(

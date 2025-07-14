@@ -2,12 +2,12 @@ import logging
 import polars as pl
 from typing import List
 from src.logging import Timer
-import polars_h3
+import polars_h3  # type: ignore
 
-from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
+from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
         with Timer(output=logger.info, prefix="Reading rows"):
             # First, create the raw aggregation with the old schema
             raw_aggregated = (
-                darwin_core_csv_lazy_frame.lf.with_columns(
+                darwin_core_csv_lazy_frame._inner.with_columns(
                     polars_h3.latlng_to_cell(
                         "decimalLatitude",
                         "decimalLongitude",

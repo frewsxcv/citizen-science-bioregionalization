@@ -1,5 +1,5 @@
 import polars as pl
-import polars_h3
+import polars_h3  # type: ignore
 import polars_st
 import shapely
 from typing import List, Tuple

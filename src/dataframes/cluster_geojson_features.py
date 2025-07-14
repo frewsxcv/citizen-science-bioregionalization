@@ -1,5 +1,5 @@
 import polars as pl
-import geojson
+import geojson  # type: ignore
 from typing import Optional, List, Dict, Any
 
 from src.data_container import DataContainer, assert_dataframe_schema

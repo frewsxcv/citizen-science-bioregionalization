@@ -3,8 +3,8 @@ import logging
 from shapely import MultiPoint, Point
 import shapely.ops
 from src.data_container import DataContainer, assert_dataframe_schema
-from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
-import polars_h3
+from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
+import polars_h3  # type: ignore
 import networkx as nx
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,9 @@ class GeocodeDataFrame(DataContainer):
         geocode_precision: int,
     ) -> "GeocodeDataFrame":
         df = (
-            darwin_core_csv_lazy_frame.lf.select("decimalLatitude", "decimalLongitude")
+            darwin_core_csv_lazy_frame._inner.select(
+                "decimalLatitude", "decimalLongitude"
+            )
             .with_columns(
                 polars_h3.latlng_to_cell(
                     "decimalLatitude",
@@ -92,7 +94,7 @@ class GeocodeDataFrame(DataContainer):
 def _df_to_graph(
     df: pl.DataFrame, include_indirect_neighbors: bool = False
 ) -> nx.Graph:
-    graph = nx.Graph()
+    graph: nx.Graph[str] = nx.Graph()
     for geocode in df["geocode"]:
         graph.add_node(geocode)
     column = (

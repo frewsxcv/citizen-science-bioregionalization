@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.4"
+__generated_with = "0.14.10"
 app = marimo.App(width="medium")
 
 
@@ -9,6 +9,7 @@ def _():
     import marimo as mo
     import polars as pl
     import numpy as np
+
     return mo, np, pl
 
 
@@ -77,7 +78,7 @@ def _(
         geocode_precision = cli_input.geocode_precision
         taxon_filter = cli_input.taxon_filter
         num_clusters = cli_input.num_clusters
-    return geocode_precision, input_file, log_file, num_clusters, taxon_filter
+    return geocode_precision, input_file, log_file, num_clusters
 
 
 @app.cell(hide_code=True)
@@ -101,14 +102,16 @@ def _(mo):
 
 
 @app.cell
-def _(input_file, taxon_filter):
-    from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
+def _(input_file):
+    from polars_darwin_core.lf_csv import read_darwin_core_csv
 
-    darwin_core_csv_lazy_frame = DarwinCoreCsvLazyFrame.build(
-        input_file, taxon_filter=taxon_filter
+    darwin_core_csv_lazy_frame = read_darwin_core_csv(
+        input_file,
+        # input_file, taxon_filter=taxon_filter
+        # TODO: FIX THE TAXON FILTER ABOVE
     )
 
-    darwin_core_csv_lazy_frame.lf.limit(3).collect()
+    darwin_core_csv_lazy_frame._inner.limit(3).collect()
     return (darwin_core_csv_lazy_frame,)
 
 
@@ -198,10 +201,12 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
         geocode_dataframe,
     )
 
-    mo.vstack([
-        mo.md(GeocodeDistanceMatrix.__doc__),
-        mo.plain_text(np.array_repr(geocode_distance_matrix.squareform())),
-    ])
+    mo.vstack(
+        [
+            mo.md(GeocodeDistanceMatrix.__doc__),
+            mo.plain_text(np.array_repr(geocode_distance_matrix.squareform())),
+        ]
+    )
     return (geocode_distance_matrix,)
 
 
@@ -662,7 +667,7 @@ def _(feature_collection):
     import folium
 
     map = folium.Map(
-        tiles='Esri.WorldGrayCanvas',
+        tiles="Esri.WorldGrayCanvas",
     )
 
     folium.GeoJson(

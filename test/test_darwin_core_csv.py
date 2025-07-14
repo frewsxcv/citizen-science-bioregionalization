@@ -4,9 +4,6 @@ import os
 import logging
 from unittest.mock import patch, MagicMock
 
-from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
-from src.darwin_core import kingdom_enum, TAXONOMIC_RANKS
-
 # Disable polars logger to reduce test output noise
 logging.getLogger("polars").setLevel(logging.WARNING)
 

@@ -2,7 +2,7 @@ import unittest
 import polars as pl
 import polars_st
 import shapely
-import geojson
+import geojson  # type: ignore
 import os
 
 from src.geojson import (

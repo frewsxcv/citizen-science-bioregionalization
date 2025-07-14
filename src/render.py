@@ -1,4 +1,4 @@
-import geojson
+import geojson  # type: ignore
 import polars as pl
 import polars_st
 import io

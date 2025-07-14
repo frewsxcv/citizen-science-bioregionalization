@@ -1,7 +1,7 @@
 import polars as pl
 from src.data_container import DataContainer
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
-from sklearn.metrics import silhouette_score, silhouette_samples
+from sklearn.metrics import silhouette_score, silhouette_samples  # type: ignore
 
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.matrices.geocode_distance import GeocodeDistanceMatrix

@@ -85,7 +85,7 @@ class ClusterNeighborsDataFrame(DataContainer):
 
     def graph(self) -> nx.Graph:
         """Convert the DataFrame back to a NetworkX graph."""
-        G = nx.Graph()
+        G: nx.Graph[str] = nx.Graph()
 
         # Add all clusters as nodes
         G.add_nodes_from(self.df["cluster"])

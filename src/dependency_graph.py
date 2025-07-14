@@ -4,7 +4,6 @@ import networkx as nx
 from src.data_container import DataContainer
 from src import *
 from src.dataframes import *
-from src.lazyframes import *
 from src.matrices import *
 from src.output import *
 

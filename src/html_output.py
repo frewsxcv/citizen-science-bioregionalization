@@ -5,7 +5,7 @@ from src.dataframes.cluster_significant_differences import (
 )
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.render import plot_single_cluster, plot_entire_region
-import geojson
+import geojson  # type: ignore
 import os
 import jinja2
 import json

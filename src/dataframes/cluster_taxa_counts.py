@@ -5,7 +5,7 @@ import polars as pl
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
-from src.darwin_core import kingdom_enum
+from polars_darwin_core.darwin_core import kingdom_data_type
 from src.types import ClusterId
 from src.data_container import DataContainer, assert_dataframe_schema
 
@@ -14,7 +14,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
     df: pl.DataFrame
     SCHEMA = {
         "cluster": pl.UInt32(),  # `null` if counts for all clusters
-        "kingdom": kingdom_enum,
+        "kingdom": kingdom_data_type,
         "taxonRank": pl.String(),
         "scientificName": pl.String(),
         "count": pl.UInt32(),
@@ -48,7 +48,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
                 "geocode": pl.Uint64(),
                 "taxonId": pl.UInt32(),
                 "count": pl.UInt32(),
-                "kingdom": kingdom_enum,
+                "kingdom": kingdom_data_type,
                 "phylum": pl.String(),
                 "class": pl.String(),
                 "order": pl.String(),

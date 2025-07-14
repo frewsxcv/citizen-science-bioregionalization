@@ -1,8 +1,7 @@
 import polars as pl
 from src.data_container import DataContainer, assert_dataframe_schema
-from src.darwin_core import kingdom_enum
-
-from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
+from polars_darwin_core.darwin_core import kingdom_data_type
+from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
 
 
 class TaxonomyDataFrame(DataContainer):
@@ -14,7 +13,7 @@ class TaxonomyDataFrame(DataContainer):
 
     SCHEMA = {
         "taxonId": pl.UInt32(),  # Unique identifier for each taxon
-        "kingdom": kingdom_enum,
+        "kingdom": kingdom_data_type,
         "phylum": pl.Categorical(),
         "class": pl.Categorical(),
         "order": pl.Categorical(),
@@ -34,7 +33,7 @@ class TaxonomyDataFrame(DataContainer):
         cls, darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame
     ) -> "TaxonomyDataFrame":
         df = (
-            darwin_core_csv_lazy_frame.lf.select(
+            darwin_core_csv_lazy_frame._inner.select(
                 "kingdom",
                 "phylum",
                 "class",

@@ -1,4 +1,4 @@
-import geojson
+import geojson  # type: ignore
 import polars as pl
 import shapely
 import os
@@ -84,7 +84,7 @@ def _load_ocean_geometry() -> Union[Polygon, MultiPolygon]:
         raise ValueError(f"No valid geometries found in {ocean_file_path}")
 
     # Create a single ocean polygon (union of all ocean geometries)
-    return unary_union(ocean_geometries)
+    return unary_union(ocean_geometries)  # type: ignore
 
 
 def _calculate_ocean_coverage(
@@ -95,10 +95,10 @@ def _calculate_ocean_coverage(
         return 0.0
 
     # Calculate the intersection area
-    intersection = cluster_boundary.intersection(ocean_geometry)
+    intersection = cluster_boundary.intersection(ocean_geometry)  # type: ignore
 
     # Calculate the percentage of cluster area that is ocean
-    cluster_area = cluster_boundary.area
+    cluster_area = cluster_boundary.area  # type: ignore
     if cluster_area == 0:
         return 0.0  # Avoid division by zero
 
@@ -134,7 +134,7 @@ def is_cluster_mostly_ocean(
     if boundary_bytes is None:
         raise ValueError(f"Cluster ID {cluster_id} not found in dataframe.")
 
-    cluster_boundary = shapely.from_wkb(boundary_bytes)
+    cluster_boundary = shapely.from_wkb(boundary_bytes)  # type: ignore
 
     # Calculate the ocean coverage
     ocean_coverage = _calculate_ocean_coverage(cluster_boundary, ocean_geometry)

@@ -10,8 +10,8 @@ from src.dataframes.geocode import (
     _reduce_connected_components_to_one,
     index_of_geocode_in_geocode_dataframe,
 )
-from src.lazyframes.darwin_core_csv import DarwinCoreCsvLazyFrame
 from src.data_container import assert_dataframe_schema
+from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
 
 
 class TestGeocodeDataFrame(unittest.TestCase):

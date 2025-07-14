@@ -2,7 +2,7 @@ import unittest
 import os
 import io
 import json
-import geojson
+import geojson  # type: ignore
 import polars as pl
 import polars_st  # Import for st attribute
 from src.render import (
