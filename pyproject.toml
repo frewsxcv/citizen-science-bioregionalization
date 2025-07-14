@@ -27,7 +27,7 @@ dependencies = [
     "ipython>=9.1.0",
     "folium>=0.19.5",
     # "polars-darwin-core>=2.0.0",
-    "polars-darwin-core @ file:///Users/coreyf/dev/frewsxcv/polars-darwin-core",
+    "polars-darwin-core @ git+https://github.com/frewsxcv/polars-darwin-core.git",
     "types-seaborn>=0.13.2.20250516",
     "types-networkx>=3.5.0.20250712",
     "types-shapely>=2.1.0.20250710",
