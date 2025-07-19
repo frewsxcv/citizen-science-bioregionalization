@@ -24,7 +24,6 @@ dependencies = [
     "altair>=5.5.0",
     "vl-convert-python>=1.7.0",
     "marimo>=0.12.2",
-    "ipython>=9.1.0",
     "folium>=0.19.5",
     # "polars-darwin-core>=2.0.0",
     "polars-darwin-core @ git+https://github.com/frewsxcv/polars-darwin-core.git",
