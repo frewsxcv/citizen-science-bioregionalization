@@ -3,7 +3,7 @@ import numpy as np
 import polars as pl
 from typing import Tuple, List
 from sklearn.preprocessing import RobustScaler  # type: ignore
-from scipy.spatial.distance import pdist, squareform  # type: ignore
+from scipy.spatial.distance import pdist, squareform
 from sklearn.manifold import MDS  # type: ignore
 from src.data_container import DataContainer
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame

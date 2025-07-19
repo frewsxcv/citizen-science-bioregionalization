@@ -1,7 +1,7 @@
 from typing import Iterator, List, Tuple
 import logging
 import polars as pl
-from scipy.sparse import csr_matrix  # type: ignore
+from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering  # type: ignore
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.dataframes.geocode import GeocodeDataFrame

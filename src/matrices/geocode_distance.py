@@ -4,7 +4,7 @@ import numpy as np
 import polars as pl
 from sklearn.decomposition import IncrementalPCA  # type: ignore
 from sklearn.preprocessing import RobustScaler  # type: ignore
-from scipy.spatial.distance import pdist, squareform  # type: ignore
+from scipy.spatial.distance import pdist, squareform
 from sklearn.manifold import TSNE  # type: ignore
 import umap  # type: ignore
 from src.data_container import DataContainer

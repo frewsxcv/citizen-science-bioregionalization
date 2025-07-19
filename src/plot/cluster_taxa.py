@@ -1,7 +1,7 @@
 import seaborn as sns
 import polars as pl
 from typing import Dict, Union, TypeVar, cast
-from scipy.cluster.hierarchy import linkage  # type: ignore
+from scipy.cluster.hierarchy import linkage
 
 # Define a type variable for numeric series
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
