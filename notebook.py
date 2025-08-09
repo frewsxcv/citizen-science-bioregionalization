@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.12"
+__generated_with = "0.14.16"
 app = marimo.App(width="medium")
 
 
@@ -644,22 +644,46 @@ def _(mo):
 
 @app.cell
 def _(cluster_boundary_dataframe, cluster_colors_dataframe):
-    from src.geojson import build_geojson_feature_collection, write_geojson
-    from src.render import plot_clusters
-    from src import output
-    import matplotlib.pyplot as plt
-
-    # Set the figure size
-    plt.rcParams["figure.figsize"] = [12, 7]
+    from src.geojson import build_geojson_feature_collection
 
     feature_collection = build_geojson_feature_collection(
         cluster_boundary_dataframe,
         cluster_colors_dataframe,
     )
+    return (feature_collection,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""### Save""")
+    return
+
+
+@app.cell
+def _(feature_collection):
+    from src.geojson import write_geojson
+    from src import output
 
     write_geojson(feature_collection, output.get_geojson_path())
+    return (output,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""### Plot""")
+    return
+
+
+@app.cell
+def _(feature_collection):
+    from src.render import plot_clusters
+    import matplotlib.pyplot as plt
+
+    # Set the figure size
+    plt.rcParams["figure.figsize"] = [12, 7]
+
     plot_clusters(feature_collection)
-    return feature_collection, output
+    return
 
 
 @app.cell
