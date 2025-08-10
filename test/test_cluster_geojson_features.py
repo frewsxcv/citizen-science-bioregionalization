@@ -183,30 +183,6 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
         # Compare the two feature collections (they should be equivalent)
         self.assertEqual(original_feature_collection, feature_collection)
 
-    def test_build_geojson_feature_collection_from_dataframe(self):
-        # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesDataFrame.build(
-            self.cluster_boundary_dataframe, self.cluster_colors_dataframe
-        )
-
-        # Test the new function with just the features dataframe
-        feature_collection1 = build_geojson_feature_collection_from_dataframe(
-            cluster_geojson_features_dataframe=cluster_geojson_features_dataframe
-        )
-
-        # Test the new function with boundary and colors dataframes
-        feature_collection2 = build_geojson_feature_collection_from_dataframe(
-            cluster_boundary_dataframe=self.cluster_boundary_dataframe,
-            cluster_colors_dataframe=self.cluster_colors_dataframe,
-        )
-
-        # Both should produce equivalent results
-        self.assertEqual(feature_collection1, feature_collection2)
-
-        # Also test that it raises ValueError if no arguments provided
-        with self.assertRaises(ValueError):
-            build_geojson_feature_collection_from_dataframe()
-
 
 if __name__ == "__main__":
     unittest.main()

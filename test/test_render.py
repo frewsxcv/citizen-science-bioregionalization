@@ -40,7 +40,7 @@ class TestRender(unittest.TestCase):
                     },
                     "properties": {
                         "cluster": 1,
-                        "fill": "#ff0000",
+                        "fillColor": "#ff0000",
                         "color": "#800000",
                     },
                 },
@@ -60,7 +60,7 @@ class TestRender(unittest.TestCase):
                     },
                     "properties": {
                         "cluster": 2,
-                        "fill": "#00ff00",
+                        "fillColor": "#00ff00",
                         "color": "#008000",
                     },
                 },
@@ -73,7 +73,7 @@ class TestRender(unittest.TestCase):
         self.assertIsInstance(df, pl.DataFrame)
         self.assertIn("geometry", df.columns)
         self.assertIn("cluster", df.columns)
-        self.assertIn("fill", df.columns)
+        self.assertIn("fillColor", df.columns)
         self.assertEqual(len(df), 2)
 
     def test_darken_hex_color(self):

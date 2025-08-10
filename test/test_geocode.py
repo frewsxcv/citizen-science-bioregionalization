@@ -78,7 +78,9 @@ class TestGeocodeDataFrame(unittest.TestCase):
 
         try:
             # Build the DarwinCoreCsvLazyFrame
-            darwin_core_csv_lf = DarwinCoreCsvLazyFrame.build(f.name)
+            from polars_darwin_core.lf_csv import read_darwin_core_csv
+
+            darwin_core_csv_lf = read_darwin_core_csv(f.name)
 
             # Build the GeocodeDataFrame with a smaller precision to ensure neighbors
             # Lower resolution (e.g., 9 instead of 10) creates larger cells, making
