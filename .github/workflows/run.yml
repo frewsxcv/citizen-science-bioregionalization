@@ -1,0 +1,23 @@
+name: Run
+
+on: push
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download data
+        run: curl -O https://storage.googleapis.com/gbif-datasets/data-nh-vt.csv
+      - name: Run Mypy
+        run: |
+          marimo export html notebook.py -o notebook.html -- \
+            --geocode-precision 3 \
+            --num-clusters 15 \
+            --log-file run.log \
+            data-nh-vt.csv
