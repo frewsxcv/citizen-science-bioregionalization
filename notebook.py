@@ -27,58 +27,55 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    if mo.running_in_notebook():
-        log_file_ui = mo.ui.text("run.log", label="Log file")
-        input_file_ui = mo.ui.file_browser(multiple=False, label="Input file")
-        geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
-        taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
-        num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    log_file_ui = mo.ui.text("run.log", label="Log file")
+    input_file_ui = mo.ui.file_browser(multiple=False, label="Input file")
+    geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
+    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
 
     # Display inputs
     mo.vstack([log_file_ui, input_file_ui, geocode_precision_ui, taxon_filter_ui, num_clusters_ui]) if mo.running_in_notebook() else None
     return (
         geocode_precision_ui,
         input_file_ui,
-        log_file_ui,
         num_clusters_ui,
         taxon_filter_ui,
     )
 
 
 @app.cell
-def _(
-    geocode_precision_ui,
-    input_file_ui,
-    log_file_ui,
-    mo,
-    num_clusters_ui,
-    taxon_filter_ui,
-):
-    from src.cli_input import parse_cli_input
+def _(geocode_precision_ui, input_file_ui, num_clusters_ui, taxon_filter_ui):
+    import argparse
 
-    if mo.running_in_notebook():
-        log_file = log_file_ui.value
-        input_file = str(input_file_ui.path(index=0))
-        geocode_precision = geocode_precision_ui.value
-        taxon_filter = taxon_filter_ui.value
-        num_clusters = num_clusters_ui.value
+    parser = argparse.ArgumentParser(
+        description="Process Darwin Core CSV data and generate clusters."
+    )
 
-        cli_input = parse_cli_input({
-            "log-file": log_file,
-            "input-file": input_file,
-            "geocode-precision": geocode_precision,
-            "taxon-filter": taxon_filter,
-            "num-clusters": num_clusters,
-        })
-    else:
-        cli_input = parse_cli_input()
+    # Add required options
+    parser.add_argument(
+        "--geocode-precision", type=int, help="Precision of the geocode", default=geocode_precision_ui.value
+    )
+    parser.add_argument(
+        "--num-clusters", type=int, help="Number of clusters to generate", default=num_clusters_ui.value
+    )
+    parser.add_argument(
+        "--log-file", type=str, help="Path to the log file"
+    )
 
-    log_file = cli_input.log_file
-    input_file = cli_input.input_file
-    geocode_precision = cli_input.geocode_precision
-    taxon_filter = cli_input.taxon_filter
-    num_clusters = cli_input.num_clusters
-    return geocode_precision, input_file, log_file, num_clusters
+    # Add optional arguments
+    parser.add_argument(
+        "--taxon-filter",
+        type=str,
+        default=taxon_filter_ui.value,
+        help="Filter to a specific taxon (e.g., 'Aves')",
+    )
+
+    # Positional arguments
+    path = str(input_file_ui.path(index=0)) if input_file_ui.path(index=0) else None
+    parser.add_argument("input_file", type=str, nargs="?", help="Path to the input file", default=path)
+
+    args = parser.parse_args()
+    return (args,)
 
 
 @app.cell
@@ -88,10 +85,10 @@ def _(mo):
 
 
 @app.cell
-def _(log_file):
+def _(args):
     import logging
 
-    logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
+    logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
     return
 
 
@@ -102,11 +99,11 @@ def _(mo):
 
 
 @app.cell
-def _(input_file):
+def _(args):
     from polars_darwin_core.lf_csv import read_darwin_core_csv
 
     darwin_core_csv_lazy_frame = read_darwin_core_csv(
-        input_file,
+        args.input_file,
         # input_file, taxon_filter=taxon_filter
         # TODO: FIX THE TAXON FILTER ABOVE
     )
@@ -116,18 +113,23 @@ def _(input_file):
 
 
 @app.cell
+def _():
+    return
+
+
+@app.cell
 def _(mo):
     mo.md(r"""## `GeocodeDataFrame`""")
     return
 
 
 @app.cell
-def _(darwin_core_csv_lazy_frame, geocode_precision):
+def _(args, darwin_core_csv_lazy_frame):
     from src.dataframes.geocode import GeocodeDataFrame
 
     geocode_dataframe = GeocodeDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision,
+        args.geocode_precision,
     )
 
     geocode_dataframe.df
@@ -157,12 +159,12 @@ def _(mo):
 
 
 @app.cell
-def _(darwin_core_csv_lazy_frame, geocode_precision, taxonomy_dataframe):
+def _(args, darwin_core_csv_lazy_frame, taxonomy_dataframe):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
         darwin_core_csv_lazy_frame,
-        geocode_precision,
+        args.geocode_precision,
         taxonomy_dataframe,
     )
 
@@ -224,10 +226,10 @@ def _(mo):
 
 @app.cell
 def _(
+    args,
     geocode_connectivity_matrix,
     geocode_dataframe,
     geocode_distance_matrix,
-    num_clusters,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 
@@ -235,7 +237,7 @@ def _(
         geocode_dataframe,
         geocode_distance_matrix,
         geocode_connectivity_matrix,
-        num_clusters,
+        args.num_clusters,
     )
     return (geocode_cluster_dataframe,)
 
