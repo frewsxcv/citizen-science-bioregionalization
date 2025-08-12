@@ -18,6 +18,6 @@ jobs:
         run: |
           uv run marimo export html notebook.py -o notebook.html -- \
             --geocode-precision 5 \
-            --num-clusters 3 \
+            --num-clusters 10 \
             --log-file run.log \
             data-nh-vt.csv
