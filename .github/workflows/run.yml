@@ -16,8 +16,30 @@ jobs:
         run: curl -O https://storage.googleapis.com/gbif-datasets/data-nh-vt.csv
       - name: Run and export notebook
         run: |
-          uv run marimo export html notebook.py -o notebook.html -- \
+          uv run marimo export html notebook.py -o output/index.html -- \
             --geocode-precision 5 \
             --num-clusters 10 \
             --log-file run.log \
             data-nh-vt.csv
+      - name: 📦 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+            path: output/
+
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        permissions:
+            pages: write
+            id-token: write
+
+        steps:
+            - name: 🌐 Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
+              with:
+                  artifact_name: github-pages
