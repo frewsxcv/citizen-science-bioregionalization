@@ -1,7 +1,7 @@
 import argparse
 
 
-def parse_cli_input() -> argparse.Namespace:
+def parse_cli_input(defaults: dict = {}) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Process Darwin Core CSV data and generate clusters."
     )
@@ -27,5 +27,7 @@ def parse_cli_input() -> argparse.Namespace:
 
     # Positional arguments
     parser.add_argument("input_file", type=str, help="Path to the input file")
+
+    parser.set_defaults(**defaults)
 
     return parser.parse_args()

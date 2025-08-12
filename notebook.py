@@ -33,15 +33,9 @@ def _(mo):
         geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
         taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
         num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
-    else:
-        log_file_ui = None
-        input_file_ui = None
-        geocode_precision_ui = None
-        taxon_filter_ui = None
-        num_clusters_ui = None
 
     # Display inputs
-    mo.vstack([input_file_ui, geocode_precision_ui, taxon_filter_ui, num_clusters_ui])
+    mo.vstack([log_file_ui, input_file_ui, geocode_precision_ui, taxon_filter_ui, num_clusters_ui]) if mo.running_in_notebook() else None
     return (
         geocode_precision_ui,
         input_file_ui,
@@ -60,24 +54,30 @@ def _(
     num_clusters_ui,
     taxon_filter_ui,
 ):
-    if mo.running_in_notebook():
-        mo.stop(not all([input_file_ui.value]), "Required inputs not inputted")
+    from src.cli_input import parse_cli_input
 
+    if mo.running_in_notebook():
         log_file = log_file_ui.value
         input_file = str(input_file_ui.path(index=0))
         geocode_precision = geocode_precision_ui.value
         taxon_filter = taxon_filter_ui.value
         num_clusters = num_clusters_ui.value
-    else:
-        from src.cli_input import parse_cli_input
 
+        cli_input = parse_cli_input({
+            "log-file": log_file,
+            "input-file": input_file,
+            "geocode-precision": geocode_precision,
+            "taxon-filter": taxon_filter,
+            "num-clusters": num_clusters,
+        })
+    else:
         cli_input = parse_cli_input()
 
-        log_file = cli_input.log_file
-        input_file = cli_input.input_file
-        geocode_precision = cli_input.geocode_precision
-        taxon_filter = cli_input.taxon_filter
-        num_clusters = cli_input.num_clusters
+    log_file = cli_input.log_file
+    input_file = cli_input.input_file
+    geocode_precision = cli_input.geocode_precision
+    taxon_filter = cli_input.taxon_filter
+    num_clusters = cli_input.num_clusters
     return geocode_precision, input_file, log_file, num_clusters
 
 
