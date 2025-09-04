@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.15.2"
 app = marimo.App(width="medium")
 
 
@@ -9,8 +9,10 @@ def _():
     import marimo as mo
     import polars as pl
     import numpy as np
-
-    return mo, np, pl
+    import hashlib
+    import os
+    import polars_darwin_core
+    return hashlib, mo, np, os, pl, polars_darwin_core
 
 
 @app.cell
@@ -34,7 +36,19 @@ def _(mo):
     num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
 
     # Display inputs
-    mo.vstack([log_file_ui, input_file_ui, geocode_precision_ui, taxon_filter_ui, num_clusters_ui]) if mo.running_in_notebook() else None
+    (
+        mo.vstack(
+            [
+                log_file_ui,
+                input_file_ui,
+                geocode_precision_ui,
+                taxon_filter_ui,
+                num_clusters_ui,
+            ]
+        )
+        if mo.running_in_notebook()
+        else None
+    )
     return (
         geocode_precision_ui,
         input_file_ui,
@@ -53,14 +67,18 @@ def _(geocode_precision_ui, input_file_ui, num_clusters_ui, taxon_filter_ui):
 
     # Add required options
     parser.add_argument(
-        "--geocode-precision", type=int, help="Precision of the geocode", default=geocode_precision_ui.value
+        "--geocode-precision",
+        type=int,
+        help="Precision of the geocode",
+        default=geocode_precision_ui.value,
     )
     parser.add_argument(
-        "--num-clusters", type=int, help="Number of clusters to generate", default=num_clusters_ui.value
+        "--num-clusters",
+        type=int,
+        help="Number of clusters to generate",
+        default=num_clusters_ui.value,
     )
-    parser.add_argument(
-        "--log-file", type=str, help="Path to the log file"
-    )
+    parser.add_argument("--log-file", type=str, help="Path to the log file")
 
     # Add optional arguments
     parser.add_argument(
@@ -72,7 +90,9 @@ def _(geocode_precision_ui, input_file_ui, num_clusters_ui, taxon_filter_ui):
 
     # Positional arguments
     path = str(input_file_ui.path(index=0)) if input_file_ui.path(index=0) else None
-    parser.add_argument("input_file", type=str, nargs="?", help="Path to the input file", default=path)
+    parser.add_argument(
+        "input_file", type=str, nargs="?", help="Path to the input file", default=path
+    )
 
     args = parser.parse_args()
     return (args,)
@@ -99,10 +119,8 @@ def _(mo):
 
 
 @app.cell
-def _(args):
-    from polars_darwin_core.lf_csv import read_darwin_core_csv
-
-    darwin_core_csv_lazy_frame = read_darwin_core_csv(
+def _(args, polars_darwin_core):
+    darwin_core_csv_lazy_frame = polars_darwin_core.lf_csv.read_darwin_core_csv(
         args.input_file,
         # input_file, taxon_filter=taxon_filter
         # TODO: FIX THE TAXON FILTER ABOVE
@@ -113,8 +131,31 @@ def _(args):
 
 
 @app.cell
-def _():
+def _(args, hashlib, os):
+    with open(args.input_file, "rb") as f:
+        file_digest = hashlib.file_digest(f, "sha256").hexdigest()
+
+    output_dir = "tmp"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, f"{file_digest}.parquet")
+    return (output_path,)
+
+
+@app.cell
+def _(darwin_core_csv_lazy_frame, os, output_path):
+    if not os.path.exists(output_path):
+        darwin_core_csv_lazy_frame._inner.sink_parquet(output_path)
     return
+
+
+@app.cell
+def _(output_path, pl, polars_darwin_core):
+    inner = pl.scan_parquet(output_path)
+    # TODO: Rename the class below
+    darwin_core_lazy_frame = polars_darwin_core.lf_csv.DarwinCoreCsvLazyFrame(inner)
+
+    darwin_core_lazy_frame._inner.limit(20).collect()
+    return (darwin_core_lazy_frame,)
 
 
 @app.cell
@@ -124,11 +165,11 @@ def _(mo):
 
 
 @app.cell
-def _(args, darwin_core_csv_lazy_frame):
+def _(args, darwin_core_lazy_frame):
     from src.dataframes.geocode import GeocodeDataFrame
 
     geocode_dataframe = GeocodeDataFrame.build(
-        darwin_core_csv_lazy_frame,
+        darwin_core_lazy_frame,
         args.geocode_precision,
     )
 
@@ -143,10 +184,10 @@ def _(mo):
 
 
 @app.cell
-def _(darwin_core_csv_lazy_frame):
+def _(darwin_core_lazy_frame):
     from src.dataframes.taxonomy import TaxonomyDataFrame
 
-    taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_csv_lazy_frame)
+    taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_lazy_frame)
 
     taxonomy_dataframe.df
     return (taxonomy_dataframe,)
@@ -159,11 +200,11 @@ def _(mo):
 
 
 @app.cell
-def _(args, darwin_core_csv_lazy_frame, taxonomy_dataframe):
+def _(args, darwin_core_lazy_frame, taxonomy_dataframe):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
-        darwin_core_csv_lazy_frame,
+        darwin_core_lazy_frame,
         args.geocode_precision,
         taxonomy_dataframe,
     )
