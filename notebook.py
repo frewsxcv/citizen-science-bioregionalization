@@ -433,7 +433,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_significant_differences_dataframe):
-    cluster_significant_differences_dataframe.df.limit(3)
+    cluster_significant_differences_dataframe.df
     return
 
 
