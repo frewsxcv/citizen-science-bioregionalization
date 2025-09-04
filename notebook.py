@@ -12,6 +12,7 @@ def _():
     import hashlib
     import os
     import polars_darwin_core
+    import polars_darwin_core.lf_csv
     return hashlib, mo, np, os, pl, polars_darwin_core
 
 
