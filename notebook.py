@@ -196,7 +196,7 @@ def _(darwin_core_lazy_frame):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeohashSpeciesCountsDataFrame`""")
+    mo.md(r"""## `GeocodeSpeciesCountsDataFrame`""")
     return
 
 
@@ -256,7 +256,7 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeohashClusterDataFrame`""")
+    mo.md(r"""## `GeocodeClusterDataFrame`""")
     return
 
 
