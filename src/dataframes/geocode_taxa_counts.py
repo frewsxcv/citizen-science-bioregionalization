@@ -35,7 +35,11 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
         with Timer(output=logger.info, prefix="Reading rows"):
             # First, create the raw aggregation with the old schema
             raw_aggregated = (
-                darwin_core_csv_lazy_frame._inner.with_columns(
+                darwin_core_csv_lazy_frame._inner
+                .filter(
+                    pl.col("decimalLatitude").is_not_null() &
+                    pl.col("decimalLongitude").is_not_null()
+                ).with_columns(
                     polars_h3.latlng_to_cell(
                         "decimalLatitude",
                         "decimalLongitude",

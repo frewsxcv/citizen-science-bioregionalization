@@ -49,6 +49,8 @@ class GeocodeDataFrame(DataContainer):
             darwin_core_lazy_frame._inner.select(
                 "decimalLatitude", "decimalLongitude"
             )
+            .filter(pl.col("decimalLatitude").is_not_null() &
+                    pl.col("decimalLongitude").is_not_null())
             .with_columns(
                 polars_h3.latlng_to_cell(
                     "decimalLatitude",
