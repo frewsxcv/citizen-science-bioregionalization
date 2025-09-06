@@ -11,7 +11,7 @@ from src.dataframes.geocode import (
     index_of_geocode_in_geocode_dataframe,
 )
 from src.data_container import assert_dataframe_schema
-from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
+from polars_darwin_core import DarwinCoreLazyFrame
 
 
 class TestGeocodeDataFrame(unittest.TestCase):
@@ -63,60 +63,42 @@ class TestGeocodeDataFrame(unittest.TestCase):
             GeocodeDataFrame(invalid_df)
 
     def test_build_from_darwin_core_csv(self):
-        """Test building a GeocodeDataFrame from a DarwinCoreCsvLazyFrame"""
-        # Create a temporary CSV file with some test data
-        # Using a denser set of coordinates to ensure neighbor relationships
-        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
-            f.write("decimalLatitude\tdecimalLongitude\tkingdom\torder\n")
-            # The coordinates are closer together to ensure they become neighbors
-            # at the chosen H3 resolution
-            f.write("37.5000\t-122.1000\tAnimalia\tPasseriformes\n")
-            f.write("37.5001\t-122.1001\tAnimalia\tPasseriformes\n")
-            f.write("37.5002\t-122.1002\tAnimalia\tPasseriformes\n")
-            f.write("37.5003\t-122.1003\tAnimalia\tPasseriformes\n")
-            f.write("37.5004\t-122.1004\tAnimalia\tPasseriformes\n")
+        """Test building a GeocodeDataFrame from a DarwinCoreLazyFrame"""
+        # Build the DarwinCoreLazyFrame
+        from polars_darwin_core import DarwinCoreLazyFrame
 
-        try:
-            # Build the DarwinCoreCsvLazyFrame
-            from polars_darwin_core.lf_csv import read_darwin_core_csv
+        darwin_core_lazy_frame = DarwinCoreLazyFrame.from_archive(os.path.join("test", "sample-archive"))
 
-            darwin_core_csv_lf = read_darwin_core_csv(f.name)
+        darwin_core_lazy_frame = DarwinCoreLazyFrame(darwin_core_lazy_frame._inner.head())
 
-            # Build the GeocodeDataFrame with a smaller precision to ensure neighbors
-            # Lower resolution (e.g., 9 instead of 10) creates larger cells, making
-            # it more likely to have neighbors
-            geocode_df = GeocodeDataFrame.build(darwin_core_csv_lf, geocode_precision=9)
+        geocode_df = GeocodeDataFrame.build(darwin_core_lazy_frame, geocode_precision=8)
 
-            # Validate the result
-            self.assertIsInstance(geocode_df, GeocodeDataFrame)
+        # Validate the result
+        self.assertIsInstance(geocode_df, GeocodeDataFrame)
 
-            # Check schema
-            assert_dataframe_schema(geocode_df.df, GeocodeDataFrame.SCHEMA)
+        # Check schema
+        assert_dataframe_schema(geocode_df.df, GeocodeDataFrame.SCHEMA)
 
-            # Should have unique geocodes
-            self.assertEqual(
-                geocode_df.df["geocode"].n_unique(),
-                geocode_df.df.shape[0],
-                "Geocodes should be unique",
-            )
+        # Should have unique geocodes
+        self.assertEqual(
+            geocode_df.df["geocode"].n_unique(),
+            geocode_df.df.shape[0],
+            "Geocodes should be unique",
+        )
 
-            # We don't need to check for neighbors anymore, because the GeocodeDataFrame.build
-            # method ensures the graph is connected. Instead we'll check that we have the
-            # expected columns:
-            self.assertIn("direct_neighbors", geocode_df.df.columns)
-            self.assertIn("direct_and_indirect_neighbors", geocode_df.df.columns)
+        # We don't need to check for neighbors anymore, because the GeocodeDataFrame.build
+        # method ensures the graph is connected. Instead we'll check that we have the
+        # expected columns:
+        self.assertIn("direct_neighbors", geocode_df.df.columns)
+        self.assertIn("direct_and_indirect_neighbors", geocode_df.df.columns)
 
-            # Check that the graph is connected (single component)
-            graph = geocode_df.graph()
-            self.assertEqual(
-                nx.number_connected_components(graph),
-                1,
-                "Graph should have exactly one connected component",
-            )
-
-        finally:
-            # Clean up temp file
-            os.unlink(f.name)
+        # Check that the graph is connected (single component)
+        graph = geocode_df.graph()
+        self.assertEqual(
+            nx.number_connected_components(graph),
+            1,
+            "Graph should have exactly one connected component",
+        )
 
     def test_graph_conversion(self):
         """Test conversion of GeocodeDataFrame to a graph"""

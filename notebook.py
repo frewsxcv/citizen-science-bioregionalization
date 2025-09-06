@@ -12,7 +12,6 @@ def _():
     import hashlib
     import os
     import polars_darwin_core
-    import polars_darwin_core.lf_csv
     return hashlib, mo, np, os, pl, polars_darwin_core
 
 
@@ -115,7 +114,7 @@ def _(args):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `DarwinCoreCsvLazyFrame`""")
+    mo.md(r"""## `DarwinCoreLazyFrame`""")
     return
 
 

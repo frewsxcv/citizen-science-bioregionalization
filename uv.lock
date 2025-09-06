@@ -352,7 +352,7 @@ requires-dist = [
     { name = "networkx", specifier = ">=3.2.0" },
     { name = "numba", specifier = ">=0.61.0" },
     { name = "polars", specifier = ">=1.30.0,<1.31.0" },
-    { name = "polars-darwin-core", git = "https://github.com/frewsxcv/polars-darwin-core.git" },
+    { name = "polars-darwin-core", specifier = ">=4.0.0" },
     { name = "polars-h3", specifier = ">=0.5.1" },
     { name = "polars-st", specifier = ">=0.1.0a10" },
     { name = "scikit-bio", specifier = ">=0.6.3" },
@@ -575,11 +575,11 @@ wheels = [
 
 [[package]]
 name = "markdown"
-version = "3.8.2"
+version = "3.9"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d7/c2/4ab49206c17f75cb08d6311171f2d65798988db4360c4d1485bd0eedd67c/markdown-3.8.2.tar.gz", hash = "sha256:247b9a70dd12e27f67431ce62523e675b866d254f900c4fe75ce3dda62237c45", size = 362071, upload-time = "2025-06-19T17:12:44.483Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/37/02347f6d6d8279247a5837082ebc26fc0d5aaeaf75aa013fcbb433c777ab/markdown-3.9.tar.gz", hash = "sha256:d2900fe1782bd33bdbbd56859defef70c2e78fc46668f8eb9df3128138f2cb6a", size = 364585, upload-time = "2025-09-04T20:25:22.885Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/2b/34cc11786bc00d0f04d0f5fdc3a2b1ae0b6239eef72d3d345805f9ad92a1/markdown-3.8.2-py3-none-any.whl", hash = "sha256:5c83764dbd4e00bdd94d85a19b8d55ccca20fe35b2e678a1422b380324dd5f24", size = 106827, upload-time = "2025-06-19T17:12:42.994Z" },
+    { url = "https://files.pythonhosted.org/packages/70/ae/44c4a6a4cbb496d93c6257954260fe3a6e91b7bed2240e5dad2a717f5111/markdown-3.9-py3-none-any.whl", hash = "sha256:9f4d91ed810864ea88a6f32c07ba8bee1346c0cc1f6b1f9f6c822f2a9667d280", size = 107441, upload-time = "2025-09-04T20:25:21.784Z" },
 ]
 
 [[package]]
@@ -932,10 +932,14 @@ wheels = [
 
 [[package]]
 name = "polars-darwin-core"
-version = "2.0.0"
-source = { git = "https://github.com/frewsxcv/polars-darwin-core.git#57fb65a46220dc145726b2acfae850fb8fe12161" }
+version = "4.0.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7a/e8/728edc1e8f0417d637e95a36e907b032e2afb5341a6e7f9e033bb7acdf54/polars_darwin_core-4.0.0.tar.gz", hash = "sha256:7038d0d02c4fe662451bf3feb25414266ee61aa7f9ea5c6786be862b1f49892f", size = 1850386, upload-time = "2025-09-06T03:22:27.031Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ea/a6/0086b0add0e6e665f1a6de37e7be1573b2a58704f3ca66b0b3ba5eb33fc1/polars_darwin_core-4.0.0-py3-none-any.whl", hash = "sha256:53171cb6ddd2a7d229b5f05b87677f9c9262806aaf9e4587315d1410a4390213", size = 6874, upload-time = "2025-09-06T03:22:25.323Z" },
 ]
 
 [[package]]

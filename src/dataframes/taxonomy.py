@@ -1,7 +1,7 @@
 import polars as pl
 from src.data_container import DataContainer, assert_dataframe_schema
 from polars_darwin_core.darwin_core import kingdom_data_type
-from polars_darwin_core.lf_csv import DarwinCoreCsvLazyFrame
+from polars_darwin_core import DarwinCoreLazyFrame
 
 
 class TaxonomyDataFrame(DataContainer):
@@ -30,7 +30,7 @@ class TaxonomyDataFrame(DataContainer):
 
     @classmethod
     def build(
-        cls, darwin_core_csv_lazy_frame: DarwinCoreCsvLazyFrame
+        cls, darwin_core_csv_lazy_frame: DarwinCoreLazyFrame
     ) -> "TaxonomyDataFrame":
         df = (
             darwin_core_csv_lazy_frame._inner.select(
