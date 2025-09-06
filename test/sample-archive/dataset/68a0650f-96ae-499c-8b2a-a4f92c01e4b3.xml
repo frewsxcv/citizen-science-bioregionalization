@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="68a0650f-96ae-499c-8b2a-a4f92c01e4b3"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/zctaps</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.no/resource?r=o_bryophytes</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=o_bryophytes</alternateIdentifier>
+        <alternateIdentifier>http://data.gbif.no/ipt/resource?r=o_bryophytes</alternateIdentifier>
+        <alternateIdentifier>http://dev.gbif.no/ipt/resource?r=o_bryophytes</alternateIdentifier>
+        <alternateIdentifier>http://gbif.no/ipt/resource?r=o_bryophytes</alternateIdentifier>
+        <alternateIdentifier>68a0650f-96ae-499c-8b2a-a4f92c01e4b3</alternateIdentifier>
+        <alternateIdentifier>1068</alternateIdentifier>
+        <title>Bryophyte Herbarium, Oslo (O) UiO</title>
+        <creator>
+            <organizationName>UiO Bryophyte Herbarium, Natural History Museum, University of Oslo</organizationName>
+            <address>
+                <city>Oslo</city>
+                <country>NORWAY</country>
+            </address>
+            <onlineUrl>https://www.nhm.uio.no/english/research/collections/botanical/bryophytes/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <organizationName>GBIF Norway</organizationName>
+            <address>
+                <city>Oslo</city>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>helpdesk@gbif.no</electronicMailAddress>
+            <onlineUrl>https://www.gbif.no</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <organizationName>GBIF Norway</organizationName>
+            <address>
+                <city>Oslo</city>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>helpdesk@gbif.no</electronicMailAddress>
+            <onlineUrl>https://www.gbif.no</onlineUrl>
+            <role>USER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Rune</givenName>
+                <surName>Halvorsen</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0318</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>rune.halvorsen@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/research-collections/people/runeho/</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0002-6859-7726</userId>
+            <role>CURATOR</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Siri</givenName>
+                <surName>Rui</surName>
+            </individualName>
+            <organizationName>Natural History Museum, University of Oslo</organizationName>
+            <positionName>Head engineer</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0318</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>siri.rui@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/technical-scientific-conservation/people/sirir/</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0001-9330-6233</userId>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Anne</givenName>
+                <surName>Molia</surName>
+            </individualName>
+            <organizationName>Natural History Museum, University of Oslo</organizationName>
+            <positionName>Head engineer</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0318</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>anne.molia@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/technical-scientific-conservation/people/amolia/index.html</onlineUrl>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-19
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Bryophytes at the Natural History Museum, University of Oslo.</para><para>The bryophyte herbarium at the Botanical Museum, the University of Oslo, comprises a Norwegian herbarium (ca. 185,000 specimens, of which ca. 100,000 mosses, ca. 15,000 peat mosses and ca. 35,000 hepatics), a general herbarium (ca. 80,000), a type herbarium with ca. 100 types and a collection of older exsiccata (ca. 5,000 specimens).</para><para>The herbarium contains important material among others from Norway, the Arctic, Macaronesia and Tristan da Cunha. Important collectors are Matthias Numsen Blytt (1789-1862), Søren Christian Sommerfelt (1794-1838), Christian Kaurin (1831-1898), Frantz Caspar Kiær (1835-1893), Nils Gregers Ingvald Wulfsberg (1847-1888), Elling Ryan (1849-1905), Baard Bastian Larsen Kaalaas (1851-1917), Ingebrigt Severin Hagen (1852-1917; in part), Nils Bryhn (1854-1916; in part), Eugen Honoratius Jørgensen (1862-1938; in part), Johannes Lid (1886-1971) and Per Størmer (1907-1991).</para><para>Buildup of the herbarium database started in 1997. Currently approximately 185,000 specimens have been imaged and so far 68,000 specimens databased from the Norwegian collection.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>musit-norway</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://www.nhm.uio.no/forskning/samlinger/botanikk/mose/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.no/archive.do?r=o_bryophytes</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Norway</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>0</westBoundingCoordinate>
+                    <eastBoundingCoordinate>36</eastBoundingCoordinate>
+                    <northBoundingCoordinate>72</northBoundingCoordinate>
+                    <southBoundingCoordinate>56</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1767-07-31
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2022-03-08
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Bryophytes</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Anthocerotophyta</taxonRankValue>
+                    <commonName>Hornworts</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Bryophyta</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Marchantiophyta</taxonRankValue>
+                    <commonName>Liverworts</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Rune</givenName>
+                <surName>Halvorsen</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0318</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>rune.halvorsen@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/research-collections/people/runeho/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-6859-7726</userId>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:57Z</dateStamp>
+                <citation>University of Oslo (2025). Bryophyte Herbarium, Oslo (O) UiO. Version 1.2276. Occurrence dataset https://doi.org/10.15468/zctaps accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>The Bryophyte Herbarium</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>Database portal</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://nhm2.uio.no/botanisk/mose/</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <resourceLogoUrl>http://upload.wikimedia.org/wikipedia/commons/f/f4/UiO_logo.png</resourceLogoUrl>
+                <collection>
+                    <parentCollectionIdentifier>https://registry.gbif.org/collection/8bc83867-c9d2-4350-bedf-d8652f548f6f</parentCollectionIdentifier>
+                    <collectionIdentifier>https://registry.gbif.org/collection/1648f709-592f-469d-83b0-4653c23b3269</collectionIdentifier>
+                    <collectionName>Bryophyte Herbarium (O-B)</collectionName>
+                </collection>
+                <specimenPreservationMethod>DRIED</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

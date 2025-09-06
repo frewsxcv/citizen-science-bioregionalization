@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="7a52c058-f762-11e1-a439-00145eb45e9a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/jkxmar</alternateIdentifier>
+        <alternateIdentifier>https://science-net.kahaku.go.jp/ipt2/resource?r=snet-1044-103</alternateIdentifier>
+        <alternateIdentifier>http://science-net.kahaku.go.jp/ipt2/resource?r=snet-1044-103</alternateIdentifier>
+        <alternateIdentifier>http://gbif.science-net.kahaku.go.jp:8081/ipt2/resource?r=snet-1044-103</alternateIdentifier>
+        <alternateIdentifier>7a52c058-f762-11e1-a439-00145eb45e9a</alternateIdentifier>
+        <alternateIdentifier>11274</alternateIdentifier>
+        <title>Crustacea Collection of Natural History Museum and Institute, Chiba</title>
+        <creator>
+            <individualName>
+                <givenName>Tomoyuki</givenName>
+                <surName>Komai</surName>
+            </individualName>
+            <organizationName>Natural History Museum and Institute, Chiba</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>komai@chiba-muse.or.jp</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Tomoyuki</givenName>
+                <surName>Komai</surName>
+            </individualName>
+            <organizationName>Natural History Museum and Institute, Chiba</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>komai@chiba-muse.or.jp</electronicMailAddress>
+        </metadataProvider>
+        <pubDate>
+                2025-02-14
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Crustacea Collection of Natural History Museum and Institute, Chiba</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://search.chiba-muse.or.jp/chiba_museum/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://science-net.kahaku.go.jp/ipt2/archive.do?r=snet-1044-103</url>
+            </online>
+        </distribution>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Tomoyuki</givenName>
+                <surName>Komai</surName>
+            </individualName>
+            <organizationName>Natural History Museum and Institute, Chiba</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>komai@chiba-muse.or.jp</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:46Z</dateStamp>
+                <citation>Komai T (2025). Crustacea Collection of Natural History Museum and Institute, Chiba. National Museum of Nature and Science, Japan. Occurrence dataset https://doi.org/10.15468/jkxmar accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

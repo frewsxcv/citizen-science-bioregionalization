@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="e16466e8-abb2-47dc-a546-9464d03bec2b"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/dg4cb4</alternateIdentifier>
+        <alternateIdentifier>http://tun.fi/HR.188</alternateIdentifier>
+        <title>Bryophyte Herbarium (H): Herbarium Generale</title>
+        <pubDate>
+                2025-05-19
+        </pubDate>
+        <language>en</language>
+        <abstract>
+            <para>Bryophyte collections of the Botanical Museum, University of Helsinki (H): General herbarium (areas outside Finland and Russian Fennoscandia). Includes also European specimens of the V. F. Brotherus herbarium.</para>
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://gbif.laji.fi/archives/HR.188.zip</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Worldwide except for Finland and Russian Fennoscandia</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-179.4167</westBoundingCoordinate>
+                    <eastBoundingCoordinate>179</eastBoundingCoordinate>
+                    <northBoundingCoordinate>82.5</northBoundingCoordinate>
+                    <southBoundingCoordinate>-83.0683</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1787-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2023-11-25
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Fungi</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <contact>
+            <individualName>
+                <givenName>Tuula</givenName>
+                <surName>Niskanen</surName>
+            </individualName>
+            <electronicMailAddress>xiao-lan.he@helsinki.fi</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <surName>FinBIF</surName>
+            </individualName>
+            <electronicMailAddress>helpdesk@laji.fi</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:48Z</dateStamp>
+                <citation>Finnish Biodiversity Information Facility (2025). Bryophyte Herbarium (H): Herbarium Generale. Occurrence dataset https://doi.org/10.15468/dg4cb4 accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

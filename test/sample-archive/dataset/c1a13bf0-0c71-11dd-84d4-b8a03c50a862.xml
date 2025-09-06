@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="c1a13bf0-0c71-11dd-84d4-b8a03c50a862"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/ufmslw</alternateIdentifier>
+        <alternateIdentifier>https://www.gbif.se/ipt/resource?r=uppsala-botany</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.se/ipt/resource?r=uppsala-botany</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.se/ipt/resource.do?r=uppsala-botany</alternateIdentifier>
+        <alternateIdentifier>c1a13bf0-0c71-11dd-84d4-b8a03c50a862</alternateIdentifier>
+        <alternateIdentifier>1045</alternateIdentifier>
+        <title>Botany (UPS)</title>
+        <creator>
+            <individualName>
+                <givenName>Monika</givenName>
+                <surName>Myrdal</surName>
+            </individualName>
+            <organizationName>Museum of Evolution</organizationName>
+            <positionName>Researcher / Curator</positionName>
+            <address>
+                <city>Uppsala</city>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>Monika.Myrdal@em.uu.se</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Monika</givenName>
+                <surName>Myrdal</surName>
+            </individualName>
+            <organizationName>Museum of Evolution</organizationName>
+            <positionName>Researcher / Curator</positionName>
+            <address>
+                <city>Uppsala</city>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>Monika.Myrdal@em.uu.se</electronicMailAddress>
+        </metadataProvider>
+        <pubDate>
+                2025-02-07
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Database of the botany collection of the Museum of Evolution in Uppsala.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://www.gbif.se/ipt/archive.do?r=uppsala-botany</url>
+            </online>
+        </distribution>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Veronika</givenName>
+                <surName>Johansson</surName>
+            </individualName>
+            <organizationName>Swedish Museum of Natural History</organizationName>
+            <positionName>Node manager</positionName>
+            <address>
+                <city>Stockholm</city>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>veronika.johansson@nrm.se</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Monika</givenName>
+                <surName>Myrdal</surName>
+            </individualName>
+            <organizationName>Museum of Evolution</organizationName>
+            <positionName>Researcher / Curator</positionName>
+            <address>
+                <city>Uppsala</city>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>Monika.Myrdal@em.uu.se</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:55Z</dateStamp>
+                <citation>Myrdal M (2025). Botany (UPS). Museum of Evolution, Uppsala University. Occurrence dataset https://doi.org/10.15468/ufmslw accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

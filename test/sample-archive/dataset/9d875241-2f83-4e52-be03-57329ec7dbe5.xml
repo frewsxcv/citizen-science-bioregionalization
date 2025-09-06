@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="9d875241-2f83-4e52-be03-57329ec7dbe5"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.5886/hgagiy</alternateIdentifier>
+        <alternateIdentifier>9d875241-2f83-4e52-be03-57329ec7dbe5</alternateIdentifier>
+        <alternateIdentifier>https://data.canadensys.net/ipt/resource?r=um-wrme</alternateIdentifier>
+        <alternateIdentifier>https://ecdysis.org/collections/misc/collprofiles.php?collid=129</alternateIdentifier>
+        <title>J. B. Wallis / R. E. Roughley Museum of Entomology</title>
+        <creator>
+            <individualName>
+                <givenName>Jason</givenName>
+                <surName>Gibbs</surName>
+            </individualName>
+            <organizationName>University of Manitoba</organizationName>
+            <positionName>Associate Professor / Curator</positionName>
+            <address>
+                <deliveryPoint>12 Dafoe Road</deliveryPoint>
+                <city>Winnipeg</city>
+                <administrativeArea>MB</administrativeArea>
+                <postalCode>R3T 2N2</postalCode>
+                <country>CANADA</country>
+            </address>
+            <phone>2044747485</phone>
+            <electronicMailAddress>jason.gibbs@umanitoba.ca</electronicMailAddress>
+            <onlineUrl>https://umanitoba.ca/agricultural-food-sciences/wallis-roughley-museum-entomology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-4945-5423</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Jason</givenName>
+                <surName>Gibbs</surName>
+            </individualName>
+            <organizationName>University of Manitoba</organizationName>
+            <positionName>Associate Professor / Curator</positionName>
+            <address>
+                <deliveryPoint>12 Dafoe Road</deliveryPoint>
+                <city>Winnipeg</city>
+                <administrativeArea>MB</administrativeArea>
+                <postalCode>R3T 2N2</postalCode>
+                <country>CANADA</country>
+            </address>
+            <phone>2044747485</phone>
+            <electronicMailAddress>jason.gibbs@umanitoba.ca</electronicMailAddress>
+            <onlineUrl>https://umanitoba.ca/agricultural-food-sciences/wallis-roughley-museum-entomology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-4945-5423</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Jason</givenName>
+                <surName>Gibbs</surName>
+            </individualName>
+            <organizationName>University of Manitoba</organizationName>
+            <positionName>Associate Professor / Curator</positionName>
+            <address>
+                <deliveryPoint>12 Dafoe Road</deliveryPoint>
+                <city>Winnipeg</city>
+                <administrativeArea>MB</administrativeArea>
+                <postalCode>R3T 2N2</postalCode>
+                <country>CANADA</country>
+            </address>
+            <phone>2044747485</phone>
+            <electronicMailAddress>jason.gibbs@umanitoba.ca</electronicMailAddress>
+            <onlineUrl>https://umanitoba.ca/agricultural-food-sciences/wallis-roughley-museum-entomology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-4945-5423</userId>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Wonhyo</givenName>
+                <surName>Lee</surName>
+            </individualName>
+            <organizationName>University of Manitoba</organizationName>
+            <positionName>Technician</positionName>
+            <electronicMailAddress>Wonhyo.Lee@umanitoba.ca</electronicMailAddress>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <pubDate>
+                2025-03-10
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Invertebrate collection, primarily insects (pinned, slides, and fluid preserved) with good representation for Manitoba, Canada and strengths in bees and aquatic beetles</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://data.canadensys.net/ipt/archive.do?r=um-wrme</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Global with focus on Manitoba, Canada</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Insects and other arthropods</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Insecta</taxonRankValue>
+                    <commonName>insects</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Jason</givenName>
+                <surName>Gibbs</surName>
+            </individualName>
+            <organizationName>University of Manitoba</organizationName>
+            <positionName>Associate Professor / Curator</positionName>
+            <address>
+                <deliveryPoint>12 Dafoe Road</deliveryPoint>
+                <city>Winnipeg</city>
+                <administrativeArea>MB</administrativeArea>
+                <postalCode>R3T 2N2</postalCode>
+                <country>CANADA</country>
+            </address>
+            <phone>2044747485</phone>
+            <electronicMailAddress>jason.gibbs@umanitoba.ca</electronicMailAddress>
+            <onlineUrl>https://umanitoba.ca/agricultural-food-sciences/wallis-roughley-museum-entomology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-4945-5423</userId>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:43Z</dateStamp>
+                <citation identifier="https://doi.org/10.5886/hgagiy">Gibbs J (2025). J. B. Wallis / R. E. Roughley Museum of Entomology. Version 1.2. University of Manitoba. Occurrence dataset https://doi.org/10.5886/hgagiy accessed via GBIF.org on 2025-05-22.</citation>
+                <formationPeriod>1921-current</formationPeriod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

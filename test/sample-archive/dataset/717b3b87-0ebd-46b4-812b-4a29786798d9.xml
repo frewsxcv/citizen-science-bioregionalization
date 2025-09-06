@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="717b3b87-0ebd-46b4-812b-4a29786798d9"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/pjmjvn</alternateIdentifier>
+        <alternateIdentifier>http://ipt.vertnet.org:8080/ipt/resource?r=umzc_vertebrates</alternateIdentifier>
+        <alternateIdentifier>http://ipt.vertnet.org:8080/ipt/resource.do?r=umzc_vertebrates</alternateIdentifier>
+        <alternateIdentifier>717b3b87-0ebd-46b4-812b-4a29786798d9</alternateIdentifier>
+        <alternateIdentifier>14193</alternateIdentifier>
+        <title>UMZC Zoological Specimens</title>
+        <creator>
+            <individualName>
+                <givenName>Mathew</givenName>
+                <surName>Lowe</surName>
+            </individualName>
+            <organizationName>University Museum of Zoology Cambridge (Zoology)</organizationName>
+            <positionName>Collections Manager</positionName>
+            <address>
+                <deliveryPoint>Downing Street</deliveryPoint>
+                <city>Cambridge</city>
+                <postalCode>CB2 3EJ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <phone>+44 (0) 1223 336659</phone>
+            <electronicMailAddress>mwl34@cam.ac.uk</electronicMailAddress>
+            <onlineUrl>http://www.zoo.cam.ac.uk/museum/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Mathew</givenName>
+                <surName>Lowe</surName>
+            </individualName>
+            <organizationName>University Museum of Zoology Cambridge (Zoology)</organizationName>
+            <positionName>Collections Manager</positionName>
+            <address>
+                <deliveryPoint>Downing Street</deliveryPoint>
+                <city>Cambridge</city>
+                <postalCode>CB2 3EJ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <phone>+44 (0) 1223 336659</phone>
+            <electronicMailAddress>mwl34@cam.ac.uk</electronicMailAddress>
+            <onlineUrl>http://www.zoo.cam.ac.uk/museum/</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Laura</givenName>
+                <surName>Russell</surName>
+            </individualName>
+            <organizationName>VertNet</organizationName>
+            <positionName>VertNet Programmer</positionName>
+            <electronicMailAddress>larussell@vertnet.org</electronicMailAddress>
+            <role>PROGRAMMER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>David</givenName>
+                <surName>Bloom</surName>
+            </individualName>
+            <organizationName>VertNet</organizationName>
+            <positionName>VertNet Coordinator</positionName>
+            <electronicMailAddress>dbloom@vertnet.org</electronicMailAddress>
+            <role>PROGRAMMER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Wieczorek</surName>
+            </individualName>
+            <organizationName>Museum of Vertebrate Zoology at Berkeley</organizationName>
+            <positionName>Information Architect</positionName>
+            <electronicMailAddress>tuco@berkeley.edu</electronicMailAddress>
+            <role>PROGRAMMER</role>
+        </associatedParty>
+        <pubDate>
+                2019-07-16
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            The University Museum of Zoology in Cambridge contains collections that rival those of the major university museums world-wide. They were designated in 1998 as being of outstanding historical and international importance.
+
+Much of the Museum’s material derives from the great collecting expeditions of the 19th century, which provided the first documentation of the fauna in many parts of the globe. The collections therefore provide essential baseline data against which to assess the current distribution and status of species, particularly in the Red Sea, Indian Ocean, South-East Asia, and the oceanic islands.
+
+The collections include individual specimens of exceptional historical significance including fine examples of the Dodo and Great Auk, skins of the extinct Tasmanian Wolf and many of Darwin’s specimens, some of which were collected from his voyage on the Beagle, and from his time studying at the University of Cambridge.
+
+Continuing research in the Museum provides a major source of new accessions. Recent examples include fossils of the earliest land vertebrates, molluscs from the excavation of the Channel Tunnel, which document climactic change in Europe over the past 10,000 years, and a rich variety of invertebrate fauna from the Seychelles.
+        </abstract>
+        <keywordSet>
+            <keyword>Reptiles</keyword>
+            <keyword>Skeletons</keyword>
+            <keyword>Early Tetrapods</keyword>
+            <keyword>Skins</keyword>
+            <keyword>Spirit Specimens</keyword>
+            <keyword>Birds</keyword>
+            <keyword>Fish</keyword>
+            <keyword>Mammals</keyword>
+            <keyword>Amphibians</keyword>
+            <keyword>Fossils</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://www.museum.zoo.cam.ac.uk/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.vertnet.org/archive.do?r=umzc_vertebrates</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>World wide coverage.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-176.33</westBoundingCoordinate>
+                    <eastBoundingCoordinate>-175.23</eastBoundingCoordinate>
+                    <northBoundingCoordinate>84.92</northBoundingCoordinate>
+                    <southBoundingCoordinate>-85.16</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1800-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2012-06-11
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Mathew</givenName>
+                <surName>Lowe</surName>
+            </individualName>
+            <organizationName>University Museum of Zoology Cambridge (Zoology)</organizationName>
+            <positionName>Collections Manager</positionName>
+            <address>
+                <deliveryPoint>Downing Street</deliveryPoint>
+                <city>Cambridge</city>
+                <postalCode>CB2 3EJ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <phone>+44 (0) 1223 336659</phone>
+            <electronicMailAddress>mwl34@cam.ac.uk</electronicMailAddress>
+            <onlineUrl>http://www.zoo.cam.ac.uk/museum/</onlineUrl>
+        </contact>
+
+            <project >
+                <title>Mr</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Mathew</givenName>
+                    <surName>Lowe</surName>
+                    </individualName>
+                    <role>CUSTODIAN_STEWARD</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para></para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:51Z</dateStamp>
+                <citation identifier="UMZC">Lowe M (2019). UMZC Zoological Specimens. Version 6.1. The University Museum of Zoology, Cambridge. Occurrence dataset https://doi.org/10.15468/pjmjvn accessed via GBIF.org on 2025-05-22.</citation>
+                <collection>
+                    <parentCollectionIdentifier>UMZC</parentCollectionIdentifier>
+                    <collectionIdentifier>UMZC</collectionIdentifier>
+                    <collectionName>University Museum of Zoology</collectionName>
+                </collection>
+                <specimenPreservationMethod>OTHER</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

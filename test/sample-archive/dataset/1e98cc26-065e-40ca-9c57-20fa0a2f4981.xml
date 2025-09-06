@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="1e98cc26-065e-40ca-9c57-20fa0a2f4981"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/soyil7</alternateIdentifier>
+        <title>Herbarium Horti Botanici Pisani (PI), Sistema Museale di Ateneo, Università di Pisa</title>
+        <associatedParty>
+            <individualName>
+                <surName>Francesco Roma-Marzio</surName>
+            </individualName>
+            <address>
+                <deliveryPoint>Orto e Museo Botanico, Università di Pisa, via Luca Ghini 13, I-56126, Pisa, Italy</deliveryPoint>
+            </address>
+            <phone>+39 (50) 2211 309</phone>
+            <electronicMailAddress>francesco.romamarzio@unipi.it</electronicMailAddress>
+            <role>TECHNICAL_POINT_OF_CONTACT</role>
+        </associatedParty>
+        <language>en</language>
+        <abstract>
+            This dataset contains the holdings of the herbarium Horti Botanici Pisani of the Università di Pisa (PI)
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://www.ortomuseobot.sma.unipi.it/erbario-museo/</url>
+            </online>
+        </distribution>
+        <contact>
+            <individualName>
+                <surName>Lorenzo Peruzzi</surName>
+            </individualName>
+            <address>
+                <deliveryPoint>Dipartimento di Biologia, Università di Pisa, via Derna 1, I-56126 Pisa, Italy</deliveryPoint>
+            </address>
+            <phone>+39 (50) 2211 339</phone>
+            <electronicMailAddress>lorenzo.peruzzi@unipi.it</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:51Z</dateStamp>
+                <citation>Dipartimento di Biologia, Università di Pisa. Herbarium Horti Botanici Pisani (PI), Sistema Museale di Ateneo, Università di Pisa. Occurrence dataset https://doi.org/10.15468/soyil7 accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://www.ortomuseobot.sma.unipi.it/wp-content/themes/bst-master/images/logo-footer-orto-e-museo-botanico.png</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

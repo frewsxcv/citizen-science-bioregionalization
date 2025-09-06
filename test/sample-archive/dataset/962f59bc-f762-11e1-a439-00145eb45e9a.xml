@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="962f59bc-f762-11e1-a439-00145eb45e9a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/s2iu7d</alternateIdentifier>
+        <alternateIdentifier>https://gbif.mnhn.lu/ipt/resource?r=mnhnl_occurrences_and_specimens</alternateIdentifier>
+        <alternateIdentifier>http://gbif.mnhn.lu/ipt/resource?r=gbif_occurrences</alternateIdentifier>
+        <alternateIdentifier>962f59bc-f762-11e1-a439-00145eb45e9a</alternateIdentifier>
+        <alternateIdentifier>http://gbif.mnhn.lu:8080/ipt-2.3.5/resource?r=gbif_occurrences</alternateIdentifier>
+        <alternateIdentifier>8107</alternateIdentifier>
+        <title>Collections and observation data National Museum of Natural History Luxembourg</title>
+        <creator>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <positionName>National Museum of Natural History, Luxembourg</positionName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>recorder@mnhn.lu</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <organizationName>National Museum of Natural History Luxembourg</organizationName>
+            <positionName>National Museum of Natural History Luxembourg</positionName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>recorder@mnhn.lu</electronicMailAddress>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Paul</givenName>
+                <surName>Braun</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <positionName>Administrative contact</positionName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>paul.braun@mnhn.lu</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-3620-6188</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Paul</givenName>
+                <surName>Braun</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <positionName>Digital Curator</positionName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>paul.braun@mnhn.lu</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-3620-6188</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Claude</givenName>
+                <surName>Pepin</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>Clause.pepin@mnhn.lu</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Tania</givenName>
+                <surName>Walisch</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <phone>+352462240-263</phone>
+            <electronicMailAddress>tania.walisch@mnhn.lu</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-8353-1469</userId>
+            <role>EDITOR</role>
+        </associatedParty>
+        <pubDate>
+                2024-08-27
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            This dataset contains occurrence data from the natural history collections and observation data managed by the National Museum of Natural History Luxembourg.
+
+Due to a migration to a new IPT installation, the dataset was republished on January 19th 2022 as version 1.1. Before this, the dataset was published up to version 1.84 since its orignal registration in 2009.
+
+As of late February 2022 data that was originally part of this dataset was transferred to other datasets here on GBIF to better document the origin of the occurrences. These datasets are, as of:
+- 2022/02/25 : https://www.gbif.org/dataset/62e99340-528c-4baf-bbd7-bf0df2f186b9
+- 2022/02/28 : https://www.gbif.org/dataset/f7ad9609-d177-4f03-9cdb-0ab546c72226
+- 2022/02/28 : https://www.gbif.org/dataset/001fc3df-1ab4-4a5d-9531-ca62d2694238
+- 2022/02/28 : https://www.gbif.org/dataset/9ed0adc4-0a7a-49df-9054-e26e9a7dbc8d
+- 2022/02/28 : https://www.gbif.org/dataset/72b86294-a50c-47da-a570-c34f653fbf92
+- 2022/03/02 : https://www.gbif.org/dataset/a1c9d4d7-aeda-46b6-a368-974b86d4f37c
+- 2022/03/02 : https://www.gbif.org/dataset/c7d7f268-7e8c-4d5d-8f07-18dcff182bb2
+- 2022/03/02 : https://www.gbif.org/dataset/d1f3ab52-3223-4eb2-a2cd-f1c353defaeb
+- 2022/03/02 : https://www.gbif.org/dataset/2715079c-e63a-4127-8cf1-39a56af1f6c4
+- 2022/03/02 : https://www.gbif.org/dataset/c9d089f6-7cf5-4204-9952-c8ac79da38de
+- 2022/03/02 : https://www.gbif.org/dataset/7557f69d-22f8-4cd8-9168-16d60f7170fd
+- 2022/03/02 : https://www.gbif.org/dataset/c9198eaf-f909-4502-9bcd-4e83452fb245
+- 2022/03/04 : https://www.gbif.org/dataset/32651421-c517-48a3-a80c-cb2d866ea1f6
+- 2022/03/04 : https://www.gbif.org/dataset/b109feb0-90f6-4c38-92b3-9008ce60a6f8
+- 2022/03/04 : https://www.gbif.org/dataset/2ad7cdd7-49ed-493d-9ae7-541c83caafcf
+- 2022/06/16 : https://www.gbif.org/dataset/9fb39c60-52ab-460f-ade5-a8a204d65434
+- 2022/06/16 : https://www.gbif.org/dataset/ca89af9a-72f6-426e-8f03-019eb91de8f7
+- 2022/06/21 : https://www.gbif.org/dataset/85b69bca-2234-4877-bb13-cef1f32fd9c3
+- 2022/06/21 : https://www.gbif.org/dataset/d70c169f-fd9e-4355-8431-8d1fba91370f
+- 2022/06/21 : https://www.gbif.org/dataset/b6dc7422-a09d-4986-b5ac-e8f6f50a9732
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Observation</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://gbif.mnhn.lu/ipt/archive.do?r=mnhnl_occurrences_and_specimens</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Biodiversity data mostly from Luxembourg, collection from everywhere.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                    <commonName>Plants</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                    <commonName>Animals</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Fungi</taxonRankValue>
+                    <commonName>Fungi</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>irregular</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Paul</givenName>
+                <surName>Braun</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <positionName>Administrative contact</positionName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>paul.braun@mnhn.lu</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-3620-6188</userId>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Claude</givenName>
+                <surName>Pepin</surName>
+            </individualName>
+            <organizationName>National Museum of Natural History, Luxembourg</organizationName>
+            <address>
+                <deliveryPoint>25 rue Munster</deliveryPoint>
+                <city>Luxembourg</city>
+                <postalCode>L-2160</postalCode>
+                <country>LUXEMBOURG</country>
+            </address>
+            <electronicMailAddress>Claude.pepin@mnhn.lu</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:50Z</dateStamp>
+                <citation identifier="DOI10.15468/s2iu7d">National Museum of Natural History, Luxembourg (2024). Collections and observation data National Museum of Natural History Luxembourg. Occurrence dataset https://doi.org/10.15468/s2iu7d accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://gbif.mnhn.lu/ipt/logo.do?r=mnhnl_occurrences_and_specimens</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

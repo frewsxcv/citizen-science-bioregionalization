@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="97a775fe-7e13-43bc-a6de-af9218b1dd93"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/j4vfkj</alternateIdentifier>
+        <alternateIdentifier>http://ipt.env.duke.edu/resource?r=zd_774</alternateIdentifier>
+        <title>Tethys Research Institute shipboard survey cetacean sightings 1986-2012</title>
+        <creator>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <surName>ACCOBAMS and WDCS</surName>
+            </individualName>
+            <organizationName>The Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic Area (ACCOBAMS) and Whale and Dolphin Conservation Society (WDCS)</organizationName>
+            <onlineUrl>http://www.accobams.org/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+            <role>OWNER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+            <role>OWNER</role>
+        </associatedParty>
+        <pubDate>
+                2021-04-24
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Original provider:
+Tethys Research Institute
+
+Dataset credits:
+Tethys Research Institute
+
+Abstract:
+This dataset, belonging as a whole to Tethys Research Institute, comprises the work carried out between 1986 and 2012 mainly in the Mediterranean Sea and in particular in the Corso-Ligurian-Provencal basin, in the Ionian Sea and in the Adriatic Sea. Research has also been carried out investigating cetaceans in Atlantic Ocean (Canary Islands, Morocco coasts) and in the Caribbean Sea. The dataset generated includes more than 8.400 sightings of cetaceans collected in 25 years of research activity.
+
+Purpose:
+Founded in 1986, the Tethys Research Institute is a private non-profit organization specializing in cetacean research. Tethys has generated one of the largest datasets on Mediterranean cetaceans and contributed over 300 scientific publications. Tethys aims to protect the Mediterranean biodiversity by promoting the adoption of a precautionary approach for the management of natural resources. The work carried out by Tethys strives to prevent the decline of marine species and to encourage sustainable use of the marine environment. Tethys first conceived and proposed the creation a Marine Reserve in the Corso-Ligurian Basin, the “Pelagos Sanctuary.” Several internationally renowned institutions have emphasized the importance of the Sanctuary, including the World Conservation Union (IUCN), the Bonn Convention on migratory species, and the newly-born Agreement on the Conservation of Cetaceans of the Mediterranean Sea, Black Sea and Contiguous Atlantic Areas (ACCOBAMS). The Sanctuary has also been added to the list of Specially Protected Areas of Mediterranean Importance (SPAMI), created at the Barcelona Convention in 1999. This makes the Ligurian Sea Cetacean Sanctuary the first and only high seas protected area in the world. Moreover, based primarily on data collected by the Tethys Research Institute, a Dolphin Reserve was formally established in Losinj, Croatia in 2006.
+
+Research methods utilized by Tethys include the use of remote sensing and telemetry data, the combined use of laser range-finding binoculars and GPS to record the movements of whales, population studies based on distance sampling and photographic capture-recapture, bioacoustics research, behavioral sampling, remote collection of biopsy samples for genetic and toxicological analyses, and historical studies. The Institute holds vast photographic archives of cetacean images that have enabled the identification of over 1,500 individuals of eight Mediterranean species.
+
+Tethys Research Institute has involved in its expeditions thousands of people from all over the world, and has developed a remarkable cetacean research and conservation network. Tethys has been conducting its research and conservation activities thanks to support received from national and international organizations. Tethys is partner to the UNEP&amp;#39;s Agreement on the Conservation of Cetaceans in the Black Sea, Mediterranean Sea and Contiguous Atlantic Area (ACCOBAMS). The Italian Ministry of the Environment funded various cetacean research and conservation activities carried out by the Institute. The UNEP&amp;#39;s Regional Activity Centre for Specially Protected Areas (RAC-SPA), the Earthwatch Institute, OceanCare and The Whale and Dolphin Conservation Society WDCS have been providing support to specific projects conducted by Tethys in the context of a long-term collaboration.
+
+Supplemental information:
+[2015-03-24] A few records had a wrong animal count of zero. The value is replaced with a blank representing species presence only.
+
+[2014-03-05] 2011-2012 data were added.
+
+Effort data are only available for a subset of surveys. For records with time and observed count not available, the corresponding columns were empty.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence,Vessels,Sightings</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Observation</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <additionalInfo>
+            <para>marine, harvested by iOBIS</para>
+        </additionalInfo>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://seamap.env.duke.edu/dataset/774</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.env.duke.edu/archive.do?r=zd_774</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Mediterranean,Italy,cetacean distribution</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-67.342</westBoundingCoordinate>
+                    <eastBoundingCoordinate>22.797</eastBoundingCoordinate>
+                    <northBoundingCoordinate>45.633</northBoundingCoordinate>
+                    <southBoundingCoordinate>10.287</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1986-07-11
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2012-11-22
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Scientific names are based on the Integrated Taxonomic Information System (ITIS).</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera acutorostrata</taxonRankValue>
+                    <commonName>Minke Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera borealis</taxonRankValue>
+                    <commonName>Sei Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera edeni</taxonRankValue>
+                    <commonName>Eden&apos;s whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera physalus</taxonRankValue>
+                    <commonName>Fin Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Genus</taxonRankName>
+                    <taxonRankValue>Balaenoptera</taxonRankValue>
+                    <commonName>baleen whales</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Delphinidae</taxonRankValue>
+                    <commonName>dolphins</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Delphinus delphis</taxonRankValue>
+                    <commonName>Short-beaked Common Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Globicephala macrorhynchus</taxonRankValue>
+                    <commonName>Short-finned Pilot Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Globicephala melas</taxonRankValue>
+                    <commonName>Long-finned Pilot Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Grampus griseus</taxonRankValue>
+                    <commonName>Risso&apos;s Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Kogia breviceps</taxonRankValue>
+                    <commonName>Pygmy Sperm Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Megaptera novaeangliae</taxonRankValue>
+                    <commonName>Humpback Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Mesoplodon bidens</taxonRankValue>
+                    <commonName>Sowerby&apos;s Beaked Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Mesoplodon densirostris</taxonRankValue>
+                    <commonName>Blainville&apos;s Beaked Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Mesoplodon europaeus</taxonRankValue>
+                    <commonName>Gervais&apos; Beaked Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Genus</taxonRankName>
+                    <taxonRankValue>Mesoplodon</taxonRankValue>
+                    <commonName>beaked whales</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Peponocephala electra</taxonRankValue>
+                    <commonName>Melon-headed Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Physeter macrocephalus</taxonRankValue>
+                    <commonName>Sperm Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Pseudorca crassidens</taxonRankValue>
+                    <commonName>False Killer Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Sousa teuszii</taxonRankValue>
+                    <commonName>Atlantic Humpback Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella attenuata</taxonRankValue>
+                    <commonName>Pantropical Spotted Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella clymene</taxonRankValue>
+                    <commonName>Clymene Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella coeruleoalba</taxonRankValue>
+                    <commonName>Striped Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella frontalis</taxonRankValue>
+                    <commonName>Atlantic Spotted Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella longirostris</taxonRankValue>
+                    <commonName>Spinner Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Genus</taxonRankName>
+                    <taxonRankValue>Stenella</taxonRankValue>
+                    <commonName>spinner dolphins</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Tursiops truncatus</taxonRankValue>
+                    <commonName>Common Bottlenose Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Cetacea</taxonRankValue>
+                    <commonName>cetaceans</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Delphinidae</taxonRankValue>
+                    <commonName>dolphins</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Hyperoodontidae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Ziphius cavirostris</taxonRankValue>
+                    <commonName>Cuvier&apos;s Beaked Whale</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <purpose><para>Founded in 1986, the Tethys Research Institute is a private non-profit organization specializing in cetacean research. Tethys has generated one of the largest datasets on Mediterranean cetaceans and contributed over 300 scientific publications. Tethys aims to protect the Mediterranean biodiversity by promoting the adoption of a precautionary approach for the management of natural resources. The work carried out by Tethys strives to prevent the decline of marine species and to encourage sustainable use of the marine environment. Tethys first conceived and proposed the creation a Marine Reserve in the Corso-Ligurian Basin, the “Pelagos Sanctuary.” Several internationally renowned institutions have emphasized the importance of the Sanctuary, including the World Conservation Union (IUCN), the Bonn Convention on migratory species, and the newly-born Agreement on the Conservation of Cetaceans of the Mediterranean Sea, Black Sea and Contiguous Atlantic Areas (ACCOBAMS). The Sanctuary has also been added to the list of Specially Protected Areas of Mediterranean Importance (SPAMI), created at the Barcelona Convention in 1999. This makes the Ligurian Sea Cetacean Sanctuary the first and only high seas protected area in the world. Moreover, based primarily on data collected by the Tethys Research Institute, a Dolphin Reserve was formally established in Losinj, Croatia in 2006.
+
+Research methods utilized by Tethys include the use of remote sensing and telemetry data, the combined use of laser range-finding binoculars and GPS to record the movements of whales, population studies based on distance sampling and photographic capture-recapture, bioacoustics research, behavioral sampling, remote collection of biopsy samples for genetic and toxicological analyses, and historical studies. The Institute holds vast photographic archives of cetacean images that have enabled the identification of over 1,500 individuals of eight Mediterranean species.
+
+Tethys Research Institute has involved in its expeditions thousands of people from all over the world, and has developed a remarkable cetacean research and conservation network. Tethys has been conducting its research and conservation activities thanks to support received from national and international organizations. Tethys is partner to the UNEP's Agreement on the Conservation of Cetaceans in the Black Sea, Mediterranean Sea and Contiguous Atlantic Area (ACCOBAMS). The Italian Ministry of the Environment funded various cetacean research and conservation activities carried out by the Institute. The UNEP's Regional Activity Centre for Specially Protected Areas (RAC-SPA), the Earthwatch Institute, OceanCare and The Whale and Dolphin Conservation Society WDCS have been providing support to specific projects conducted by Tethys in the context of a long-term collaboration.</para></purpose>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>NA</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>NA</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>NA</para>
+                </samplingDescription>
+            </sampling>
+        </methods>
+
+            <project >
+                <title>Tethys Research Institute shipboard survey cetacean sightings 1986-2012</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Caterina</givenName>
+                    <surName>Lanfredi</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Giuseppe</givenName>
+                    <surName>Notarbartolo di Sciara</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>NA</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:54Z</dateStamp>
+                <citation identifier="https://seamap.env.duke.edu/dataset/774">Lanfredi, C. and G. Notarbartolo di Sciara. 2014. Tethys Research Institute shipboard survey cetacean sightings 1986-2012. Data downloaded from OBIS-SEAMAP (http://seamap.env.duke.edu/dataset/774) on yyyy-mm-dd. https://doi.org/10.15468/j4vfkj accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>OBIS-SEAMAP Dataset Page</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>Interactive map</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/774</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>FGDC Metadata</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>XML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/774/xml</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <collection>
+                    <parentCollectionIdentifier>OBIS-SEAMAP</parentCollectionIdentifier>
+                    <collectionIdentifier>zd_774</collectionIdentifier>
+                    <collectionName>zd_774</collectionName>
+                </collection>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

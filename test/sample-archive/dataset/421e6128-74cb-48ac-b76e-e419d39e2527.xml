@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="421e6128-74cb-48ac-b76e-e419d39e2527"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/ah1ln9</alternateIdentifier>
+        <alternateIdentifier>https://ipt.vlinderstichting.nl/resource?r=ndffbutterflyobservationdata</alternateIdentifier>
+        <alternateIdentifier>421e6128-74cb-48ac-b76e-e419d39e2527</alternateIdentifier>
+        <alternateIdentifier>http://37.97.169.86:8080/ipt/resource?r=ndffbutterflyobservationdata</alternateIdentifier>
+        <title>NDFF Butterfly Data</title>
+        <creator>
+            <individualName>
+                <givenName>Bas</givenName>
+                <surName>Oteman</surName>
+            </individualName>
+            <organizationName>Butterfly Conservation Europe</organizationName>
+            <positionName>Project supervisor</positionName>
+            <address>
+                <deliveryPoint>Mennonietenweg 10</deliveryPoint>
+                <city>Wageningen</city>
+                <administrativeArea>Gelderland</administrativeArea>
+                <postalCode>6702 AD</postalCode>
+                <country>NETHERLANDS</country>
+            </address>
+            <phone>0317 467 346</phone>
+            <electronicMailAddress>bas.oteman@vlinderstichting.nl</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Bas</givenName>
+                <surName>Oteman</surName>
+            </individualName>
+            <organizationName>Butterfly Conservation Europe</organizationName>
+            <positionName>Project supervisor</positionName>
+            <address>
+                <deliveryPoint>Mennonietenweg 10</deliveryPoint>
+                <city>Wageningen</city>
+                <administrativeArea>Gelderland</administrativeArea>
+                <postalCode>6702 AD</postalCode>
+                <country>NETHERLANDS</country>
+            </address>
+            <phone>0317 467 346</phone>
+            <electronicMailAddress>bas.oteman@vlinderstichting.nl</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Bas</givenName>
+                <surName>Oteman</surName>
+            </individualName>
+            <organizationName>Butterfly Conservation Europe</organizationName>
+            <positionName>Project supervisor</positionName>
+            <address>
+                <deliveryPoint>Mennonietenweg 10</deliveryPoint>
+                <city>Wageningen</city>
+                <administrativeArea>Gelderland</administrativeArea>
+                <postalCode>6702 AD</postalCode>
+                <country>NETHERLANDS</country>
+            </address>
+            <phone>0317 467 346</phone>
+            <electronicMailAddress>bas.oteman@vlinderstichting.nl</electronicMailAddress>
+            <role>PUBLISHER</role>
+        </associatedParty>
+        <pubDate>
+                2022-01-25
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Holiday butterfly records from the Dutch National database Flora and Fauna (NDFF).
+        </abstract>
+        <keywordSet>
+            <keyword>butterfly</keyword>
+            <keyword>lepidoptera</keyword>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>butterfly</keyword>
+            <keyword>Observation</keyword>
+            <keyword>lepidoptera</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.vlinderstichting.nl/archive.do?r=ndffbutterflyobservationdata</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>European butterfly observations</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-11.25</westBoundingCoordinate>
+                    <eastBoundingCoordinate>40.25</eastBoundingCoordinate>
+                    <northBoundingCoordinate>71.41</northBoundingCoordinate>
+                    <southBoundingCoordinate>33.72</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1901-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2018-12-31
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Butterfly observation, all identified at species level.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Lepidoptera</taxonRankValue>
+                    <commonName>Butterflies</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Bas</givenName>
+                <surName>Oteman</surName>
+            </individualName>
+            <organizationName>Butterfly Conservation Europe</organizationName>
+            <positionName>Project supervisor</positionName>
+            <address>
+                <deliveryPoint>Mennonietenweg 10</deliveryPoint>
+                <city>Wageningen</city>
+                <administrativeArea>Gelderland</administrativeArea>
+                <postalCode>6702 AD</postalCode>
+                <country>NETHERLANDS</country>
+            </address>
+            <phone>0317 467 346</phone>
+            <electronicMailAddress>bas.oteman@vlinderstichting.nl</electronicMailAddress>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>Butterfly observations by experts and volunteers.</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>Data consists of single observations throughout Europe</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>Visual identification of a single or group of butterflies.</para>
+                </samplingDescription>
+            </sampling>
+            <qualityControl>
+                <description>
+                    <para>Data was checked against known distributions and flight times of species. Non-European data and datapoint not above land are excluded.</para>
+                </description>
+            </qualityControl>
+        </methods>
+
+            <project >
+                <title>European butterfly monitoring</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Bas</givenName>
+                    <surName>Oteman</surName>
+                    </individualName>
+                    <role>PUBLISHER</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para></para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:47Z</dateStamp>
+                <citation>Oteman B (2022). NDFF Butterfly Data. Version 1.6. Butterfly Conservation Europe. Occurrence dataset https://doi.org/10.15468/ah1ln9 accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

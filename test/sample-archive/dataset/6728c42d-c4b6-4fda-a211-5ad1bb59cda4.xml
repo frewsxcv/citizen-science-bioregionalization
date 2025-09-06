@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="6728c42d-c4b6-4fda-a211-5ad1bb59cda4"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/zxu8zu</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.no/resource?r=trh_b</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=trh_b</alternateIdentifier>
+        <alternateIdentifier>http://data.gbif.no/ipt/resource?r=trh_b</alternateIdentifier>
+        <alternateIdentifier>http://dev.gbif.no/ipt/resource?r=trh_b</alternateIdentifier>
+        <alternateIdentifier>http://gbif.no/ipt/resource?r=trh_b</alternateIdentifier>
+        <alternateIdentifier>6728c42d-c4b6-4fda-a211-5ad1bb59cda4</alternateIdentifier>
+        <title>Bryophyte herbarium TRH, NTNU University Museum</title>
+        <creator>
+            <individualName>
+                <givenName>Kristian</givenName>
+                <surName>Hassel</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>7041</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <phone>92809839</phone>
+            <electronicMailAddress>kristian.hassel@ntnu.no</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Kristian</givenName>
+                <surName>Hassel</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <city>Trondheim</city>
+                <country>NORWAY</country>
+            </address>
+        </metadataProvider>
+        <associatedParty>
+            <organizationName>GBIF Norway</organizationName>
+            <address>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>gbif-drift@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>http://gbif.no/</onlineUrl>
+            <role>USER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-19
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>The TRH bryophyte herbarium contains specimes of Bryophyta, Marchantiophyta and Anthocerotophyta from most parts of the world, but is best represented for the Northern Hemisphere and especially northern parts of Europe. Almost the whole collection has been digitized.</para><para>The oldest specimens in the collection is by Hans Strøm from 1745. Collections from the late 1800s and early 1900s comprise the foundation of this collection, primarily through the work of Ingebrigt Severin Hagen who worked at the NTNU University Museum from 1907 until his death in 1917. There was also a peak in activity from 1970-1980 mainly due to the joint efforts of A.A. Frisvoll and K.I. Flatberg. After 1998 the activity has again increased meaning that we have a relatively high proportion of recently collected specimens.</para><para>Taxonomically Bryophyta constitute about 75% and Marchantiophyta 25% of the collection, with Anthoceratophyta with less than 1%. These numbers roughly represent the species diversity of the main taxonomic groups at northern latitudes.
+
+Sphagnum is particularly well represented with more than 25 000 specimens. Much of this is of rather recent date and a result of the taxonomic research by Kjell Ivar Flatberg.
+
+Schistidium and Racomitrium are other well represented genera due to the taxonomic work of Hans H. Blom and A.A. Frisvoll.
+
+The collection includes more than 2000 type specimens of bryophytes.</para><para>The top ten countries/areas are: Norway, Svalbard with Jan Mayen, Sweden, United States of America, Canada, Germany, Greenland, France, Iceland and the Russian Federation.
+
+Svalbard is very well represented with close to 20 000 occurrences, the main contributor to this material is Arne A. Frisvoll that visited Svalbard and Jan Mayen several times during the 1970’s.</para><para>Important exsiccatae includes:
+
+Hepaticae Europaeae Exsiccatae, Victor F. Schiffner 
+Musci Alleghanienses, William S. Sullivant
+Musci Europaei Exsiccati, Ernst Bauer 
+Bryotheca Bohemica. Laub- und Lebermoose aus Böhmen in getrockneten Exemplaren, Bauer, Ernst
+Musci Frondosi Archipelagi Indici Exsiccati, Max Fleischer 
+Bryotheca Europaea Meridionalis, Fleischer, M.; Warnstorf, C.F.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>musit-norway</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.no/archive.do?r=trh_b</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>The top ten countries/areas are: Norway, Svalbard with Jan Mayen, Sweden, United States of America, Canada, Germany, Greenland, France, Iceland and the Russian Federation.
+
+Svalbard is very well represented with close to 20 000 occurrences, the main contributor to this material is Arne A. Frisvoll that visited Svalbard and Jan Mayen several times during the 1970’s</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Kristian</givenName>
+                <surName>Hassel</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>kristian.hassel@ntnu.no</electronicMailAddress>
+            <userId directory="http://orcid.org/">0000-0002-1906-8166</userId>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Tommy</givenName>
+                <surName>Prestø</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Collection Manager</positionName>
+            <address>
+                <postalCode>7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>tommy.presto@ntnu.no</electronicMailAddress>
+            <onlineUrl>https://www.ntnu.no/ansatte/tommy.presto</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0003-3770-6296</userId>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:45Z</dateStamp>
+                <citation>Hassel K (2025). Bryophyte herbarium TRH, NTNU University Museum. Version 1.2545. Norwegian University of Science and Technology. Occurrence dataset https://doi.org/10.15468/zxu8zu accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>http://ipt.gbif.no/logo.do?r=trh_b</resourceLogoUrl>
+                <formationPeriod>The oldest specimens are from 1745, but the bryophyte herbarium have most of its specimens from late 1800 and up today.</formationPeriod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

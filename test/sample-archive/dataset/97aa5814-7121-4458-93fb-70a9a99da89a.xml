@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="97aa5814-7121-4458-93fb-70a9a99da89a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/3ad9z0</alternateIdentifier>
+        <alternateIdentifier>https://science-net.kahaku.go.jp/ipt2/resource?r=snet-1175-113</alternateIdentifier>
+        <alternateIdentifier>97aa5814-7121-4458-93fb-70a9a99da89a</alternateIdentifier>
+        <alternateIdentifier>http://science-net.kahaku.go.jp/ipt2/resource?r=snet-1175-113</alternateIdentifier>
+        <title>Dry specimens of Recent Mollusca in the Department of Historical Geology and Paleontology, The University Museum, The University of Tokyo (UMUT)</title>
+        <creator>
+            <individualName>
+                <givenName>Takenori</givenName>
+                <surName>Sasaki</surName>
+            </individualName>
+            <organizationName>The University Museum, The University of Tokyo</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>sasaki@um.u-tokyo.ac.jp</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Takenori</givenName>
+                <surName>Sasaki</surName>
+            </individualName>
+            <organizationName>The University Museum, The University of Tokyo</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>sasaki@um.u-tokyo.ac.jp</electronicMailAddress>
+        </metadataProvider>
+        <pubDate>
+                2025-03-18
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Dry specimens of Recent Mollusca deposited at the Department of Historical Geology and Paleontology, The University Museum, The University of Tokyo (UMUT)</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://science-net.kahaku.go.jp/ipt2/archive.do?r=snet-1175-113</url>
+            </online>
+        </distribution>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Takenori</givenName>
+                <surName>Sasaki</surName>
+            </individualName>
+            <organizationName>The University Museum, The University of Tokyo</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <country>JAPAN</country>
+            </address>
+            <electronicMailAddress>sasaki@um.u-tokyo.ac.jp</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:47Z</dateStamp>
+                <citation>Sasaki T (2025). Dry specimens of Recent Mollusca in the Department of Historical Geology and Paleontology, The University Museum, The University of Tokyo (UMUT). Version 1.6. National Museum of Nature and Science, Japan. Occurrence dataset https://doi.org/10.15468/3ad9z0 accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

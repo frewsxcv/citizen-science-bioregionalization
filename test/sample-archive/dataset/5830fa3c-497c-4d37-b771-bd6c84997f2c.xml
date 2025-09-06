@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="5830fa3c-497c-4d37-b771-bd6c84997f2c"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/dmdck6</alternateIdentifier>
+        <title>Steiermärkisches Landesmuseum Joanneum - Herbarium GJO</title>
+        <creator>
+            <organizationName>Steiermärkisches Landesmuseum Joanneum - Herbarium GJO</organizationName>
+        </creator>
+        <metadataProvider>
+            <organizationName>Kurt Zernig</organizationName>
+            <address>
+                <deliveryPoint>Weinzöttlstraße 16, A-8045 Graz, Austria</deliveryPoint>
+            </address>
+            <phone>+43 (316) 8017-9751</phone>
+            <electronicMailAddress>kurt.zernig@museum-joanneum.at</electronicMailAddress>
+        </metadataProvider>
+        <pubDate>
+                2025-01-01
+        </pubDate>
+        <language>en</language>
+        <abstract>
+            <para>n/a</para>
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://access.jacq.org/biocase/downloads/gbif_gjo/Steiermarkisches%20Landesmuseum%20Joanneum%20-%20Herbarium%20GJO.DwCA.zip</url>
+            </online>
+        </distribution>
+        <contact>
+            <individualName>
+                <surName>Kurt Zernig</surName>
+            </individualName>
+            <address>
+                <deliveryPoint>Weinzöttlstraße 16, A-8045 Graz, Austria</deliveryPoint>
+            </address>
+            <phone>+43 (316) 8017-9751</phone>
+            <electronicMailAddress>kurt.zernig@museum-joanneum.at</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:57Z</dateStamp>
+                <citation>Steiermärkisches Landesmuseum Joanneum - Herbarium GJO (2025). Steiermärkisches Landesmuseum Joanneum - Herbarium GJO. Occurrence dataset https://doi.org/10.15468/dmdck6 accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

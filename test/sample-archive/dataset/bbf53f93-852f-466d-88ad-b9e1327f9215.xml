@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="bbf53f93-852f-466d-88ad-b9e1327f9215"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/585nbj</alternateIdentifier>
+        <alternateIdentifier>http://ipt.env.duke.edu/resource?r=zd_776</alternateIdentifier>
+        <title>Tethys Research Institute aerial survey cetacean sightings 2009-2011</title>
+        <creator>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <surName>ACCOBAMS and WDCS</surName>
+            </individualName>
+            <organizationName>The Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic Area (ACCOBAMS) and Whale and Dolphin Conservation Society (WDCS)</organizationName>
+            <onlineUrl>http://www.accobams.org/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+            <role>OWNER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+            <role>OWNER</role>
+        </associatedParty>
+        <pubDate>
+                2021-04-24
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Original provider:
+Tethys Research Institute
+
+Dataset credits:
+Tethys Research Institute; Institute for Environmental Protection and Research - ISPRA
+
+Abstract:
+Monitoring abundance and distribution is essential in any conservation strategy, but is often ignored in many regions, including much of the Mediterranean. It is a priority of the Italian Ministry of the Environment, who funded a series of aerial surveys around Italy, to provide significant baseline information on cetaceans distribution and abundance. The covered areas included the Pelagos Sanctuary, the Central Tyrrhenian, the Corsica and Sardinia Seas, and the Ionian Sea and the Gulf of Taranto. Numbers of animals within the Sanctuary are significantly higher in summer, when human activities and thus potential population level impacts are highest. A crude comparison with data from past shipboard surveys suggests an appreciable decrease in fin whale density in the Pelagos Sanctuary area over the last decade, reiterating the need for a major synoptic basinwide survey, as well as regular monitoring surveys. The low CVs and CIs reconfirm the effectiveness of aerial surveys in estimating abundance of certain cetacean species in suitable areas/circumstances and may provide a model for other areas of the Mediterranean. These surveys provide baseline data to develop efficient long-term systematic monitoring programmes, as required by a number of national and international frameworks. The collected data may also be crucial in assessing whether ship strikes, one of the main causes of death for fin whales in the Mediterranean, are affecting the Mediterranean population.
+
+Supplemental information:
+Effort data are from 2009 only. When time and observed counts were not available, &amp;#34;00:00:00&amp;#34; and &amp;#34;1&amp;#34; was filled in, respectively.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence,Aircraft,Sightings</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Observation</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <additionalInfo>
+            <para>marine, harvested by iOBIS</para>
+        </additionalInfo>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://seamap.env.duke.edu/dataset/776</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.env.duke.edu/archive.do?r=zd_776</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Oceans</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>5.882</westBoundingCoordinate>
+                    <eastBoundingCoordinate>19.025</eastBoundingCoordinate>
+                    <northBoundingCoordinate>44.294</northBoundingCoordinate>
+                    <southBoundingCoordinate>36.044</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                2009-01-12
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2011-01-19
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Scientific names are based on the Integrated Taxonomic Information System (ITIS).</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera physalus</taxonRankValue>
+                    <commonName>Fin Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Globicephala melas</taxonRankValue>
+                    <commonName>Long-finned Pilot Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Grampus griseus</taxonRankValue>
+                    <commonName>Risso&apos;s Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Physeter macrocephalus</taxonRankValue>
+                    <commonName>Sperm Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella coeruleoalba</taxonRankValue>
+                    <commonName>Striped Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Tursiops truncatus</taxonRankValue>
+                    <commonName>Common Bottlenose Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Cetacea</taxonRankValue>
+                    <commonName>cetaceans</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Delphinidae</taxonRankValue>
+                    <commonName>dolphins</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Cetacea</taxonRankValue>
+                    <commonName>cetaceans</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Ziphius cavirostris</taxonRankValue>
+                    <commonName>Cuvier&apos;s Beaked Whale</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <purpose><para>Not available</para></purpose>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Caterina</givenName>
+                <surName>Lanfredi</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>caterina.lanfredi@polimi.it</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Giuseppe</givenName>
+                <surName>Notarbartolo di Sciara</surName>
+            </individualName>
+            <organizationName>Tethys Research Institute</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>tethys@tethys.org</electronicMailAddress>
+            <onlineUrl>http://www.tethys.org</onlineUrl>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>NA</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>NA</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>NA</para>
+                </samplingDescription>
+            </sampling>
+        </methods>
+
+            <project >
+                <title>Tethys Research Institute aerial survey cetacean sightings 2009-2011</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Caterina</givenName>
+                    <surName>Lanfredi</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Giuseppe</givenName>
+                    <surName>Notarbartolo di Sciara</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>NA</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:42Z</dateStamp>
+                <citation identifier="https://seamap.env.duke.edu/dataset/776">Lanfredi, C. and G. Notarbartolo di Sciara. 2011. Tethys Research Institute aerial survey cetacean sightings 2009-2011. Data downloaded from OBIS-SEAMAP (http://seamap.env.duke.edu/dataset/776) on yyyy-mm-dd. https://doi.org/10.15468/585nbj accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>OBIS-SEAMAP Dataset Page</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>Interactive map</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/776</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>FGDC Metadata</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>XML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/776/xml</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <collection>
+                    <parentCollectionIdentifier>OBIS-SEAMAP</parentCollectionIdentifier>
+                    <collectionIdentifier>zd_776</collectionIdentifier>
+                    <collectionName>zd_776</collectionName>
+                </collection>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

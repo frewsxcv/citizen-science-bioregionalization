@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="7948250c-6958-4a29-a670-ed1015b26252"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/ktu7bj</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.no/resource?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>http://data.gbif.no/ipt/resource?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>http://dev.gbif.no/ipt/resource?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>http://gbif.no/ipt/resource?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>http://gbif.no/ipt/resource.do?r=o_lichens</alternateIdentifier>
+        <alternateIdentifier>7948250c-6958-4a29-a670-ed1015b26252</alternateIdentifier>
+        <alternateIdentifier>1067</alternateIdentifier>
+        <title>Lichen herbarium, Oslo (O) UiO</title>
+        <creator>
+            <organizationName>GBIF Norway</organizationName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <administrativeArea>Norway</administrativeArea>
+                <postalCode>0562</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>helpdesk@gbif.no</electronicMailAddress>
+            <onlineUrl>https://www.gbif.no</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <organizationName>GBIF Norway</organizationName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <administrativeArea>Norway</administrativeArea>
+                <postalCode>0562</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>helpdesk@gbif.no</electronicMailAddress>
+            <onlineUrl>http://gbif.no/</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Siri</givenName>
+                <surName>Rui</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Head Engineer</positionName>
+            <address>
+                <city>Oslo</city>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>siri.rui@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/technical-scientific-conservation/people/sirir/index.html</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0001-9330-6233</userId>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Anna Maria Have</givenName>
+                <surName>Holm</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Research Technician</positionName>
+            <address>
+                <city>Oslo</city>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>a.m.h.holm@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/technical-scientific-conservation/people/annamho/index.html</onlineUrl>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Einar</givenName>
+                <surName>Timdal</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0562</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <phone>+47-22851620</phone>
+            <electronicMailAddress>einar.timdal@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/research-collections/people/einarti/index.html</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0003-4524-0617</userId>
+            <role>CURATOR</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-19
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>The lichen herbarium at the Natural History Museum, University of Oslo, consists of a Norwegian herbarium (c. 110,000 specimens), a foreign herbarium (c. 200,000 specimens), a type herbarium (c. 1,100 specimens), and a collection of exsiccatae (c. 5,000 specimens).
+
+
+The herbarium has important collections from Norway, Iceland, the Arctic (especially Greenland, Jan Mayen, Bear Island, Svalbard, and Novaya Zemlya), Macaronesia, and East Africa (especially Ethiopia, Kenya, Tanzania, and Uganda). The material includes, e.g., the collections of Mathias Numsen Blytt (1789-1862), Søren Christian Sommerfelt (1794-1838), Niels Green Moe (1812-1892), Johannes Musæus Norman (1823-1903; part), Bernt Lynge (1884-1942), Eilif Dahl (1916-1993), and Hildur Krog (1922-).
+
+
+Computerization of the herbarium labels started in September 1994, and by September 2010, all Norwegian and c. 30,000 foreign specimens are recorded. Priority is given to specimens sent out on loan, type material, and Arctic and African material..</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>musit-norway</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://nhm2.uio.no/lav/web/index.html</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.no/archive.do?r=o_lichens</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>The herbarium has important collections from Norway, Iceland, the Arctic (especially Greenland, Jan Mayen, Bear Island, Svalbard, and Novaya Zemlya), Macaronesia, and East Africa (especially Ethiopia, Kenya, Tanzania, and Uganda)</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Einar</givenName>
+                <surName>Timdal</surName>
+            </individualName>
+            <organizationName>UiO Natural History Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sars gate 1</deliveryPoint>
+                <city>Oslo</city>
+                <postalCode>0562</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <phone>+47-22851620</phone>
+            <electronicMailAddress>einar.timdal@nhm.uio.no</electronicMailAddress>
+            <onlineUrl>https://www.nhm.uio.no/english/about/organization/research-collections/people/einarti/index.html</onlineUrl>
+            <userId directory="http://orcid.org/">0000-0003-4524-0617</userId>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:55Z</dateStamp>
+                <citation>University of Oslo (2025). Lichen herbarium, Oslo (O) UiO. Version 1.2266. Occurrence dataset https://doi.org/10.15468/ktu7bj accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>http://upload.wikimedia.org/wikipedia/commons/f/f4/UiO_logo.png</resourceLogoUrl>
+                <collection>
+                    <parentCollectionIdentifier>https://registry.gbif.org/collection/8bc83867-c9d2-4350-bedf-d8652f548f6f</parentCollectionIdentifier>
+                    <collectionIdentifier>https://registry.gbif.org/collection/fa4814fb-7a6a-450d-8099-e01e42d26f3d</collectionIdentifier>
+                    <collectionName>Lichen herbarium, Oslo (O-L)</collectionName>
+                </collection>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

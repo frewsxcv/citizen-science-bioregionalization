@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="6e2a53c4-2d35-416c-ac8e-caf93d2386ff"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/suux8c</alternateIdentifier>
+        <alternateIdentifier>6e2a53c4-2d35-416c-ac8e-caf93d2386ff</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.fr/resource?r=molluscs_bourguignat</alternateIdentifier>
+        <title>Bourguignat&apos;s land and freshwater molluscs</title>
+        <creator>
+            <individualName>
+                <givenName>Cédric</givenName>
+                <surName>Audibert</surName>
+            </individualName>
+            <organizationName>Musée des Confluences</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>86 quai Perrache</deliveryPoint>
+                <city>Lyon</city>
+                <postalCode>69285</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>33(4)28382540</phone>
+            <electronicMailAddress>cedric.audibert@museedesconfluences.fr</electronicMailAddress>
+            <onlineUrl>http://www.museedesconfluences.fr</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Antoine</givenName>
+                <surName>Grange</surName>
+            </individualName>
+            <organizationName>Musée des Confluences</organizationName>
+            <positionName>Intern</positionName>
+            <address>
+                <country>FRANCE</country>
+            </address>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Cédric</givenName>
+                <surName>Audibert</surName>
+            </individualName>
+            <electronicMailAddress>cedric.audibert@museedesconfluences.fr</electronicMailAddress>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <surName>GBIF France</surName>
+            </individualName>
+            <organizationName>GBIF France</organizationName>
+            <positionName>Distributeur</positionName>
+            <address>
+                <deliveryPoint>GBIF France - MNHN Géologie CP48, 43 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <country>FRANCE</country>
+            </address>
+            <phone>+33140798065</phone>
+            <electronicMailAddress>connexion@gbif.fr</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Cédric</givenName>
+                <surName>Audibert</surName>
+            </individualName>
+            <electronicMailAddress>cedric.audibert@museedesconfluences.fr</electronicMailAddress>
+            <role>USER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <surName>GBIF France</surName>
+            </individualName>
+            <organizationName>GBIF France</organizationName>
+            <positionName>Distributor</positionName>
+            <address>
+                <deliveryPoint>43 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <postalCode>75005</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>+33140798065</phone>
+            <electronicMailAddress>connexion@gbif.fr</electronicMailAddress>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <pubDate>
+                2023-05-23
+        </pubDate>
+        <language>FRENCH</language>
+        <abstract>
+            This dataset is the inventoried part of the malacological collections from the Musée des Confluences (Lyon). It comprises of 6100 specimens (880 lots) belonging to Jules-René Bourguignat (1829-1892), famous conchyliologist and leader of the so-called « Nouvelle École » [&amp;#34;New School&amp;#34;].
+This small portion of Bourguignat&amp;#39;s collection (current and quaternary) (the rest is housed in MHNG) was a gift in 1892 from her niece Cécile Bourguignat, Baroness of Sermet. This collection is important for the numerous syntypes (around 120) and unpublished material with around 100 nomina in litteris of J.R. Bourguignat. Part of the collection has already been published in publications of Bourguignat and his colleagues Fagot, Nevill, Letourneux, Arcelin and Issel. The dataset includes some arthropods.
+        </abstract>
+        <keywordSet>
+            <keyword>Bourguignat</keyword>
+            <keyword>Molluscs</keyword>
+            <keyword>Syntypes</keyword>
+            <keyword>Bivalvia</keyword>
+            <keyword>Fagot</keyword>
+            <keyword>Issel</keyword>
+            <keyword>Nevill</keyword>
+            <keyword>Gastropoda</keyword>
+            <keyword>Mollusca</keyword>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.fr/archive.do?r=molluscs_bourguignat</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>France, Italy, Spain, North Africa, Greece, Malta, Middle East, UK</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-12.305</westBoundingCoordinate>
+                    <eastBoundingCoordinate>52.383</eastBoundingCoordinate>
+                    <northBoundingCoordinate>59.356</northBoundingCoordinate>
+                    <southBoundingCoordinate>23.241</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1850-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                1890-01-01
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Mollusca (Gastropoda and Bivalvia) freshwater and land molluscs, a few Arthropods</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Mollusca</taxonRankValue>
+                    <commonName>Molluscs</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Cédric</givenName>
+                <surName>Audibert</surName>
+            </individualName>
+            <organizationName>Musée des Confluences</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>86 quai Perrache</deliveryPoint>
+                <city>Lyon</city>
+                <postalCode>69285</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>33(4)28382540</phone>
+            <electronicMailAddress>cedric.audibert@museedesconfluences.fr</electronicMailAddress>
+            <onlineUrl>http://www.museedesconfluences.fr</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:44Z</dateStamp>
+                <citation>Audibert C, Grange A, GBIF France (2023). Bourguignat&apos;s land and freshwater molluscs. Version 1.2. Musée des Confluences. Occurrence dataset https://doi.org/10.15468/suux8c accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation>Arcelin A., 1877. Les formations tertiaires et quaternaires des environs de Mâcon. L’argile à silex ; l’époque glaciaire ; l’érosion des vallées ; l’ancienneté de l’Homme. Paris, F. Savy, 95 p., 3 cartes.</citation>
+                <citation>Audibert C., 2021. (Re)découverte d’une collection Bourguignat au musée des Confluences à Lyon Colligo, 3(2). https://revue-colligo.fr/index.php/?id=62</citation>
+                <citation>Bourguignat J.-R., 1853. Note sur le genre Ancylus, suivi d’un Catalogue synonymique des espèces de ce genre. Journal de Conchyliologie, 4 (1) : 55-66 ; 4 (2) : 169-199, pl. 6. (erratum by S. Petit : 168-169).</citation>
+                <citation>Bourguignat J.-R., 1854. Aménités malacologiques. § XV. Bulimus rayianus. Revue et Magasin de Zoologie pure et appliquée, (2) 6 (12) : 659-660, pl. 13, fig. 10-15.</citation>
+                <citation>Bourguignat J.-R., [1860]. Mélanges et Nouvelles [Lettre à M. Drouët]. Revue et magasin de Zoologie pure et appliquée, &quot;1859&quot;, (2) 11 (12) : 545-546.</citation>
+                <citation>Bourguignat J.-R., 1867. Mollusques nouveaux, litigieux ou peu connus, 8 [§ 71-80]. Paris, F. Savy, 223-257, pl. 31, 35-38.</citation>
+                <citation>Bourguignat J.-R., 1868. Note complémentaire sur diverses espèces de Mollusques et de Mammifères découvertes dans une caverne près de Vence. À propos d’une communication faite à l’Institut, à la séance du 15 juillet 1868, par M. Milne-Edwards. Paris, Mme Veuve Bouchard-Huzard, 12 p.</citation>
+                <citation>Bourguignat J.-R., 1869. Catalogue des mollusques terrestres et fluviatiles des environs de Paris à l’époque quaternaire : 1-32, pl. I-III. In : Belgrand, « La Seine – Le Bassin Parisien aux âges préhistoriques », Imprimerie impériale, 3 volumes.</citation>
+                <citation>Bourguignat J.R., [1871]. Chapitre X. Appendice [Catalogue des Mollusques recueillis dans les marnes bleues (berges de la Saône) par M. Bourguignat] : 109-112. In : Ferry H. (de), Arcelin A. &amp; Pruner-Bey (Dr), Le Mâconnais préhistorique. Mémoire sur les âges primitifs de la Pierre, du Bronze et du Fer en Mâconnais et dans quelques contrées limitrophes, avec notes, additions et appendice, accompagné d’un supplément anthropologique. Mâcon, Durand et Paris, C. Reinwald, 136 p. (1870).</citation>
+                <citation>Bourguignat J.-R., 1874. Catalogue des mollusques recueillis dans le Tumulus du plan de Nôve : 274-289. In : Blanc E., Mémoire sur un tumulus de l’âge du Bronze situé au plan de Nôve (près Vence). Mémoires de la Société des sciences naturelles, des lettres et des beaux-arts de Cannes et de l&apos;arrondissement de Grasse, 3 : 268-292.</citation>
+                <citation>Bourguignat J.-R., 1877a. Histoire des Clausilies de France vivantes et fossiles. Annales des Sciences naturelles. Zoologie et Paléontologie, (6) 6 (2) : 1-66.</citation>
+                <citation>Bourguignat J.-R., 1877b. Hélices françaises du groupe de la Telonensis. Revue et magasin de Zoologie pure et appliquée, (3) 5 (8) : 232-240 ; (9) : 241-249.</citation>
+                <citation>Bourguignat J.-R., 1880. Description de quelques espèces nouvelles de Mollusques terrestres et fluviatiles des environs de Saint-Martin-de-Lantosque (Alpes-Maritimes). Mémoires de la Société des Sciences naturelles &amp; historiques des Lettres et des Beaux-Arts de Cannes et de l’arrondissement de Grasse, 8 (1878-1879) : 140-147.</citation>
+                <citation>Bourguignat J.-R., 1880-1881. Matériaux pour servir à l’histoire des Mollusques Acéphales du système européen, 1. Poissy, S. Lejay, 96 p.</citation>
+                <citation>Fagot P., 1879. Mollusques quaternaires des environs de Toulouse et de Villefranche (Haute-Garonne). Bulletin de la Société d’histoire naturelle de Toulouse, 13 : 282-304.</citation>
+                <citation>Issel A., 1868. Delle conchiglie raccolte nelle breccie e nelle caverne ossifere della Liguria occidentale. Memorie della Reale Accademia delle Scienze di Torino, (2) 24 : 305-316, 1 pl.</citation>
+                <citation>Letourneux A. &amp; Bourguignat J.-R., 1887. Prodrome de la malacologie terrestre et fluviatile de la Tunisie. In : Exploration scientifique de la Tunisie, publiée sous les auspices du Ministère de l’Instruction publique. Paris, Imprimerie nationale, 166 p.</citation>
+                <citation>Nevill G., 1880. On the Land-Shells, extinct and living, of the Neighbourhood of Menton (Alpes Maritimes); with Description of a new Genus and of several new Species. Proceedings of the scientific meetings of the Zoological Society of London, 1880: 94-142, pl. XIII-XIV.</citation>
+                </bibliography>
+                <collection>
+                    
+                    
+                    <collectionName>Jules-René Bourguignat</collectionName>
+                </collection>
+                <specimenPreservationMethod>MOUNTED</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

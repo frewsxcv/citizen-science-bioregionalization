@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="a6f91225-b3bc-4ded-8374-c6c8c205baae"  system="http://gbif.org" scope="system"
+xml:lang="fr">
+    <dataset>
+        <alternateIdentifier>10.15468/udvrl6</alternateIdentifier>
+        <alternateIdentifier>a6f91225-b3bc-4ded-8374-c6c8c205baae</alternateIdentifier>
+        <alternateIdentifier>http://ipt.gbif.fr/resource?r=ornitho_maes_boum</alternateIdentifier>
+        <title>Collection ornithologique A. Maës</title>
+        <creator>
+            <individualName>
+                <givenName>Ludovic</givenName>
+                <surName>Besson</surName>
+            </individualName>
+            <organizationName>BOUM</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Les Rives d&apos;Auron</deliveryPoint>
+                <city>Bourges</city>
+                <postalCode>18000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>0248653734</phone>
+            <electronicMailAddress>Ludovic.BESSON@ville-Bourges.fr</electronicMailAddress>
+            <onlineUrl>http://www.museum-bourges.net/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Ludovic</givenName>
+                <surName>Besson</surName>
+            </individualName>
+            <organizationName>BOUM</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Les Rives d&apos;Auron</deliveryPoint>
+                <city>Bourges</city>
+                <postalCode>18000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>0248653734</phone>
+            <electronicMailAddress>Ludovic.BESSON@ville-Bourges.fr</electronicMailAddress>
+            <onlineUrl>http://www.museum-bourges.net/</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Sophie</givenName>
+                <surName>Pamerlon</surName>
+            </individualName>
+            <electronicMailAddress>connexion@gbif.fr</electronicMailAddress>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <pubDate>
+                2016-10-21
+        </pubDate>
+        <language>FRENCH</language>
+        <abstract>
+            Albert Maës (1845-1914).  D&amp;#39;une famille d&amp;#39;industriels (Cristallerie de Clichy), il a vécu de ses rentes sur la propriété des Muids (Loiret, France). Il deviendra membre correspondant de la société scientifique de l’Ouest de la France en 1891 et membre de la société zoologique de France en 1893 et le restera jusqu’à sa mort. Il participa au IIIe congrès ornithologique mondial (26-30 juin 1900). Il sera l’ami du Père David, échangera avec Von Berlepsch, Bureau (Nantes) et donnera même de nombreuses peaux au muséum de Genève. Après la mort de sa mère en 1906, il habitera régulièrement au domicile de ses parents, 164 faubourgs Saint-honoré, à Paris. Il fera partie du comité de rédaction de &amp;#34;La Revue Française d&amp;#39;Ornithologie&amp;#34; de mai 1910 à janvier 1914.
+Sa collection (tous les oiseaux sont montés) a été léguée au Muséum National, Gabriel Foucher en étant son conservateur désigné. A la création du Muséum de Bourges par Gabriel Foucher (en 1931), 6500 spécimens (sur 7600), avec 68 vitrines, sont transférés à Bourges où ils étaient exposés dès l&amp;#39;inauguration. 800 spécimens ont été conservés par le Muséum National d&amp;#39;Histoire Naturelle (Paris). L&amp;#39;inventaire original manuscrit de la collection, dressé par L. Barry (le préparateur de Maës), est conservé au MNHN. Au muséum de Bourges, il reste environ 5500 spécimens.
+Au cours de sa vie de collectionneur, il a fait plusieurs dons et échanges (en 1892, 1893, 1897 et 1903) avec le MNHN (Paris) et un certain nombre de pièces de sa collection proviennent de là. Une rubrique nécrologique dans le bulletin de la Soc. Zool. de France en 1915 et une autre dans le Bulletin de la Soc. Zool. de Genève, 1919. Il est enterré au cimetière du Père Lachaise (Paris). Les collectes s&amp;#39;échelonnent de 1860 à 1914. La collection est accessible, sur rendez-vous.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Ornithology</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://www.museum-bourges.net/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.gbif.fr/archive.do?r=ornitho_maes_boum</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>France</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-5.08</westBoundingCoordinate>
+                    <eastBoundingCoordinate>8.51</eastBoundingCoordinate>
+                    <northBoundingCoordinate>51.31</northBoundingCoordinate>
+                    <southBoundingCoordinate>42.14</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1838
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                1914
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Aves</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Ludovic</givenName>
+                <surName>Besson</surName>
+            </individualName>
+            <organizationName>BOUM</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Les Rives d&apos;Auron</deliveryPoint>
+                <city>Bourges</city>
+                <postalCode>18000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>0248653734</phone>
+            <electronicMailAddress>Ludovic.BESSON@ville-Bourges.fr</electronicMailAddress>
+            <onlineUrl>http://www.museum-bourges.net/</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:54Z</dateStamp>
+                <citation>Besson L (2016). Collection ornithologique A. Maës. Version 1.1. Muséum d&apos;Histoire Naturelle de Bourges. Occurrence dataset https://doi.org/10.15468/udvrl6 accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation>Anonyme.1904. Observations ornithologiques. Ornis, 12 : 178.</citation>
+                <citation>Besson L. (2011) - Informations complémentaires à l’inventaire des Corvidae du muséum des sciences naturelles d’Angers. Bull. Soc. Et. Sci. Anjou, XXV : 117-118.</citation>
+                <citation>Bougrine N. &amp; Besson L., 2013. - Décryptage des termes en wolof et soninké utilisées dans la collectes ornithologiques de Victor Planchat. Symbioses, n.s., 31 : 1 - 8.</citation>
+                <citation>Hartert, E. (1904) - The Birds of the South-West Islands of Wetter, Roma, Kisser, Letti and Moa. Novitates Zoologicae. 11: 174-254.</citation>
+                <citation>Kemp R. 1905. On the Birds of the South-eastern Part of the Protecturate of Sierra Leone. With Notes by R. Bowlder Sharpe, LL.D. (Plate V.). Ibis, 8(5): 213-247.</citation>
+                <citation>Ogilvie-Grant, W. R. (1910) - Ruwenzori expedition reports. 16 Aves. Transactions of the Zoological Society of London, Vol XIX. Part. IV.</citation>
+                <citation>Oustalet, E. 1895. Note sur la Faune Ornithologique du Setchuan. Bull. Mus. Nat. Hist. Nat., 1 : 268-270.</citation>
+                <citation>Rothschild (1893-1909). Avifauna of Laysan and the neighbouring islands</citation>
+                <citation>SHARPE, R. B., (1904) - On furtber collections of Birds from the Efulen District of Cameroon - Part II. Ibis, Ser. 8, Vol. 4: 591-638.</citation>
+                <citation>SHARPE, R. B., (1907) - On further Collections of Birds from the Efulen District of Camaroon, West Africa. With Notes by the Collector, G. L, Bates. - Part IV. Ibis, Ser.9, Vol.1 : 416-464.</citation>
+                <citation>SHARPE, R. B., (1908a) - On further collections of Birds from the Efulen District of Cameroon, West Camaroon. With Notes by the collector G. L. Bates. Part V. Ibis, Ser. 9, Vol.2 : 117-129.</citation>
+                <citation>SHARPE, R. B., (1908b) - On further collections of Birds from the Efulen District of Cameroon, West Camaroon With Notes by the collector G. L. Bates. Part. VI. Ibis, Ser.9, Vol.2 : 317-357.</citation>
+                </bibliography>
+                <collection>
+                    
+                    
+                    <collectionName>Collection Albert Maës</collectionName>
+                </collection>
+                <specimenPreservationMethod>MOUNTED</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

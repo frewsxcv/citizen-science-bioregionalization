@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="d1a3b128-b406-46bb-a6d1-f3591dcc8a7b"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/w78rwb</alternateIdentifier>
+        <alternateIdentifier>https://www.mycoportal.org/portal/collections/misc/collprofiles.php?collid=24</alternateIdentifier>
+        <title>USDA United States National Fungus Collections</title>
+        <creator>
+            <organizationName>MyCoPortal</organizationName>
+            <electronicMailAddress>help@mycoportal.org</electronicMailAddress>
+            <onlineUrl>https://www.mycoportal.org/portal/index.php</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <organizationName>MyCoPortal</organizationName>
+            <electronicMailAddress>help@mycoportal.org</electronicMailAddress>
+            <onlineUrl>https://www.mycoportal.org/portal/index.php</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>Lisa A. Castlebury</surName>
+            </individualName>
+            <electronicMailAddress>Lisa.Castlebury@USDA.GOV</electronicMailAddress>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <pubDate>
+                2024-09-13
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            The USDA-ARS U.S. National Fungus Collections (BPI) currently houses approximately one-million reference specimens. Data associated with over 925,000 specimens have been computerized and are available on-line. In addition reports of fungi on plants provide a comprehensive account of the host range and geographic distribution of fungi on plants throughout the world. Data are continuously added to the databases from herbarium specimens and newly published fungus-host distributions and disease reports. Additional databases contain taxonomic literature references and accurate scientific names of plant pathogenic fungi.
+        </abstract>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://www.mycoportal.org/portal/content/dwca/BPI_DwC-A.zip</url>
+            </online>
+        </distribution>
+        <contact>
+            <organizationName>USDA United States National Fungus Collections</organizationName>
+            <phone>[1] 301 504 5270</phone>
+            <electronicMailAddress>Lisa.Castlebury@USDA.GOV</electronicMailAddress>
+            <onlineUrl>https://fungi.ars.usda.gov</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:43Z</dateStamp>
+                <citation>USDA-ARS US National Fungus Collection (2024). USDA United States National Fungus Collections. Occurrence dataset https://doi.org/10.15468/w78rwb accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

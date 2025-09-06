@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="4a9aa022-c0bc-4027-a278-410e1754471c"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.5852/ejt.2019.536</alternateIdentifier>
+        <alternateIdentifier>26192</alternateIdentifier>
+        <alternateIdentifier>4a9aa022-c0bc-4027-a278-410e1754471c</alternateIdentifier>
+        <alternateIdentifier>10.15468/6zygpz</alternateIdentifier>
+        <alternateIdentifier>EC4DDAED-11A3-45AB-B276-4ED9A301F9FE</alternateIdentifier>
+        <alternateIdentifier>FFB2FFC933096527FB47FFBCF32DFFB2</alternateIdentifier>
+        <title>Revision of the Genus Schizoretepora (Bryozoa, Cheilostomatida) from the Atlantic-Mediterranean region</title>
+        <creator>
+            <individualName>
+                <givenName>Teresa</givenName>
+                <surName>Madurell</surName>
+            </individualName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Mary Spencer</givenName>
+                <surName>Jones</surName>
+            </individualName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Mikel</givenName>
+                <surName>Zabala</surName>
+            </individualName>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <surName>plazi</surName>
+            </individualName>
+            <organizationName>Plazi</organizationName>
+        </metadataProvider>
+        <associatedParty>
+            <organizationName>Plazi</organizationName>
+            <address>
+                <city>Bern</city>
+                <country>SWITZERLAND</country>
+            </address>
+            <electronicMailAddress>info@plazi.org</electronicMailAddress>
+            <onlineUrl>https://plazi.org/</onlineUrl>
+            <role>PUBLISHER</role>
+        </associatedParty>
+        <pubDate>
+                2019-07-09
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>This dataset contains the digitized treatments in Plazi based on the original journal article Madurell, Teresa, Jones, Mary Spencer, Zabala, Mikel (2019): Revision of the Genus Schizoretepora (Bryozoa, Cheilostomatida) from the Atlantic-Mediterranean region. European Journal of Taxonomy 536: 1-33, DOI: 10.5852/ejt.2019.536</para>
+        </abstract>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://tb.plazi.org/GgServer/summary/FFB2FFC933096527FB47FFBCF32DFFB2</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://tb.plazi.org/GgServer/dwca/FFB2FFC933096527FB47FFBCF32DFFB2.zip</url>
+            </online>
+        </distribution>
+        <contact>
+            <individualName>
+                <givenName>Guido</givenName>
+                <surName>Sautter</surName>
+            </individualName>
+            <electronicMailAddress>sautter@plazi.org</electronicMailAddress>
+            <onlineUrl>https://plazi.org</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:50Z</dateStamp>
+                <citation>Madurell T, Jones M S, Zabala M, plazi (2019). Revision of the Genus Schizoretepora (Bryozoa, Cheilostomatida) from the Atlantic-Mediterranean region. European Journal of Taxonomy Consortium. Checklist dataset https://doi.org/10.5852/ejt.2019.536 accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation>Madurell, Teresa, Jones, Mary Spencer, Zabala, Mikel (2019): Revision of the Genus Schizoretepora (Bryozoa, Cheilostomatida) from the Atlantic-Mediterranean region. European Journal of Taxonomy 536: 1-33, DOI: 10.5852/ejt.2019.536</citation>
+                </bibliography>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

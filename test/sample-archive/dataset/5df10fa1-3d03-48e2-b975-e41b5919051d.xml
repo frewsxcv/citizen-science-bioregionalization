@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="5df10fa1-3d03-48e2-b975-e41b5919051d"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/sanstd</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.pl/resource?r=imbio-uwr-coleoptera-scholz-collection</alternateIdentifier>
+        <alternateIdentifier>5df10fa1-3d03-48e2-b975-e41b5919051d</alternateIdentifier>
+        <alternateIdentifier>http://ipt.gbif.pl:8080/resource?r=imbio-uwr-coleoptera-scholz-collection</alternateIdentifier>
+        <title>Coleoptera of Richard Scholz Collection</title>
+        <creator>
+            <individualName>
+                <givenName>Marek</givenName>
+                <surName>Wanat</surName>
+            </individualName>
+            <organizationName>University of Wrocław, Museum of Natural History</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sienkiewicza 21</deliveryPoint>
+                <city>Wrocław</city>
+                <administrativeArea>Dolnośląskie</administrativeArea>
+                <postalCode>50-335</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>marek.wanat@uwr.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-8560-7095</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Marek</givenName>
+                <surName>Wanat</surName>
+            </individualName>
+            <organizationName>University of Wrocław, Museum of Natural History</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sienkiewicza 21</deliveryPoint>
+                <city>Wrocław</city>
+                <administrativeArea>Dolnośląskie</administrativeArea>
+                <postalCode>50-335</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>marek.wanat@uwr.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-8560-7095</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Jacek</givenName>
+                <surName>Stefaniak</surName>
+            </individualName>
+            <organizationName>University of Wrocław, Museum of Natural History</organizationName>
+            <positionName>Data Technician</positionName>
+            <address>
+                <deliveryPoint>Sienkiewicza 21</deliveryPoint>
+                <city>Wrocław</city>
+                <administrativeArea>Dolnośląskie</administrativeArea>
+                <postalCode>50-335</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>jacek.stefaniak@uwr.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3299-5025</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Piotr</givenName>
+                <surName>Tykarski</surName>
+            </individualName>
+            <organizationName>Faculty of Biology, University of Warsaw</organizationName>
+            <positionName>Assistant Professor</positionName>
+            <address>
+                <deliveryPoint>Żwirki i Wigury 101</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>02-089</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>p.tykarski@uw.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3259-8273</userId>
+            <role>EDITOR</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-08
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>By far the most species-rich individual beetle collection at MNHW, gathered in several decades preceding WWII. It consists of two separate units, the general collection (RSG) covering all beetle families from the (mostly Western) Palaearctic (93 original drawers), and the worldwide collection of water beetles from the suborder Adephaga (Hydradephaga, RSH), which was a favourite group in R. Scholz’s taxonomical studies and publications (20 new drawers). The collection comprises in all about 62500 pinned specimens (RSG: 56700, RSH: 5800) of about 9400 species and subspecies (RSG: 8900, RSH: 500 - in part duplicated in RSG). It is currently databased for GBIF in over 85 % (RSG: 32613 records, &gt;87%; RSH: 2881 records, 70%).</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>KSIB</keyword>
+            <keyword>Polish Biodiversity Information Network</keyword>
+            <keyword>Digital Poland: IMBIO Project</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.pl/archive.do?r=imbio-uwr-coleoptera-scholz-collection</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Europe, Asia, Afirca</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-16.633</westBoundingCoordinate>
+                    <eastBoundingCoordinate>133.83</eastBoundingCoordinate>
+                    <northBoundingCoordinate>67.588</northBoundingCoordinate>
+                    <southBoundingCoordinate>-6.468</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Arthropoda</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Ostracoda</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Myodocopida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Lepidoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Coleoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Insecta</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>asNeeded</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Marek</givenName>
+                <surName>Wanat</surName>
+            </individualName>
+            <organizationName>University of Wrocław, Museum of Natural History</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Sienkiewicza 21</deliveryPoint>
+                <city>Wrocław</city>
+                <administrativeArea>Dolnośląskie</administrativeArea>
+                <postalCode>50-335</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>marek.wanat@uwr.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-8560-7095</userId>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Jacek</givenName>
+                <surName>Stefaniak</surName>
+            </individualName>
+            <organizationName>University of Wrocław, Museum of Natural History</organizationName>
+            <positionName>Data Technician</positionName>
+            <address>
+                <deliveryPoint>Sienkiewicza 21</deliveryPoint>
+                <city>Wrocław</city>
+                <administrativeArea>Dolnośląskie</administrativeArea>
+                <postalCode>50-335</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>jacek.stefaniak@uwr.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3299-5025</userId>
+        </contact>
+
+            <project id="IMBIO">
+                <title>Integration and Mobilization of Data about Biotic Diversity of Eukaryota in Resources of Polish Scientific Institutions (IMBIO)</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Piotr</givenName>
+                    <surName>Tykarski</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0003-3259-8273</userId>
+                    <role>ORIGINATOR</role>
+                </personnel>
+                <abstract>
+                    <para>The dataset resulted from the digitization project IMBIO, supported by the Operational Programme Digital Poland in 2020-2023. The IMBIO project is the most extensive Polish enterprise of natural data digitization, with respect to its range, complexity and volume of the processed content. There is 18 participant institutions with the University of Warsaw as a leader. The project delivered 9.5 million of occurrence records, c.a. 2 million of which are based on specimens deposited in collections, and the remaining data derived from other types of scientific sources: card files, legacy materials and bibliography, publicly unavailable older databases. Integration of these resources has made them accessible and searchable. The access platform is the new version of the Biodiversity Map portal (BioMap, https://portal.biomap.pl), while externally the resources are published via the Global Biodiversity Information Facility (GBIF).</para>
+                </abstract>
+                <funding>
+                    <para>Project ID: POPC.02.03.01-00-0081/19. The funding source: the Operational Programme Digital Poland 2014-2020, category: 2.3.1 Digital access to public sector information from administrative sources and scientific resources (type II: Digital access to scientific resources).</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:49Z</dateStamp>
+                <citation>Wanat M, Stefaniak J (2025). Coleoptera of Richard Scholz Collection. Version 1.3. Wrocław University, Museum of Natural History. Occurrence dataset https://doi.org/10.15468/sanstd accessed via GBIF.org on 2025-05-22.</citation>
+                <collection>
+                    
+                    <collectionIdentifier>MNHW</collectionIdentifier>
+                    <collectionName>Museum of Natural History, University of Wrocław Collection</collectionName>
+                </collection>
+                <formationPeriod>1800-1997</formationPeriod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

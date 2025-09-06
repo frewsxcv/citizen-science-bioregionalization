@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="71d46a30-f762-11e1-a439-00145eb45e9a"  system="http://gbif.org" scope="system"
+xml:lang="es">
+    <dataset>
+        <alternateIdentifier>10.15468/pnkuwh</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.es/resource?r=mcnb-malac</alternateIdentifier>
+        <alternateIdentifier>http://ipt.gbif.es/resource?r=mcnb-malac</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.es/ipt/resource?r=mcnb-malac</alternateIdentifier>
+        <alternateIdentifier>71d46a30-f762-11e1-a439-00145eb45e9a</alternateIdentifier>
+        <alternateIdentifier>9125</alternateIdentifier>
+        <title>Museu de Ciències Naturals de Barcelona: MCNB-Malac</title>
+        <creator>
+            <individualName>
+                <givenName>Eulàlia</givenName>
+                <surName>Garcia</surName>
+            </individualName>
+            <organizationName>Museu de Ciències Naturals de Barcelona</organizationName>
+            <positionName>Head of Collections</positionName>
+            <address>
+                <deliveryPoint>P.Picasso s/n</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>08003</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>+34 932562200</phone>
+            <electronicMailAddress>egarciafr@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://museuciencies.cat/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Jordi</givenName>
+                <surName>Agulló Villaronga</surName>
+            </individualName>
+            <organizationName>Museu de Ciències Naturals de Barcelona</organizationName>
+            <positionName>Collection manager</positionName>
+            <address>
+                <deliveryPoint>P. Picasso, s/n</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>E-08003</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>+34 932562200</phone>
+            <electronicMailAddress>jagullov@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://museuciencies.cat/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-5061-3492</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Miguel</givenName>
+                <surName>Prieto</surName>
+            </individualName>
+            <organizationName>Museu de Ciències Naturals de Barcelona</organizationName>
+            <positionName>Assistant</positionName>
+            <address>
+                <deliveryPoint>P.Picasso</deliveryPoint>
+                <city>Barcelona</city>
+                <postalCode>08003</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>NA</phone>
+            <electronicMailAddress>M.Primanz@gmail.com</electronicMailAddress>
+            <onlineUrl>http://NA</onlineUrl>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <pubDate>
+                2025-03-26
+        </pubDate>
+        <language>CATALAN</language>
+        <abstract>
+            <para>[Spanish]
+El año 1882 Francesc Martorell donó su colección malacológica al ayuntamiento de Barcelona. Esta fecha enmarca la fundación del propio museo. Desde entonces la colección ha crecido gracias a la contribución de malacólogos como Artur Bofill, Joan B. d&amp;#39;Aguilar-Amat, Lluis Gasull, Baltasar Serradell, Manuel Chía, Joan Rosals, Miquel Bech. La gran mayoría de registros anteriores al siglo XXI son muestras conquiológicas, en seco, mientras que a finales del siglo XX hasta la actualidad predominan muestras de ejemplares enteros conservados en alcohol.</para><para>[English]
+F. Martorell donated his malacological collection in 1882. This date can be considered as the beginning of the formation of the Museum. Since this date, the malacological collection has been increased with the contribution of the malacologists: A. Bofill, J.B. Aguilar-Amat, L. Gasull, B. Serradell, M. Chía, J. Rosals. An aspect peculiar of the collection is represented by samples collected in subterranean environments.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Cataluña</keyword>
+            <keyword>Levante</keyword>
+            <keyword>Baleares</keyword>
+            <keyword>Mediterráneo</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://museuciencies.cat/en/area-cientifica/col%C2%B7leccions/col%C2%B7leccions-zoologiques/invertebrats-no-artropodes/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.es/archive.do?r=mcnb-malac</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Fundamentalmente las muestras proceden del Noreste Ibérico (Catalunya, Valencia), de la Baleares y de la cuenca mediterránea occidental como marco más genérico. Además hay fondos relevantes de Ecuador, Guinea Ecuatorial, Vietnam, Hawai.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1818-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2024-01-01
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>La mayoría de muestras corresponden a especies terrestres, menos son marinas y una pequeña proporción son dulceacuícolas: Pulmonata, Basommatophora. En particular Helicoidea.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Mollusca</taxonRankValue>
+                    <commonName>Moluscos</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Superfamily</taxonRankName>
+                    <taxonRankValue>Helicoidea</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Genus</taxonRankName>
+                    <taxonRankValue>Xerocrassa</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <purpose><para>Crear una infraestructura de muestras y datos para interpretar la diversidad de Mollusca</para></purpose>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>annually</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Eulàlia</givenName>
+                <surName>Garcia</surName>
+            </individualName>
+            <organizationName>Museu de Ciències Naturals de Barcelona</organizationName>
+            <positionName>Head of Collections</positionName>
+            <address>
+                <deliveryPoint>P.Picasso s/n</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>08003</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>+34 932562200</phone>
+            <electronicMailAddress>egarciafr@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://museuciencies.cat/</onlineUrl>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>NA</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>Mediterráneo Occidental más destino de expediciones como Guinea Ecuatorial, Vietnam, Sri Lanka, Ecuador.</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>Habitualmente la recolección directa</para>
+                </samplingDescription>
+            </sampling>
+            <qualityControl>
+                <description>
+                    <para>Nose han aplicado métodos de control de calidad</para>
+                </description>
+            </qualityControl>
+        </methods>
+
+            <project >
+                <title>Faunística</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Francesc</givenName>
+                    <surName>Uribe</surName>
+                    </individualName>
+                    <role>PRINCIPAL_INVESTIGATOR</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para></para>
+                </funding>
+                <studyAreaDescription>
+                    <descriptor name="generic" citableClassificationSystem="false">
+                        <descriptorValue>Mediterráneo Occidental</descriptorValue>
+                    </descriptor>
+                </studyAreaDescription>
+                <designDescription>
+                    <description>
+                        <para>Los proyectos faunísticos en el ámbito de Catalunya son los más relevantes en tiempos recientes. Desde el punto de vista histórico hay que considerar la importancia de las estudios hechos para describir especies o subespecies presentes en el ámbito referido. La fauna que habita las regiones montañosas está especialmente bien representada.</para>
+                    </description>
+                </designDescription>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:52Z</dateStamp>
+                <citation identifier="http://www.gbif.org/dataset/71d46a30-f762-11e1-a439-00145eb45e9a">Garcia E, Agulló Villaronga J (2025). Museu de Ciències Naturals de Barcelona: MCNB-Malac. Museu de Ciències Naturals de Barcelona. Occurrence dataset https://doi.org/10.15468/pnkuwh accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation>Martínez-Ortí &amp; Uribe. &quot;Los ejemplares tipo de las colecciones malacológicas del Museu de Ciències Naturals de Barcelona y del Museu Valencià d&apos;Història Natural&quot;, Arxius de Miscellània Zoològica, 6:1-126, 2008.</citation>
+                </bibliography>
+                <physical>
+                    <objectName>Taxo&amp;Map</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>CSV,KML,SHP</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://taxomap.bioexplora.cat/web/index.php?lang=en</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Wikicollecta</objectName>
+                    <characterEncoding>not downloadable</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>web</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://www.bioexplora.cat/WIKICOLLECTA/index.php/es/colecciones</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Open Collections</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>csv</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://www.bioexplora.cat/en/open-collections</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <resourceLogoUrl>https://ipt.gbif.es/logo.do?r=mcnb-malac</resourceLogoUrl>
+                <collection>
+                    <parentCollectionIdentifier>Museu de Ciències Naturals de Barcelona</parentCollectionIdentifier>
+                    <collectionIdentifier>http://www.gbif.org/dataset/71d46a30-f762-11e1-a439-00145eb45e9a</collectionIdentifier>
+                    <collectionName>Colección de Moluscos</collectionName>
+                </collection>
+                <jgtiCuratorialUnit>
+                    <jgtiUnitType>muestra</jgtiUnitType>
+                    <jgtiUnits>83,308</jgtiUnits>
+                </jgtiCuratorialUnit>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

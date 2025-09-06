@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="995b2ca4-9b4d-4609-acd5-24d8297f0a4b"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/fqykeb</alternateIdentifier>
+        <alternateIdentifier>http://collections.mnhn.fr/ipt/resource?r=aix</alternateIdentifier>
+        <alternateIdentifier>http://collections.mnhn.fr/ipt/resource.do?r=aix</alternateIdentifier>
+        <alternateIdentifier>995b2ca4-9b4d-4609-acd5-24d8297f0a4b</alternateIdentifier>
+        <alternateIdentifier>13677</alternateIdentifier>
+        <title>Herbarium specimens of the Muséum d&apos;Histoire Naturelle of Aix-en-Provence (AIX)</title>
+        <creator>
+            <individualName>
+                <surName>MNHN</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>Provider</positionName>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Simon</givenName>
+                <surName>Chagnoux</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <electronicMailAddress>gbifprovider@mnhn.fr</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Joël</givenName>
+                <surName>Cartigny</surName>
+            </individualName>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>G.</givenName>
+                <surName>Cheyllan</surName>
+            </individualName>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Muriel</givenName>
+                <surName>Durand</surName>
+            </individualName>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Morgane</givenName>
+                <surName>Noullet</surName>
+            </individualName>
+            <role>CONTENT_PROVIDER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-21
+        </pubDate>
+        <language>FRENCH</language>
+        <abstract>
+            <para>420,000 sheets divided into 128 collections..</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Taxonomy</keyword>
+            <keyword>Botany</keyword>
+            <keyword>Specimens</keyword>
+            <keyword>Plants</keyword>
+            <keyword>Collections</keyword>
+            <keywordThesaurus>No keyword thesaurus designated</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://collections.mnhn.fr/ipt/archive.do?r=aix</url>
+            </online>
+        </distribution>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Marc</givenName>
+                <surName>Pignal</surName>
+            </individualName>
+            <organizationName>Réseau des Herbiers de France</organizationName>
+            <positionName>Correspondant</positionName>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:53Z</dateStamp>
+                <citation>MNHN, Chagnoux S (2025). Herbarium specimens of the Muséum d&apos;Histoire Naturelle of Aix-en-Provence (AIX). Version 70.411. Museum d&apos;Histoire Naturelle of Aix-en-Provence, Herbarium. Occurrence dataset https://doi.org/10.15468/fqykeb accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

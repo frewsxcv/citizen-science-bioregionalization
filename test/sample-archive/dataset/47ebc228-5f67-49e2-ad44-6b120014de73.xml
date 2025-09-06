@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="47ebc228-5f67-49e2-ad44-6b120014de73"  system="http://gbif.org" scope="system"
+xml:lang="pt">
+    <dataset>
+        <alternateIdentifier>10.15468/88s93a</alternateIdentifier>
+        <alternateIdentifier>47ebc228-5f67-49e2-ad44-6b120014de73</alternateIdentifier>
+        <alternateIdentifier>https://ipt.sibbr.gov.br/taxonline/resource?r=ufpr_dzup_neuroptera_01</alternateIdentifier>
+        <title>Coleção Entomológica Padre Jesus Santiago Moure (DZUP) - Neuroptera</title>
+        <creator>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Edwin Lattke Bravo</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>lattke@ufpr.br</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Renato</givenName>
+                <surName>José Pires Machado</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>rjpmachado@gmail.com</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Edwin Lattke Bravo</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>lattke@ufpr.br</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Renato</givenName>
+                <surName>José Pires Machado</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>rjpmachado@gmail.com</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>SiBBr</givenName>
+                <surName>Sistemas de Informações sobre a Biodiversidade Brasileira</surName>
+            </individualName>
+            <electronicMailAddress>sibbr.brasil@gmail.com</electronicMailAddress>
+            <role>USER</role>
+        </associatedParty>
+        <pubDate>
+                2023-11-30
+        </pubDate>
+        <language>PORTUGUESE</language>
+        <abstract>
+            Padre Jesus S. Moure (1912–2010) foi o fundador do Departamento de Zoologia da Universidade Federal do Paraná, em Curitiba, no ano de 1938, ano da fundação da Faculdade de Filosofia, Ciências e Letras da mesma universidade. Apesar de entomólogo, foi o marco inicial da Biologia Marinha no Paraná no ano de 1951, tendo trabalhado muito para a criação de uma Estação de Estudos do Mar. A partir de seus estudos em Insecta, Hymenoptera, mais particularmente abelhas, fundou em 1956 o que se tornou a terceira maior coleção de insetos do País e a qual leva seu nome: Coleção Entomológica Pe. Jesus Santiago Moure (DZUP). O acervo dessa coleção conta com aproximadamente sete milhões de insetos representantes principalmente das ordens Coleoptera, Diptera, Hemiptera, Hymenoptera e Lepidoptera.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.sibbr.gov.br/taxonline/archive.do?r=ufpr_dzup_neuroptera_01</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Brasil</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>Edwin Lattke Bravo</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>lattke@ufpr.br</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Renato</givenName>
+                <surName>José Pires Machado</surName>
+            </individualName>
+            <organizationName>Universidade Federal do Paraná (UFPR)</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <deliveryPoint>Universidade Federal do Paraná, Centro Politécnico, Setor de Ciências Biológicas - Departamento de Zoologia - C.P. 19020</deliveryPoint>
+                <city>Curitiba</city>
+                <administrativeArea>Paraná</administrativeArea>
+                <postalCode>CEP 81531-980</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+554133611650</phone>
+            <electronicMailAddress>rjpmachado@gmail.com</electronicMailAddress>
+            <onlineUrl>http://www.taxonline.ufpr.br/</onlineUrl>
+            <userId directory="http://scholar.google.com/citations?user=">00</userId>
+        </contact>
+
+            <project id="CESP2021-008">
+                <title>Filling taxonomic and geographic gaps in open data by strengthening skills of the Brazilian zoological collections network</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Luciane</givenName>
+                    <surName>Marinoni</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <abstract>
+                    <para>Project description: Brazil is one of the world&apos;s most biodiverse countries with 49,993 plants and 119,640 animal species catalogued (Brazilian Flora 2020 and Taxonomic Catalog of the Brazilian Fauna). As a consequence, a greater rate of animal records would be expected in the Brazilian Biodiversity Information System (SiBBr) considering the larger number of animal species. However, the majority of data published are plants, representing 51 per cent among current species occurrence records in GBIF whereas animals only count for 47 per cent.
+
+In Brazil, herbarium networks have traditionally been organized more effectively than zoological collections mostly because these collections are more complex in terms of taxonomic diversity, data management and curation. Nevertheless, in Brazil there is a strong community of taxonomists and the research on Neotropical zoology is recognized as one of the most prolific in the world. This fact is reflected directly in the diversity and quality of collections groups, including those considered rare.
+
+In order to improve representation of animal occurrence records in GBIF, this project aims to strengthen Brazilian zoological collections, providing common guidelines and enhancing capacity in data management, thus increasing publishing of animal data and records available for data use.</para>
+                </abstract>
+                <funding>
+                    <para>GBIF</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:53Z</dateStamp>
+                <citation>Edwin Lattke Bravo J, José Pires Machado R (2023). Coleção Entomológica Padre Jesus Santiago Moure (DZUP) - Neuroptera. Version 1.5. Universidade Federal do Paraná. Occurrence dataset https://doi.org/10.15468/88s93a accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

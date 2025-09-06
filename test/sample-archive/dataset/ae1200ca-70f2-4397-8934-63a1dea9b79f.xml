@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="ae1200ca-70f2-4397-8934-63a1dea9b79f"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/wyxe65</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.fr/resource?r=herbarium_dupuy_mhn_clf</alternateIdentifier>
+        <title>Herbarium DUPUY Alexandre</title>
+        <creator>
+            <individualName>
+                <givenName>Franck</givenName>
+                <surName>Maddi</surName>
+            </individualName>
+            <organizationName>Museum Henri-Lecoq</organizationName>
+            <positionName>Gestionnaire départements Botanique / Bibliothèque scientifique et Patrimoine graphique</positionName>
+            <address>
+                <deliveryPoint>15 rue Bardoux</deliveryPoint>
+                <city>Clermont-Ferrand</city>
+                <postalCode>63000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>33+443762553 / 33+443762563</phone>
+            <electronicMailAddress>fmaddi@clermontmetropole.eu</electronicMailAddress>
+            <onlineUrl>http://www.clermontmetropole.eu/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Franck</givenName>
+                <surName>Maddi</surName>
+            </individualName>
+            <organizationName>Museum Henri-Lecoq</organizationName>
+            <positionName>Gestionnaire départements Botanique / Bibliothèque scientifique et Patrimoine graphique</positionName>
+            <address>
+                <deliveryPoint>15 rue Bardoux</deliveryPoint>
+                <city>Clermont-Ferrand</city>
+                <postalCode>63000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>33+443762553 / 33+443762563</phone>
+            <electronicMailAddress>fmaddi@clermontmetropole.eu</electronicMailAddress>
+            <onlineUrl>http://www.clermontmetropole.eu/</onlineUrl>
+        </metadataProvider>
+        <pubDate>
+                2023-03-01
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            This is the inventory of the whole plant collection made between 1930 and 1995 by the French agronomist and botanist, Alexandre DUPUY (1918‑2018), Director of Department of Parks and Gardens of Clermont-Ferrand (France)
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>herbarium</keyword>
+            <keyword>early 20th</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.fr/archive.do?r=herbarium_dupuy_mhn_clf</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Africa : Algeria. 
+Europe : Belgium, France, Monaco, Switzerland.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-8.51</westBoundingCoordinate>
+                    <eastBoundingCoordinate>8.41</eastBoundingCoordinate>
+                    <northBoundingCoordinate>49.43</northBoundingCoordinate>
+                    <southBoundingCoordinate>33.26</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1872
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                1995
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Phanerogams, Cryptogams</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Balsaminaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Amaryllidaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Brassicaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Apiaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Bignoniaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Apocynaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Asparagaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Campanulaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Caryophyllaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Boraginaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Caprifoliaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Amaranthaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Araceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Asteraceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Asclepiadaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Anacardiaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Berberidaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Alismataceae</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <surName>GBIF France</surName>
+            </individualName>
+            <organizationName>GBIF France</organizationName>
+            <positionName>IT support</positionName>
+            <address>
+                <deliveryPoint>43 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <administrativeArea>Île-de-France</administrativeArea>
+                <postalCode>75005</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>+33140798065</phone>
+            <electronicMailAddress>connexion@gbif.fr</electronicMailAddress>
+            <onlineUrl>http://www.gbif.fr</onlineUrl>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Franck</givenName>
+                <surName>Maddi</surName>
+            </individualName>
+            <organizationName>Museum Henri-Lecoq</organizationName>
+            <positionName>Gestionnaire départements Botanique / Bibliothèque scientifique et Patrimoine graphique</positionName>
+            <address>
+                <deliveryPoint>15 rue Bardoux</deliveryPoint>
+                <city>Clermont-Ferrand</city>
+                <postalCode>63000</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>33+443762553 / 33+443762563</phone>
+            <electronicMailAddress>fmaddi@clermontmetropole.eu</electronicMailAddress>
+            <onlineUrl>http://www.clermontmetropole.eu/</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:44Z</dateStamp>
+                <citation>Maddi F (2023). Herbarium DUPUY Alexandre. Museum  Henri-Lecoq de Clermont-Ferrand. Occurrence dataset https://doi.org/10.15468/wyxe65 accessed via GBIF.org on 2025-05-22.</citation>
+                <collection>
+                    
+                    <collectionIdentifier>L2015.3.</collectionIdentifier>
+                    <collectionName>Herbarium Alexandre DUPUY</collectionName>
+                </collection>
+                <specimenPreservationMethod>DRIED_AND_PRESSED</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

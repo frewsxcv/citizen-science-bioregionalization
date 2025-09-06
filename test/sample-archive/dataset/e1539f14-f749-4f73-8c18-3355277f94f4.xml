@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="e1539f14-f749-4f73-8c18-3355277f94f4"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/2ywn3u</alternateIdentifier>
+        <alternateIdentifier>e1539f14-f749-4f73-8c18-3355277f94f4</alternateIdentifier>
+        <alternateIdentifier>https://plutof.ut.ee/ipt/resource?r=ref-based-oligochaeta</alternateIdentifier>
+        <title>World distribution of the aquatic Oligochaeta</title>
+        <creator>
+            <individualName>
+                <givenName>Tarmo</givenName>
+                <surName>Timm</surName>
+            </individualName>
+            <positionName>Specialist in systematics</positionName>
+            <electronicMailAddress>tarmo.timm@ut.ee</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Kessy</givenName>
+                <surName>Abarenkov</surName>
+            </individualName>
+            <positionName>Researcher</positionName>
+            <electronicMailAddress>kessy.abarenkov@ut.ee</electronicMailAddress>
+        </metadataProvider>
+        <language>ENGLISH</language>
+        <abstract>
+            This is a database of published findings of aquatic Oligochaeta (Annelida, Clitellata) species, including the literature sources and distribution maps. Data on the Aphanoneura (Annelida, Polychaeta) and Branchiobdellida (Annelida, Clitellata) are included as well, since these worms have often been listed as oligochaetes. The database is still in progress. Registration of findings from territory of the former USSR will be completed in 2017. In the subsequent years, data from the remaining world will be treated in alphabetical order of the authors of publications. Coordinates of the species occurrences in water bodies are found by author from literature or by the aid of Internet.
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://s3.hpc.ut.ee/plutof-public/original/f80e3c70-b603-44df-967a-43c11611133d.zip</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Waterbodies throughout the world, especially the territory of the former USSR.</geographicDescription>
+            </geographicCoverage>
+        </coverage>
+        <contact>
+            <individualName>
+                <givenName>Kessy</givenName>
+                <surName>Abarenkov</surName>
+            </individualName>
+            <positionName>Researcher</positionName>
+            <electronicMailAddress>kessy.abarenkov@ut.ee</electronicMailAddress>
+        </contact>
+
+            <project >
+                <title></title>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para></para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:47Z</dateStamp>
+                <citation>Timm T, Abarenkov K. World distribution of the aquatic Oligochaeta. PlutoF. Occurrence dataset https://doi.org/10.15468/2ywn3u accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

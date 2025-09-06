@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="b8c97ae9-e444-48d8-8705-198d8c1e6fdd"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/hv2gbm</alternateIdentifier>
+        <alternateIdentifier>b8c97ae9-e444-48d8-8705-198d8c1e6fdd</alternateIdentifier>
+        <alternateIdentifier>http://ipt.gbif.pl:8080/resource?r=imbio-mizpan-zoological-collections</alternateIdentifier>
+        <title>MIZ PAS Zoological Collections</title>
+        <creator>
+            <individualName>
+                <givenName>Dariusz</givenName>
+                <surName>Iwan</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Head of Museum</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>diwan@miiz.waw.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-0146-7916</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Dominika</givenName>
+                <surName>Mierzwa-Szymkowiak</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>dmierzwa@miiz.waw.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-5851-5619</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Marcin</givenName>
+                <surName>Kamiński</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>mkaminski@miiz.waw.pl</electronicMailAddress>
+            <onlineUrl>http://www.kaminskientomo.org/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-2915-0614</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Dariusz</givenName>
+                <surName>Iwan</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Head of Museum</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>diwan@miiz.waw.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-0146-7916</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Dominika</givenName>
+                <surName>Mierzwa-Szymkowiak</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>dmierzwa@miiz.waw.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-5851-5619</userId>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Marcin</givenName>
+                <surName>Kamiński</surName>
+            </individualName>
+            <organizationName>Zoological Museum of the Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <deliveryPoint>Wilcza 64</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>00-679</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>mkaminski@miiz.waw.pl</electronicMailAddress>
+            <onlineUrl>http://www.kaminskientomo.org/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-2915-0614</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Piotr</givenName>
+                <surName>Tykarski</surName>
+            </individualName>
+            <organizationName>Faculty of Biology, University of Warsaw</organizationName>
+            <positionName>assistant professor</positionName>
+            <address>
+                <deliveryPoint>Żwirki i Wigury 101</deliveryPoint>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <postalCode>02-089</postalCode>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>p.tykarski@uw.edu.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3259-8273</userId>
+            <role>EDITOR</role>
+        </associatedParty>
+        <pubDate>
+                2024-05-21
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            The Museum and Institute of Zoology of the Polish Academy of Sciences (MIZ PAS) hosts the largest zoological collection in Poland. The institution provides access to over 7,000,000 specimens, including 50,000 types, that have been collected since the 19th century in ecosystems around the World (e.g., Brazil, Ecuador, Egypt, Poland, Peru, Siberia, Korea, Vietnam). Particularly diverse holdings concern groups such as birds, mollusks, and arachnids due to the activity of several prominent Polish specialists such as Benedykt Dybowski, Jan Sztolcman, Władysław Taczanowski, Szymon Tenenbaum, and many others. The present dataset contains information acquired in recent digitization efforts and represents the taxonomic and geographic diversity of MIZ PAS collections.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Vertebrates</keyword>
+            <keyword>KSIB</keyword>
+            <keyword>Beetles</keyword>
+            <keyword>Animals</keyword>
+            <keyword>Insects</keyword>
+            <keyword>Natural History Collection</keyword>
+            <keyword>Polish Biodiversity Information Network</keyword>
+            <keyword>Birds</keyword>
+            <keyword>Invertebrates</keyword>
+            <keyword>Digital Poland: IMBIO Project</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.gbif.pl:8080/archive.do?r=imbio-mizpan-zoological-collections</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Worldwide</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>, , ,</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Coleoptera</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Mollusca</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Arachnida</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Collembola</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Subphylum</taxonRankName>
+                    <taxonRankValue>Vertebrata</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Pisces</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Orthoptera</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Marcin</givenName>
+                <surName>Kamiński</surName>
+            </individualName>
+            <organizationName>Museum and Institute of Zoology of the Polish Academy of Sciences</organizationName>
+            <positionName>Associate Professor</positionName>
+            <address>
+                <city>Warszawa</city>
+                <administrativeArea>Mazowieckie</administrativeArea>
+                <country>POLAND</country>
+            </address>
+            <electronicMailAddress>mkaminski@miiz.waw.pl</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-2915-0614</userId>
+        </contact>
+
+            <project id="IMBIO">
+                <title>Integration and Mobilization of Data about Biotic Diversity of Eukaryota in Resources of Polish Scientific Institutions (IMBIO)</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Piotr</givenName>
+                    <surName>Tykarski</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0003-3259-8273</userId>
+                    <role>ORIGINATOR</role>
+                </personnel>
+                <abstract>
+                    <para>The dataset resulted from the digitization project IMBIO, supported by the Operational Programme Digital Poland in 2020-2023. The IMBIO project is the most extensive Polish enterprise of natural data digitization, with respect to its range, complexity and volume of the processed content. There is 18 participant institutions with the University of Warsaw as a leader. The project delivered 9.5 million of occurrence records, c.a. 2 million of which are based on specimens deposited in collections, and the remaining data derived from other types of scientific sources: card files, legacy materials and bibliography, publicly unavailable older databases. Integration of these resources has made them accessible and searchable. The access platform is the new version of the Biodiversity Map portal (BioMap, https://portal.biomap.pl), while externally the resources are published via the Global Biodiversity Information Facility (GBIF).</para>
+                </abstract>
+                <funding>
+                    <para>Project ID: POPC.02.03.01-00-0081/19. The funding source: the Operational Programme Digital Poland 2014-2020, category: 2.3.1 Digital access to public sector information from administrative sources and scientific resources (type II: Digital access to scientific resources).</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:57Z</dateStamp>
+                <citation>Iwan D, Mierzwa-Szymkowiak D, Kamiński M (2024). MIZ PAS Zoological Collections. Version 1.3. Museum and Institute of Zoology, Polish Academy of Sciences. Occurrence dataset https://doi.org/10.15468/hv2gbm accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="92a6dda2-a995-4fd2-9e60-d0c36150eb7d"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.14284/467</alternateIdentifier>
+        <alternateIdentifier>https://ipt.vliz.be/eurobis/resource?r=cormednet</alternateIdentifier>
+        <alternateIdentifier>92a6dda2-a995-4fd2-9e60-d0c36150eb7d</alternateIdentifier>
+        <alternateIdentifier>http://ipt.vliz.be/eurobis/resource?r=cormednet</alternateIdentifier>
+        <title>CorMedNet- Distribution and demographic data of habitat-forming invertebrate species from Mediterranean coralligenous assemblages between 1882 and 2019.</title>
+        <creator>
+            <individualName>
+                <givenName>Cristina</givenName>
+                <surName>Linares</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Laura</givenName>
+                <surName>Figuerola</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Daniel</givenName>
+                <surName>Gómez-Gras</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Marta</givenName>
+                <surName>Pagés-Escolà</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Àngela</givenName>
+                <surName>Olvera</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Àlex</givenName>
+                <surName>Aubach</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Roger</givenName>
+                <surName>Amate</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Blanca</givenName>
+                <surName>Figuerola</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+            <userId directory="https://orcid.org/">0000-0003-4731-9337</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Diego</givenName>
+                <surName>Kersting</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Jean-Baptiste</givenName>
+                <surName>Ledoux</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Angel</givenName>
+                <surName>López-Sanz</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Paula</givenName>
+                <surName>López-Sendino</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Alba</givenName>
+                <surName>Medrano</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Joaquim</givenName>
+                <surName>Garrabou</surName>
+            </individualName>
+            <organizationName>Consejo Superior de Investigaciones Científicas; Institute of Marine Sciences</organizationName>
+        </creator>
+        <metadataProvider>
+            <organizationName>Flanders Marine Institute (VLIZ)</organizationName>
+            <address>
+                <country>BELGIUM</country>
+            </address>
+            <electronicMailAddress>info@vliz.be</electronicMailAddress>
+            <onlineUrl>https://www.vliz.be</onlineUrl>
+        </metadataProvider>
+        <pubDate>
+                2025-03-20
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>This dataset compiles data on geographic and depth distribution, demography, population and mortality, of different habitat-forming invertebrate species dwelling the Mediterranean coralligenous assemblages.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Conservation</keyword>
+            <keywordThesaurus>ASFA Thesaurus List</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Demography</keyword>
+            <keyword>Mortality</keyword>
+            <keywordThesaurus>CSA Technology Research Database Master Thesaurus</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>diver</keyword>
+            <keywordThesaurus>SeaVoX Platform categories (L06)</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Samplingevent</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <additionalInfo>
+            <para>This dataset gathers published scientific papers, as well as grey literature and technical reports. We used different search strategies in the ISI Web of Knowledge and Google Scholar, introducing distinct sets of keywords, and contacts with researchers across the Mediterranean. 
+ 
+The dataset provides information about the survey year, geographic coordinates, marine ecoregion, protection status of the geographic location, depth distribution range, species name, type of study conducted (distribution, demographic, population genetics or other), sampling methods, and different demographic parameters when available (i.e. density, colony height, recruitment, and mortality rates). 
+The dataset includes available information of different habitat-forming marine invertebrate species, including key species such as octocorals and bryozoans, among others. 
+The published scientific papers, grey literature, and technical reports include both in situ SCUBA sampling, and video or photo surveys.</para>
+        </additionalInfo>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.vliz.be/eurobis/archive.do?r=cormednet</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>EurOBIS calculated BBOX &gt; station Bounding Box</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-6.048</westBoundingCoordinate>
+                    <eastBoundingCoordinate>35.98775</eastBoundingCoordinate>
+                    <northBoundingCoordinate>45.68883</northBoundingCoordinate>
+                    <southBoundingCoordinate>31.71775</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Adriatic Sea</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Aegean</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Alboran Sea</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Eastern Mediterranean</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Ionian Sea</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <geographicCoverage>
+                <geographicDescription>MED, Western Mediterranean</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1882-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2019-01-01
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>urn:lsid:marinespecies.org:taxname:1365</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Alcyonacea</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>urn:lsid:marinespecies.org:taxname:1365</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Alcyonacea</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>urn:lsid:marinespecies.org:taxname:110722</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Cheilostomatida</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>urn:lsid:marinespecies.org:taxname:125275</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Gorgoniidae</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>urn:lsid:marinespecies.org:taxname:125277</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Plexauridae</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Cristina</givenName>
+                <surName>Linares</surName>
+            </individualName>
+            <organizationName>Universitat de Barcelona; Departament de Biologia Evolutiva, Ecologia i Ciències Ambientals</organizationName>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:56Z</dateStamp>
+                <citation identifier="https://dx.doi.org/10.14284/467">Linares, Cristina; Figuerola, Laura; Gómez-Gras, Daniel; Pagès-Escolà, Marta; Olvera, Àngela, Aubach, Àlex; Amate, Roger; Figuerola, Blanca; Kersting, Diego; Ledoux, Jean-Baptiste; López-Sanz, Àngel; López-Sendino, Paula; Medrano, Alba; Garrabou, Joaquim; (2020); CorMedNet- Distribution and demographic data of habitat-forming invertebrate species from Mediterranean coralligenous assemblages between 1882 and 2019 https://dx.doi.org/10.14284/467 accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>Project home page</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://cormednet.medrecover.org</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Online dataset</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://emodnet.ec.europa.eu/geonetwork/srv/eng/catalog.search#/metadata/6d617269-6e65-696e-666f-000000006462</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Online dataset</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://www.eurobis.org/toolbox/en/download/occurrence/dataset/6462</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>GBIF dataset</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://www.gbif.org/dataset/92a6dda2-a995-4fd2-9e60-d0c36150eb7d</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>IPT</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://ipt.vliz.be/eurobis/resource?r=cormednet</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Online dataset</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://obis.org/dataset/ba239315-1d4f-47aa-a398-5293782012fc</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>Metadata</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>HTML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">https://www.eurobis.org/imis?dasid=6462</url>
+                        </online>
+                    </distribution>
+                </physical>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="87dbda50-7d25-47e9-a7df-e4d4951fe9e6"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/ipinim</alternateIdentifier>
+        <alternateIdentifier>87dbda50-7d25-47e9-a7df-e4d4951fe9e6</alternateIdentifier>
+        <alternateIdentifier>https://ipt.amnh.org/resource?r=cnidaria</alternateIdentifier>
+        <title>American Museum of Natural History (AMNH) Cnidaria Collection</title>
+        <creator>
+            <individualName>
+                <givenName>Christine</givenName>
+                <surName>Johnson</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>cjohnson@amnh.org</electronicMailAddress>
+            <onlineUrl>https://www.amnh.org/research/invertebrate-zoology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-8173-4027</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Estefania</givenName>
+                <surName>Rodriguez</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>erodriguez@amnh.org</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-5590-6606</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Lily</givenName>
+                <surName>Berniker</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Museum Specialist</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>2127695605</phone>
+            <electronicMailAddress>lberniker@amnh.org</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Devon</givenName>
+                <surName>Lee</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Digitizer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Ann</givenName>
+                <surName>Davis</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Volunteer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>adavis@amnh.org</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Janice</givenName>
+                <surName>Stenzel</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Volunteer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>jstenzel@amnh.org</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Natalia</givenName>
+                <surName>Zurita</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Digitizer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>nzurita@amnh.org</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Kyle</givenName>
+                <surName>Chang</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Digitizer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>kchang@amnh.org</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Mirielle</givenName>
+                <surName>Lopez-Guzman</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Digitizer</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>2127695605</phone>
+            <electronicMailAddress>mlopez-guzman@amnh.org</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Christine</givenName>
+                <surName>Johnson</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>cjohnson@amnh.org</electronicMailAddress>
+            <onlineUrl>https://www.amnh.org/research/invertebrate-zoology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-8173-4027</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Christine</givenName>
+                <surName>Johnson</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Curatorial Associate</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>cjohnson@amnh.org</electronicMailAddress>
+            <onlineUrl>https://www.amnh.org/research/invertebrate-zoology</onlineUrl>
+            <role>USER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-13
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>AMNH Division of Invertebrate Zoology Cnidaria Collection</para>
+        </abstract>
+        <keywordSet>
+            <keyword>World Registry of Marine Species  (WoRMS</keyword>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.amnh.org/archive.do?r=cnidaria</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Worldwide Cnidaria</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+        </coverage>
+        <purpose><para>Purpose of the dataset creation was to image, database and rehouse the dry and wet coral collection at AMNH to preserve the collection and increase access to the specimens by researchers and the public.</para></purpose>
+        <maintenance>
+            <description>
+                <para>Resource will be updated when new information or specimens are added to the collection/dataset.</para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Estefania</givenName>
+                <surName>Rodriguez</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>erodriguez@amnh.org</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Lily</givenName>
+                <surName>Berniker</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Museum Specialist</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>2127695605</phone>
+            <electronicMailAddress>lberniker@amnh.org</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Estefania</givenName>
+                <surName>Rodriguez</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Principal Investigator / Curator</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>erodriguez@amnh.org</electronicMailAddress>
+            <onlineUrl>https://www.amnh.org/research/invertebrate-zoology</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-5590-6606</userId>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Christine</givenName>
+                <surName>Johnson</surName>
+            </individualName>
+            <organizationName>AMERICAN MUSEUM OF NATURAL HISTORY</organizationName>
+            <positionName>Curatorial Associate</positionName>
+            <address>
+                <deliveryPoint>200 CENTRAL PARK W</deliveryPoint>
+                <city>NEW YORK</city>
+                <administrativeArea>NY</administrativeArea>
+                <postalCode>10024-5102</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>2127695605</phone>
+            <electronicMailAddress>cjohnson@amnh.org</electronicMailAddress>
+            <userId directory="https://orcid.org/">https://orcid.org/0000-0002-8173-4027</userId>
+        </contact>
+
+            <project >
+                <title>Rehousing, Conservation, and Digitization of the AMNH Dry Coral Collection | Digitization TCN: Collaborative Research: Documenting Marine Biodiversity through Digitization of Invertebrate Collections (DigIn)</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Christine</givenName>
+                    <surName>Johnson</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0002-8173-4027</userId>
+                    <role>PRINCIPAL_INVESTIGATOR</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Estefania</givenName>
+                    <surName>Rodriguez</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0002-5590-6606</userId>
+                    <role>PRINCIPAL_INVESTIGATOR</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Lily</givenName>
+                    <surName>Berniker</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0001-7790-3011</userId>
+                    <role>CONTENT_PROVIDER</role>
+                </personnel>
+                <abstract>
+                    <para>Funding from the IMLS Museums for America supported the (1) rehousing in conservation-grade storage materials; (2) conservation; and (3) imaging and databasing into AMNH’s collections database of its historic coral collection to preserve and share this important CITES protected collection and associated data. Funding from NSF Digitization TCN supports the imaging &amp; databasing of the AMNH cnidarian collection preserved in fluid.</para>
+                </abstract>
+                <funding>
+                    <para>IMLS MA-30-16-0439-16 | NSF ADBC Marine Invertebrate TCN 2001256</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:47Z</dateStamp>
+                <citation>Johnson C, Rodriguez E, Berniker L, Lee D, Davis A, Stenzel J, Zurita N, Chang K, Lopez-Guzman M (2025). American Museum of Natural History (AMNH) Cnidaria Collection. Version 1.11. American Museum of Natural History. Occurrence dataset https://doi.org/10.15468/ipinim accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://ipt.amnh.org/logo.do?r=cnidaria</resourceLogoUrl>
+                <collection>
+                    
+                    
+                    <collectionName>American Museum of Natural History Invertebrate Zoology Cnidaria Collection</collectionName>
+                </collection>
+                <specimenPreservationMethod>MICROSCOPIC_PREPARATION</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

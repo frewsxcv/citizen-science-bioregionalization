@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="dce8feb0-6c89-11de-8225-b8a03c50a862"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/e7susi</alternateIdentifier>
+        <alternateIdentifier>https://collections.ala.org.au/public/show/dr340</alternateIdentifier>
+        <alternateIdentifier>bed2ea03-4d06-31c1-a2ef-5fb7a8de04e7</alternateIdentifier>
+        <alternateIdentifier>http://collections.ala.org.au/public/show/dr340</alternateIdentifier>
+        <alternateIdentifier>dce8feb0-6c89-11de-8225-b8a03c50a862</alternateIdentifier>
+        <alternateIdentifier>da1b4dd3-8fde-3b3b-98e8-6850d474a089</alternateIdentifier>
+        <alternateIdentifier>575103a1-ff40-3c12-9f8d-6d6b93ebcfa6</alternateIdentifier>
+        <alternateIdentifier>14113</alternateIdentifier>
+        <title>Australian Museum provider for OZCAM</title>
+        <creator>
+            <organizationName>OZCAM (Online Zoological Collections of Australian Museums) Provider</organizationName>
+        </creator>
+        <creator>
+            <organizationName>Australian Museum</organizationName>
+        </creator>
+        <metadataProvider>
+            <organizationName>OZCAM (Online Zoological Collections of Australian Museums) Provider</organizationName>
+        </metadataProvider>
+        <associatedParty>
+            <organizationName>Atlas of Living Australia</organizationName>
+            <address>
+                <deliveryPoint>CSIRO Ecosystems Services</deliveryPoint>
+                <city>Canberra</city>
+                <administrativeArea>ACT</administrativeArea>
+                <postalCode>2601</postalCode>
+                <country>AUSTRALIA</country>
+            </address>
+            <electronicMailAddress>info@ala.org.au</electronicMailAddress>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <pubDate>
+                2023-05-17
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Australian Museum provider for OZCAM
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://dwca-exports.ala.org.au/dr340.zip</url>
+            </online>
+        </distribution>
+        <purpose>&lt;para/&gt;</purpose>
+        <contact>
+            <organizationName>Atlas of Living Australia</organizationName>
+            <address>
+                <deliveryPoint>CSIRO Ecosystems Services</deliveryPoint>
+                <city>Canberra</city>
+                <administrativeArea>ACT</administrativeArea>
+                <postalCode>2601</postalCode>
+                <country>AUSTRALIA</country>
+            </address>
+            <electronicMailAddress>info@ala.org.au</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:55Z</dateStamp>
+                <citation>Australian Museum (2023). Australian Museum provider for OZCAM. Occurrence dataset https://doi.org/10.15468/e7susi accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://collections.ala.org.au/data/dataProvider/ozcam.png</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

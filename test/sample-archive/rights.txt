@@ -1,0 +1,420 @@
+Dataset: Bell Museum bryophytes 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Tethys Research Institute aerial survey cetacean sightings 2009-2011 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Santa Barbara Museum of Natural History - Invertebrate Zoology 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: J. B. Wallis / R. E. Roughley Museum of Entomology 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Field Museum of Natural History (Zoology) Invertebrate Collection 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: University of Vermont, Pringle Herbarium 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbario EMMA. Colección principal. Herbario de la Escuela Técnica Superior de Ingeniería de Montes, Forestal y del Medio Natural. UPM 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Observatoire Pelagis aerial surveys 2002-2021 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbarium Dresdense 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Acoustic detections from research cruises in the Med sea, 1994-2001 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: USMB Insecta 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: USDA United States National Fungus Collections 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Porifera 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: National Herbarium of Victoria (MEL) AVH data 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: RBINS Mollusc collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Amphibia and Reptilia (Luomus) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Carnet en Ligne 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Bourguignat's land and freshwater molluscs 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Biological Resource Center, Department of Biotechnology, National Institute of Technology and Evaluation 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium DUPUY Alexandre 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données naturalistes de Franck NOEL 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Revision of the species confused with “ Nereis falsa ” de Quatrefages, 1866 (Annelida, Nereididae) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: James Cook University Herbarium (JCT) AVH data 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: RBINS Fish collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: The fossil collection (F) of the Muséum national d'Histoire naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Crustacea 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: United States National Plant Germplasm System Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbario HSS Finca La Orden-Valdesequera (CICYTEX). Junta de Extremadura 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Australian National Fish Collection (ANFC) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données naturalistes de Pierre-Yves NOEL 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Texas A&M University Insect Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Canadian National Mycological Herbarium 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Field Museum of Natural History (Botany) Seed Plant Collection 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Algae herbarium TRH, NTNU University Museum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The vascular plants collection (P) at the Herbarium of the Muséum national d'Histoire Naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Northern Territory Museum and Art Gallery provider for OZCAM 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: SDNHM Marine Invertebrate Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: AntWeb 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Natural History Museum Rotterdam - Specimens 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Bryophyte herbarium TRH, NTNU University Museum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Auckland Museum Entomology Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Harvard University Herbaria: All Records 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Visual contacts from research cruises in the Med sea, 1994-2001 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The University and Jepson Herbaria -- Algae 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Visual sightings from Song of the Whale 1993-2013 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Pl@ntNet observations 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The Vascular Plant Collection at the Staatliches Museum für Naturkunde Karlsruhe 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: DSMZ Prokarya Collection Catalogue 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: iNaturalist Research-grade Observations 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbier de Strasbourg 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: UF Invertebrate Zoology 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: NABU|naturgucker 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Crustacea Collection of Natural History Museum and Institute, Chiba 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Natural History Collections of the Faculty of Biology AMU 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Phanerogamic Botanical Collections (S) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: RBINS Echinodermata collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: The nematodes collection (IN) of the Muséum national d'Histoire naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Dry specimens of Recent Mollusca in the Department of Historical Geology and Paleontology, The University Museum, The University of Tokyo (UMUT) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CAS Invertebrate Zoology (IZ) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Collection Bryozoa SMF 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Collection Crustacea SMF 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Estonian University of Life Sciences Institute of Agricultural and Environmental Sciences Entomological Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: NDFF Butterfly Data 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: AMNH Herpetology Collections 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Masaryk University - Herbarium BRNU 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The echinoderm collection (IE) of the Muséum national d'Histoire naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Lepidoptera World (Luomus) (LEPW) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: American Museum of Natural History (AMNH) Cnidaria Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Birda - Global Observation Dataset 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Ohio State Acarology Laboratory (OSAL), Ohio State University 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: World distribution of the aquatic Oligochaeta 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The University and Jepson Herbaria -- Bryophytes 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Museo Argentino de Ciencias Naturales "Bernardino Rivadavia" (MACN). Invertebrates National Collection (MACNIn) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The Arthropoda Varia Collection at the Zoologische Staatssammlung München 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Miami University Turrell Herbarium - Vascular Plants 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Natural History Museum (London) Collection Specimens 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données naturalistes de Jean-Michel LEMAIRE 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: GalliForm: Galliformes occurrence records from the Indo-Malay and Palaearctic, 1800-2008 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Lund University Biological Museum - Botanical collection (LD) 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: RBINS DaRWIN 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: United Herbaria of the University and ETH Zurich 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Programme CROMIS: carnet de plongée en ligne de la FFESSM-Observations d'espèces subaquatiques collectées par les utilisateurs de CROMIS 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Institut Menorquí d'Estudis. Colección Histórica de Rodríguez Femenías, Herbarium Generale Minoricae: HGM-Femenias 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Svalbard Global Seed Vault Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Bryophyte Herbarium (H): Herbarium Generale 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CSIC-Real Jardín Botánico-Colección de Algas (MA-Algae) 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Wilson Botanical Garden - Las Cruces Biological Station 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CSIC-Real Jardín Botánico-Colección de Plantas Vasculares (MA) 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Edinburgh (E) Herbarium Specimens 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Coleoptera of Richard Scholz Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbarium of Umeå University (UME) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Invertebrates (Type Specimens) of the Swedish Museum of Natural History 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données liées à des déterminations effectuées par DUSOULIER François 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: University of Michigan Museum of Zoology, Division of Mollusks 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Institut Botanic de Barcelona (IBB, CSIC-Ajuntament de Barcelona), BC-Plantae 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Programme BioObs: observations naturalistes en milieux aquatiques-Observations de BioObs. 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Bivalvia collection (TSZB) The Arctic University Museum of Norway 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Myriapoda - SMF 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Bernice P. Bishop Museum 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: The New York Botanical Garden Herbarium (NY) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: OceanCare cetacean sightings 2001-2014 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Vascular plant collections of Iisalmi Natural History Museum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Phytopathogenic fungi - Herbarium of The National Natural History Collections 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Natural History Museum, Vienna - Herbarium W 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Carnegie Museum of Natural History - Mollusks 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Lund University Biological Museum - Zoological collections (MZLU) 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Collections and observation data National Museum of Natural History Luxembourg 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Tiroler Landesmuseum Ferdinandeum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: FishBase Database 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Porifera MZS 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Duke University Herbarium Bryophyte Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbarium RIPART Eugène and Des Méloizes Albert (BOUM) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Herbarium specimens of Jardins botaniques and Conservatoire Botanique of Nancy (NCY) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Collection Pisces SMF 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données naturalistes de DUSOULIER François 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Revision of the Genus Schizoretepora (Bryozoa, Cheilostomatida) from the Atlantic-Mediterranean region 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: International Barcode of Life project (iBOL) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Essig Museum of Entomology 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Algae (S) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: RBINS Cnidaria collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: The Hymenoptera collection (EY) of the Muséum national d'Histoire naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium Horti Botanici Pisani (PI), Sistema Museale di Ateneo, Università di Pisa 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Xeno-canto - Bird sounds from around the world 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Collection Crustacea - SNSD 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Queensland Museum provider for OZCAM 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Collection Malakologie - SNSD 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Botany 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: UB - Herbário da Universidade de Brasília 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: UMZC Zoological Specimens 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: The Myriapoda & Onychophora collection (MY) of the Muséum national d'Histoire naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: SysTax -  Zoological Collections 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CardObs : Observations naturalistes issues de l'outil CardObs-Données naturalistes de Pascal Dupont 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: UniLodz NHM Entomological Collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: CAS Botany (BOT) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Royal Botanic Gardens, Kew - Herbarium Specimens 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Museu Darder de Banyoles 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: NMNH Extant Specimen Records (USNM, US) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: The cryptogamy collection (PC) at the Herbarium of the Muséum national d'Histoire Naturelle (MNHN - Paris) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Arachnida MZS 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Echinodermata 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Museu de Ciències Naturals de Barcelona: MCNB-Malac 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Fungi (S) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Cnidaria MZS 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: RSA - California Botanic Garden Herbarium 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: INSDC Sequences 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CHAS Malacology Collection (Arctos) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Type locality distributions from the World Register of Marine Species 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Mollusca collection of National Museum of Nature and Science 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: University of Tartu Natural History Museum and Botanical Garden Zooloogical Collections 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: LACM Echinoderms 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Herbario de la Universidad de Sevilla, SEV-Historico 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Wisconsin State Herbarium, Bryophytes 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Biodiversitätsdatenbank Salzburg 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Coleção Entomológica Padre Jesus Santiago Moure (DZUP) - Neuroptera 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbarium specimens of the Muséum d'Histoire Naturelle of Aix-en-Provence (AIX) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Lepidoptera 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Canadian Museum of Nature Fish Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Australian National Fish Collection (ANFC) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium Senckenbergianum (FR) - Fungi 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Vascular plant herbarium TRH, NTNU University Museum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Hexacorallians of the world 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: University of Michigan Herbarium 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Tethys Research Institute shipboard survey cetacean sightings 1986-2012 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: LACM Malacology 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Collection ornithologique A. Maës 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: ZOBODAT (Zoological Botanical Database) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: University of Graz, Institute of Plant Sciences - Herbarium GZU 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Museum of Comparative Zoology, Harvard University 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: EOD – eBird Observation Dataset 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Demosponges of the genus Hymedesmia (Poecilosclerida: Hymedesmidae) from Rathlin Island, Northern Ireland, with a description of six new species 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: RBINS Crustacea collection 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Chelicerata and Myriapoda 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Observation.org, Nature data from around the World 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Pisces 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Vascular Plant Herbarium, Oslo (O) UiO 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Terrestrial and limnic invertebrates systematic collection, NTNU University Museum 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Lichen herbarium, Oslo (O) UiO 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: University of Colorado Museum of Natural History Herbarium Vascular Plant Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium specimens of Herbiers Universitaires de Clermont-Ferrand (CLF) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Australian Museum provider for OZCAM 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium Berolinense, Berlin (B) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Lund University Biological Museum - Insect collections Inventory 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Botany (UPS) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Malacology Collection at the Academy of Natural Sciences of Philadelphia 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Fish collection of National Museum of Nature and Science 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Museu de Ciències Naturals de Barcelona: BGJBB 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Fungal Biodiversity Centre (CBS) - Fungi strains 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Invertebrates Collection of the Swedish Museum of Natural History 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CorMedNet- Distribution and demographic data of habitat-forming invertebrate species from Mediterranean coralligenous assemblages between 1882 and 2019. 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: BCE butterfly data expert holiday data throughout Europe 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: A global database for the distributions of crop wild relatives 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Les myriapodes chilopodes (Chilopoda) du Parc national du Mercantour, du département des Alpes-Maritimes et de leurs environs: description d’une nouvelle espèce du genre Lithobius Leach, 1814 s. s., synthèse des connaissances et espèces menacées 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: The Ichthyology Collection at the Staatliches Museum für Naturkunde Stuttgart 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Natuurmuseum Brabant, Tilburg - Invertebrates 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Mosses (S) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Suivi de l'expansion du Frelon asiatique (Vespa velutina) : données Frelon 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Invertebrata varia (Luomus) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Meise Botanic Garden Herbarium (BR) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Herbarium specimens of Université de Montpellier 2, Institut de Botanique (MPU)) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: ATBI Parc national du Mercantour / Parco naturale Alpi Marittime-Jeux de données provenant de l'ATBI dans le Parco Naturale Alpi Marittime (Italie) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: ZMUT Arachnida collections of Turku University 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: CAS Ichthyology (ICH) 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Steiermärkisches Landesmuseum Joanneum - Herbarium GJO 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Pl@ntNet automatically identified occurrences 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: BirdMap Data - GPS tracking of Storks, Cranes and birds of prey, breeding in Northern and Eastern Europe 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Cnidaria 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: MIZ PAS Zoological Collections 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Zoological Museum Amsterdam, University of Amsterdam (NL) - Lepidoptera_Nymphalidae_Palearctic 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Mollusca 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Bryophyte Herbarium, Oslo (O) UiO 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode

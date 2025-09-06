@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="64c71e82-be2e-4cf5-974d-98266733a63a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/grxjb8</alternateIdentifier>
+        <alternateIdentifier>http://ipt.env.duke.edu/resource?r=zd_662</alternateIdentifier>
+        <title>OceanCare cetacean sightings 2001-2014</title>
+        <creator>
+            <individualName>
+                <givenName>Silvia</givenName>
+                <surName>Frey</surName>
+            </individualName>
+            <organizationName>KYMA sea conservation &amp; research</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>silvia@kyma-sea.org</electronicMailAddress>
+            <onlineUrl>http://www.kyma-sea.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <surName>ACCOBAMS and WDCS</surName>
+            </individualName>
+            <organizationName>The Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic Area (ACCOBAMS) and Whale and Dolphin Conservation Society (WDCS)</organizationName>
+            <onlineUrl>http://www.accobams.org/</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>OBIS-SEAMAP</surName>
+            </individualName>
+            <organizationName>Marine Geospatial Ecology Lab, Duke University</organizationName>
+            <address>
+                <deliveryPoint>A328 LSRC building</deliveryPoint>
+                <city>Durham</city>
+                <administrativeArea>NC</administrativeArea>
+                <postalCode>27708</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <electronicMailAddress>seamap-contact@duke.edu</electronicMailAddress>
+            <onlineUrl>http://seamap.env.duke.edu</onlineUrl>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Silvia</givenName>
+                <surName>Frey</surName>
+            </individualName>
+            <organizationName>KYMA sea conservation &amp; research</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>silvia@kyma-sea.org</electronicMailAddress>
+            <onlineUrl>http://www.kyma-sea.org</onlineUrl>
+            <role>OWNER</role>
+        </associatedParty>
+        <pubDate>
+                2021-04-24
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Original provider:
+OceanCare
+
+Dataset credits:
+Silvia Frey, OceanCare
+
+Abstract:
+This dataset comprises the work carried out by OceanCare in the Provencal waters in the Mediterranean Sea between 2001 and 2014. The project was organized as a long-term monitoring project in order to survey cetacean population in these waters which belong to the Pelagos Marine Mammal Sanctuary. Cetacean spatial and temporal distribution has been studied using boat-based surveys.
+
+Purpose:
+OceanCare is a non-profit and non-governmental organization founded in 1989 in Switzerland. The organization is dedicated to the protection of marine mammals and the conservation of the marine environment. The association works at national and international level in the areas of whaling, industrial fishing, environmental changes, seal hunting, dolphin captivity, and cetacean research.
+
+OceanCare has the Special Consultative Status with the Economic and Social Council of the United Nations and is a partner of the UNEP/CMS Agreement on the Conservation of Cetaceans in the Black Sea, Mediterranean Sea and Contiguous Atlantic Area (ACCOBAMS) and a member of the Cetacean Alliance, a not-for-profit network of nine non-governmental organizations committed to preserving marine biodiversity and reducing human impact on cetacean populations. With this cetacean monitoring project OceanCare provided long-term data on cetacean abundance in parts of the Pelagos Marine Mammal Sanctuary in the Mediterranean Sea.
+
+Supplemental information:
+[2015-01-22] Dataset was updated with 2014 data.
+[2014-01-14] Dataset was updated with 2012/13 data.
+[2011-12-13] Dataset was updated with 2011 data.
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence,Marine Animal Survey,Marine Biology,Marine mammals,Visual Sighting,Vessel</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Observation</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <additionalInfo>
+            <para>marine, harvested by iOBIS</para>
+        </additionalInfo>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://seamap.env.duke.edu/dataset/662</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.env.duke.edu/archive.do?r=zd_662</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Oceans</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>5.93</westBoundingCoordinate>
+                    <eastBoundingCoordinate>7.835</eastBoundingCoordinate>
+                    <northBoundingCoordinate>43.673</northBoundingCoordinate>
+                    <southBoundingCoordinate>42.687</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                2001-06-25
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2014-07-18
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Scientific names are based on the Integrated Taxonomic Information System (ITIS).</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Balaenoptera physalus</taxonRankValue>
+                    <commonName>Fin Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Delphinus delphis</taxonRankValue>
+                    <commonName>Short-beaked Common Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Globicephala melas</taxonRankValue>
+                    <commonName>Long-finned Pilot Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Grampus griseus</taxonRankValue>
+                    <commonName>Risso&apos;s Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Megaptera novaeangliae</taxonRankValue>
+                    <commonName>Humpback Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Physeter macrocephalus</taxonRankValue>
+                    <commonName>Sperm Whale</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Stenella coeruleoalba</taxonRankValue>
+                    <commonName>Striped Dolphin</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Species</taxonRankName>
+                    <taxonRankValue>Tursiops truncatus</taxonRankValue>
+                    <commonName>Common Bottlenose Dolphin</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <purpose><para>OceanCare is a non-profit and non-governmental organization founded in 1989 in Switzerland. The organization is dedicated to the protection of marine mammals and the conservation of the marine environment. The association works at national and international level in the areas of whaling, industrial fishing, environmental changes, seal hunting, dolphin captivity, and cetacean research.
+
+OceanCare has the Special Consultative Status with the Economic and Social Council of the United Nations and is a partner of the UNEP/CMS Agreement on the Conservation of Cetaceans in the Black Sea, Mediterranean Sea and Contiguous Atlantic Area (ACCOBAMS) and a member of the Cetacean Alliance, a not-for-profit network of nine non-governmental organizations committed to preserving marine biodiversity and reducing human impact on cetacean populations. With this cetacean monitoring project OceanCare provided long-term data on cetacean abundance in parts of the Pelagos Marine Mammal Sanctuary in the Mediterranean Sea.</para></purpose>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Silvia</givenName>
+                <surName>Frey</surName>
+            </individualName>
+            <organizationName>KYMA sea conservation &amp; research</organizationName>
+            <positionName>Primary contact</positionName>
+            <electronicMailAddress>silvia@kyma-sea.org</electronicMailAddress>
+            <onlineUrl>http://www.kyma-sea.org</onlineUrl>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>NA</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>NA</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>NA</para>
+                </samplingDescription>
+            </sampling>
+        </methods>
+
+            <project >
+                <title>OceanCare cetacean sightings 2001-2014</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Silvia</givenName>
+                    <surName>Frey</surName>
+                    </individualName>
+                    <role>OWNER</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>NA</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:49Z</dateStamp>
+                <citation identifier="https://seamap.env.duke.edu/dataset/662">Frey, S. 2015. OceanCare cetacean sightings 2001-2014. Data downloaded from OBIS-SEAMAP (http://seamap.env.duke.edu/dataset/662) on yyyy-mm-dd. https://doi.org/10.15468/grxjb8 accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>OBIS-SEAMAP Dataset Page</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>Interactive map</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/662</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <physical>
+                    <objectName>FGDC Metadata</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>XML</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://seamap.env.duke.edu/dataset/662/xml</url>
+                        </online>
+                    </distribution>
+                </physical>
+                <collection>
+                    <parentCollectionIdentifier>OBIS-SEAMAP</parentCollectionIdentifier>
+                    <collectionIdentifier>zd_662</collectionIdentifier>
+                    <collectionName>zd_662</collectionName>
+                </collection>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

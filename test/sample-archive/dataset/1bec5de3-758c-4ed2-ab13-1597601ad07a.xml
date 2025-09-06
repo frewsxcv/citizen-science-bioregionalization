@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="1bec5de3-758c-4ed2-ab13-1597601ad07a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/fsreqb</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.no/resource?r=trh_terrestrial_limnic_invertebrates</alternateIdentifier>
+        <alternateIdentifier>https://gbif.vm.ntnu.no/resource?r=terr_limn_inv_systematic_collection</alternateIdentifier>
+        <alternateIdentifier>http://vm-ipt.it.ntnu.no:8080/resource?r=terr_limn_inv_systematic_collection</alternateIdentifier>
+        <alternateIdentifier>1bec5de3-758c-4ed2-ab13-1597601ad07a</alternateIdentifier>
+        <alternateIdentifier>https://gbif.vm.ntnu.no/ipt/resource?r=terr_limn_inv_systematic_collection</alternateIdentifier>
+        <title>Terrestrial and limnic invertebrates systematic collection, NTNU University Museum</title>
+        <creator>
+            <individualName>
+                <givenName>Karstein</givenName>
+                <surName>Hårsaker</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Collection manager</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>karstein.harsaker@ntnu.no</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-2490-2848</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Aina Mærk</givenName>
+                <surName>Aspaas</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Collection worker</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>aina.aspaas@ntnu.no</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Torbjørn</givenName>
+                <surName>Ekrem</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>torbjorn.ekrem@ntnu.no</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3469-9211</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Elisabeth</givenName>
+                <surName>Stur</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Researcher</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>elisabeth.stur@ntnu.no</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-7796-8026</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Frode</givenName>
+                <surName>Ødegaard</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Associate professor</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>frode.odegaard@ntnu.no</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-7686-8610</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Gaute</givenName>
+                <surName>Kjærstad</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Researcher</positionName>
+            <address>
+                <city>Trondheim</city>
+                <postalCode>NO-7491</postalCode>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>gaute.kjarstad@ntnu.no</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-8900-219X</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Anders G.</givenName>
+                <surName>Finstad</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>anders.finstad@ntnu.no</electronicMailAddress>
+        </metadataProvider>
+        <metadataProvider>
+            <individualName>
+                <givenName>Karstein</givenName>
+                <surName>Hårsaker</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Collection manager</positionName>
+            <electronicMailAddress>karstein.harsaker@ntnu.no</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Anders Gravbrøt</givenName>
+                <surName>Finstad</surName>
+            </individualName>
+            <electronicMailAddress>anders.finstad@ntnu.no</electronicMailAddress>
+            <role>USER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-19
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>The terrestrial and liminic invertebrates systematic collection at the NTNU University Museum dates back to activities initiated by Bishop Johan Ernst Gunnerus in the 1760&amp;#39;s and objects from Bjarne Lysholm’s collection of Coleoptera from around 1880-1939. The bulk of the collection dates from the 1960&amp;#39;s and up to today and includes the Lepidoptera collection of Carl Fredrik Lühr and Runar Krogen, the Coleoptera collections of Karl Erik Zachariassen and Dagfinn Refseth. A recent acquisition of approximately 160 000 identified specimens came from Frode Ødegaard’s collection previously hosted at the Norwegian Institute for Nature Research.
+
+Today&amp;#39;s collection covers most of the major groups of invertebrates with Lepidoptera, Coleoptera, Diptera and Hymenoptera as the largest parts of the collections (approximately 40 %, 20 %, 10 % and 7 % respectively in 2017). Some groups are overrepresented compared to others. This reflects the taxonomic expertise among the staff since the first regular employee in the 1840&amp;#39;s and donations of private collections.
+
+The collection includes objects from all other continents except the Antarctica. Examples from other parts of the world are chironomids from America, Africa, Europe and Asia, a historic circumpolar collection of Coleoptera.  Coleoptera from Central America, Australia, southern Europe, Africa and Papua New Guinea. There are also Lepidoptera from Malawi and terrestrial molluscs from Madeira, Cuba and some other countries.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.no/archive.do?r=trh_terrestrial_limnic_invertebrates</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Worldwide</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1770-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2020-01-01
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>All major terrestrial and limnic invertebrate groups., All major terrestrial and limnic invertebrate groups.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Lepidoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Coleoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Diptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Hymenoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Arachnida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Crustacea</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Collembola</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Odonata</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Hemiptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Ephemeroptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Plecoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Trichoptera</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Mollusca</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Torbjørn</givenName>
+                <surName>Ekrem</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Professor</positionName>
+            <address>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>torbjorn.ekrem@ntnu.no</electronicMailAddress>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Karstein</givenName>
+                <surName>Hårsaker</surName>
+            </individualName>
+            <organizationName>NTNU University Museum</organizationName>
+            <positionName>Collection manager</positionName>
+            <address>
+                <country>NORWAY</country>
+            </address>
+            <electronicMailAddress>karstein.harsaker@ntnu.no</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:55Z</dateStamp>
+                <citation>Hårsaker K, Aspaas A M, Ekrem T, Stur E, Ødegaard F, Kjærstad G, Finstad A G (2025). Terrestrial and limnic invertebrates systematic collection, NTNU University Museum. Version 1.1694. Norwegian University of Science and Technology. Occurrence dataset https://doi.org/10.15468/fsreqb accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://gbif.vm.ntnu.no/ipt/logo.do?r=terr_limn_inv_systematic_collection</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

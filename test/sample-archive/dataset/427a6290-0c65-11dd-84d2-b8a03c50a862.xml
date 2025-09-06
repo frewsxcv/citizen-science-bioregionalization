@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="427a6290-0c65-11dd-84d2-b8a03c50a862"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/mw39rb</alternateIdentifier>
+        <alternateIdentifier>https://www.gbif.se/ipt/resource?r=mzlu</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.se/ipt/resource?r=mzlu</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.se/ipt/resource.do?r=mzlu</alternateIdentifier>
+        <alternateIdentifier>427a6290-0c65-11dd-84d2-b8a03c50a862</alternateIdentifier>
+        <alternateIdentifier>1533</alternateIdentifier>
+        <title>Lund University Biological Museum - Zoological collections (MZLU)</title>
+        <creator>
+            <individualName>
+                <givenName>Jonas</givenName>
+                <surName>Ekström</surName>
+            </individualName>
+            <organizationName>Biological museum, Lund University</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>jonas.ekstrom@biol.lu.se</electronicMailAddress>
+            <onlineUrl>https://www.biologi.lu.se/biologiska.museet</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Jonas</givenName>
+                <surName>Ekström</surName>
+            </individualName>
+            <organizationName>Biological museum, Lund University</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>jonas.ekstrom@biol.lu.se</electronicMailAddress>
+            <onlineUrl>https://www.biologi.lu.se/biologiska.museet</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Veronika</givenName>
+                <surName>Johansson</surName>
+            </individualName>
+            <organizationName>Swedish Museum of Natural History</organizationName>
+            <positionName>Node manager</positionName>
+            <address>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>veronika.johansson@nrm.se</electronicMailAddress>
+            <role>USER</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-18
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>This database contains information on birds, mammals, reptiles, amphibians and invertebrates, except insects, from the Zoological Collections in the Museum of Biology of Lund, Sweden.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://www.biology.lu.se/biological-museum/zoological-collections</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://www.gbif.se/ipt/archive.do?r=mzlu</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Specimens from all over the world.. 68% of the material from the Nordic countries (Denmark,Sweden,Norway,Finland and Iceland).</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>-180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Animal groups except insects.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                    <commonName>Animal</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>weekly</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Maria</givenName>
+                <surName>Mostadius</surName>
+            </individualName>
+            <organizationName>Biological museum, Lund University</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <country>SWEDEN</country>
+            </address>
+            <electronicMailAddress>maria.mostadius@biol.lu.se</electronicMailAddress>
+            <onlineUrl>https://www.biologi.lu.se/biologiska.museet</onlineUrl>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:50Z</dateStamp>
+                <citation>Ekström J (2025). Lund University Biological Museum - Zoological collections (MZLU). Lund University Biological Museum. Occurrence dataset https://doi.org/10.15468/mw39rb accessed via GBIF.org on 2025-05-22.</citation>
+                <formationPeriod>1735-current</formationPeriod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

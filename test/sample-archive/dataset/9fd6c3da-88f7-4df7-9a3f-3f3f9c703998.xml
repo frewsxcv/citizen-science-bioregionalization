@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="9fd6c3da-88f7-4df7-9a3f-3f3f9c703998"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/dlwzgo</alternateIdentifier>
+        <alternateIdentifier>9fd6c3da-88f7-4df7-9a3f-3f3f9c703998</alternateIdentifier>
+        <shortName>Suivi frelon asiatique : données frelon</shortName>
+        <title>Suivi de l&apos;expansion du Frelon asiatique (Vespa velutina) : données Frelon</title>
+        <creator>
+            <individualName>
+                <surName>Inventaire National du Patrimoine Naturel</surName>
+            </individualName>
+            <organizationName>PatriNat</organizationName>
+            <positionName>n/a</positionName>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <surName>Inventaire National du Patrimoine Naturel</surName>
+            </individualName>
+            <organizationName>PatriNat</organizationName>
+            <positionName>n/a</positionName>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>GBIF France</surName>
+            </individualName>
+            <organizationName>GBIF France</organizationName>
+            <positionName>IT support</positionName>
+            <address>
+                <deliveryPoint>GBIF France - MNHN Géologie CP48, 43 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <administrativeArea>Île-de-France</administrativeArea>
+                <postalCode>75005</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <phone>+33140798065</phone>
+            <electronicMailAddress>connexion@gbif.fr</electronicMailAddress>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <pubDate>
+                2023-07-18
+        </pubDate>
+        <language>FRENCH</language>
+        <abstract>
+            Objectif:
+L’objectif de cet inventaire est de rassembler un jeu exhaustif de données concernant Vespa velutina et autres frelons envahissant, ceci afin suivre la progression de l&amp;#39;invasion en France. 
+Ce jeu de données contient les observations de colonies viables, permettant de prouver la capacité de l&amp;#39;espèce à survivre l&amp;#39;année de l&amp;#39;observation sur le lieu de l&amp;#39;observation.
+Les données ne permettant pas de prouver ces capacités de survie sont exclues de ce jeu de données et intégrées dans le JDD 10269. 
+Les espèces avec lesquelles il est parfois confondu par les observateurs sont également inventoriées et regroupées dans le JDD 247.
+
+Réseau de collecte:
+Le réseau est coordonné par Q. Rome (MNHN).
+Les données sont collectées par divers organismes et par le grand public via un formulaire de signalement (http://frelonasiatique.mnhn.fr/signaler-informations/). Ce réseau est progressivement remplacé par une quête INPN Espèces, JDD 70544.
+        </abstract>
+        <keywordSet>
+            <keyword>Variété Nigrithorax</keyword>
+            <keyword>Eee</keyword>
+            <keyword>Vespa Velutina</keyword>
+            <keyword>Frelon À Pattes Jaunes</keyword>
+            <keyword>Espèces Exotiques Envahissantes</keyword>
+            <keyword>Frelon Invasif</keyword>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Surveillance de pathogènes et EEE</keyword>
+            <keywordThesaurus>Objectifs du jeu de données</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://apt-inpn.gbif.fr/dataset/602783F1-3366-22CB-E053-2614A8C003AE</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>La boundingBox est calculée à partir des données</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-4.77577</westBoundingCoordinate>
+                    <eastBoundingCoordinate>7.75344</eastBoundingCoordinate>
+                    <northBoundingCoordinate>50.99031</northBoundingCoordinate>
+                    <southBoundingCoordinate>42.40394</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                2004-11-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2021-10-13
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Hymenoptera</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <contact>
+            <individualName>
+                <surName>n/a</surName>
+            </individualName>
+            <organizationName>n/a</organizationName>
+            <positionName>n/a</positionName>
+        </contact>
+
+            <project >
+                <title>Suivi de l&apos;expansion du Frelon asiatique (Vespa velutina)</title>
+                <personnel>
+                    <individualName>
+                    <surName>MINISTERE DE LA TRANSITION ECOLOGIQUE ET SOLIDAIRE</surName>
+                    </individualName>
+                    <organizationName>MINISTERE DE LA TRANSITION ECOLOGIQUE ET SOLIDAIRE</organizationName>
+                    <positionName>n/a</positionName>
+                    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <surName>AGENCE FRANCAISE POUR LA BIODIVERSITE</surName>
+                    </individualName>
+                    <organizationName>AGENCE FRANCAISE POUR LA BIODIVERSITE</organizationName>
+                    <positionName>n/a</positionName>
+                    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <surName>ROME Quentin</surName>
+                    </individualName>
+                    <organizationName>PATRINAT (OFB-MNHN-CNRS-IRD)</organizationName>
+                    <positionName>n/a</positionName>
+                    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <surName>ROME Quentin</surName>
+                    </individualName>
+                    <organizationName>PATRINAT (OFB-MNHN-CNRS-IRD)</organizationName>
+                    <positionName>n/a</positionName>
+                    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                </personnel>
+                <abstract>
+                    <para>L’objectif de cet inventaire est de rassembler un jeu exhaustif de données concernant Vespa velutina pour suivre la progression de son invasion en France. Les espèces avec lesquelles il est parfois confondu par les observateurs sont également inventoriées.</para>
+                </abstract>
+                <funding>
+                    <para></para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:56Z</dateStamp>
+                <citation>Inventaire National du Patrimoine Naturel (2023). Suivi de l&apos;expansion du Frelon asiatique (Vespa velutina) : données Frelon. UMS PatriNat (OFB-CNRS-MNHN), Paris. Occurrence dataset https://doi.org/10.15468/dlwzgo accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

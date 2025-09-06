@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="6ff8b3b0-ef0f-4f79-a310-5a5615c6aa0b"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/6kud7x</alternateIdentifier>
+        <alternateIdentifier>https://gbif.birda.org/resource?r=birda</alternateIdentifier>
+        <alternateIdentifier>6ff8b3b0-ef0f-4f79-a310-5a5615c6aa0b</alternateIdentifier>
+        <alternateIdentifier>b466f282-9cad-4442-b031-f74897af65b5</alternateIdentifier>
+        <alternateIdentifier>http://35.246.30.207:8080/resource?r=birda</alternateIdentifier>
+        <title>Birda - Global Observation Dataset</title>
+        <creator>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>White</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Co-founder/CEO</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>john@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Natalie</givenName>
+                <surName>White</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Co-founder/CMO</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>natalie@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Dominic</givenName>
+                <surName>Barker</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Co-founder/CTO</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>dom@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>David</givenName>
+                <surName>Evans</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Senior software engineer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>dave@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Timothy</givenName>
+                <surName>Steer</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Software engineer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>tim@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Morgan</givenName>
+                <surName>David</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Software engineer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>morgan@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Silvia</givenName>
+                <surName>Benevente</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Head of UX</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>silvia@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Sarah</givenName>
+                <surName>Cunningham</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Community engagement officer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>sarah@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Emily</givenName>
+                <surName>Smith</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Project officer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>emily@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Francisco</givenName>
+                <surName>Fonseca</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Senior marketing manager</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>francisco@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Ed</givenName>
+                <surName>Betteridge</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Bird Nerd</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+            </address>
+            <electronicMailAddress>ed@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Timothy</givenName>
+                <surName>Steer</surName>
+            </individualName>
+            <organizationName>Chirp Birding Ltd</organizationName>
+            <positionName>Software engineer</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>tim@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </metadataProvider>
+        <pubDate>
+                2023-05-05
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            Occurrences of Animalia Chordata Aves recorded by users of the Birda mobile app (https://birda.org). 
+
+Species data use the IOC taxonomy (https://www.worldbirdnames.org/new/).
+
+Data imported into Birda from external sources (e.g. other birding apps) are excluded from this dataset to avoid the potential duplication of records that may have been previously published to the GBIF by another organisation.
+
+Occurrences deemed unreliable or suspicious are excluded from the dataset (see the section on quality control for further details).
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://gbif.birda.org/archive.do?r=birda</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Global</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-172.259</westBoundingCoordinate>
+                    <eastBoundingCoordinate>176.901</eastBoundingCoordinate>
+                    <northBoundingCoordinate>78.22</northBoundingCoordinate>
+                    <southBoundingCoordinate>-66.559</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                2017-10-28
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2023-04-20
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>John</givenName>
+                <surName>White</surName>
+            </individualName>
+            <organizationName>Birda</organizationName>
+            <positionName>Co-founder/CEO</positionName>
+            <address>
+                <deliveryPoint>71-75 Shelton Street, Covent Garden, London</deliveryPoint>
+                <city>London</city>
+                <administrativeArea>England</administrativeArea>
+                <postalCode>WC2H 9JQ</postalCode>
+                <country>UNITED_KINGDOM</country>
+            </address>
+            <electronicMailAddress>john@birda.org</electronicMailAddress>
+            <onlineUrl>https://birda.org</onlineUrl>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>Users log a sighting or record a session (a collection of sightings) using the Birda mobile app.</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>Worldwide</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>Field observation by users of the Birda mobile app.</para>
+                </samplingDescription>
+            </sampling>
+            <qualityControl>
+                <description>
+                    <para>Occurrences that meet both of the following criteria are flagged as &quot;unconfirmed&quot; by Birda&apos;s automated sighting verification service and are excluded from the data submission until they have been manually verified by an expert in avian taxonomy:
+- the location of the occurrence falls outside of the distribution for that species as defined by Birdlife International
+- there are few recorded occurrences of the species in that location</para>
+                </description>
+            </qualityControl>
+        </methods>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:47Z</dateStamp>
+                <citation>White J, White N, Barker D, Evans D, Steer T, David M, Benevente S, Cunningham S, Smith E, Fonseca F, Betteridge E (2023). Birda - Global Observation Dataset. Version 1.14. Birda. Occurrence dataset https://doi.org/10.15468/6kud7x accessed via GBIF.org on 2025-05-22.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

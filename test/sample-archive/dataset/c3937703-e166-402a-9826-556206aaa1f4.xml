@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="c3937703-e166-402a-9826-556206aaa1f4"  system="http://gbif.org" scope="system"
+xml:lang="es">
+    <dataset>
+        <alternateIdentifier>10.15468/vvpgcy</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.es/resource?r=mcnb-bgjbb</alternateIdentifier>
+        <alternateIdentifier>http://ipt.gbif.es/resource?r=mcnb-bgjbb</alternateIdentifier>
+        <alternateIdentifier>http://www.gbif.es/ipt/resource?r=mcnb-bgjbb</alternateIdentifier>
+        <alternateIdentifier>c3937703-e166-402a-9826-556206aaa1f4</alternateIdentifier>
+        <title>Museu de Ciències Naturals de Barcelona: BGJBB</title>
+        <creator>
+            <individualName>
+                <givenName>Jordi</givenName>
+                <surName>Agulló Villargona</surName>
+            </individualName>
+            <organizationName>Museu de Ciències Naturals de Barcelona</organizationName>
+            <positionName>Collection Manager</positionName>
+            <address>
+                <deliveryPoint>C/ Passeig Picasso s/n</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>08003</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>00+34 932562200</phone>
+            <electronicMailAddress>jagullov@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://www.museuciencies.cat</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Miriam</givenName>
+                <surName>Aixart Sahun</surName>
+            </individualName>
+            <organizationName>Jardí Botànic de Barcelona</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Dr. Font  i Quer, 2</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>08038</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>00 34 932564165</phone>
+            <electronicMailAddress>maixart@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://www.museuciencies.cat</onlineUrl>
+        </metadataProvider>
+        <pubDate>
+                2021-02-25
+        </pubDate>
+        <language>CATALAN</language>
+        <abstract>
+            Conservation of the endangered flora of a territory is mainly based on preserving its natural habitat, which we know as in-situ or on-site conservation, but it is necessary to reinforce this protection with ex-situ interventions, i.e. outside its natural habitat, whether in collections of living plants or in germplasm banks.
+
+The Botanical Garden of Barcelona was created to contribute to the ex-situ conservation of the biodiversity of Mediterranean vegetation, mainly that of Catalonia. The Garden is a privileged space for cultivating and exhibiting endangered plants in its set of collections. In this sense, it is also an element for disseminating knowledge about which species need protection and what actions are carried out to achieve this. It is also excellent material for research studies.
+
+The Garden has the nurseries and greenhouses necessary for cultivating and maintaining those plants of scientific and educational interest.The Garden has a Germplasm Bank that stores the seeds of the most interesting species from both the viewpoint of scientific importance and that of conservation.Thus, the Garden offers the tools and basic infrastructures so that all those institutions working on conservation can have access to them to develop their projects as and when necessary.
+
+Germplasm banks are collections of genetic material, mainly in the form of seeds, which are kept in special temperature and humidity conditions, and which allow the use of this material to be maintained for long periods of time. The bank is a tool for maintaining species in a state of rest, and they can be made to germinate whenever fresh material is required, whether for new research studies or to obtain plants for reintroduction into their natural habitat.According to the Convention on Biological Diversity, signed in Rio in 1992, the signatory states agree to have 60% of endangered species from their territory conserved in germplasm banks and 10% included in recovery programmes.
+
+We hope that the Botanical Garden will be a key element in achieving this commitment in favour of the global conservation of biodiversity.
+        </abstract>
+        <keywordSet>
+            <keyword>germoplasma</keyword>
+            <keyword>semilla</keyword>
+            <keyword>Jardín Botánico</keyword>
+            <keyword>banco</keyword>
+            <keywordThesaurus>NA</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Metadata</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://museuciencies.cat/en/area-cientifica/col%C2%B7leccions/col%C2%B7leccions-botaniques/llavors/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.es/archive.do?r=mcnb-bgjbb</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Area mediterránea en cuenca mediterranea (Norte de África, Sur de Europa y Oriente próximo), Chile, California, Australia y Sudáfrica.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1990
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2013
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Caryophyllaceae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Compositae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Cruciferae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Graminae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Labiatae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Leguminosae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Family</taxonRankName>
+                    <taxonRankValue>Umbelliferae</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Míriam</givenName>
+                <surName>Aixart Sahun</surName>
+            </individualName>
+            <organizationName>Jardí Botànic de Barcelona</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>Dr. Font  i Quer, 2</deliveryPoint>
+                <city>Barcelona</city>
+                <administrativeArea>Catalunya</administrativeArea>
+                <postalCode>08038</postalCode>
+                <country>SPAIN</country>
+            </address>
+            <phone>00 34 932564165</phone>
+            <electronicMailAddress>maixart@bcn.cat</electronicMailAddress>
+            <onlineUrl>https://www.museuciencies.cat</onlineUrl>
+        </contact>
+
+            <project >
+                <title>SEMCLIMED</title>
+                <personnel>
+                    <individualName>
+                    <surName>NA</surName>
+                    </individualName>
+                    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>El proyecto SEMCLIMED, que está incluido dentro del programa comunitario INTERREG IIIB MEDOCC</para>
+                </funding>
+                <studyAreaDescription>
+                    <descriptor name="generic" citableClassificationSystem="false">
+                        <descriptorValue>Mediterráneo occidental (Francia, España, Grecia e Italia)</descriptorValue>
+                    </descriptor>
+                </studyAreaDescription>
+                <designDescription>
+                    <description>
+                        <para>1:se estudia el impacto de las futuras condiciones climáticas sobre el comportamiento germinativo de algunas especies de la cuenca mediterránea. 2:la conservación de la flora del norte de África.
+3: la constitución de un microhábitat, concretamente una rocalla adecuada para la exposición de especies rupícolas muy abundantes en las regiones mediterráneas.</para>
+                    </description>
+                </designDescription>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:56Z</dateStamp>
+                <citation>Agulló Villargona J, Aixart Sahun M (2021). Museu de Ciències Naturals de Barcelona: BGJBB. Version 1.9. Botanical Garden of Barcelona. Occurrence dataset https://doi.org/10.15468/vvpgcy accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>http://www.gbif.es/ipt/logo.do?r=mcnb-bgjbb</resourceLogoUrl>
+                <collection>
+                    <parentCollectionIdentifier>NA</parentCollectionIdentifier>
+                    <collectionIdentifier>c3937703-e166-402a-9826-556206aaa1f4</collectionIdentifier>
+                    <collectionName>Banco de Germoplasma</collectionName>
+                </collection>
+                <specimenPreservationMethod>REFRIGERATED</specimenPreservationMethod>
+                <jgtiCuratorialUnit>
+                    <jgtiUnitType>Specimen</jgtiUnitType>
+                    <jgtiUnits>3,016</jgtiUnits>
+                </jgtiCuratorialUnit>
+                <jgtiCuratorialUnit>
+                    <jgtiUnitType>Taxons</jgtiUnitType>
+                    <jgtiUnits>2,080</jgtiUnits>
+                </jgtiCuratorialUnit>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

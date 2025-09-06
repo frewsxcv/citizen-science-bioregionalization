@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="5d6c10bd-ea31-4363-8b79-58c96d859f5b"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/efh2ib</alternateIdentifier>
+        <alternateIdentifier>http://ipt.calacademy.org:8080/resource?r=ich</alternateIdentifier>
+        <alternateIdentifier>http://ipt.calacademy.org:8080/ipt/resource?r=ich</alternateIdentifier>
+        <alternateIdentifier>http://ipt.calacademy.org:8080/ipt/resource.do?r=ich</alternateIdentifier>
+        <alternateIdentifier>5d6c10bd-ea31-4363-8b79-58c96d859f5b</alternateIdentifier>
+        <alternateIdentifier>14071</alternateIdentifier>
+        <title>CAS Ichthyology (ICH)</title>
+        <creator>
+            <individualName>
+                <givenName>Jon</givenName>
+                <surName>Fong</surName>
+            </individualName>
+            <organizationName>California Academy of Sciences</organizationName>
+            <positionName>Collection Manager, Ichthyology</positionName>
+            <address>
+                <deliveryPoint>55 Music Concourse Drive</deliveryPoint>
+                <city>San Francisco</city>
+                <administrativeArea>CA</administrativeArea>
+                <postalCode>94118</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>+1 (415) 379-5280</phone>
+            <electronicMailAddress>jfong@calacademy.org</electronicMailAddress>
+            <onlineUrl>https://www.calacademy.org/staff/ibss/ichthyology/jon-fong</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0003-1162-6503</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Jon</givenName>
+                <surName>Fong</surName>
+            </individualName>
+            <organizationName>California Academy of Sciences</organizationName>
+            <positionName>Collection Manager, Ichthyology</positionName>
+            <address>
+                <deliveryPoint>55 Music Concourse Drive</deliveryPoint>
+                <city>San Francisco</city>
+                <administrativeArea>CA</administrativeArea>
+                <postalCode>94118</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>+1 (415) 379-5280</phone>
+            <electronicMailAddress>jfong@calacademy.org</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-1162-6503</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Luiz</givenName>
+                <surName>Rocha</surName>
+            </individualName>
+            <organizationName>California Academy of Sciences</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>55 Music Concourse Drive</deliveryPoint>
+                <city>San Francisco</city>
+                <administrativeArea>CA</administrativeArea>
+                <postalCode>94118</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>+1 (415) 379-5370</phone>
+            <electronicMailAddress>lrocha@calacademy.org</electronicMailAddress>
+            <onlineUrl>https://www.calacademy.org/staff/ibss/ichthyology/luiz-a-rocha</onlineUrl>
+            <role>CURATOR</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-15
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>The electronic catalog of the ichthyology collection at the California Academy of Sciences, San Francisco.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Fishes</keyword>
+            <keyword>Ichthyology</keyword>
+            <keyword>Fish</keyword>
+            <keywordThesaurus>n/a</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://www.calacademy.org/scientists/ichthyology-collections/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt.calacademy.org:8080/archive.do?r=ich</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>The collection&apos;s scope is world-wide, with particular strengths in the tropical Indo-Pacific and South America.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1827-01-01
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2021
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>The collection&apos;s scope is vertebrate animals commonly understood as fishes.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Myxini, Elasmobranchii, Holocephali, Actinopterygii, Sarcopterygii</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para>Updated each Monday around 2:30 PM Pacific time.</para>
+            </description>
+            <maintenanceUpdateFrequency>weekly</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Jon</givenName>
+                <surName>Fong</surName>
+            </individualName>
+            <organizationName>California Academy of Sciences</organizationName>
+            <positionName>Collection Manager, Ichthyology</positionName>
+            <address>
+                <deliveryPoint>55 Music Concourse Drive</deliveryPoint>
+                <city>San Francisco</city>
+                <administrativeArea>CA</administrativeArea>
+                <postalCode>94118</postalCode>
+                <country>UNITED_STATES</country>
+            </address>
+            <phone>+1 (415) 379-5280</phone>
+            <electronicMailAddress>jfong@calacademy.org</electronicMailAddress>
+            <onlineUrl>https://www.calacademy.org/staff/ibss/ichthyology/jon-fong</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0003-1162-6503</userId>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:57Z</dateStamp>
+                <citation>Fong J (2025). CAS Ichthyology (ICH). Version 150.473. California Academy of Sciences. Occurrence dataset. http://ipt.calacademy.org:8080/resource?r=ich&amp;v=150.473 https://doi.org/10.15468/efh2ib accessed via GBIF.org on 2025-05-19. accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://monarch.calacademy.org/images/collicons/CAS-ICH.png</resourceLogoUrl>
+                <collection>
+                    <parentCollectionIdentifier>CAS</parentCollectionIdentifier>
+                    <collectionIdentifier>CASICH</collectionIdentifier>
+                    <collectionName>CAS Ichthyology</collectionName>
+                </collection>
+                <jgtiCuratorialUnit>
+                    <jgtiUnitType>Lots</jgtiUnitType>
+                    <jgtiUnitRange>
+                        <beginRange>220,000</beginRange>
+                        <endRange>230,000</endRange>
+                    </jgtiUnitRange>
+                </jgtiCuratorialUnit>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="83771684-f762-11e1-a439-00145eb45e9a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/ywbi5k</alternateIdentifier>
+        <alternateIdentifier>https://ipt.gbif.es/resource?r=historicosev</alternateIdentifier>
+        <alternateIdentifier>83771684-f762-11e1-a439-00145eb45e9a</alternateIdentifier>
+        <alternateIdentifier>284</alternateIdentifier>
+        <title>Herbario de la Universidad de Sevilla, SEV-Historico</title>
+        <creator>
+            <individualName>
+                <givenName>Francisco javier</givenName>
+                <surName>Salgueiro González</surName>
+            </individualName>
+            <organizationName>Dep. of Plant Biology and Ecology, Univ. Seville</organizationName>
+            <address>
+                <country>SPAIN</country>
+            </address>
+            <electronicMailAddress>franja@us.es</electronicMailAddress>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Francisco javier</givenName>
+                <surName>Salgueiro González</surName>
+            </individualName>
+            <organizationName>Dep. of Plant Biology and Ecology, Univ. Seville</organizationName>
+            <address>
+                <country>SPAIN</country>
+            </address>
+            <electronicMailAddress>franja@us.es</electronicMailAddress>
+        </metadataProvider>
+        <pubDate>
+                2020-06-18
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>En los Herbarios Históricos de la Universidad de Sevilla se pueden encontrar pliegos incorporados desde el último tercio del siglo XVIII, como los recolectados en algunas Expediciones Científicas al Nuevo Mundo y los que trajo Pedro Abat de Igualada (anteriores a 1786), hasta la primera mitad del siglo XX. Entre el material contenido en los Herbarios, hay que destacar los materiales pertenecientes a las Expediciones Botánicas (Expedición a los Virreinatos de Perú y Chile, 1777-1788; Expedición a Nueva España, 1785-1803; Expedición de Malaspina alrededor del mundo, 1789-1795; Expedición Real del Guantánamo, 1796-1802), tanto los recolectados durante las mismas, como de cultivos de estos materiales en los jardines botánicos de Londres, París y Madrid, que sirvieron para describir las nuevas especies para la ciencia que se iban descubriendo en los territorios explorados. También cabe reseñar las plantas recolectadas por algunos notables Botánicos españoles del primer decenio del siglo XIX (Lagasca, Clemente y Rodríguez, principalmente). Se han localizado 266 tipos descritos por los botánicos más importantes de la época, como Cavanilles, Lagasca, Lamarck, De Candolle y Pourret.</para>
+<para>Note: this dataset was previously orphaned. It has been rescued by ① extracting it from the GBIF.org index (see GBIF Download in External Data) and ② republishing it on this IPT data hosting centre as version 1.0.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.gbif.es/archive.do?r=historicosev</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>NA</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <surName>Francisco javier Salgueiro González</surName>
+            </individualName>
+            <positionName>Conservador de Herbario</positionName>
+            <phone>(+34) 954 55 27 63</phone>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Francisco javier</givenName>
+                <surName>Salgueiro González</surName>
+            </individualName>
+            <organizationName>Dep. of Plant Biology and Ecology, Univ. Seville</organizationName>
+            <address>
+                <country>SPAIN</country>
+            </address>
+            <electronicMailAddress>franja@us.es</electronicMailAddress>
+        </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:53Z</dateStamp>
+                <citation>Salgueiro González F J (2020). Herbario de la Universidad de Sevilla, SEV-Historico. Dep. of Plant Biology and Ecology, Univ. Seville. Occurrence dataset https://doi.org/10.15468/ywbi5k accessed via GBIF.org on 2025-05-22.</citation>
+                <physical>
+                    <objectName>GBIF Occurrence Download</objectName>
+                    <characterEncoding>UTF-8</characterEncoding>
+                    <dataFormat>
+                        <externallyDefinedFormat>
+                            <formatName>Darwin Core Archive</formatName>
+                        </externallyDefinedFormat>
+                    </dataFormat>
+                    <distribution>
+                        <online>
+                            <url function="download">http://api.gbif.org/v1/occurrence/download/request/0002129-180131172636756.zip</url>
+                        </online>
+                    </distribution>
+                </physical>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

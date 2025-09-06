@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="712dba38-74cc-4704-87c0-63d1bf8484bc"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/vnwmrx</alternateIdentifier>
+        <title>BirdMap Data - GPS tracking of Storks, Cranes and birds of prey, breeding in Northern and Eastern Europe</title>
+        <creator>
+            <individualName>
+                <givenName>Kristjan</givenName>
+                <surName>Adojaan</surName>
+            </individualName>
+            <positionName>technical manager of data and design</positionName>
+            <electronicMailAddress>kristjan@adojaan.net</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-7901-6595</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Urmas</givenName>
+                <surName>Sellis</surName>
+            </individualName>
+            <positionName>project coordinator, data about storks and birds of prey</positionName>
+            <electronicMailAddress>urmas@kotkas.ee</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Ülo</givenName>
+                <surName>Väli</surName>
+            </individualName>
+            <positionName>scientific manager, data about birds of prey</positionName>
+            <electronicMailAddress>ulo.vali@emu.ee</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-2247-0658</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Ivar</givenName>
+                <surName>Ojaste</surName>
+            </individualName>
+            <positionName>Estonian team,  data about cranes</positionName>
+            <electronicMailAddress>ivar.ojaste@gmail.com</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-0555-3769</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Katarina</givenName>
+                <surName>Denac</surName>
+            </individualName>
+            <positionName>Slovenian team, data about storks</positionName>
+            <electronicMailAddress>katarina.denac@dopps.si</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Asko</givenName>
+                <surName>Lõhmus</surName>
+            </individualName>
+            <positionName>Estonian team, data and research design about storks</positionName>
+            <electronicMailAddress>asko.lohmus@ut.ee</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-7283-8716</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Jānis</givenName>
+                <surName>Ķuze</surName>
+            </individualName>
+            <positionName>Latvian team, data of eagles</positionName>
+            <electronicMailAddress>janis.kuze@ldf.lv</electronicMailAddress>
+        </creator>
+        <language>ENGLISH</language>
+        <abstract>
+            NGO Kotkaklubi (Eagle Club) and 5D Vision Ltd have developed an online portal birdmap.5dvision.ee, to visualize GPS data of migratory birds. Current dataset serves as a copy of source data for this visualization. The portal operates since 2006. Birds of 12 different species have been monitored, total number of individuals has been more than 160. Currently over 850 thousand occurrences (GPS fixes) are stored in the database. The data is managed via web-based backend that enables different methods of importing gps data (Movebank, manual upload for different receiver data formats). As the dataset covers long period of monitoring different species, various types of GPS transmitters have been used. Illustrated data about species and individuals can also be added. To enable publishing of the data to GBIF, synchronization to PlutoF biological data management platform was developed. The aim of the Birdmap portal is to increase awareness, international communication about nature and its protection by combining the possibilities and advancements of modern technology with this attractive natural phenomenon as well as providing researches and decision-makers with visualized spatial data for using in environmental analysis of possible influence of large-scale infrastructure projects. (Due to legal reasons exact location data of species with highest protection category in Estonia, belonging to Estonian territory, are not disclosed in this dataset and are available on request.)
+        </abstract>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://birdmap.5dvision.ee</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://files.plutof.ut.ee/public/orig/57/0A/570AD9A2840877BB535BD9EC3C94890A4C05654817A87BF0199E0A9A726E571B.zip</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Europe, Africa, Middle East
+92.44271, -26.45857
+92.44271, 72.39333
+-16.45271, 72.39333
+-16.45271, -26.45857</geographicDescription>
+            </geographicCoverage>
+        </coverage>
+        <contact>
+            <individualName>
+                <givenName>Kristjan</givenName>
+                <surName>Adojaan</surName>
+            </individualName>
+            <positionName>technical manager of data and design</positionName>
+            <electronicMailAddress>kristjan@adojaan.net</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-7901-6595</userId>
+        </contact>
+
+            <project >
+                <title>Development of Birdmap project</title>
+                <abstract>
+                    <para>Purpose was to upgrade running interactive bird migration web application birdmap.5dvision.ee. In more than 15 years of work the habits of users, as well as technical approach for web sites have been changed significantly. Therefore, requirements for user interface have been forced us to develop new version of bird migration map. In addition, due to increased amount of data that sets the conditions for the user interface. The goal was to eliminate the bottlenecks that have accumulated over the years and provide faster and better user experience.</para>
+                </abstract>
+                <funding>
+                    <para>Environmental Investment Centre KIK12964, KIK18864</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:57Z</dateStamp>
+                <citation>Adojaan K, Sellis U, Väli Ü, Ojaste I, Denac K, Lõhmus A, Ķuze J. BirdMap Data - GPS tracking of Storks, Cranes and birds of prey, breeding in Northern and Eastern Europe. PlutoF. Occurrence dataset https://doi.org/10.15468/vnwmrx accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>https://s3.hpc.ut.ee/plutof-public/original/253364d3-f58e-40be-ac5e-4c3b4007c85b.svg</resourceLogoUrl>
+                <formationPeriod>2005-10-15 - 2022-04-27</formationPeriod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

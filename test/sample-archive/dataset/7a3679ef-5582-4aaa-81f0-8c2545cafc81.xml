@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="7a3679ef-5582-4aaa-81f0-8c2545cafc81"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/gtebaa</alternateIdentifier>
+        <alternateIdentifier>7a3679ef-5582-4aaa-81f0-8c2545cafc81</alternateIdentifier>
+        <alternateIdentifier>https://ipt.plantnet.org/resource?r=observations</alternateIdentifier>
+        <title>Pl@ntNet observations</title>
+        <creator>
+            <individualName>
+                <givenName>Antoine</givenName>
+                <surName>AFFOUARD</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>antoine.affouard@inria.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0009-0007-0447-9230</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Alexis</givenName>
+                <surName>JOLY</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Research Director</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>alexis.joly@inria.fr</electronicMailAddress>
+            <onlineUrl>http://www-sop.inria.fr/members/Alexis.Joly/wiki/pmwiki.php</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-2161-9940</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Jean-Christophe</givenName>
+                <surName>LOMBARDO</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Research Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>jean-christophe.lombardo@inria.fr</electronicMailAddress>
+            <onlineUrl>http://www-sop.inria.fr/members/Jean-Christophe.Lombardo/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-9656-4219</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Julien</givenName>
+                <surName>CHAMP</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Research Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>julien.champ@inria.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-2042-0411</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Hervé</givenName>
+                <surName>GOEAU</surName>
+            </individualName>
+            <organizationName>CIRAD, AMAP Joint Research Unit</organizationName>
+            <positionName>Researcher</positionName>
+            <address>
+                <deliveryPoint>Cirad, Umr Amap - TA A-51/ps1, Bd de La Lironde</deliveryPoint>
+                <city>Montpellier Cedex 5 (France)</city>
+                <postalCode>34398</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>herve.goeau@cirad.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-3296-3795</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Mathias</givenName>
+                <surName>CHOUET</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>mathias.chouet@cirad.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-2936-2641</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Hugo</givenName>
+                <surName>GRESSE</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>hugo.gresse@inria.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-2720-6415</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Pierre</givenName>
+                <surName>BONNET</surName>
+            </individualName>
+            <organizationName>CIRAD, AMAP Joint Research Unit</organizationName>
+            <positionName>Botanist</positionName>
+            <address>
+                <deliveryPoint>Cirad, Umr Amap - TA A-51/ps1, Bd de La Lironde</deliveryPoint>
+                <city>Montpellier Cedex 5 (France)</city>
+                <postalCode>34398</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>pierre.bonnet@cirad.fr</electronicMailAddress>
+            <onlineUrl>http://agents.cirad.fr/index.php/Pierre+BONNET</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-2828-4389</userId>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Antoine</givenName>
+                <surName>AFFOUARD</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>antoine.affouard@inria.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0009-0007-0447-9230</userId>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Antoine</givenName>
+                <surName>AFFOUARD</surName>
+            </individualName>
+            <organizationName>Inria</organizationName>
+            <positionName>Engineer</positionName>
+            <address>
+                <deliveryPoint>LIRMM</deliveryPoint>
+                <city>Montpellier</city>
+                <postalCode>34095</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>antoine.affouard@inria.fr</electronicMailAddress>
+            <userId directory="https://orcid.org/">0009-0007-0447-9230</userId>
+            <role>PROGRAMMER</role>
+        </associatedParty>
+        <pubDate>
+                2025-04-16
+        </pubDate>
+        <language>ENGLISH</language>
+        <abstract>
+            <para>Pl&amp;#64;ntNet is a participatory botanical observation platform allowing to identify plants from photos (using deep learning) and to share the observations with the community. The platform has three main front-ends: Pl&amp;#64;ntNet androïd (http://bit.ly/1K4D1eU), Pl&amp;#64;ntNet iOS (http://apple.co/2cMtWgu) and Pl&amp;#64;ntNet web (https://identify.plantnet.org/). Pl&amp;#64;ntNet was founded in 2010 by a consortium of four French research organisms (CIRAD, Inria, INRAE and IRD) and is now open to other members. More information about Pl&amp;#64;ntNet project can be found at https://plantnet.org/.  
+
+The observations in this collection are the ones for which the authors agree to share the associated pictures under a creative common licence and for which the species name is considered as valid.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Observation</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://identify.plantnet.org</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt.plantnet.org/archive.do?r=observations</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Plant observations from Pl@ntNet network come from all around the world.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Pl@ntNet observations focus on plants.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                    <commonName>Plant</commonName>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Pierre</givenName>
+                <surName>BONNET</surName>
+            </individualName>
+            <organizationName>CIRAD, AMAP Joint Research Unit</organizationName>
+            <positionName>Botanist</positionName>
+            <address>
+                <deliveryPoint>Cirad, Umr Amap - TA A-51/ps1, Bd de La Lironde</deliveryPoint>
+                <city>Montpellier Cedex 5 (France)</city>
+                <postalCode>34398</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <electronicMailAddress>pierre.bonnet@cirad.fr</electronicMailAddress>
+            <onlineUrl>http://agents.cirad.fr/index.php/Pierre+BONNET</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-2828-4389</userId>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>This collection contains observations of plants shared by Pl@ntNet users using one the three Pl@ntNet applications (androïd, iOS, web, more information here: https://plantnet.org/). The following filters were applied:
+- image license cc-*
+- is geolocated
+- is valid (identification score &gt; threshold)
+- from a user with an enabled account
+- with a known species name (valid or synonym) in Pl@ntNet
+- species name != Cannabis
+- date_observation &gt; 0
+- must be in one of the WGSRPD polygon level 3 and the binomial species name (without author) must match a species of the corresponding Kew checklist</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>Entire world, Plantae.</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>No sampling protocol, opportunistic observations by Pl@ntNet users.</para>
+                </samplingDescription>
+            </sampling>
+            <qualityControl>
+                <description>
+                    <para>The validation is based on three main criteria:
+- the identification confidence score greater than a given threshold, the score being inferred from (i) the output of the automated identification algorithm (categorical probability) and (ii) the species names proposed by the members
+- the contributor has a reputation score higher than a given threshold
+- the species name matches the checklist considered as the most trusted one for the country where the observation was done</para>
+                </description>
+            </qualityControl>
+        </methods>
+
+            <project id="observations">
+                <title>Pl@ntNet Observations</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Antoine</givenName>
+                    <surName>AFFOUARD</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0009-0007-0447-9230</userId>
+                    <role>PROGRAMMER</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Alexis</givenName>
+                    <surName>JOLY</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0002-2161-9940</userId>
+                    <role>PRINCIPAL_INVESTIGATOR</role>
+                </personnel>
+                <personnel>
+                    <individualName>
+                    <givenName>Pierre</givenName>
+                    <surName>BONNET</surName>
+                    </individualName>
+            <userId directory="https://orcid.org/">0000-0002-2828-4389</userId>
+                    <role>PRINCIPAL_INVESTIGATOR</role>
+                </personnel>
+                <abstract>
+                    <para>PlantNet is a participatory botanical observation platform allowing to identify plants from photos (using deep learning) and share observations with the community. This resource contains illustrated observations explicitly shared by PlantNet users under a Creative Common license.</para>
+                </abstract>
+                <funding>
+                    <para>PlantNet is an open consortium founded by four French research organizations (CIRAD, Inria, INRAE, IRD) and supported by Agropolis Fondation. The two main funding resources are: (i) the annual contribution of the members of the consortium, (ii) donations from the end-users of PlantNet application (&gt;10 million users).</para>
+                </funding>
+                <studyAreaDescription>
+                    <descriptor name="generic" citableClassificationSystem="false">
+                        <descriptorValue>Entire world</descriptorValue>
+                    </descriptor>
+                </studyAreaDescription>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:46Z</dateStamp>
+                <citation>AFFOUARD A, JOLY A, LOMBARDO J, CHAMP J, GOEAU H, CHOUET M, GRESSE H, BONNET P (2025). Pl@ntNet observations. Version 1.9. Pl@ntNet. Occurrence dataset https://doi.org/10.15468/gtebaa accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation identifier="https://doi.org/10.1016/j.ecoinf.2013.07.006">Joly, A., Goëau, H., Bonnet, P., Bakić, V., Barbe, J., Selmi, S., ... &amp; Yahiaoui I., Carré J., Mouysset E., Molino J.-f., Boujemaa B., Barthélémy D., (2014). Interactive plant identification based on social image data. Ecological Informatics, 23, 22-34.</citation>
+                <citation identifier="https://doi.org/10.1007/s00530-015-0462-9">Joly, A., Bonnet, P., Goëau, H., Barbe, J., Selmi, S., Champ, J., Dufour-Kowalski, S., Affouard, A., Carré, J., Molino, J.-f., Boujemaa, N., &amp; Barthélémy D., (2016). A look inside the Pl@ntNet experience. Multimedia Systems, 22(6), 751-766.</citation>
+                <citation identifier="https://hal.archives-ouvertes.fr/hal-01629183">Goëau, H., Bonnet, P., Joly, A., 2017. Plant identification based on noisy web data: the amazing performance of deep learning (LifeCLEF 2017). CLEF: Conference and Labs of the Evaluation Forum, Sep 2017, Dublin, Ireland. ⟨hal-01629183⟩</citation>
+                <citation identifier="https://hal.archives-ouvertes.fr/hal-01629195">Affouard, A., Goëau, H., Bonnet, P., Lombardo, J. C., &amp; Joly, A., (2017). Pl@ntNet app in the era of deep learning. ICLR: International Conference on Learning Representations, Apr 2017, Toulon, France. ⟨hal-01629195⟩</citation>
+                </bibliography>
+                <resourceLogoUrl>https://api.plantnet.org/public/plantnet.jpeg</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

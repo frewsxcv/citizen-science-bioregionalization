@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="3287044c-8c48-4ad6-81d4-4908071bc8db"  system="http://gbif.org" scope="system"
+xml:lang="en">
+    <dataset>
+        <alternateIdentifier>10.15468/eq1kml</alternateIdentifier>
+        <alternateIdentifier>http://collections.mnhn.fr/ipt/resource?r=mnhn-my</alternateIdentifier>
+        <alternateIdentifier>http://collections.mnhn.fr/ipt/resource.do?r=mnhn-my</alternateIdentifier>
+        <alternateIdentifier>3287044c-8c48-4ad6-81d4-4908071bc8db</alternateIdentifier>
+        <title>The Myriapoda &amp; Onychophora collection (MY) of the Muséum national d&apos;Histoire naturelle (MNHN - Paris)</title>
+        <creator>
+            <individualName>
+                <givenName>Jean-Paul</givenName>
+                <surName>Mauriès</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>Provider</positionName>
+            <address>
+                <deliveryPoint>CP 53, 61 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <postalCode>75231</postalCode>
+                <country>FRANCE</country>
+            </address>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Simon</givenName>
+                <surName>Chagnoux</surName>
+            </individualName>
+            <electronicMailAddress>gbifprovider@mnhn.fr</electronicMailAddress>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <givenName>Laurent</givenName>
+                <surName>Albenga</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>data manager</positionName>
+            <address>
+                <deliveryPoint>CP 49/50, 45 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <postalCode>75231</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <role>DISTRIBUTOR</role>
+        </associatedParty>
+        <associatedParty>
+            <individualName>
+                <givenName>Gwenaël</givenName>
+                <surName>Le Bras</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>data manager</positionName>
+            <address>
+                <deliveryPoint>CP 49/50, 45 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <postalCode>75231</postalCode>
+                <country>FRANCE</country>
+            </address>
+            <role>PROCESSOR</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-15
+        </pubDate>
+        <language>FRENCH</language>
+        <abstract>
+            <para>Established in the second half of the 19th century, the MNHN’s collections of myriapods and onychophorans are still stored as one collection, mostly for historical and practical reasons.
+
+The myriapods section is a major collection for myriapodology worldwide, all the groups it includes, and its history. The material comes from all around the world and belongs to the classes Pauropoda (2 extant orders), Symphyla, Chilopoda (5 extant orders) and Diplopoda (16 extant orders), collected from most of the terrestrial ecosystems. About 5000 species of myriapods are represented in the collections, including a high number of historical samples. The myriapods collection comprises 300 000 to 400 000 specimens. Nearly half of it constitutes the reference collection, the other half, which includes a potentially important amount of taxa yet unknown to science, is awaiting further studies. The reference collection gathers about 25 000 to 30 000 batches, each containing from 1 to more than 300 specimens, stored into 4639 jars. The reference collection includes about 3 000 to 3 500 batches containing altogether 15 000 to 20 000 type specimens.
+To date, the MNHN-MY dataset has gathered 9 795 batches of myriapods, consisting of 63 617 specimens, which represents 33% to 40% of the reference collection.
+
+The Onychophorans collection, contains invaluable historical material, such as type specimens of species described by Bouvier in the 1900s. The MNHN’s collection of Onychophorans (commonly known as velvet worms) is one of the world’s most important for this group. Although only a small phylum, it is of key importance in several aspects within the Metazoa, particularly regarding phylogenetic relationships between arthropods and other invertebrates (Oliveira &amp; al. 2012). The collection boasts almost a hundred species, represented by 202 batches containing 279 specimens and 43 dissections. This collection is stored into 67 jars. It includes 56 batches containing altogether 73 nomenclatural types (plus 2 dissections of types).
+This part of the collection is fully databased and included in the MNHN-MY dataset, and has been since used for studies on the group (Oliveira &amp; al. 2012).</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Symphyla</keyword>
+            <keyword>Types</keyword>
+            <keyword>Taxonomy</keyword>
+            <keyword>Zoology</keyword>
+            <keyword>Chilopoda</keyword>
+            <keyword>Centipedes</keyword>
+            <keyword>Onychopora</keyword>
+            <keyword>Diplopoda</keyword>
+            <keyword>Myriapoda</keyword>
+            <keyword>Arthropods</keyword>
+            <keyword>Specimens</keyword>
+            <keyword>Pauropoda</keyword>
+            <keyword>Collections</keyword>
+            <keyword>Velvet worms</keyword>
+            <keyword>Millipedes</keyword>
+            <keywordThesaurus>No keyword thesaurus designated</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+            <identifier>CC-BY-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://collections.mnhn.fr/ipt/archive.do?r=mnhn-my</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>To date, no batches from this dataset have been georeferenced. Contemporary administrative countries, corresponding to where the specimens have been sampled, have however been included when possible. Although imperfect for biodiversity studies, an image of the collection events repartition using the ISO 3166 (ISO 2014), can be given. The two main parts of the collection have a different spatial repartition, due in part to the distribution of the taxa represented, but also to a different history.
+The myriapod dataset is a collection for “metropolitan France and the world”. Indeed, ca. 56.80% of the batches were collected in metropolitan France, but these batches represent ca. 72.64% of the total number of specimens in the collection. This can be explained by the fact that the number of specimens per batch collected in metropolitan France is significantly higher than the average number of specimens per batch for the rest of the world, including the French overseas territories. Even though the metropolitan French collection has been extensively studied (and consequently its batches have been split numerous times), they are still, on average, larger than the batches coming from the rest of the world. The distribution worldwide, as depicted in Figure 4 is not homogeneous. Both characteristics of the dataset, as well as the taxonomic coverage (see above) are the main focus of J.-M. Demange and J.-P. Mauriès’ research work. The studies of H.W. Brolemann over the fauna from Algeria, Brazil and the USA are clearly visible on Figure 5 (Brolemann 1896b, 1897, 1909, 1931, MyriaLit).
+Although it is highly probable that the amount of specimens from metropolitan France is over-represented in the dataset, compared to the whole physical collection, it is still the first geographical area of origin for the specimens of MNHN-MY. The same phenomenon is observed when interpreting the average number of specimen per batch, as depicted on Figure 6. With the exception of a few countries, the average number of specimen per batch is relatively low (average of 4.049 specimens per batch for the non-French specimens). Also, in the distribution of the type batches, France tends to be still over-represented in the dataset, though less drastically (see Figure 7). We suspect this is due to the fact that even though France is not a “hot spot” for myriapod biodiversity, it has been and still is an intensively studied area.
+In contrast with the myriapods, the onychophorans specimens come from different locations outside France, reflecting the ecology and distribution of the group. One could be surprised to notice in Figure 8 the importance of South Africa as geographical origin of the specimens in the collection. These specimens mainly come from institutional exchanges, driven by L.E. Bouvier between the MNHN and other institutes, such as the British Museum. The Figure 9 reflects the extensive and general work of description L.E. Bouvier made over these few specimens.</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-180</westBoundingCoordinate>
+                    <eastBoundingCoordinate>180</eastBoundingCoordinate>
+                    <northBoundingCoordinate>90</northBoundingCoordinate>
+                    <southBoundingCoordinate>-90</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>                1835
+</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>                2010
+</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>As depicted in Figure 1 and Figure 2, the dataset reflects the scientific activities of the researchers doing the digitization. Consequently, even though the collection taxonomically covers the whole myriapods and onychophorans, the dataset actually contains a majority of millipedes, and the totality of the onychophorans. As a result of this work in the last decades, these two collections are also more scattered than the others, with less specimens per batch, as depicted in Figure 3. The taxonomy used in this dataset reflects the one used in the collection. Similarly to most of the big historical collections it is in many ways outdated, and would be nearly impossible to update (Soberón &amp; al. 2002, Gaston &amp; al. 1992, Alroy 2002). Cross-checking it with taxonomical datasets such as the dataset NCBI taxonomy is then an important step while using it (ECAT development publisher).
+The Onychophorans collection contains 48 species plus 7 subspecies within 15 genera of the two actual families.</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                    <commonName>animal</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Arthropoda</taxonRankValue>
+                    <commonName>arthropod</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Phylum</taxonRankName>
+                    <taxonRankValue>Onychophora</taxonRankValue>
+                    <commonName>velvet worm</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Chilopoda</taxonRankValue>
+                    <commonName>centipede</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Diplopoda</taxonRankValue>
+                    <commonName>millipede</commonName>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Pauropoda</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Symphyla</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Class</taxonRankName>
+                    <taxonRankValue>Udeonychophora</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Euonychophora</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Geophilomorpha</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Lithobiomorpha</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Scolopendromorpha</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Scutigeromorpha</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Callipodida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Chordeumatida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Glomerida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Glomeridesmida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Julida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Platydesmida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Polydesmida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Polyxenida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Polyzoniida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Siphonophorida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Sphaerotheriida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Spirobolida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Spirostreptida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Stemmiulida</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>Order</taxonRankName>
+                    <taxonRankValue>Tetramerocerata</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>unkown</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Jean-Paul</givenName>
+                <surName>Mauriès</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>former curator</positionName>
+            <address>
+                <deliveryPoint>CP 53, 61 rue Buffon</deliveryPoint>
+                <city>Paris</city>
+                <postalCode>75231</postalCode>
+                <country>FRANCE</country>
+            </address>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Jean-Jacques</givenName>
+                <surName>Geoffroy</surName>
+            </individualName>
+            <organizationName>MNHN</organizationName>
+            <positionName>Curator</positionName>
+            <address>
+                <deliveryPoint>4 avenue du Petit-Château</deliveryPoint>
+                <city>Brunoy</city>
+                <postalCode>F-91800</postalCode>
+            </address>
+            <electronicMailAddress>geoffroy@mnhn.fr</electronicMailAddress>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>As we mentioned above, the specimens deposited at the MNHN-MY collection come from various regions of the world, and were collected during different periods. Consequently, no single sampling protocol can be distinguished. Moreover, for most of the specimens, the sampling methodology is unknown, even if largely suspected to be direct hand collection. The aims of collecting and the associated supply put at the disposal of field collectors have indeed evolved much since the early ages of this collection.</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>This collection is mainly used for studies on systematics and classification of myriapods and onychophorans. In regards to its size, its composition and the amount of nomenclatural type specimens it contains, it is a major collection for the studied fields. Moreover, it has revealed an important number of unexpected new taxa within its less studied parts. The collection from France and the Mediterranean areas, particularly Spain, have been extensively studied.</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>As we mentioned above, the specimens deposited at the MNHN-MY collection come from various regions of the world, and were collected during different periods. Consequently, no single sampling protocol can be distinguished. Moreover, for most of the specimens, the sampling methodology is unknown, even if largely suspected to be direct hand collection. The aims of collecting and the associated supply put at the disposal of field collectors have indeed evolved much since the early ages of this collection.</para>
+                </samplingDescription>
+            </sampling>
+        </methods>
+
+            <project >
+                <title>Digitization and provision of the data to the international community of collections from the Muséum national d’Histoire naturelle</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Gwenaël</givenName>
+                    <surName>Le Bras</surName>
+                    </individualName>
+                    <role>AUTHOR</role>
+                </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>e-ReColNAt : ANR-11-INBS-0004, Muséum national d&apos;Histoire naturelle (MNHN - Paris)</para>
+                </funding>
+                <studyAreaDescription>
+                    <descriptor name="generic" citableClassificationSystem="false">
+                        <descriptorValue>The dataset corresponds to the part of the collection of myriapods and onychophorans of the MNHN – Paris that is already entered into a database. The present dataset does not represent the totality of the collection as its digitization is an ongoing work. The main goal of the e-ReColNAt project was to refine and transfer the existing metadata from a local, mono-table database (4D system) to the MNHN’s shared collection database system (Oracle), and to allow its publishing through the MNHN web services and the GBIF portal. One entry corresponds to a batch of one to several specimens sharing common characteristics, and belonging to the same taxon.</descriptorValue>
+                    </descriptor>
+                </studyAreaDescription>
+                <designDescription>
+                    <description>
+                        <para>From the mid-1980s, the collection curators and researchers J.-P. Mauriès and J.-M. Demange have been digitizing this data, mostly in relation to their taxonomical work, on a local, mono-table database (4D). By 2010, the database had reached ca. 10 000 entries. The main idea behind the data entry was to allow a quick match of an entry based on its sole jar or batch identifier. As such, this important amount of data needed both structuring and refining in order to allow multi-field requests, before being committed to the MNHN shared collection database system (Oracle), and connecting to the GBIF infrastructure through an Integrated Publishing Toolkit (IPT) (Soberón &amp; al. 2002). Initial work was conducted in 2011 by Laurent Albenga to upload to the shared collection database system the totality of the onychophorans entries (202 entries). The remaining 9 795 entries have been refined in the scope of the e-ReColNAt project, and were committed on 27th January 2015. Apart from the Oracle solutions and the Jacim, the Muséum national d’Histoire naturelle solution for scientific management (http://collections.mnhn.fr/wiki/Wiki.jsp?page=Jacim_Documentation), OpenRefine (http://www.openrefine.org) proved to be a very precious tool in the refining process. The entries of this dataset are reflecting the scientist’s activities over these collections during the past decades. The parts that have been recently studied tend to be more scattered (less specimens per batches and jar).</para>
+                    </description>
+                </designDescription>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:51Z</dateStamp>
+                <citation>Mauriès J, Chagnoux S (2025). The Myriapoda &amp; Onychophora collection (MY) of the Muséum national d&apos;Histoire naturelle (MNHN - Paris). Version 74.417. MNHN - Museum national d&apos;Histoire naturelle. Occurrence dataset https://doi.org/10.15468/eq1kml accessed via GBIF.org on 2025-05-22.</citation>
+                <bibliography>
+                <citation identifier="doi: 10.1073/pnas.062691099">Alroy J (2002) How many named species are valid? Proceedings of the National Academy of Sciences of the United States of America 99:3706–3711.</citation>
+                <citation>Attems C (1908) Note sur les Myriopodes recueillis par M. Henri Gadeau de Kerville en Khroumirie, et description de deux espèces et d&apos;une variété nouvelles provenant de cette région de la Tunisie. - In: Gadeau de Kerville H (ed) Voyage zoologique en Khroumirie (Tunisie). Mai-Juin 1906. Avec quatre mémoires du comte Carl Attems, d&apos;Ignacio Bolivar, du Dr Raphaël Blanchard et de Louis Germain, sur les Myriopodes, les Insectes Orthoptères, les Hirudinées et les Mollusques récoltés pendant ce voyage. J. B. Baillière &amp; Fils, Paris, 103-116.</citation>
+                <citation>Bouvier LE (1905) Monographie des Onychophores. Annales des Sciences Naturelles, Zoologie et Biologie Animale [9e Série] 2: 1–383.</citation>
+                <citation>Bouvier LE (1907a) Catalogue des Onychophores des Collections du Muséum d’Histoire Naturelle de Paris. Bulletin du Muséum national d’Histoire naturelle 13: 518-521.</citation>
+                <citation>Bouvier LE (1907b) Monographie des Onychophores. Annales des Sciences Naturelles, Zoologie et Biologie Animale [9e Série] 5: 61–318.</citation>
+                <citation>Brolemann HW (1896a): Myriapodes provenant des campagnes scientifiques de l&apos;Hirondelle et de la Princesse Alice. Bulletin de la Société Zoologique de France 21: 198-204.</citation>
+                <citation>Brolemann HW (1896b): Liste des Myriapodes des Etats-Unis, et principalement de la Caroline du Nord, faisant partie des collections de M. Eugène Simon. Annales de la Société entomologique de France 65(1): 43-70.</citation>
+                <citation>Brolemann HW (1897): Un mysterieux myriapode Scolopendra bahiensis Brandt. Bulletin de la Société Zoologique de France 22 (5-6): 142-146.</citation>
+                <citation>Brolemann HW (1898): Voyage de M. E. Simon au Venezuela (décembre 1887-août 1888). Myriapodes du Venezuela. Annales de la Société entomologique de France 67(1): 241-313.</citation>
+                <citation>Brolemann HW (1909): Os myriapodos do Brazil. In: Museu Paulista. Catalogos da Fauna Brazileira, São Paulo 2:1-94.</citation>
+                <citation>Brolemann HW (1920): Myriapodes III. Diplopoda. In: Shultz A (ed) Voyage de Ch. Alluaud et R. Jeannel en Afrique Orientale (1911-1912). Résultats scientifiques. Librairie des Sciences Naturelles Léon Lhomme, Paris, 49-298.</citation>
+                <citation>Brolemann HW (1922): Myriapods collected in Mesopotamia and N. W. Persia by W. Edgar Evans, B.Sc., late Capt. R.A.M.C. Proceedings of the Royal Physical Society of Edinburgh 42 (6): 54-74.</citation>
+                <citation>Brolemann HW (1923): Biospeologica XLVIII. Blaniulidae Myriapodes (Première Série). Archives de Zoologie Expérimentale et Générale 61 (2): 99-453.</citation>
+                <citation>Brolemann HW (1926): Myriapodes recueillis en Afrique occidentale française par M. l&apos;administrateur en chef L. Duboscq. Archives de Zoologie Expérimentale et Générale 65 (1): 1-159.</citation>
+                <citation>Brolemann HW (1930): Éléments d&apos;une faune des myriapodes de France (Chilopodes). In: Lechevalier P (ed) Faune de France 25., Paris, 405 pp.</citation>
+                <citation>Brolemann HW (1931): Myriapodes recueillis par M. le Dr H. Gauthier en Algérie. – Bulletin de la Société d&apos;Histoire naturelle de l&apos;Afrique du Nord 22: 121-134.</citation>
+                <citation>Brolemann HW (1935): Myriapodes Diplopodes (Chilognathes I). In: Lechevalier P (ed) Faune de France 29, Paris, 369pp.</citation>
+                <citation>Caulery M (1944) Notice nécrologique sur Louis-Eugène Bouvier (1856-1944). Comptes Rendus hebdomadaires des Séances de l’Académie des sciences 218:89-94.</citation>
+                <citation>Condé B (1962) Nécrologie – Paul A. Remy. Bulletin de la Société entomologique de France 67(5-6):93-95.</citation>
+                <citation>Condé B (1963) Notice sur Paul A. Remy et son œuvre biospéléologique. Annales de Spéléologie 18:463-471.</citation>
+                <citation>Duboscq O (1933) Henry Brölemann. Bulletin de la Société Zoologique de France 58(1):275-277.</citation>
+                <citation>Duboscq O, Ribaut H (1933) Liste des publications de H.W. Brölemann. Bulletin de la Société Zoologique de France 58(1):278-283.</citation>
+                <citation>ECAT development publisher: NCBI Taxonomy [accessed through GBIF data portal] http://data.gbif.org/datasets/resource/13565 [01.09.2014 to 11.12.2014]</citation>
+                <citation identifier="doi: 10.1038/356281a0">Gaston KJ, May RM (1992) Taxonomy of taxonomists. Nature 356:281-282.</citation>
+                <citation>ISO – Country Codes - ISO 3166 http://www.iso.org/iso/country_codes.htm [accessed 11.12.2014]</citation>
+                <citation>Kraepelin K (1910a) Catalogue des Scolopendrides des collections du Muséum d’Histoire naturelle de Paris (Collections du Muséum déterminée par M. le Professeur Karl Kraepelin, et collection H.W. Brolemann) 1re partie – Scolopodendrides en dehors du genre Scolopendra. Bulletin du Muséum national d’Histoire naturelle 10: 243–255.</citation>
+                <citation>Kraepelin K (1910b) Catalogue des Scolopendrides des collections du Muséum d’Histoire naturelle de Paris (Collections du Muséum déterminée par M. le Professeur Karl Kraepelin, et collection H.W. Brolemann) 2e partie – genre Scolopendra. Bulletin du Muséum national d’Histoire naturelle 10: 316–325.</citation>
+                <citation>MyriaLit Database http://www.myriapodology.org/myrlit/ [accessed 05.12.2014]</citation>
+                <citation identifier="doi: 10.3897/zookeys.211.3463">Oliveira IS, Read VMSL, Mayer G (2012) A world checklist of Onychophora (velvet worms), with notes on nomenclature and status of names. ZooKeys 211: 1–70.</citation>
+                <citation>Ribaut H (1922): Myriapodes. – in: Voyage de M. le Baron Maurice de Rothschild en Éthiopie et en Afrique Orientale Anglaise (1904-1905). Imprimerie Nationale, Paris: 129-154.</citation>
+                <citation>Soberón J, Arriaga L, Lara L (2002) Issues of quality control in large, mixed-origin entomological databases. In: Saarenmaa H, Nielsen ES (eds.) Towards a global biological information infrastructure, Technical report. European Environment Agency, Copenhagen 70:15-22.</citation>
+                <citation>Société préhistorique de France (1941) Nécrologie : Henri Gadeau de Kerville. Bulletin de la Société préhistorique de France 38(1):6-7.</citation>
+                <citation>Thematic Mapping API http://thematicmapping.org/downloads/world_borders.php [accessed 23.10.2014]</citation>
+                </bibliography>
+                <collection>
+                    <parentCollectionIdentifier>MNHN</parentCollectionIdentifier>
+                    <collectionIdentifier>MY</collectionIdentifier>
+                    <collectionName>Myriapoda &amp; Onychophora collection (MY) of the Muséum national d&apos;Histoire naturelle (MNHN - Paris)</collectionName>
+                </collection>
+                <formationPeriod>1985-2014</formationPeriod>
+                <specimenPreservationMethod>ALCOHOL</specimenPreservationMethod>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>

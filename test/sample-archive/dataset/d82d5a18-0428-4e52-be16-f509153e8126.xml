@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+packageId="d82d5a18-0428-4e52-be16-f509153e8126"  system="http://gbif.org" scope="system"
+xml:lang="pt">
+    <dataset>
+        <alternateIdentifier>10.15468/caq5no</alternateIdentifier>
+        <alternateIdentifier>d82d5a18-0428-4e52-be16-f509153e8126</alternateIdentifier>
+        <alternateIdentifier>http://ipt1.cria.org.br/ipt/resource?r=ub_herbario</alternateIdentifier>
+        <title>UB - Herbário da Universidade de Brasília</title>
+        <creator>
+            <individualName>
+                <givenName>Caroline Oliveira</givenName>
+                <surName>Andrino</surName>
+            </individualName>
+            <organizationName>Universidade de Brasília (UnB)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade de Brasília - Campus Darcy Ribeiro; Caixa Postal 4457, Asa Norte</deliveryPoint>
+                <city>Brasília</city>
+                <administrativeArea>Distrito Federal</administrativeArea>
+                <postalCode>70910-900</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <electronicMailAddress>caroline.andrino@unb.br</electronicMailAddress>
+            <onlineUrl>http://www.florescer.unb.br</onlineUrl>
+        </creator>
+        <metadataProvider>
+            <individualName>
+                <givenName>Caroline Oliveira</givenName>
+                <surName>Andrino</surName>
+            </individualName>
+            <organizationName>Universidade de Brasília (UnB)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade de Brasília - Campus Darcy Ribeiro; Caixa Postal 4457, Asa Norte</deliveryPoint>
+                <city>Brasília</city>
+                <administrativeArea>Distrito Federal</administrativeArea>
+                <postalCode>70910-900</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <electronicMailAddress>caroline.andrino@unb.br</electronicMailAddress>
+            <onlineUrl>http://www.florescer.unb.br</onlineUrl>
+        </metadataProvider>
+        <associatedParty>
+            <individualName>
+                <surName>speciesLink Network</surName>
+            </individualName>
+            <organizationName>Centro de Referência em Informação Ambiental, CRIA</organizationName>
+            <positionName>Network</positionName>
+            <address>
+                <deliveryPoint>Rua João Carlos do Amaral, 500, casa 01</deliveryPoint>
+                <city>Campinas</city>
+                <administrativeArea>São Paulo</administrativeArea>
+                <postalCode>13070-111</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <electronicMailAddress>helpdesk@cria.org.br</electronicMailAddress>
+            <onlineUrl>https://specieslink.net</onlineUrl>
+            <role>CUSTODIAN_STEWARD</role>
+        </associatedParty>
+        <pubDate>
+                2025-05-05
+        </pubDate>
+        <language>PORTUGUESE</language>
+        <abstract>
+            <para>Fundado em 1963 junto com o Departamento de Botânica da UnB. Eminentes botânicos já foram curadores do UB. Dra. Graziela Maciel Barroso, cedida pelo Jardim Botânico do Rio de Janeiro na década de 1960, foi curadora até 1968 sendo substituida pelo famoso botânico amazônico João Murça Pires. Dr. George Eiten, importante pelas suas publicações pioneiras em cerrado, e hoje professor emérito da Universidade de Brasília foi curador por curto período. O herbário UB funciona no mesmo local desde a sua criação, na ala sul do Instituto Central de Ciências. O acervo possui cerca de 190 mil fanerógamas e 40 mil criptógamas (1.600 tipos).
+Quanto à representação geográfica, são amostras principalmente do planalto central e do bioma Cerrado (coleções expressivas do Distrito Federal, Goiás, Maranhão, Minas Gerais, Mato Grosso e Tocantins), Amazônia (permutas sob Curadoria do Dr. João Murça Pires), Mata Atlântica (Permutas sob curadoria do Dra. Graziela Maciel Barroso e Myrtaceae do Paraná) e Exterior (Permutas sob curadoria do Dr. George Eiten)</para>
+        </abstract>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Specimen</keyword>
+            <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Attribution Non Commercial 4.0 International</licenseName>
+            <url>https://spdx.org/licenses/CC-BY-NC-4.0.html</url>
+            <identifier>CC-BY-NC-4.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://specieslink.net/col/224</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt1.cria.org.br/ipt/archive.do?r=ub_herbario</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">http://ipt1.cria.org.br/ipt/archive.do?r=ub_herbario</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Predominantemente Brasil</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-74</westBoundingCoordinate>
+                    <eastBoundingCoordinate>-30</eastBoundingCoordinate>
+                    <northBoundingCoordinate>5.27</northBoundingCoordinate>
+                    <southBoundingCoordinate>-33.75</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <taxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>Kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>monthly</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Caroline Oliveira</givenName>
+                <surName>Andrino</surName>
+            </individualName>
+            <organizationName>Universidade de Brasília (UnB)</organizationName>
+            <positionName>Curador Geral</positionName>
+            <address>
+                <deliveryPoint>Universidade de Brasília - Campus Darcy Ribeiro; Caixa Postal 4457, Asa Norte</deliveryPoint>
+                <city>Brasília</city>
+                <administrativeArea>Distrito Federal</administrativeArea>
+                <postalCode>70910-900</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <electronicMailAddress>caroline.andrino@unb.br</electronicMailAddress>
+            <onlineUrl>http://www.florescer.unb.br</onlineUrl>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Micheline</givenName>
+                <surName>Carvalho Silva</surName>
+            </individualName>
+            <organizationName>Universidade de Brasília (UnB)</organizationName>
+            <positionName>Curador</positionName>
+            <address>
+                <deliveryPoint>Universidade de Brasília - Campus Darcy Ribeiro; Caixa Postal 4457, Asa Norte</deliveryPoint>
+                <city>Brasília</city>
+                <administrativeArea>Distrito Federal</administrativeArea>
+                <postalCode>70910-900</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <electronicMailAddress>micheline.silva@unb.br</electronicMailAddress>
+            <onlineUrl>http://www.florescer.unb.br</onlineUrl>
+        </contact>
+        <contact>
+            <individualName>
+                <givenName>Maria</givenName>
+                <surName>das Graças Machado de Souza - Criptógamas</surName>
+            </individualName>
+            <organizationName>Universidade de Brasília (UnB)</organizationName>
+            <positionName>Curador</positionName>
+            <address>
+                <deliveryPoint>Universidade de Brasília - Campus Darcy Ribeiro; Caixa Postal 4457, Asa Norte</deliveryPoint>
+                <city>Brasília</city>
+                <administrativeArea>Distrito Federal</administrativeArea>
+                <postalCode>70910-900</postalCode>
+                <country>BRAZIL</country>
+            </address>
+            <phone>+55 61 3107-2967</phone>
+            <electronicMailAddress>gmachado@unb.br</electronicMailAddress>
+            <onlineUrl>http://www.florescer.unb.br</onlineUrl>
+        </contact>
+
+            <project >
+                <title>INCT - Herbário Virtual da Flora e dos Fungos</title>
+                <personnel>
+                    <individualName>
+                    <givenName>Leonor</givenName>
+                    <surName>Costa Maia</surName>
+                    </individualName>
+                    <role>DISTRIBUTOR</role>
+                </personnel>
+                <abstract>
+                    <para>O Instituto Nacional de Ciência e Tecnologia, INCT - Herbário Virtual da Flora e dos Fungos, financiado pelo Conselho Nacional de Desenvolvimento Científico e Tecnológico, CNPq, visa prover à sociedade, ao poder público e à comunidade científica infraestrutura de dados de acesso público e aberto integrando informações de acervos dos herbários do país e repatriando dados sobre coletas realizadas em solo brasileiro depositadas no exterior</para>
+                </abstract>
+                <funding>
+                    <para>Conselho Nacional de Desenvolvimento Científico e Tecnológico, CNPq</para>
+                </funding>
+                <studyAreaDescription>
+                    <descriptor name="generic" citableClassificationSystem="false">
+                        <descriptorValue>Ocorrência de espécies de plantas e fungos no Brasil</descriptorValue>
+                    </descriptor>
+                </studyAreaDescription>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2025-05-22T01:40:51Z</dateStamp>
+                <citation identifier="https://specieslink.net/col/224">Andrino C O (2025). UB - Herbário da Universidade de Brasília. Version 1.120. Universidade de Brasília. Occurrence dataset https://doi.org/10.15468/caq5no accessed via GBIF.org on 2025-05-22.</citation>
+                <resourceLogoUrl>http://ipt1.cria.org.br/ipt/logo.do?r=ub_herbario</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+    </eml:eml>
