@@ -20,7 +20,7 @@ jobs:
             --geocode-precision 5 \
             --num-clusters 10 \
             --log-file run.log \
-            data-nh-vt.csv
+            test/sample-archive/
       - name: 📦 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
