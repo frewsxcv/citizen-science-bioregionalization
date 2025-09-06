@@ -1,4 +1,5 @@
 import polars as pl
+import polars_st as pl_st
 import logging
 from typing import Self
 
@@ -23,12 +24,7 @@ class GeocodeDataFrame(DataContainer):
 
     SCHEMA = {
         "geocode": pl.UInt64(),
-        "center": pl.Struct(
-            {
-                "lat": pl.Float64(),
-                "lon": pl.Float64(),
-            }
-        ),
+        "center": pl.Binary(),
         # Direct neighbors from H3 grid adjacency
         "direct_neighbors": pl.List(pl.UInt64()),
         # Direct and indirect neighbors (includes both H3 adjacency and added connections)
@@ -46,11 +42,11 @@ class GeocodeDataFrame(DataContainer):
         geocode_precision: int,
     ) -> Self:
         df = (
-            darwin_core_lazy_frame._inner.select(
-                "decimalLatitude", "decimalLongitude"
+            darwin_core_lazy_frame._inner.select("decimalLatitude", "decimalLongitude")
+            .filter(
+                pl.col("decimalLatitude").is_not_null()
+                & pl.col("decimalLongitude").is_not_null()
             )
-            .filter(pl.col("decimalLatitude").is_not_null() &
-                    pl.col("decimalLongitude").is_not_null())
             .with_columns(
                 polars_h3.latlng_to_cell(
                     "decimalLatitude",
@@ -63,9 +59,10 @@ class GeocodeDataFrame(DataContainer):
             .unique()
             .sort(by="geocode")
             .with_columns(
-                polars_h3.cell_to_latlng(pl.col("geocode"))
-                .list.to_struct(fields=["lat", "lon"])
-                .alias("center")
+                center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
+            )
+            .with_columns(
+                center=pl_st.point("center_xy"),
             )
             .collect()
         )
@@ -126,29 +123,27 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
         first_component: set[int] = next(components)
 
         first_component_nodes = list(
-            df.select("center", "geocode")
+            df.select(
+                pl_st.geom("center").st.to_shapely(),
+                "geocode",
+            )
             .filter(pl.col("geocode").is_in(first_component))
             .iter_rows()
         )
-        first_component_points = MultiPoint(
-            [
-                Point(center1["lon"], center1["lat"])
-                for center1, _ in first_component_nodes
-            ]
-        )
+        first_component_points = [center1 for center1, _ in first_component_nodes]
 
         other_component_nodes = list(
             df
             # Filter out nodes that are not on the edge of the grid
             .filter(pl.col("direct_neighbors").list.len() != MAX_NUM_NEIGHBORS)
             .filter(pl.col("geocode").is_in(first_component).not_())
-            .select("center", "geocode")
+            .select(
+                pl_st.geom("center").st.to_shapely(),
+                "geocode",
+            )
             .iter_rows()
         )
-        other_component_points = [
-            Point(center2["lon"], center2["lat"])
-            for center2, _ in other_component_nodes
-        ]
+        other_component_points = [center2 for center2, _ in other_component_nodes]
 
         p1, p2 = shapely.ops.nearest_points(
             MultiPoint(first_component_points),
@@ -156,7 +151,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
         )
 
         geocode1 = None
-        for i, node in enumerate(first_component_points.geoms):
+        for i, node in enumerate(first_component_points):
             if node.equals_exact(p1, 1e-6):
                 geocode1 = first_component_nodes[i][1]
                 break
