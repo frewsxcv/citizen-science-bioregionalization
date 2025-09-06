@@ -30,7 +30,7 @@ def _(mo):
 @app.cell
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
-    input_file_ui = mo.ui.file_browser(multiple=False, label="Input file")
+    input_dir_ui = mo.ui.file_browser(multiple=False, label="Input directory", selection_mode="directory")
     geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
@@ -40,7 +40,7 @@ def _(mo):
         mo.vstack(
             [
                 log_file_ui,
-                input_file_ui,
+                input_dir_ui,
                 geocode_precision_ui,
                 taxon_filter_ui,
                 num_clusters_ui,
@@ -49,16 +49,11 @@ def _(mo):
         if mo.running_in_notebook()
         else None
     )
-    return (
-        geocode_precision_ui,
-        input_file_ui,
-        num_clusters_ui,
-        taxon_filter_ui,
-    )
+    return geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui
 
 
 @app.cell
-def _(geocode_precision_ui, input_file_ui, num_clusters_ui, taxon_filter_ui):
+def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -89,9 +84,9 @@ def _(geocode_precision_ui, input_file_ui, num_clusters_ui, taxon_filter_ui):
     )
 
     # Positional arguments
-    path = str(input_file_ui.path(index=0)) if input_file_ui.path(index=0) else None
+    path = str(input_dir_ui.path(index=0)) if input_dir_ui.path(index=0) else None
     parser.add_argument(
-        "input_file", type=str, nargs="?", help="Path to the input file", default=path
+        "input_dir", type=str, nargs="?", help="Path to the input directory", default=path
     )
 
     args = parser.parse_args()
@@ -120,8 +115,8 @@ def _(mo):
 
 @app.cell
 def _(args, polars_darwin_core):
-    darwin_core_csv_lazy_frame = polars_darwin_core.lf_csv.read_darwin_core_csv(
-        args.input_file,
+    darwin_core_csv_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+        args.input_dir,
         # input_file, taxon_filter=taxon_filter
         # TODO: FIX THE TAXON FILTER ABOVE
     )
@@ -132,7 +127,7 @@ def _(args, polars_darwin_core):
 
 @app.cell
 def _(args, hashlib, os):
-    with open(args.input_file, "rb") as f:
+    with open(os.path.join(args.input_dir, "occurrence.txt"), "rb") as f:
         file_digest = hashlib.file_digest(f, "sha256").hexdigest()
 
     output_dir = "tmp"
@@ -151,8 +146,8 @@ def _(darwin_core_csv_lazy_frame, os, output_path):
 @app.cell
 def _(output_path, pl, polars_darwin_core):
     inner = pl.scan_parquet(output_path)
-    # TODO: Rename the class below
-    darwin_core_lazy_frame = polars_darwin_core.lf_csv.DarwinCoreCsvLazyFrame(inner)
+
+    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner)
 
     darwin_core_lazy_frame._inner.limit(20).collect()
     return (darwin_core_lazy_frame,)
