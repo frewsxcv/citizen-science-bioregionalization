@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Self
 import polars as pl
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -41,7 +41,7 @@ class ClusterColorDataFrame(DataContainer):
         ] = None,
         color_method: Literal["geographic", "taxonomic"] = "geographic",
         ocean_threshold: float = 0.90,
-    ) -> "ClusterColorDataFrame":
+    ) -> Self:
         """
         Build a ClusterColorDataFrame using either geographic neighbor-based coloring
         or taxonomic similarity-based coloring.
@@ -74,7 +74,7 @@ class ClusterColorDataFrame(DataContainer):
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
         cluster_boundary_dataframe: ClusterBoundaryDataFrame,
         ocean_threshold: float = 0.90,
-    ) -> "ClusterColorDataFrame":
+    ) -> Self:
         """
         Creates a coloring where neighboring clusters have different colors,
         and ocean and land clusters have different color palettes.
@@ -139,7 +139,7 @@ class ClusterColorDataFrame(DataContainer):
     def _build_taxonomic(
         cls,
         cluster_taxa_statistics_dataframe: ClusterTaxaStatisticsDataFrame,
-    ) -> "ClusterColorDataFrame":
+    ) -> Self:
         """
         Creates a coloring where clusters with similar taxonomic composition
         have similar colors, using UMAP for dimensionality reduction.

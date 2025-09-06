@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Self
 
 import polars as pl
 
@@ -31,7 +31,7 @@ class ClusterTaxaStatisticsDataFrame(DataContainer):
         geocode_taxa_counts_dataframe: GeocodeTaxaCountsDataFrame,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
-    ) -> "ClusterTaxaStatisticsDataFrame":
+    ) -> Self:
         df = pl.DataFrame(schema=cls.SCHEMA)
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info

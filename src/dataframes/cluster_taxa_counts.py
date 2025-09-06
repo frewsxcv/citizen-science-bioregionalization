@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Self
 
 import polars as pl
 
@@ -33,7 +33,7 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         geocode_taxa_counts_dataframe: GeocodeTaxaCountsDataFrame,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         taxonomy_dataframe: TaxonomyDataFrame,
-    ) -> "ClusterTaxaCountsDataFrame":
+    ) -> Self:
         df = pl.DataFrame(schema=cls.SCHEMA)
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
@@ -98,12 +98,12 @@ class ClusterTaxaCountsDataFrame(DataContainer):
         assert isinstance(sum, int)
         return sum
 
-    def filter_by_cluster(self, cluster_id: ClusterId) -> "ClusterTaxaCountsDataFrame":
+    def filter_by_cluster(self, cluster_id: ClusterId) -> Self:
         """
         Returns a new dataframe filtered to only include data for the specified cluster.
         """
         filtered_df = self.df.filter(pl.col("cluster") == cluster_id)
-        return ClusterTaxaCountsDataFrame(df=filtered_df)
+        return self.__class__(df=filtered_df)
 
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:

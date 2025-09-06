@@ -1,4 +1,4 @@
-from typing import Iterator, List, Tuple
+from typing import Iterator, List, Tuple, Self
 import logging
 import polars as pl
 from scipy.sparse import csr_matrix
@@ -31,7 +31,7 @@ class GeocodeClusterDataFrame(DataContainer):
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
-    ) -> "GeocodeClusterDataFrame":
+    ) -> Self:
         geocodes = geocode_dataframe.df["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,

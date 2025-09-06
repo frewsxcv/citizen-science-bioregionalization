@@ -1,4 +1,5 @@
 import polars as pl
+from typing import Self
 from src.data_container import DataContainer
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from sklearn.metrics import silhouette_score, silhouette_samples  # type: ignore
@@ -25,7 +26,7 @@ class GeocodeSilhouetteScoreDataFrame(DataContainer):
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
         distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
-    ) -> "GeocodeSilhouetteScoreDataFrame":
+    ) -> Self:
         geocodes: list[str | None] = []
         silhouette_scores: list[float] = []
 

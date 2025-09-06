@@ -2,7 +2,7 @@ import polars as pl
 import polars_h3  # type: ignore
 import polars_st
 import shapely
-from typing import List, Tuple
+from typing import List, Tuple, Self
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -24,7 +24,7 @@ class GeocodeBoundaryDataFrame(DataContainer):
     def build(
         cls,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
-    ) -> "GeocodeBoundaryDataFrame":
+    ) -> Self:
         geocodes: List[str] = []
         polygons: List[shapely.Polygon] = []
 

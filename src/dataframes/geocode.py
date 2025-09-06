@@ -1,5 +1,7 @@
 import polars as pl
 import logging
+from typing import Self
+
 from shapely import MultiPoint, Point
 import shapely.ops
 from src.data_container import DataContainer, assert_dataframe_schema
@@ -42,7 +44,7 @@ class GeocodeDataFrame(DataContainer):
         cls,
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
-    ) -> "GeocodeDataFrame":
+    ) -> Self:
         df = (
             darwin_core_lazy_frame._inner.select(
                 "decimalLatitude", "decimalLongitude"

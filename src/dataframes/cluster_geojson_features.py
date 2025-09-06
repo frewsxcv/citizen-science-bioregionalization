@@ -1,6 +1,6 @@
 import polars as pl
 import geojson  # type: ignore
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Self
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.types import ClusterId
@@ -38,7 +38,7 @@ class ClusterGeojsonFeaturesDataFrame(DataContainer):
         cls,
         cluster_boundary_dataframe: ClusterBoundaryDataFrame,
         cluster_colors_dataframe: ClusterColorDataFrame,
-    ) -> "ClusterGeojsonFeaturesDataFrame":
+    ) -> Self:
         """
         Build a ClusterGeojsonFeaturesDataFrame from cluster boundaries and colors.
 

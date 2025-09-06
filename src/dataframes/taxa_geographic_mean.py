@@ -1,4 +1,5 @@
 import polars as pl
+from typing import Self
 from polars_darwin_core.darwin_core import KingdomDataType  # type: ignore
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 import logging
@@ -25,7 +26,7 @@ class TaxaGeographicMeanDataFrame(DataContainer):
     @classmethod
     def build(
         cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame
-    ) -> "TaxaGeographicMeanDataFrame":
+    ) -> Self:
         # TODO: this doesn't handle the international date line
         df = (
             geocode_taxa_counts.df.lazy()

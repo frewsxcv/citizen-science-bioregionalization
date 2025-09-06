@@ -1,4 +1,5 @@
 import polars as pl
+from typing import Self
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.data_container import DataContainer, assert_dataframe_schema
 
@@ -23,7 +24,7 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
     @classmethod
     def build(
         cls, all_stats: ClusterTaxaStatisticsDataFrame
-    ) -> "ClusterSignificantDifferencesDataFrame":
+    ) -> Self:
         # Calculate significant differences
         significant_differences = []
 

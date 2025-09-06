@@ -1,7 +1,7 @@
 import polars as pl
 import polars_st
 import shapely
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Self
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -26,7 +26,7 @@ class ClusterBoundaryDataFrame(DataContainer):
         cls,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         geocode_boundary_dataframe: GeocodeBoundaryDataFrame,
-    ) -> "ClusterBoundaryDataFrame":
+    ) -> Self:
         clusters: List[int] = []
         boundaries: List[shapely.Polygon] = []
 

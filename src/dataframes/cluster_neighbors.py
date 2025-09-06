@@ -1,5 +1,6 @@
 import networkx as nx
 import polars as pl
+from typing import Self
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame
@@ -24,7 +25,7 @@ class ClusterNeighborsDataFrame(DataContainer):
         cls,
         geocode_dataframe: GeocodeDataFrame,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
-    ) -> "ClusterNeighborsDataFrame":
+    ) -> Self:
         # Get unique clusters
         unique_clusters = geocode_cluster_dataframe.df["cluster"].unique()
 

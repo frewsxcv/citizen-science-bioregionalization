@@ -1,5 +1,5 @@
 # src/dataframes/permanova_results.py
-from typing import Any
+from typing import Any, Self
 import polars as pl
 import pandas as pd  # Import pandas for type hint
 from skbio.stats.distance import permanova, DistanceMatrix  # type: ignore
@@ -41,7 +41,7 @@ class PermanovaResultsDataFrame(DataContainer):
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         geocode_dataframe: GeocodeDataFrame,
         permutations: int = 999,  # Default permutations
-    ) -> "PermanovaResultsDataFrame":
+    ) -> Self:
         """
         Runs the PERMANOVA test and stores the results.
         Asserts that all geocodes in the distance matrix have cluster assignments.
