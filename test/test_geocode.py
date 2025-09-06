@@ -3,6 +3,7 @@ import polars as pl
 import networkx as nx
 import tempfile
 import os
+import polars_st as pl_st
 
 from src.dataframes.geocode import (
     GeocodeDataFrame,
@@ -23,9 +24,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
                 "geocode": pl.Series(
                     [0x8514355555555555, 0x8514355555555557], dtype=pl.UInt64
                 ),
-                "center": pl.Series(
-                    [{"lat": 37.5, "lon": -122.1}, {"lat": 37.6, "lon": -122.2}]
-                ),
+                "center": points_series(2),
                 "direct_neighbors": pl.Series(
                     [[0x8514355555555557], [0x8514355555555555]],
                     dtype=pl.List(pl.UInt64),
@@ -67,9 +66,13 @@ class TestGeocodeDataFrame(unittest.TestCase):
         # Build the DarwinCoreLazyFrame
         from polars_darwin_core import DarwinCoreLazyFrame
 
-        darwin_core_lazy_frame = DarwinCoreLazyFrame.from_archive(os.path.join("test", "sample-archive"))
+        darwin_core_lazy_frame = DarwinCoreLazyFrame.from_archive(
+            os.path.join("test", "sample-archive")
+        )
 
-        darwin_core_lazy_frame = DarwinCoreLazyFrame(darwin_core_lazy_frame._inner.head())
+        darwin_core_lazy_frame = DarwinCoreLazyFrame(
+            darwin_core_lazy_frame._inner.head()
+        )
 
         geocode_df = GeocodeDataFrame.build(darwin_core_lazy_frame, geocode_precision=8)
 
@@ -106,13 +109,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
         df = pl.DataFrame(
             {
                 "geocode": pl.Series([1, 2, 3], dtype=pl.UInt64),
-                "center": pl.Series(
-                    [
-                        {"lat": 37.5, "lon": -122.1},
-                        {"lat": 37.6, "lon": -122.2},
-                        {"lat": 37.7, "lon": -122.3},
-                    ]
-                ),
+                "center": points_series(3),
                 "direct_neighbors": pl.Series(
                     [
                         [2],  # 1 connected to 2
@@ -150,14 +147,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
         df = pl.DataFrame(
             {
                 "geocode": pl.Series([1, 2, 3, 4], dtype=pl.UInt64),
-                "center": pl.Series(
-                    [
-                        {"lat": 37.5, "lon": -122.1},
-                        {"lat": 37.6, "lon": -122.2},
-                        {"lat": 40.0, "lon": -110.0},  # Distant point
-                        {"lat": 40.1, "lon": -110.1},  # Distant point
-                    ]
-                ),
+                "center": points_series(4),
                 # Note: using fewer than 6 direct neighbors to ensure the algorithm
                 # will consider these nodes as edge nodes to connect
                 "direct_neighbors": pl.Series(
@@ -213,9 +203,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
                 "geocode": pl.Series(
                     [0x8514355555555555, 0x8514355555555557], dtype=pl.UInt64
                 ),
-                "center": pl.Series(
-                    [{"lat": 37.5, "lon": -122.1}, {"lat": 37.6, "lon": -122.2}]
-                ),
+                "center": points_series(2),
                 "direct_neighbors": pl.Series(
                     [[0x8514355555555557], [0x8514355555555555]],
                     dtype=pl.List(pl.UInt64),
@@ -239,6 +227,14 @@ class TestGeocodeDataFrame(unittest.TestCase):
         # Test with non-existent geocode
         with self.assertRaises(ValueError):
             index_of_geocode_in_geocode_dataframe(0x8514355555555559, geocode_df)
+
+
+def points_series(count: int):
+    return pl.DataFrame(
+        {
+            "points_wkt": pl.Series(["POINT(-122.1 37.5)"] * count),
+        }
+    ).select(pl_st.from_wkt("points_wkt").alias("point"))["point"]
 
 
 if __name__ == "__main__":
