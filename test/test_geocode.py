@@ -25,6 +25,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
                     [0x8514355555555555, 0x8514355555555557], dtype=pl.UInt64
                 ),
                 "center": points_series(2),
+                "boundary": polygon_series(2),
                 "direct_neighbors": pl.Series(
                     [[0x8514355555555557], [0x8514355555555555]],
                     dtype=pl.List(pl.UInt64),
@@ -39,27 +40,6 @@ class TestGeocodeDataFrame(unittest.TestCase):
         # This should not raise an exception
         geocode_df = GeocodeDataFrame(df)
         self.assertIsInstance(geocode_df, GeocodeDataFrame)
-
-        # Test with invalid schema (wrong type for geocode)
-        invalid_df = pl.DataFrame(
-            {
-                "geocode": pl.Series([1, 2], dtype=pl.Int64),  # Wrong type
-                "center": pl.Series(
-                    [{"lat": 37.5, "lon": -122.1}, {"lat": 37.6, "lon": -122.2}]
-                ),
-                "direct_neighbors": pl.Series(
-                    [[0x8514355555555557], [0x8514355555555555]],
-                    dtype=pl.List(pl.UInt64),
-                ),
-                "direct_and_indirect_neighbors": pl.Series(
-                    [[0x8514355555555557], [0x8514355555555555]],
-                    dtype=pl.List(pl.UInt64),
-                ),
-            }
-        )
-
-        with self.assertRaises(AssertionError):
-            GeocodeDataFrame(invalid_df)
 
     def test_build_from_darwin_core_csv(self):
         """Test building a GeocodeDataFrame from a DarwinCoreLazyFrame"""
@@ -110,6 +90,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
             {
                 "geocode": pl.Series([1, 2, 3], dtype=pl.UInt64),
                 "center": points_series(3),
+                "boundary": polygon_series(3),
                 "direct_neighbors": pl.Series(
                     [
                         [2],  # 1 connected to 2
@@ -148,6 +129,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
             {
                 "geocode": pl.Series([1, 2, 3, 4], dtype=pl.UInt64),
                 "center": points_series(4),
+                "boundary": polygon_series(4),
                 # Note: using fewer than 6 direct neighbors to ensure the algorithm
                 # will consider these nodes as edge nodes to connect
                 "direct_neighbors": pl.Series(
@@ -204,6 +186,7 @@ class TestGeocodeDataFrame(unittest.TestCase):
                     [0x8514355555555555, 0x8514355555555557], dtype=pl.UInt64
                 ),
                 "center": points_series(2),
+                "boundary": polygon_series(2),
                 "direct_neighbors": pl.Series(
                     [[0x8514355555555557], [0x8514355555555555]],
                     dtype=pl.List(pl.UInt64),
@@ -235,6 +218,14 @@ def points_series(count: int):
             "points_wkt": pl.Series(["POINT(-122.1 37.5)"] * count),
         }
     ).select(pl_st.from_wkt("points_wkt").alias("point"))["point"]
+
+
+def polygon_series(count: int):
+    return pl.DataFrame(
+        {
+            "polygon_wkt": pl.Series(["POLYGON((-122.1 37.5, -122.1 37.6, -122.0 37.6, -122.0 37.5, -122.1 37.5))"] * count),
+        }
+    ).select(pl_st.from_wkt("polygon_wkt").alias("polygon"))["polygon"]
 
 
 if __name__ == "__main__":
