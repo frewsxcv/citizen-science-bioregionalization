@@ -6,7 +6,6 @@ import geojson  # type: ignore
 import polars as pl
 import polars_st  # Import for st attribute
 from src.render import (
-    plot_clusters,
     plot_single_cluster,
     plot_entire_region,
     features_to_polars_df,
@@ -85,13 +84,6 @@ class TestRender(unittest.TestCase):
         # Test with different factors
         self.assertEqual(darken_hex_color("#ffffff", 0.0), "#000000")
         self.assertEqual(darken_hex_color("#ffffff", 1.0), "#ffffff")
-
-    def test_plot_clusters(self):
-        """Test if plot_clusters function runs without errors."""
-        buffer = io.BytesIO()
-        plot_clusters(self.feature_collection, file_obj=buffer)
-        buffer.seek(0)
-        self.assertGreater(len(buffer.read()), 0)
 
     def test_plot_single_cluster(self):
         """Test if plot_single_cluster function runs without errors."""

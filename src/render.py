@@ -8,45 +8,6 @@ from typing import Optional, List, Dict, Any, cast, Union, BinaryIO, TextIO
 from src import output
 
 
-def plot_clusters(
-    feature_collection: geojson.FeatureCollection,
-    file_obj: Optional[Union[TextIO, BinaryIO]] = None,
-) -> None:
-    """
-    Plot all clusters using polars-st spatial plotting.
-
-    Args:
-        feature_collection: GeoJSON feature collection containing all clusters
-        file_obj: File-like object to save the image to (optional)
-    """
-    df = features_to_polars_df(feature_collection["features"])
-
-    # Create plot with polars-st
-    df_st: polars_st.GeoDataFrameNameSpace = df.select(
-        pl.col("geometry"),
-        pl.col("cluster"),
-        pl.col("fillColor"),
-        pl.col("color"),
-    ).st  # type: ignore
-    plot = (
-        df_st.plot(
-            color="fillColor",
-            fillOpacity=0.5,
-            strokeWidth=1.0,
-            stroke="color",
-        )
-        .project(type="identity")
-        .encode(fill="properties.fillColor:N")
-    )
-
-    if file_obj:
-        # Save to the file-like object - specify format as png
-        plot.save(file_obj, format="png")
-    else:
-        # Display the plot if not saving
-        plot.show()
-
-
 def plot_single_cluster(
     feature_collection: geojson.FeatureCollection,
     cluster_id: int,

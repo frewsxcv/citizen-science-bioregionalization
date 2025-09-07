@@ -734,18 +734,6 @@ def _(mo):
 
 
 @app.cell
-def _(feature_collection):
-    from src.render import plot_clusters
-    import matplotlib.pyplot as plt
-
-    # Set the figure size
-    plt.rcParams["figure.figsize"] = [12, 7]
-
-    plot_clusters(feature_collection)
-    return
-
-
-@app.cell
 def _(feature_collection, folium):
     map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
