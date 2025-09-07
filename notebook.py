@@ -14,7 +14,7 @@ def _():
     import os
     import polars_darwin_core
     import folium
-    return folium, hashlib, mo, np, os, pl, pl_st, polars_darwin_core
+    return folium, hashlib, mo, np, os, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -174,27 +174,31 @@ def _(args, darwin_core_lazy_frame):
     return (geocode_dataframe,)
 
 
-@app.cell
-def _(folium, geocode_dataframe, pl_st):
-    geocode_center_df = geocode_dataframe.df.select(pl_st.geom("center").alias("geometry"))
-    geocode_boundary_df = geocode_dataframe.df.select(pl_st.geom("boundary").alias("geometry"))
+@app.cell(hide_code=True)
+def _(folium, geocode_dataframe, pl):
+    _center = geocode_dataframe.df.select(
+        pl.col("center").alias("geometry"),
+    )
+    _boundary = geocode_dataframe.df.select(
+        pl.col("boundary").alias("geometry"),
+    )
 
-    map2 = folium.Map(
+    _map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
     )
 
     folium.GeoJson(
-        geocode_center_df.st,
+        _center.st,
         marker=folium.Circle(),
-    ).add_to(map2)
+    ).add_to(_map)
 
     folium.GeoJson(
-        geocode_boundary_df.st,
-    ).add_to(map2)
+        _boundary.st,
+    ).add_to(_map)
 
-    map2.fit_bounds(map2.get_bounds())
+    _map.fit_bounds(_map.get_bounds())
 
-    map2
+    _map
     return
 
 
