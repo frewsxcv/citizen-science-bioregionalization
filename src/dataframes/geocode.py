@@ -25,6 +25,7 @@ class GeocodeDataFrame(DataContainer):
     SCHEMA = {
         "geocode": pl.UInt64(),
         "center": pl.Binary(),
+        "boundary": pl.Binary(),
         # Direct neighbors from H3 grid adjacency
         "direct_neighbors": pl.List(pl.UInt64()),
         # Direct and indirect neighbors (includes both H3 adjacency and added connections)
@@ -86,7 +87,22 @@ class GeocodeDataFrame(DataContainer):
             )
         )
 
-        return cls(_reduce_connected_components_to_one(df).select(cls.SCHEMA.keys()))
+        df = _reduce_connected_components_to_one(df)
+
+        boundaries: list[shapely.Polygon] = []
+
+        for geocode, geometry in (
+            df.with_columns(geometry=polars_h3.cell_to_boundary("geocode"))
+            .select("geocode", "geometry")
+            .iter_rows()
+        ):
+            boundaries.append(shapely.Polygon(latlng_list_to_lnglat_list(geometry)))
+
+        return cls(
+            df.with_columns(
+                boundary=pl_st.from_shapely(pl.Series(boundaries))
+            ).select(cls.SCHEMA.keys())
+        )
 
     def graph(self) -> nx.Graph:
         return _df_to_graph(self.df)
@@ -203,3 +219,9 @@ def index_of_geocode_in_geocode_dataframe(
     if index is None:
         raise ValueError(f"Geocode {geocode} not found in GeocodeDataFrame")
     return index
+
+
+def latlng_list_to_lnglat_list(
+    latlng_list: list[tuple[float, float]],
+) -> list[tuple[float, float]]:
+    return [(lng, lat) for lat, lng in latlng_list]

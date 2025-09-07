@@ -175,19 +175,24 @@ def _(args, darwin_core_lazy_frame):
 
 
 @app.cell
-def _(folium, geocode_dataframe, map, pl_st):
-    df = geocode_dataframe.df.select(pl_st.geom("center").alias("geometry"))
+def _(folium, geocode_dataframe, pl_st):
+    geocode_center_df = geocode_dataframe.df.select(pl_st.geom("center").alias("geometry"))
+    geocode_boundary_df = geocode_dataframe.df.select(pl_st.geom("boundary").alias("geometry"))
 
     map2 = folium.Map(
         tiles="Esri.WorldGrayCanvas",
     )
 
     folium.GeoJson(
-        df.st,
+        geocode_center_df.st,
         marker=folium.Circle(),
     ).add_to(map2)
 
-    map2.fit_bounds(map.get_bounds())
+    folium.GeoJson(
+        geocode_boundary_df.st,
+    ).add_to(map2)
+
+    map2.fit_bounds(map2.get_bounds())
 
     map2
     return
@@ -454,50 +459,6 @@ def _(cluster_significant_differences_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeBoundaryDataFrame`""")
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Build""")
-    return
-
-
-@app.cell
-def _(geocode_cluster_dataframe):
-    from src.dataframes.geocode_boundary import GeocodeBoundaryDataFrame
-
-    geocode_boundary_dataframe = GeocodeBoundaryDataFrame.build(
-        geocode_cluster_dataframe,
-    )
-    return (geocode_boundary_dataframe,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""### Preview""")
-    return
-
-
-@app.cell
-def _(geocode_boundary_dataframe):
-    geocode_boundary_dataframe.df
-    return
-
-
-@app.cell
-def _(geocode_boundary_dataframe, pl):
-    (
-        geocode_boundary_dataframe.df.select(pl.col("geometry"))
-        .st.plot(stroke="green")
-        .project(type="identity", reflectY=True)
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""## `ClusterBoundaryDataFrame`""")
     return
 
@@ -747,7 +708,7 @@ def _(feature_collection, folium):
     map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
 
     map
-    return (map,)
+    return
 
 
 @app.cell(hide_code=True)

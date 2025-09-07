@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Self
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.dataframes.geocode_boundary import GeocodeBoundaryDataFrame
+from src.dataframes.geocode import GeocodeDataFrame
 from src.types import ClusterId
 
 
@@ -25,17 +25,17 @@ class ClusterBoundaryDataFrame(DataContainer):
     def build(
         cls,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
-        geocode_boundary_dataframe: GeocodeBoundaryDataFrame,
+        geocode_dataframe: GeocodeDataFrame,
     ) -> Self:
         clusters: List[int] = []
         boundaries: List[shapely.Polygon] = []
 
         # Create a mapping of geocode to boundary for faster lookup
         geocode_to_boundary: Dict[str, bytes] = {}
-        for row in geocode_boundary_dataframe.df.select(
-            "geocode", "geometry"
+        for row in geocode_dataframe.df.select(
+            "geocode", "boundary"
         ).iter_rows(named=True):
-            geocode_to_boundary[row["geocode"]] = row["geometry"]
+            geocode_to_boundary[row["geocode"]] = row["boundary"]
 
         # Iterate through each cluster and combine the boundaries of its geocodes
         for (
