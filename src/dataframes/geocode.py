@@ -91,17 +91,16 @@ class GeocodeDataFrame(DataContainer):
 
         boundaries: list[shapely.Polygon] = []
 
-        for geocode, geometry in (
-            df.with_columns(geometry=polars_h3.cell_to_boundary("geocode"))
-            .select("geocode", "geometry")
-            .iter_rows()
-        ):
+        for geocode, geometry in df.select(
+            "geocode",
+            polars_h3.cell_to_boundary("geocode").alias("geometry"),
+        ).iter_rows():
             boundaries.append(shapely.Polygon(latlng_list_to_lnglat_list(geometry)))
 
         return cls(
-            df.with_columns(
-                boundary=pl_st.from_shapely(pl.Series(boundaries))
-            ).select(cls.SCHEMA.keys())
+            df.with_columns(boundary=pl_st.from_shapely(pl.Series(boundaries))).select(
+                cls.SCHEMA.keys()
+            )
         )
 
     def graph(self) -> nx.Graph:
