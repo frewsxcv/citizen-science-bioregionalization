@@ -31,7 +31,7 @@ def _(mo):
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
     input_dir_ui = mo.ui.file_browser(multiple=False, label="Input directory", selection_mode="directory")
-    geocode_precision_ui = mo.ui.slider(2, 5, value=4, label="Geocode precision")
+    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
 
