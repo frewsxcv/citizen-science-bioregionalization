@@ -8,11 +8,13 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import polars as pl
+    import polars_st as pl_st
     import numpy as np
     import hashlib
     import os
     import polars_darwin_core
-    return hashlib, mo, np, os, pl, polars_darwin_core
+    import folium
+    return folium, hashlib, mo, np, os, pl, pl_st, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -170,6 +172,25 @@ def _(args, darwin_core_lazy_frame):
 
     geocode_dataframe.df
     return (geocode_dataframe,)
+
+
+@app.cell
+def _(folium, geocode_dataframe, map, pl_st):
+    df = geocode_dataframe.df.select(pl_st.geom("center").alias("geometry"))
+
+    map2 = folium.Map(
+        tiles="Esri.WorldGrayCanvas",
+    )
+
+    folium.GeoJson(
+        df.st,
+        marker=folium.Circle(),
+    ).add_to(map2)
+
+    map2.fit_bounds(map.get_bounds())
+
+    map2
+    return
 
 
 @app.cell(hide_code=True)
@@ -725,9 +746,7 @@ def _(feature_collection):
 
 
 @app.cell
-def _(feature_collection):
-    import folium
-
+def _(feature_collection, folium):
     map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
     )
@@ -740,7 +759,7 @@ def _(feature_collection):
     map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
 
     map
-    return
+    return (map,)
 
 
 @app.cell(hide_code=True)
