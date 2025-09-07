@@ -474,12 +474,12 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_boundary_dataframe, geocode_cluster_dataframe):
+def _(geocode_cluster_dataframe, geocode_dataframe):
     from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
 
     cluster_boundary_dataframe = ClusterBoundaryDataFrame.build(
         geocode_cluster_dataframe,
-        geocode_boundary_dataframe,
+        geocode_dataframe,
     )
     return (cluster_boundary_dataframe,)
 
