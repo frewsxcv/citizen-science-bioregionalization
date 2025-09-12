@@ -151,7 +151,7 @@ def _(output_path, pl, polars_darwin_core):
 
     darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner)
 
-    darwin_core_lazy_frame._inner.limit(20).collect()
+    darwin_core_lazy_frame._inner.limit(200).collect()
     return (darwin_core_lazy_frame,)
 
 
