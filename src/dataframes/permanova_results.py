@@ -98,8 +98,8 @@ class PermanovaResultsDataFrame(DataContainer):
         results_df = pl.DataFrame(results_dict)
 
         # Ensure schema types
-        results_df = results_df.with_columns(
-            [pl.col(name).cast(dtype) for name, dtype in cls.SCHEMA.items()]
-        )
+        results_df = results_df.cast({
+            name: dtype for name, dtype in cls.SCHEMA.items()
+        })
 
         return cls(df=results_df)

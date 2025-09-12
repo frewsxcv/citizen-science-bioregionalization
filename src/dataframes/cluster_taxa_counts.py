@@ -107,4 +107,4 @@ class ClusterTaxaCountsDataFrame(DataContainer):
 
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
-    return df.with_columns(pl.lit(value).cast(pl.UInt32()).alias("cluster"))
+    return df.with_columns(cluster=pl.lit(value).cast(pl.UInt32()))

@@ -42,9 +42,7 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
-                .with_columns(
-                    pl.col("taxonRank").cast(pl.Categorical()),
-                )
+                .cast({"taxonRank": pl.Categorical()})
                 .sort(by="geocode")
                 .collect()
             )

@@ -50,15 +50,15 @@ class TaxonomyDataFrame(DataContainer):
         )
 
         # Add a unique taxonId for each row
-        df = df.with_row_index("taxonId").with_columns(
-            pl.col("taxonId").cast(pl.UInt32()),
-            pl.col("phylum").cast(pl.Categorical()),
-            pl.col("class").cast(pl.Categorical()),
-            pl.col("order").cast(pl.Categorical()),
-            pl.col("family").cast(pl.Categorical()),
-            pl.col("genus").cast(pl.Categorical()),
-            pl.col("species").cast(pl.String()),
-            pl.col("taxonRank").cast(pl.Categorical()),
-        )
+        df = df.with_row_index("taxonId").cast({
+            "taxonId": pl.UInt32(),
+            "phylum": pl.Categorical(),
+            "class": pl.Categorical(),
+            "order": pl.Categorical(),
+            "family": pl.Categorical(),
+            "genus": pl.Categorical(),
+            "species": pl.String(),
+            "taxonRank": pl.Categorical(),
+        })
 
         return cls(df)
