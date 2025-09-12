@@ -6,6 +6,7 @@ from typing import Self
 from shapely import MultiPoint, Point
 import shapely.ops
 from src.data_container import DataContainer, assert_dataframe_schema
+from src.geocode import geocode_lazy_frame
 from polars_darwin_core import DarwinCoreLazyFrame
 import polars_h3  # type: ignore
 import networkx as nx
@@ -43,19 +44,9 @@ class GeocodeDataFrame(DataContainer):
         geocode_precision: int,
     ) -> Self:
         df = (
-            darwin_core_lazy_frame._inner.select("decimalLatitude", "decimalLongitude")
-            .filter(
-                pl.col("decimalLatitude").is_not_null()
-                & pl.col("decimalLongitude").is_not_null()
-            )
-            .with_columns(
-                polars_h3.latlng_to_cell(
-                    "decimalLatitude",
-                    "decimalLongitude",
-                    resolution=geocode_precision,
-                    return_dtype=pl.UInt64,
-                ).alias("geocode"),
-            )
+            darwin_core_lazy_frame._inner
+            .pipe(geocode_lazy_frame, geocode_precision=geocode_precision)
+            .filter(pl.col("geocode").is_not_null())
             .select("geocode")
             .unique()
             .sort(by="geocode")

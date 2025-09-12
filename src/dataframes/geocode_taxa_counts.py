@@ -7,6 +7,7 @@ import polars_h3  # type: ignore
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame
 from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.geocode import geocode_lazy_frame
 from polars_darwin_core import DarwinCoreLazyFrame
 
 logger = logging.getLogger(__name__)
@@ -36,17 +37,8 @@ class GeocodeTaxaCountsDataFrame(DataContainer):
             # First, create the raw aggregation with the old schema
             raw_aggregated = (
                 darwin_core_csv_lazy_frame._inner
-                .filter(
-                    pl.col("decimalLatitude").is_not_null() &
-                    pl.col("decimalLongitude").is_not_null()
-                ).with_columns(
-                    polars_h3.latlng_to_cell(
-                        "decimalLatitude",
-                        "decimalLongitude",
-                        resolution=geocode_precision,
-                        return_dtype=pl.UInt64,
-                    ).alias("geocode"),
-                )
+                .pipe(geocode_lazy_frame, geocode_precision=geocode_precision)
+                .filter(pl.col("geocode").is_not_null())
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
