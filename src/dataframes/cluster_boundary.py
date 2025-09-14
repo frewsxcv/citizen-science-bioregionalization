@@ -1,32 +1,23 @@
+import dataframely as dy
 import polars as pl
 import polars_st
 import shapely
-from typing import Dict, List, Tuple, Self
+from typing import Dict, List
 
-from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.geocode import GeocodeDataFrame
-from src.types import ClusterId
 
 
-class ClusterBoundaryDataFrame(DataContainer):
-    df: polars_st.GeoDataFrame
-
-    SCHEMA = {
-        "cluster": pl.UInt32(),
-        "geometry": pl.Binary(),
-    }
-
-    def __init__(self, df: polars_st.GeoDataFrame):
-        assert_dataframe_schema(df, self.SCHEMA)
-        self.df = df
+class ClusterBoundarySchema(dy.Schema):
+    cluster = dy.UInt32(nullable=False)
+    geometry = dy.Any() # Binary
 
     @classmethod
     def build(
         cls,
         geocode_cluster_dataframe: GeocodeClusterDataFrame,
         geocode_dataframe: GeocodeDataFrame,
-    ) -> Self:
+    ) -> dy.DataFrame["ClusterBoundarySchema"]:
         clusters: List[int] = []
         boundaries: List[shapely.Polygon] = []
 
@@ -70,11 +61,4 @@ class ClusterBoundaryDataFrame(DataContainer):
             },
         )
 
-        return cls(df)
-
-    def get_boundary_for_cluster(self, cluster_id: ClusterId) -> shapely.Polygon:
-        """Get the boundary polygon for a specific cluster."""
-        boundary = (
-            self.df.filter(pl.col("cluster") == cluster_id).select("geometry").item()
-        )
-        return boundary
+        return ClusterBoundarySchema.validate(df)

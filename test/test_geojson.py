@@ -4,13 +4,14 @@ import polars_st
 import shapely
 import geojson  # type: ignore
 import os
+import dataframely as dy
 
 from src.geojson import (
     build_geojson_feature_collection,
     is_cluster_mostly_ocean,
     find_ocean_clusters,
 )
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorDataFrame
 
 
@@ -52,7 +53,7 @@ class TestGeojson(unittest.TestCase):
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
-        cluster_boundary_dataframe = ClusterBoundaryDataFrame(df=cluster_boundary_df)
+        cluster_boundary_dataframe = ClusterBoundarySchema.validate(cluster_boundary_df)
 
         actual = build_geojson_feature_collection(
             cluster_boundary_dataframe=cluster_boundary_dataframe,
@@ -155,7 +156,7 @@ class TestGeojson(unittest.TestCase):
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
-        cluster_boundary_dataframe = ClusterBoundaryDataFrame(df=cluster_boundary_df)
+        cluster_boundary_dataframe = ClusterBoundarySchema.validate(cluster_boundary_df)
 
         # Test is_cluster_mostly_ocean function with the real ocean file
         # Note: The actual results depend on the real ocean.geojson content

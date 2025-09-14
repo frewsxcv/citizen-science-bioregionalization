@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.2"
+__generated_with = "0.15.3"
 app = marimo.App(width="medium")
 
 
@@ -463,7 +463,7 @@ def _(cluster_significant_differences_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterBoundaryDataFrame`""")
+    mo.md(r"""## `ClusterBoundarySchema`""")
     return
 
 
@@ -475,9 +475,9 @@ def _(mo):
 
 @app.cell
 def _(geocode_cluster_dataframe, geocode_dataframe):
-    from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+    from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
-    cluster_boundary_dataframe = ClusterBoundaryDataFrame.build(
+    cluster_boundary_dataframe = ClusterBoundarySchema.build(
         geocode_cluster_dataframe,
         geocode_dataframe,
     )
@@ -492,7 +492,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_boundary_dataframe):
-    cluster_boundary_dataframe.df
+    cluster_boundary_dataframe
     return
 
 

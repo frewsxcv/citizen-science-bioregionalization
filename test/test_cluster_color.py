@@ -3,9 +3,10 @@ import polars as pl
 import networkx as nx
 import shapely
 import numpy as np
+import dataframely as dy
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.geojson import find_ocean_clusters
 
@@ -44,7 +45,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
+        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
         color_df = ClusterColorDataFrame.build(cluster_neighbors, cluster_boundaries)
@@ -108,7 +109,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
+        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
         color_df = ClusterColorDataFrame.build(cluster_neighbors, cluster_boundaries)
@@ -175,7 +176,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "geometry": [ocean_wkb, ocean_wkb, ocean_wkb, ocean_wkb],
             }
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
+        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
@@ -273,7 +274,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         boundaries_df = pl.DataFrame(
             {"cluster": clusters, "geometry": [ocean_wkb for _ in range(12)]}
         ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundaryDataFrame(boundaries_df)
+        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors using the UMAP-based approach
         color_df = ClusterColorDataFrame.build(

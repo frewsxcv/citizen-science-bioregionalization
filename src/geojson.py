@@ -2,11 +2,12 @@ import geojson  # type: ignore
 import polars as pl
 import shapely
 import os
+import dataframely as dy
 from shapely.geometry import shape, Polygon, MultiPolygon
 from shapely.ops import unary_union
 from typing import Union
 
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
@@ -32,12 +33,12 @@ def build_geojson_feature(
 
 
 def build_geojson_feature_collection(
-    cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
     cluster_colors_dataframe: ClusterColorDataFrame,
 ) -> geojson.FeatureCollection:
     features: list[geojson.Feature] = []
 
-    for cluster, boundary, color, darkened_color in cluster_boundary_dataframe.df.join(
+    for cluster, boundary, color, darkened_color in cluster_boundary_dataframe.join(
         cluster_colors_dataframe.df, on="cluster"
     ).iter_rows():
         features.append(
@@ -106,7 +107,7 @@ def _calculate_ocean_coverage(
 
 
 def is_cluster_mostly_ocean(
-    cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
     cluster_id: ClusterId,
     threshold: float = 0.90,
 ) -> bool:
@@ -130,7 +131,11 @@ def is_cluster_mostly_ocean(
     ocean_geometry = _load_ocean_geometry()
 
     # Get the cluster boundary
-    boundary_bytes = cluster_boundary_dataframe.get_boundary_for_cluster(cluster_id)
+    boundary_bytes = (
+        cluster_boundary_dataframe.filter(pl.col("cluster") == cluster_id)
+        .select("geometry")
+        .item()
+    )
     if boundary_bytes is None:
         raise ValueError(f"Cluster ID {cluster_id} not found in dataframe.")
 
@@ -144,7 +149,7 @@ def is_cluster_mostly_ocean(
 
 
 def find_ocean_clusters(
-    cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
     threshold: float = 0.90,
 ) -> list[ClusterId]:
     """
@@ -170,7 +175,7 @@ def find_ocean_clusters(
     ocean_clusters = []
 
     # Process each cluster
-    for cluster_id, boundary_bytes in cluster_boundary_dataframe.df.select(
+    for cluster_id, boundary_bytes in cluster_boundary_dataframe.select(
         ["cluster", "geometry"]
     ).iter_rows():
         cluster_boundary = shapely.from_wkb(boundary_bytes)

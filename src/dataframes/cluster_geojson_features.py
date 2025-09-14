@@ -1,10 +1,11 @@
 import polars as pl
 import geojson  # type: ignore
 from typing import Optional, List, Dict, Any, Self
+import dataframely as dy
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.types import ClusterId
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorDataFrame
 
 
@@ -36,7 +37,7 @@ class ClusterGeojsonFeaturesDataFrame(DataContainer):
     @classmethod
     def build(
         cls,
-        cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+        cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_colors_dataframe: ClusterColorDataFrame,
     ) -> Self:
         """
@@ -55,7 +56,7 @@ class ClusterGeojsonFeaturesDataFrame(DataContainer):
         features = []
 
         # Join the two dataframes to get all information needed for each cluster
-        joined_df = cluster_boundary_dataframe.df.join(
+        joined_df = cluster_boundary_dataframe.join(
             cluster_colors_dataframe.df, on="cluster"
         )
 

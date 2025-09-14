@@ -31,6 +31,8 @@ dependencies = [
     "types-shapely>=2.1.0.20250710",
     "scipy-stubs>=1.16.0.2",
     "ipython>=9.4.0",
+    "dataframely>=1.7.6",
+    "pyright>=1.1.405",
 ]
 
 [tool.mypy]

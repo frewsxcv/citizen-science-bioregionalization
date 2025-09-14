@@ -2,8 +2,9 @@ import unittest
 import polars as pl
 import shapely
 import geojson  # type: ignore
+import dataframely as dy
 
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorDataFrame
 from src.dataframes.cluster_geojson_features import ClusterGeojsonFeaturesDataFrame
 from src.geojson import (
@@ -49,8 +50,8 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
-        self.cluster_boundary_dataframe = ClusterBoundaryDataFrame(
-            df=cluster_boundary_df
+        self.cluster_boundary_dataframe = ClusterBoundarySchema.validate(
+            cluster_boundary_df
         )
 
         # Create a mock ClusterColorDataFrame

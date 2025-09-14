@@ -1,8 +1,9 @@
 from typing import Dict, List, Literal, Optional, Self
 import polars as pl
+import dataframely as dy
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.dataframes.cluster_boundary import ClusterBoundaryDataFrame
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
@@ -35,7 +36,7 @@ class ClusterColorDataFrame(DataContainer):
     def build(
         cls,
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
-        cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+        cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_taxa_statistics_dataframe: Optional[
             ClusterTaxaStatisticsDataFrame
         ] = None,
@@ -72,7 +73,7 @@ class ClusterColorDataFrame(DataContainer):
     def _build_geographic(
         cls,
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
-        cluster_boundary_dataframe: ClusterBoundaryDataFrame,
+        cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         ocean_threshold: float = 0.90,
     ) -> Self:
         """
