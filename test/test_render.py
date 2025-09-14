@@ -20,9 +20,8 @@ class TestRender(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         # Create a simple GeoJSON feature collection for testing
-        self.feature_collection = {
-            "type": "FeatureCollection",
-            "features": [
+        self.feature_collection = geojson.FeatureCollection(
+            [
                 {
                     "type": "Feature",
                     "geometry": {
@@ -64,7 +63,7 @@ class TestRender(unittest.TestCase):
                     },
                 },
             ],
-        }
+        )
 
     def test_features_to_polars_df(self):
         """Test if features_to_polars_df correctly converts features to a DataFrame."""

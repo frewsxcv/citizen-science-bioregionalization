@@ -18,6 +18,7 @@ class Timer:
         return self
 
     def __exit__(self, *args):
+        assert self.start_time is not None
         elapsed = time.time() - self.start_time
         self.output(f"{self.prefix} completed in {elapsed:.4f}s")
 
