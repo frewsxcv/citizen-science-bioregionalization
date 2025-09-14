@@ -3,6 +3,8 @@ import polars as pl
 from typing import Dict, Union, TypeVar, cast
 from scipy.cluster.hierarchy import linkage
 
+import dataframely as dy
+from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
 # Define a type variable for numeric series
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
@@ -10,7 +12,7 @@ NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 def create_cluster_taxa_heatmap(
     geocode_dataframe,
     geocode_cluster_dataframe,
-    cluster_colors_dataframe,
+    cluster_colors_dataframe: dy.DataFrame["ClusterColorSchema"],
     geocode_distance_matrix,
     cluster_significant_differences_dataframe,
     taxonomy_dataframe,
@@ -53,7 +55,7 @@ def create_cluster_taxa_heatmap(
     col_colors = []
     for geocode in ordered_geocodes:
         cluster = geocode_cluster_dataframe.cluster_for_geocode(geocode)
-        col_colors.append(cluster_colors_dataframe.get_color_for_cluster(cluster))
+        col_colors.append(get_color_for_cluster(cluster_colors_dataframe, cluster))
 
     # Compute linkage for clustering
     linkage_array = linkage(geocode_distance_matrix.condensed(), "ward")

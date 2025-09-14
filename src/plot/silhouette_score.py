@@ -4,14 +4,15 @@ import numpy as np
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreDataFrame
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
+import dataframely as dy
 
 
 def plot_silhouette_scores(
     geocode_cluster_dataframe: GeocodeClusterDataFrame,
     geocode_distance_matrix: GeocodeDistanceMatrix,
     geocode_silhouette_score_dataframe: GeocodeSilhouetteScoreDataFrame,
-    cluster_colors_dataframe: ClusterColorDataFrame,
+    cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
 ) -> plt.Figure: # type: ignore
     """
     Create a silhouette plot for clustering results.
@@ -49,7 +50,7 @@ def plot_silhouette_scores(
         size_cluster_i = ith_cluster_silhouette_values.shape[0]
         y_upper = y_lower + size_cluster_i
 
-        color = cluster_colors_dataframe.get_color_for_cluster(cluster)
+        color = get_color_for_cluster(cluster_colors_dataframe, cluster)
         ax1.fill_betweenx(
             np.arange(y_lower, y_upper),
             0,

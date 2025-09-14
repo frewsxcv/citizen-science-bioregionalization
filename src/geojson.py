@@ -9,7 +9,7 @@ from typing import Union
 
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.types import Geocode, ClusterId
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src import output
 
@@ -34,12 +34,12 @@ def build_geojson_feature(
 
 def build_geojson_feature_collection(
     cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
-    cluster_colors_dataframe: ClusterColorDataFrame,
+    cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
 ) -> geojson.FeatureCollection:
     features: list[geojson.Feature] = []
 
     for cluster, boundary, color, darkened_color in cluster_boundary_dataframe.join(
-        cluster_colors_dataframe.df, on="cluster"
+        cluster_colors_dataframe, on="cluster"
     ).iter_rows():
         features.append(
             build_geojson_feature(

@@ -1,5 +1,6 @@
 import polars as pl
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema
+import dataframely as dy
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesDataFrame,
 )
@@ -15,7 +16,7 @@ import io
 
 
 def prepare_cluster_data(
-    cluster_colors_dataframe: ClusterColorDataFrame,
+    cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
     significant_differences_df: ClusterSignificantDifferencesDataFrame,
     taxonomy_df: TaxonomyDataFrame,
 ) -> list:
@@ -32,7 +33,7 @@ def prepare_cluster_data(
     """
     clusters_data = []
 
-    for cluster, color in cluster_colors_dataframe.df.select(
+    for cluster, color in cluster_colors_dataframe.select(
         ["cluster", "color"]
     ).iter_rows(named=False):
         cluster_data = {"id": cluster, "color": color, "species": []}
@@ -66,7 +67,7 @@ def prepare_cluster_data(
 
 
 def prepare_full_report_data(
-    cluster_colors_dataframe: ClusterColorDataFrame,
+    cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
     significant_differences_df: ClusterSignificantDifferencesDataFrame,
     taxonomy_df: TaxonomyDataFrame,
     feature_collection: geojson.FeatureCollection,
@@ -86,11 +87,11 @@ def prepare_full_report_data(
     clusters_data = []
 
     # Get unique clusters and sort them
-    clusters = sorted(cluster_colors_dataframe.df["cluster"].unique().to_list())
+    clusters = sorted(cluster_colors_dataframe["cluster"].unique().to_list())
 
     for cluster in clusters:
         # Get color for this cluster
-        color = cluster_colors_dataframe.df.filter(pl.col("cluster") == cluster)[
+        color = cluster_colors_dataframe.filter(pl.col("cluster") == cluster)[
             "color"
         ].item()
 

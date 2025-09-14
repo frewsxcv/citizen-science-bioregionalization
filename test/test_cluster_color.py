@@ -4,7 +4,7 @@ import networkx as nx
 import shapely
 import numpy as np
 import dataframely as dy
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema, to_dict
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
@@ -51,10 +51,10 @@ class TestClusterColorDataFrame(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorDataFrame.build(cluster_neighbors, cluster_boundaries)
+        color_df = ClusterColorSchema.build(cluster_neighbors, cluster_boundaries)
 
         # Get the colors
-        colors_dict = color_df.to_dict()
+        colors_dict = to_dict(color_df)
 
         # Check that clusters 1 and 3 have blue-ish colors
         for cluster in [1, 3]:
@@ -115,10 +115,10 @@ class TestClusterColorDataFrame(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorDataFrame.build(cluster_neighbors, cluster_boundaries)
+        color_df = ClusterColorSchema.build(cluster_neighbors, cluster_boundaries)
 
         # Get the colors
-        colors_dict = color_df.to_dict()
+        colors_dict = to_dict(color_df)
 
         # Verify that adjacent clusters have different colors
         for cluster, neighbors in zip(
@@ -169,7 +169,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
 
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
-            ClusterColorDataFrame.build(
+            ClusterColorSchema.build(
                 cluster_neighbors,
                 cluster_boundaries,
                 cluster_taxa_stats,
@@ -266,7 +266,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors using the UMAP-based approach
-        color_df = ClusterColorDataFrame.build(
+        color_df = ClusterColorSchema.build(
             cluster_neighbors,
             cluster_boundaries,
             cluster_taxa_stats,
@@ -274,7 +274,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
         )
 
         # Get the colors
-        colors_dict = color_df.to_dict()
+        colors_dict = to_dict(color_df)
 
         # Helper function to calculate color distance between two hex colors
         def color_distance(hex1, hex2):

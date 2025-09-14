@@ -6,7 +6,7 @@ import dataframely as dy
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.types import ClusterId
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema
 
 
 class ClusterGeojsonFeaturesDataFrame(DataContainer):
@@ -38,7 +38,7 @@ class ClusterGeojsonFeaturesDataFrame(DataContainer):
     def build(
         cls,
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
-        cluster_colors_dataframe: ClusterColorDataFrame,
+        cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
     ) -> Self:
         """
         Build a ClusterGeojsonFeaturesDataFrame from cluster boundaries and colors.
@@ -57,7 +57,7 @@ class ClusterGeojsonFeaturesDataFrame(DataContainer):
 
         # Join the two dataframes to get all information needed for each cluster
         joined_df = cluster_boundary_dataframe.join(
-            cluster_colors_dataframe.df, on="cluster"
+            cluster_colors_dataframe, on="cluster"
         )
 
         # Process each cluster to create its GeoJSON feature

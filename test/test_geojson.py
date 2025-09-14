@@ -8,7 +8,7 @@ from src.geojson import (
     find_ocean_clusters,
 )
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema
 
 
 class TestGeojson(unittest.TestCase):
@@ -53,14 +53,13 @@ class TestGeojson(unittest.TestCase):
 
         actual = build_geojson_feature_collection(
             cluster_boundary_dataframe=cluster_boundary_dataframe,
-            cluster_colors_dataframe=ClusterColorDataFrame(
-                df=pl.DataFrame(
+            cluster_colors_dataframe=ClusterColorSchema.validate(
+                pl.DataFrame(
                     [
                         {"cluster": 1, "color": "#ff0000", "darkened_color": "#800000"},
                         {"cluster": 2, "color": "#0000ff", "darkened_color": "#000080"},
-                    ],
-                    schema=ClusterColorDataFrame.SCHEMA,
-                )
+                    ]
+                ).with_columns(pl.col("cluster").cast(pl.UInt32()))
             ),
         )
         expected = {

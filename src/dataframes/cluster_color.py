@@ -1,36 +1,54 @@
-from typing import Dict, List, Literal, Optional, Self
+from typing import Dict, Literal, Optional
 import polars as pl
 import dataframely as dy
 from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
-from src.data_container import DataContainer, assert_dataframe_schema
 import seaborn as sns
 import networkx as nx
 import numpy as np
-from sklearn.manifold import MDS  # type: ignore
 import matplotlib.colors as mcolors
 import umap  # type: ignore
 
 
-class ClusterColorDataFrame(DataContainer):
-    df: pl.DataFrame
+def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:
+    """
+    Darkens a hex color by multiplying RGB components by the given factor.
 
-    SCHEMA = {
-        "cluster": pl.UInt32(),
-        "color": pl.Utf8(),
-        "darkened_color": pl.Utf8(),
-    }
+    Args:
+        hex_color: A hex color string like '#ff0000' or '#f00'
+        factor: A float between 0 and 1 (0 = black, 1 = original color)
 
-    def __init__(self, df: pl.DataFrame) -> None:
-        assert_dataframe_schema(df, self.SCHEMA)
-        self.df = df
+    Returns:
+        A darkened hex color string
+    """
+    # Remove the # if present
+    hex_color = hex_color.lstrip("#")
 
-    def get_color_for_cluster(self, cluster: ClusterId) -> str:
-        return self.df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
+    # Handle shorthand hex format (#rgb)
+    if len(hex_color) == 3:
+        hex_color = "".join([c * 2 for c in hex_color])
+
+    # Convert hex to RGB
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    # Darken each component
+    r = int(r * factor)
+    g = int(g * factor)
+    b = int(b * factor)
+
+    # Convert back to hex
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+class ClusterColorSchema(dy.Schema):
+    cluster = dy.UInt32(nullable=False)
+    color = dy.String(nullable=False)
+    darkened_color = dy.String(nullable=False)
 
     @classmethod
     def build(
@@ -42,20 +60,10 @@ class ClusterColorDataFrame(DataContainer):
         ] = None,
         color_method: Literal["geographic", "taxonomic"] = "geographic",
         ocean_threshold: float = 0.90,
-    ) -> Self:
+    ) -> dy.DataFrame["ClusterColorSchema"]:
         """
         Build a ClusterColorDataFrame using either geographic neighbor-based coloring
         or taxonomic similarity-based coloring.
-
-        Args:
-            cluster_neighbors_dataframe: Dataframe of cluster neighbors
-            cluster_boundary_dataframe: Dataframe of cluster boundaries
-            cluster_taxa_statistics_dataframe: Dataframe of cluster taxa statistics (required for taxonomic coloring)
-            color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
-            ocean_threshold: Threshold for determining ocean clusters (only used with geographic method)
-
-        Returns:
-            A ClusterColorDataFrame with colors assigned to clusters
         """
         if color_method == "geographic":
             return cls._build_geographic(
@@ -75,7 +83,7 @@ class ClusterColorDataFrame(DataContainer):
         cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         ocean_threshold: float = 0.90,
-    ) -> Self:
+    ) -> dy.DataFrame["ClusterColorSchema"]:
         """
         Creates a coloring where neighboring clusters have different colors,
         and ocean and land clusters have different color palettes.
@@ -134,13 +142,18 @@ class ClusterColorDataFrame(DataContainer):
                 }
             )
 
-        return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
+        df = pl.DataFrame(rows).select(
+            pl.col("cluster").cast(pl.UInt32),
+            pl.col("color").cast(pl.Utf8),
+            pl.col("darkened_color").cast(pl.Utf8),
+        )
+        return cls.validate(df)
 
     @classmethod
     def _build_taxonomic(
         cls,
         cluster_taxa_statistics_dataframe: ClusterTaxaStatisticsDataFrame,
-    ) -> Self:
+    ) -> dy.DataFrame["ClusterColorSchema"]:
         """
         Creates a coloring where clusters with similar taxonomic composition
         have similar colors, using UMAP for dimensionality reduction.
@@ -213,39 +226,24 @@ class ClusterColorDataFrame(DataContainer):
                 }
             )
 
-        return cls(pl.DataFrame(rows, schema=cls.SCHEMA))
+        df = pl.DataFrame(rows).select(
+            pl.col("cluster").cast(pl.UInt32),
+            pl.col("color").cast(pl.Utf8),
+            pl.col("darkened_color").cast(pl.Utf8),
+        )
+        return cls.validate(df)
 
-    def to_dict(self) -> Dict[ClusterId, str]:
-        return {x: self.get_color_for_cluster(x) for x in self.df["cluster"]}
+
+def get_color_for_cluster(
+    cluster_color_dataframe: dy.DataFrame[ClusterColorSchema], cluster: ClusterId
+) -> str:
+    return cluster_color_dataframe.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
 
-def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:
-    """
-    Darkens a hex color by multiplying RGB components by the given factor.
-
-    Args:
-        hex_color: A hex color string like '#ff0000' or '#f00'
-        factor: A float between 0 and 1 (0 = black, 1 = original color)
-
-    Returns:
-        A darkened hex color string
-    """
-    # Remove the # if present
-    hex_color = hex_color.lstrip("#")
-
-    # Handle shorthand hex format (#rgb)
-    if len(hex_color) == 3:
-        hex_color = "".join([c * 2 for c in hex_color])
-
-    # Convert hex to RGB
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-
-    # Darken each component
-    r = int(r * factor)
-    g = int(g * factor)
-    b = int(b * factor)
-
-    # Convert back to hex
-    return f"#{r:02x}{g:02x}{b:02x}"
+def to_dict(
+    cluster_color_dataframe: dy.DataFrame[ClusterColorSchema],
+) -> Dict[ClusterId, str]:
+    return {
+        r["cluster"]: r["color"]
+        for r in cluster_color_dataframe.select("cluster", "color").iter_rows(named=True)
+    }

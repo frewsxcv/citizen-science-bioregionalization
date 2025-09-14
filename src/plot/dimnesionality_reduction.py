@@ -5,13 +5,14 @@ import umap # type: ignore
 import seaborn as sns
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-from src.dataframes.cluster_color import ClusterColorDataFrame
+from src.dataframes.cluster_color import ClusterColorSchema, to_dict
+import dataframely as dy
 
 
 def create_dimensionality_reduction_plot(
     geocode_distance_matrix: ClusterDistanceMatrix,
     geocode_cluster_dataframe: GeocodeClusterDataFrame,
-    cluster_color_dataframe: ClusterColorDataFrame,
+    cluster_color_dataframe: dy.DataFrame[ClusterColorSchema],
     method: Literal["umap", "tsne"] = "umap",
     n_neighbors: int = 3000,
 ):
@@ -62,6 +63,6 @@ def create_dimensionality_reduction_plot(
         x=X_reduced[:, 0],
         y=X_reduced[:, 1],
         hue=geocode_cluster_dataframe.df["cluster"],
-        palette=cluster_color_dataframe.to_dict(),
+        palette=to_dict(cluster_color_dataframe),
         alpha=1,
     )

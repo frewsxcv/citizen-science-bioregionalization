@@ -552,9 +552,9 @@ def _(
     cluster_neighbors_dataframe,
     cluster_taxa_statistics_dataframe,
 ):
-    from src.dataframes.cluster_color import ClusterColorDataFrame
+    from src.dataframes.cluster_color import ClusterColorSchema
 
-    cluster_colors_dataframe = ClusterColorDataFrame.build(
+    cluster_colors_dataframe = ClusterColorSchema.build(
         cluster_neighbors_dataframe,
         cluster_boundary_dataframe,
         cluster_taxa_statistics_dataframe,
@@ -562,7 +562,7 @@ def _(
         # color_method="geographic",
     )
 
-    cluster_colors_dataframe.df
+    cluster_colors_dataframe
     return (cluster_colors_dataframe,)
 
 
