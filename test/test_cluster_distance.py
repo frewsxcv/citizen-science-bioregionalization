@@ -7,6 +7,9 @@ from src.matrices.cluster_distance import (
     build_X,
 )
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from test.fixtures.cluster_taxa_statistics import (
+    mock_cluster_taxa_statistics_dataframe,
+)
 
 
 class TestClusterDistanceMatrix(unittest.TestCase):
@@ -158,22 +161,7 @@ class TestClusterDistanceMatrix(unittest.TestCase):
         # Cluster 2: All taxon 102
         # Cluster 3: Mix of 101 and 102, leaning toward 101 (closer to 1)
         # Cluster 4: Mix of 101 and 102, leaning toward 102 (closer to 2)
-        df = pl.DataFrame(
-            {
-                "cluster": [1, 1, 2, 2, 3, 3, 4, 4, None, None],
-                "taxonId": [101, 102, 101, 102, 101, 102, 101, 102, 101, 102],
-                "count": [10, 0, 0, 10, 7, 3, 3, 7, 20, 20],
-                "average": [1.0, 0.0, 0.0, 1.0, 0.7, 0.3, 0.3, 0.7, 0.5, 0.5],
-            },
-            schema={
-                "cluster": pl.UInt32(),
-                "taxonId": pl.UInt32(),
-                "count": pl.UInt32(),
-                "average": pl.Float64(),
-            },
-        )
-
-        cluster_taxa_stats = ClusterTaxaStatisticsDataFrame(df)
+        cluster_taxa_stats = mock_cluster_taxa_statistics_dataframe()
         distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_stats)
 
         # Test for cluster 1
