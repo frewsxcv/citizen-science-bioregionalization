@@ -34,7 +34,3 @@ dependencies = [
     "dataframely>=1.7.6",
     "pyright>=1.1.405",
 ]
-
-[tool.mypy]
-files = ["*.py", "src/**/*.py", "test/**/*.py"]
-mypy_path = "stubs"
