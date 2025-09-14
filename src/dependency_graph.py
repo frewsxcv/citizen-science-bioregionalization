@@ -40,7 +40,9 @@ def plot_dependency_graph() -> str:
 
     # If there are isolated nodes with no edges, add them explicitly
     for node in G.nodes():
-        if G.degree(node) == 0:
+        degree = G.degree
+        assert not isinstance(degree, int)
+        if degree(node) == 0:
             mermaid_str += f"    {node};\n"
 
     return mermaid_str

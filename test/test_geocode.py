@@ -183,16 +183,16 @@ class TestGeocodeDataFrame(unittest.TestCase):
         df = pl.DataFrame(
             {
                 "geocode": pl.Series(
-                    [0x8514355555555555, 0x8514355555555557], dtype=pl.UInt64
+                    [8514355555555555, 8514355555555557], dtype=pl.UInt64
                 ),
                 "center": points_series(2),
                 "boundary": polygon_series(2),
                 "direct_neighbors": pl.Series(
-                    [[0x8514355555555557], [0x8514355555555555]],
+                    [[8514355555555557], [8514355555555555]],
                     dtype=pl.List(pl.UInt64),
                 ),
                 "direct_and_indirect_neighbors": pl.Series(
-                    [[0x8514355555555557], [0x8514355555555555]],
+                    [[8514355555555557], [8514355555555555]],
                     dtype=pl.List(pl.UInt64),
                 ),
             }
@@ -201,15 +201,15 @@ class TestGeocodeDataFrame(unittest.TestCase):
         geocode_df = GeocodeDataFrame(df)
 
         # Test finding index of existing geocode
-        index = index_of_geocode_in_geocode_dataframe(0x8514355555555555, geocode_df)
+        index = index_of_geocode_in_geocode_dataframe(8514355555555555, geocode_df)
         self.assertEqual(index, 0)
 
-        index = index_of_geocode_in_geocode_dataframe(0x8514355555555557, geocode_df)
+        index = index_of_geocode_in_geocode_dataframe(8514355555555557, geocode_df)
         self.assertEqual(index, 1)
 
         # Test with non-existent geocode
         with self.assertRaises(ValueError):
-            index_of_geocode_in_geocode_dataframe(0x8514355555555559, geocode_df)
+            index_of_geocode_in_geocode_dataframe(8514355555555559, geocode_df)
 
 
 def points_series(count: int):

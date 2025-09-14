@@ -12,7 +12,7 @@ def plot_silhouette_scores(
     geocode_distance_matrix: GeocodeDistanceMatrix,
     geocode_silhouette_score_dataframe: GeocodeSilhouetteScoreDataFrame,
     cluster_colors_dataframe: ClusterColorDataFrame,
-) -> plt.Figure:
+) -> plt.Figure: # type: ignore
     """
     Create a silhouette plot for clustering results.
 

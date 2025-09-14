@@ -203,7 +203,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def index_of_geocode_in_geocode_dataframe(
-    geocode: str, geocode_dataframe: GeocodeDataFrame
+    geocode: int, geocode_dataframe: GeocodeDataFrame
 ) -> int:
     index = geocode_dataframe.df["geocode"].index_of(geocode)
     if index is None:

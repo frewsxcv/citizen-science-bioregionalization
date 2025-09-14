@@ -1,4 +1,5 @@
 from typing import Literal
+import numpy as np
 from sklearn.manifold import TSNE # type: ignore
 import umap # type: ignore
 import seaborn as sns
@@ -45,7 +46,7 @@ def create_dimensionality_reduction_plot(
                 30, geocode_distance_matrix.squareform().shape[0] - 1
             ),  # HACK FOR SMALLER DATASETS
         )
-        X_reduced = tsne.fit_transform(geocode_distance_matrix.squareform())
+        X_reduced: np.ndarray = tsne.fit_transform(geocode_distance_matrix.squareform())
     else:  # umap
         umap_reducer = umap.UMAP(
             n_components=2,
@@ -55,7 +56,7 @@ def create_dimensionality_reduction_plot(
             # min_dist=1,
             # init="random",
         )
-        X_reduced = umap_reducer.fit_transform(geocode_distance_matrix.squareform())
+        X_reduced: np.ndarray = umap_reducer.fit_transform(geocode_distance_matrix.squareform()) # type: ignore
 
     return sns.scatterplot(
         x=X_reduced[:, 0],

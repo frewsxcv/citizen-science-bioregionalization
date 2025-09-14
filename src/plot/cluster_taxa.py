@@ -112,10 +112,10 @@ def create_cluster_taxa_heatmap(
     # Create dataframe and generate clustermap
     dataframe = pl.DataFrame(data=data)
     g = sns.clustermap(
-        data=dataframe,
+        data=dataframe, # type: ignore
         col_cluster=False,
         row_cluster=True,
-        row_linkage=linkage_array,
+        row_linkage=linkage_array, # type: ignore
         row_colors=col_colors,
         xticklabels=dataframe.columns,
         yticklabels=False,

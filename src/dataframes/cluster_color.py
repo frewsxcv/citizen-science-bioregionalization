@@ -181,7 +181,7 @@ class ClusterColorDataFrame(DataContainer):
             random_state=42,  # For reproducibility
         )
 
-        positions = reducer.fit_transform(square_matrix)
+        positions: np.ndarray = reducer.fit_transform(square_matrix) # type: ignore
 
         # Normalize positions to [0,1] range for RGB color mapping
         positions_normalized = np.zeros_like(positions)

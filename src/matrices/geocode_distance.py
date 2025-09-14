@@ -145,7 +145,7 @@ def reduce_dimensions_umap(
         # Controls how tightly UMAP is allowed to pack points together.
         min_dist=min_dist,
     )
-    return pl.from_numpy(reducer.fit_transform(X.to_numpy()))
+    return pl.from_numpy(reducer.fit_transform(X.to_numpy())) # type: ignore
 
 
 class GeocodeDistanceMatrix(DataContainer):
