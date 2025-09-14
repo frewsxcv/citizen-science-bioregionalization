@@ -499,7 +499,7 @@ def _(cluster_boundary_dataframe):
 @app.cell
 def _(cluster_boundary_dataframe, pl):
     (
-        cluster_boundary_dataframe.df.select(pl.col("geometry"))
+        cluster_boundary_dataframe.select(pl.col("geometry"))
         .st.plot(stroke="green")
         .project(type="identity", reflectY=True)
     )
