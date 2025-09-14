@@ -1,6 +1,4 @@
 import unittest
-import geojson  # type: ignore
-import dataframely as dy
 
 from src.dataframes.cluster_geojson_features import ClusterGeojsonFeaturesDataFrame
 from src.geojson import (

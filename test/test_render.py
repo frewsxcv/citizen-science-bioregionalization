@@ -1,10 +1,7 @@
 import unittest
-import os
 import io
-import json
-import geojson  # type: ignore
+import geojson
 import polars as pl
-import polars_st  # Import for st attribute
 from src.render import (
     plot_single_cluster,
     plot_entire_region,

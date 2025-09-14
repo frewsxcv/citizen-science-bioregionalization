@@ -1,10 +1,6 @@
 import unittest
 import polars as pl
-import polars_st
 import shapely
-import geojson  # type: ignore
-import os
-import dataframely as dy
 
 from src.geojson import (
     build_geojson_feature_collection,
