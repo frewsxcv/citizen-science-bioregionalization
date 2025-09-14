@@ -115,18 +115,21 @@ def scale_values(feature_matrix: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(scaler.fit_transform(feature_matrix.to_numpy()))
 
 
-def reduce_dimensions_umap(X: pl.DataFrame) -> pl.DataFrame:
+def reduce_dimensions_umap(
+    X: pl.DataFrame, n_components: int, min_dist: float
+) -> pl.DataFrame:
     """
     Reduces the dimensionality of the feature matrix using UMAP.
 
     Args:
         X: The input feature matrix (Polars DataFrame).
+        n_components: The number of dimensions to reduce to.
+        min_dist: The minimum distance between points in the low-dimensional representation.
 
     Returns:
         A Polars DataFrame with reduced dimensions.
     """
     # UMAP requires n_components to be less than the number of samples (X.height).
-    # Setting it to X.height - 2 provides some margin.
     # See: https://github.com/lmcinnes/umap/issues/201
     # The assertion ensures there are enough samples for the chosen n_components.
     # TODO: Revisit this constraint for smaller datasets if necessary.
@@ -136,11 +139,11 @@ def reduce_dimensions_umap(X: pl.DataFrame) -> pl.DataFrame:
 
     reducer = umap.UMAP(
         # Target number of dimensions. Must be < number of samples.
-        n_components=X.height - 2,
+        n_components=n_components,
         # Metric suitable for ecological count/abundance data.
         metric="braycurtis",
         # Controls how tightly UMAP is allowed to pack points together.
-        min_dist=0.5,
+        min_dist=min_dist,
     )
     return pl.from_numpy(reducer.fit_transform(X.to_numpy()))
 
@@ -163,6 +166,8 @@ class GeocodeDistanceMatrix(DataContainer):
         cls,
         geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
         geocode_dataframe: GeocodeDataFrame,
+        umap_n_components: int | None = None,
+        umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
         scaled_feature_matrix = build_X(
@@ -175,9 +180,15 @@ class GeocodeDistanceMatrix(DataContainer):
         logger.info(
             f"Reducing dimensions with UMAP. Input shape: {scaled_feature_matrix.shape}"
         )
+
+        if umap_n_components is None:
+            umap_n_components = scaled_feature_matrix.height - 2
+
         reduced_feature_matrix = log_action(
             "Fitting UMAP",
-            lambda: scaled_feature_matrix.pipe(reduce_dimensions_umap),
+            lambda: scaled_feature_matrix.pipe(
+                reduce_dimensions_umap, umap_n_components, umap_min_dist
+            ),
         )
         logger.info(
             f"Reduced dimensions with UMAP. Output shape: {reduced_feature_matrix.shape}"
