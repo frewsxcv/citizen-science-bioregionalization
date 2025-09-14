@@ -1,4 +1,4 @@
-name: Mypy
+name: pyright
 
 on: push
 
@@ -12,5 +12,5 @@ jobs:
           version: "latest"
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Run Mypy
-        run: uv run mypy .
+      - name: Run pyright
+        run: uv run pyright .
