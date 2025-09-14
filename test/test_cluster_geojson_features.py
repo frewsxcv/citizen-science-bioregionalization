@@ -153,7 +153,7 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
         feature = cluster_geojson_features_dataframe.get_feature_for_cluster(1)
 
         # Verify the feature
-        self.assertIsNotNone(feature)
+        assert feature is not None
         self.assertEqual("Feature", feature["type"])
         self.assertEqual(1, feature["properties"]["cluster"])
         self.assertEqual("#ff0000", feature["properties"]["fillColor"])

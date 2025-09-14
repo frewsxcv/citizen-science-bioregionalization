@@ -1,4 +1,4 @@
-from typing import NewType
+from typing import TypeAlias
 
-ClusterId = NewType("ClusterId", int)
-Geocode = NewType("Geocode", str)
+ClusterId: TypeAlias = int
+Geocode: TypeAlias = str
