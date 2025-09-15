@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Run sample archive",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/notebook.py",
+            "args": ["--geocode-precision", "8", "--num-clusters", "10", "--log-file", "run.log", "test/sample-archive/"]
+        }
+    ]
+}
