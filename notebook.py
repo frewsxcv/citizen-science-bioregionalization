@@ -1,3 +1,5 @@
+# pyright: reportUnusedExpression=false
+
 import marimo
 
 __generated_with = "0.15.3"
