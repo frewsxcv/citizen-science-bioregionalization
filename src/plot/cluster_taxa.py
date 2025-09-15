@@ -55,7 +55,7 @@ def create_cluster_taxa_heatmap(
     g: seaborn.ClusterGrid
         The resulting clustermap visualization
     """
-    ordered_geocodes = geocode_dataframe.df["geocode"].unique()
+    ordered_geocodes = geocode_dataframe["geocode"].unique()
 
     # Create color mapping for geocodes by cluster
     col_colors = []
@@ -84,7 +84,7 @@ def create_cluster_taxa_heatmap(
 
         for geocode in ordered_geocodes:
             geocode_counts_species = (
-                geocode_taxa_counts_dataframe.df.lazy()
+                geocode_taxa_counts_dataframe.lazy()
                 .filter(pl.col("geocode") == geocode, pl.col("taxonId") == taxonId)
                 .select("count")
                 .sum()
@@ -92,7 +92,7 @@ def create_cluster_taxa_heatmap(
                 .item()
             )
             geocode_counts_all = (
-                geocode_taxa_counts_dataframe.df.lazy()
+                geocode_taxa_counts_dataframe.lazy()
                 .filter(pl.col("geocode") == geocode)
                 .select("count")
                 .sum()

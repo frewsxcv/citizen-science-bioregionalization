@@ -163,23 +163,23 @@ def _(mo):
 
 @app.cell
 def _(args, darwin_core_lazy_frame):
-    from src.dataframes.geocode import GeocodeDataFrame
+    from src.dataframes.geocode import GeocodeSchema
 
-    geocode_dataframe = GeocodeDataFrame.build(
+    geocode_dataframe = GeocodeSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
     )
 
-    geocode_dataframe.df
+    geocode_dataframe
     return (geocode_dataframe,)
 
 
 @app.cell(hide_code=True)
 def _(folium, geocode_dataframe, pl):
-    _center = geocode_dataframe.df.select(
+    _center = geocode_dataframe.select(
         pl.col("center").alias("geometry"),
     )
-    _boundary = geocode_dataframe.df.select(
+    _boundary = geocode_dataframe.select(
         pl.col("boundary").alias("geometry"),
     )
 
@@ -214,7 +214,7 @@ def _(darwin_core_lazy_frame):
 
     taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_lazy_frame)
 
-    taxonomy_dataframe.df
+    taxonomy_dataframe
     return (taxonomy_dataframe,)
 
 
@@ -226,15 +226,15 @@ def _(mo):
 
 @app.cell
 def _(args, darwin_core_lazy_frame, taxonomy_dataframe):
-    from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
+    from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
-    geocode_taxa_counts_dataframe = GeocodeTaxaCountsDataFrame.build(
+    geocode_taxa_counts_dataframe = GeocodeTaxaCountsSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
         taxonomy_dataframe,
     )
 
-    geocode_taxa_counts_dataframe.df
+    geocode_taxa_counts_dataframe
     return (geocode_taxa_counts_dataframe,)
 
 

@@ -2,10 +2,10 @@ import polars as pl
 import polars_st as pl_st
 import logging
 from typing import Self
+import dataframely as dy
 
 from shapely import MultiPoint, Point
 import shapely.ops
-from src.data_container import DataContainer, assert_dataframe_schema
 from src.geocode import geocode_lazy_frame
 from polars_darwin_core import DarwinCoreLazyFrame
 import polars_h3
@@ -16,36 +16,25 @@ logger = logging.getLogger(__name__)
 MAX_NUM_NEIGHBORS = 6
 
 
-class GeocodeDataFrame(DataContainer):
-    """
-    A dataframe of unique, in-order geocodes that are connected to another known geocode.
-    """
-
-    df: pl.DataFrame
-
-    SCHEMA = {
-        "geocode": pl.UInt64(),
-        "center": pl.Binary(),
-        "boundary": pl.Binary(),
-        # Direct neighbors from H3 grid adjacency
-        "direct_neighbors": pl.List(pl.UInt64()),
-        # Direct and indirect neighbors (includes both H3 adjacency and added connections)
-        "direct_and_indirect_neighbors": pl.List(pl.UInt64()),
-    }
-
-    def __init__(self, df: pl.DataFrame):
-        assert_dataframe_schema(df, self.SCHEMA)
-        self.df = df
+class GeocodeSchema(dy.Schema):
+    geocode = dy.UInt64(nullable=False)
+    center = dy.Any()  # Binary
+    boundary = dy.Any()  # Binary
+    # Direct neighbors from H3 grid adjacency
+    direct_neighbors = dy.List(dy.UInt64(), nullable=False)
+    # Direct and indirect neighbors (includes both H3 adjacency and added connections)
+    direct_and_indirect_neighbors = dy.List(dy.UInt64(), nullable=False)
 
     @classmethod
     def build(
         cls,
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
-    ) -> Self:
+    ) -> dy.DataFrame["GeocodeSchema"]:
         df = (
-            darwin_core_lazy_frame._inner
-            .pipe(geocode_lazy_frame, geocode_precision=geocode_precision)
+            darwin_core_lazy_frame._inner.pipe(
+                geocode_lazy_frame, geocode_precision=geocode_precision
+            )
             .filter(pl.col("geocode").is_not_null())
             .select("geocode")
             .unique()
@@ -88,14 +77,16 @@ class GeocodeDataFrame(DataContainer):
         ).iter_rows():
             boundaries.append(shapely.Polygon(latlng_list_to_lnglat_list(geometry)))
 
-        return cls(
-            df.with_columns(boundary=pl_st.from_shapely(pl.Series(boundaries))).select(
-                cls.SCHEMA.keys()
-            )
+        df = df.with_columns(boundary=pl_st.from_shapely(pl.Series(boundaries))).select(
+            list(GeocodeSchema.columns().keys())
         )
+        return GeocodeSchema.validate(df)
 
-    def graph(self) -> nx.Graph:
-        return _df_to_graph(self.df)
+
+def graph(
+    geocode_dataframe: dy.DataFrame[GeocodeSchema], include_indirect_neighbors: bool = False
+) -> nx.Graph:
+    return _df_to_graph(geocode_dataframe, include_indirect_neighbors)
 
 
 def _df_to_graph(
@@ -139,9 +130,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
         first_component_points = [center1 for center1, _ in first_component_nodes]
 
         other_component_nodes = list(
-            df
-            # Filter out nodes that are not on the edge of the grid
-            .filter(pl.col("direct_neighbors").list.len() != MAX_NUM_NEIGHBORS)
+            df.filter(pl.col("direct_neighbors").list.len() != MAX_NUM_NEIGHBORS)
             .filter(pl.col("geocode").is_in(first_component).not_())
             .select(
                 pl_st.geom("center").st.to_shapely(),
@@ -202,10 +191,10 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def index_of_geocode_in_geocode_dataframe(
-    geocode: int, geocode_dataframe: GeocodeDataFrame
+def index_of_geocode(
+    geocode: int, geocode_dataframe: dy.DataFrame[GeocodeSchema]
 ) -> int:
-    index = geocode_dataframe.df["geocode"].index_of(geocode)
+    index = geocode_dataframe["geocode"].index_of(geocode)
     if index is None:
         raise ValueError(f"Geocode {geocode} not found in GeocodeDataFrame")
     return index

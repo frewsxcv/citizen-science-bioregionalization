@@ -5,7 +5,7 @@ import dataframely as dy
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
-from src.dataframes.geocode import GeocodeDataFrame
+from src.dataframes.geocode import GeocodeSchema
 from src.types import Geocode, ClusterId
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
@@ -19,12 +19,12 @@ class GeocodeClusterSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_dataframe: GeocodeDataFrame,
+        geocode_dataframe: dy.DataFrame[GeocodeSchema],
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
     ) -> dy.DataFrame["GeocodeClusterSchema"]:
-        geocodes = geocode_dataframe.df["geocode"]
+        geocodes = geocode_dataframe["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,
             connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),  # type: ignore

@@ -7,7 +7,8 @@ from scipy.spatial.distance import pdist, squareform
 import umap
 from src.data_container import DataContainer
 from src.dataframes import geocode_taxa_counts
-from src.dataframes.geocode import GeocodeDataFrame
+import dataframely as dy
+from src.dataframes.geocode import GeocodeSchema
 from src.logging import log_action, logger
 
 
@@ -52,8 +53,8 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_X(
-    geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
-    geocode_dataframe: GeocodeDataFrame,
+    geocode_taxa_counts_dataframe: dy.DataFrame[geocode_taxa_counts.GeocodeTaxaCountsSchema],
+    geocode_dataframe: dy.DataFrame[GeocodeSchema],
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -71,7 +72,7 @@ def build_X(
     # 1. Pivot the table
     feature_matrix = log_action(
         "Pivoting taxon counts",
-        lambda: geocode_taxa_counts_dataframe.df.pipe(pivot_taxon_counts),
+        lambda: geocode_taxa_counts_dataframe.pipe(pivot_taxon_counts),
     )
 
     assert feature_matrix.height > 1, "More than one geocode is required to cluster"
@@ -85,7 +86,7 @@ def build_X(
     # 3. Ensure the order of geocodes in the matrix matches the input geocode list.
     # This is crucial for later steps that rely on matching indices.
     assert (
-        feature_matrix["geocode"].to_list() == geocode_dataframe.df["geocode"].to_list()
+        feature_matrix["geocode"].to_list() == geocode_dataframe["geocode"].to_list()
     ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
 
     # 4. Drop the geocode identifier column
@@ -162,8 +163,10 @@ class GeocodeDistanceMatrix(DataContainer):
     @classmethod
     def build(
         cls,
-        geocode_taxa_counts_dataframe: geocode_taxa_counts.GeocodeTaxaCountsDataFrame,
-        geocode_dataframe: GeocodeDataFrame,
+        geocode_taxa_counts_dataframe: dy.DataFrame[
+            geocode_taxa_counts.GeocodeTaxaCountsSchema
+        ],
+        geocode_dataframe: dy.DataFrame[GeocodeSchema],
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":

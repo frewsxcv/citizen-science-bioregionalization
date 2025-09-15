@@ -8,7 +8,7 @@ from src.dataframes.geocode_cluster import (
     GeocodeClusterSchema,
     iter_clusters_and_geocodes,
 )
-from src.dataframes.geocode import GeocodeDataFrame
+from src.dataframes.geocode import GeocodeSchema
 
 
 class ClusterBoundarySchema(dy.Schema):
@@ -19,14 +19,14 @@ class ClusterBoundarySchema(dy.Schema):
     def build(
         cls,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        geocode_dataframe: GeocodeDataFrame,
+        geocode_dataframe: dy.DataFrame[GeocodeSchema],
     ) -> dy.DataFrame["ClusterBoundarySchema"]:
         clusters: List[int] = []
         boundaries: List[shapely.Polygon] = []
 
         # Create a mapping of geocode to boundary for faster lookup
         geocode_to_boundary: Dict[str, bytes] = {}
-        for row in geocode_dataframe.df.select(
+        for row in geocode_dataframe.select(
             "geocode", "boundary"
         ).iter_rows(named=True):
             geocode_to_boundary[row["geocode"]] = row["boundary"]

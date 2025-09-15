@@ -14,7 +14,7 @@ from test.fixtures.cluster_taxa_statistics import (
 )
 
 
-class TestClusterColorDataFrame(unittest.TestCase):
+class TestClusterColorSchema(unittest.TestCase):
     def test_ocean_coloring(self):
         """Test that ocean clusters get blue colors and land clusters get non-blue colors"""
 

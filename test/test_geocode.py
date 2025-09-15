@@ -5,19 +5,21 @@ import tempfile
 import os
 import polars_st as pl_st
 
+import dataframely as dy
 from src.dataframes.geocode import (
-    GeocodeDataFrame,
+    GeocodeSchema,
     _df_to_graph,
     _reduce_connected_components_to_one,
-    index_of_geocode_in_geocode_dataframe,
+    index_of_geocode,
+    graph,
 )
 from src.data_container import assert_dataframe_schema
 from polars_darwin_core import DarwinCoreLazyFrame
 
 
-class TestGeocodeDataFrame(unittest.TestCase):
+class TestGeocodeSchema(unittest.TestCase):
     def test_geocode_dataframe_schema(self):
-        """Test that the GeocodeDataFrame validates its schema correctly"""
+        """Test that the GeocodeSchema validates its schema correctly"""
         # Create a simple dataframe that matches the expected schema
         df = pl.DataFrame(
             {
@@ -38,8 +40,8 @@ class TestGeocodeDataFrame(unittest.TestCase):
         )
 
         # This should not raise an exception
-        geocode_df = GeocodeDataFrame(df)
-        self.assertIsInstance(geocode_df, GeocodeDataFrame)
+        geocode_df = GeocodeSchema.validate(df)
+        self.assertIsInstance(geocode_df, pl.DataFrame)
 
     def test_build_from_darwin_core_csv(self):
         """Test building a GeocodeDataFrame from a DarwinCoreLazyFrame"""
@@ -54,31 +56,28 @@ class TestGeocodeDataFrame(unittest.TestCase):
             darwin_core_lazy_frame._inner.head()
         )
 
-        geocode_df = GeocodeDataFrame.build(darwin_core_lazy_frame, geocode_precision=8)
+        geocode_df = GeocodeSchema.build(darwin_core_lazy_frame, geocode_precision=8)
 
         # Validate the result
-        self.assertIsInstance(geocode_df, GeocodeDataFrame)
-
-        # Check schema
-        assert_dataframe_schema(geocode_df.df, GeocodeDataFrame.SCHEMA)
+        self.assertIsInstance(geocode_df, pl.DataFrame)
 
         # Should have unique geocodes
         self.assertEqual(
-            geocode_df.df["geocode"].n_unique(),
-            geocode_df.df.shape[0],
+            geocode_df["geocode"].n_unique(),
+            geocode_df.shape[0],
             "Geocodes should be unique",
         )
 
         # We don't need to check for neighbors anymore, because the GeocodeDataFrame.build
         # method ensures the graph is connected. Instead we'll check that we have the
         # expected columns:
-        self.assertIn("direct_neighbors", geocode_df.df.columns)
-        self.assertIn("direct_and_indirect_neighbors", geocode_df.df.columns)
+        self.assertIn("direct_neighbors", geocode_df.columns)
+        self.assertIn("direct_and_indirect_neighbors", geocode_df.columns)
 
         # Check that the graph is connected (single component)
-        graph = geocode_df.graph()
+        g = graph(geocode_df)
         self.assertEqual(
-            nx.number_connected_components(graph),
+            nx.number_connected_components(g),
             1,
             "Graph should have exactly one connected component",
         )
@@ -105,22 +104,22 @@ class TestGeocodeDataFrame(unittest.TestCase):
             }
         )
 
-        geocode_df = GeocodeDataFrame(df)
+        geocode_df = GeocodeSchema.validate(df)
 
         # Convert to graph
-        graph = geocode_df.graph()
+        g = graph(geocode_df)
 
         # Check that the graph has the right structure
-        self.assertEqual(len(graph.nodes), 3)
-        self.assertEqual(len(graph.edges), 2)  # 1-2 and 2-3
+        self.assertEqual(len(g.nodes), 3)
+        self.assertEqual(len(g.edges), 2)  # 1-2 and 2-3
 
         # Check connectivity
-        self.assertTrue(graph.has_edge(1, 2))
-        self.assertTrue(graph.has_edge(2, 3))
-        self.assertFalse(graph.has_edge(1, 3))
+        self.assertTrue(g.has_edge(1, 2))
+        self.assertTrue(g.has_edge(2, 3))
+        self.assertFalse(g.has_edge(1, 3))
 
         # Check connected components
-        self.assertEqual(nx.number_connected_components(graph), 1)
+        self.assertEqual(nx.number_connected_components(g), 1)
 
     def test_reduce_connected_components(self):
         """Test the function that reduces multiple connected components to one"""
@@ -198,18 +197,18 @@ class TestGeocodeDataFrame(unittest.TestCase):
             }
         )
 
-        geocode_df = GeocodeDataFrame(df)
+        geocode_df = GeocodeSchema.validate(df)
 
         # Test finding index of existing geocode
-        index = index_of_geocode_in_geocode_dataframe(8514355555555555, geocode_df)
+        index = index_of_geocode(8514355555555555, geocode_df)
         self.assertEqual(index, 0)
 
-        index = index_of_geocode_in_geocode_dataframe(8514355555555557, geocode_df)
+        index = index_of_geocode(8514355555555557, geocode_df)
         self.assertEqual(index, 1)
 
         # Test with non-existent geocode
         with self.assertRaises(ValueError):
-            index_of_geocode_in_geocode_dataframe(8514355555555559, geocode_df)
+            index_of_geocode(8514355555555559, geocode_df)
 
 
 def points_series(count: int):

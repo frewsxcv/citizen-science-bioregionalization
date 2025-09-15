@@ -1,8 +1,9 @@
 import numpy as np
 
+import dataframely as dy
 from src.dataframes.geocode import (
-    GeocodeDataFrame,
-    index_of_geocode_in_geocode_dataframe,
+    GeocodeSchema,
+    index_of_geocode,
 )
 from src.data_container import DataContainer
 import networkx as nx
@@ -19,15 +20,17 @@ class GeocodeConnectivityMatrix(DataContainer):
         self._connectivity_matrix = connectivity_matrix
 
     @classmethod
-    def build(cls, geocode_dataframe: GeocodeDataFrame) -> "GeocodeConnectivityMatrix":
-        num_geocodes = len(geocode_dataframe.df)
+    def build(
+        cls, geocode_dataframe: dy.DataFrame[GeocodeSchema]
+    ) -> "GeocodeConnectivityMatrix":
+        num_geocodes = len(geocode_dataframe)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
         for i, neighbors in enumerate(
-            geocode_dataframe.df["direct_and_indirect_neighbors"]
+            geocode_dataframe["direct_and_indirect_neighbors"]
         ):
             for neighbor in neighbors:
-                j = index_of_geocode_in_geocode_dataframe(neighbor, geocode_dataframe)
+                j = index_of_geocode(neighbor, geocode_dataframe)
                 connectivity_matrix[i, j] = 1
 
         assert_one_connected_component(connectivity_matrix)
