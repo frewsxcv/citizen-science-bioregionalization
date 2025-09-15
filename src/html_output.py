@@ -4,7 +4,7 @@ import dataframely as dy
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
-from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.dataframes.taxonomy import TaxonomySchema
 from src.render import plot_single_cluster, plot_entire_region
 import geojson
 import os
@@ -18,7 +18,7 @@ import io
 def prepare_cluster_data(
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
     significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
-    taxonomy_df: TaxonomyDataFrame,
+    taxonomy_df: dy.DataFrame[TaxonomySchema],
 ) -> list:
     """
     Prepare structured data for clusters without any HTML templating.
@@ -48,7 +48,7 @@ def prepare_cluster_data(
             percent_diff = row["percentage_difference"]
 
             # Get taxonomy info
-            taxon_info = taxonomy_df.df.filter(pl.col("taxonId") == taxon_id)
+            taxon_info = taxonomy_df.filter(pl.col("taxonId") == taxon_id)
             if (
                 taxon_info.height > 0
                 and abs(percent_diff) > ClusterSignificantDifferencesSchema.THRESHOLD
@@ -69,7 +69,7 @@ def prepare_cluster_data(
 def prepare_full_report_data(
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
     significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
-    taxonomy_df: TaxonomyDataFrame,
+    taxonomy_df: dy.DataFrame[TaxonomySchema],
     feature_collection: geojson.FeatureCollection,
 ) -> dict:
     """
@@ -118,7 +118,7 @@ def prepare_full_report_data(
             percent_diff = row["percentage_difference"]
 
             # Get taxonomy info
-            taxon_info = taxonomy_df.df.filter(pl.col("taxonId") == taxon_id)
+            taxon_info = taxonomy_df.filter(pl.col("taxonId") == taxon_id)
             if (
                 taxon_info.height > 0
                 and abs(percent_diff) > ClusterSignificantDifferencesSchema.THRESHOLD

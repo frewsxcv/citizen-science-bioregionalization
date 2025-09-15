@@ -4,7 +4,7 @@ from typing import List
 from src.logging import Timer
 import dataframely as dy
 
-from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.dataframes.taxonomy import TaxonomySchema
 from src.geocode import geocode_lazy_frame
 from polars_darwin_core import DarwinCoreLazyFrame
 
@@ -21,7 +21,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
         cls,
         darwin_core_csv_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
-        taxonomy_dataframe: TaxonomyDataFrame,
+        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
     ) -> dy.DataFrame["GeocodeTaxaCountsSchema"]:
         with Timer(output=logger.info, prefix="Reading rows"):
             # First, create the raw aggregation with the old schema
@@ -40,7 +40,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
 
             # Join with taxonomy dataframe to get taxonId
             joined = raw_aggregated.join(
-                taxonomy_dataframe.df.select(
+                taxonomy_dataframe.select(
                     ["taxonId", "kingdom", "scientificName", "taxonRank"]
                 ),
                 on=["kingdom", "scientificName", "taxonRank"],

@@ -4,7 +4,7 @@ import dataframely as dy
 
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
-from src.dataframes.taxonomy import TaxonomyDataFrame
+from src.dataframes.taxonomy import TaxonomySchema
 from src.types import ClusterId
 
 
@@ -21,13 +21,13 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
         cls,
         geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        taxonomy_dataframe: TaxonomyDataFrame,
+        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
     ) -> dy.DataFrame["ClusterTaxaStatisticsSchema"]:
         df = pl.DataFrame()
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
         joined = geocode_taxa_counts_dataframe.join(
-            taxonomy_dataframe.df, on="taxonId"
+            taxonomy_dataframe, on="taxonId"
         )
 
         # Total count of all observations

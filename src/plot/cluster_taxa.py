@@ -68,7 +68,7 @@ def create_cluster_taxa_heatmap(
 
     # Join taxonomic information
     joined = cluster_significant_differences_dataframe.join(
-        taxonomy_dataframe.df, on=["taxonId"], how="left"
+        taxonomy_dataframe, on=["taxonId"], how="left"
     )
 
     # Process data for each species/taxon

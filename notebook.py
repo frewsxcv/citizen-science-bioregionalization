@@ -210,9 +210,9 @@ def _(mo):
 
 @app.cell
 def _(darwin_core_lazy_frame):
-    from src.dataframes.taxonomy import TaxonomyDataFrame
+    from src.dataframes.taxonomy import TaxonomySchema
 
-    taxonomy_dataframe = TaxonomyDataFrame.build(darwin_core_lazy_frame)
+    taxonomy_dataframe = TaxonomySchema.build(darwin_core_lazy_frame)
 
     taxonomy_dataframe
     return (taxonomy_dataframe,)

@@ -1,8 +1,10 @@
 import polars as pl
-from src.dataframes.taxonomy import TaxonomyDataFrame
+import dataframely as dy
+from polars_darwin_core import Kingdom
+from src.dataframes.taxonomy import TaxonomySchema
 
 
-def mock_taxonomy_dataframe() -> TaxonomyDataFrame:
+def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
     """
     Creates a mock TaxonomyDataFrame for testing.
     """
@@ -23,7 +25,7 @@ def mock_taxonomy_dataframe() -> TaxonomyDataFrame:
             "taxonId": 1,
             "kingdom": "Animalia",
             "phylum": "Chordata",
-            "class": "Mammalia",
+            "class_": "Mammalia",
             "order": "Carnivora",
             "family": "Canidae",
             "genus": "Canis",
@@ -56,5 +58,14 @@ def mock_taxonomy_dataframe() -> TaxonomyDataFrame:
             "scientificName": "Anseriformes",
         },
     ]
-    taxonomy_df = pl.DataFrame(taxonomy_data, schema=TaxonomyDataFrame.SCHEMA)
-    return TaxonomyDataFrame(taxonomy_df)
+    taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
+        pl.col("taxonId").cast(pl.UInt32),
+        pl.col("kingdom").cast(pl.Enum(Kingdom)),
+        pl.col("phylum").cast(pl.Categorical),
+        pl.col("class").cast(pl.Categorical),
+        pl.col("order").cast(pl.Categorical),
+        pl.col("family").cast(pl.Categorical),
+        pl.col("genus").cast(pl.Categorical),
+        pl.col("taxonRank").cast(pl.Categorical),
+    )
+    return TaxonomySchema.validate(taxonomy_df)
