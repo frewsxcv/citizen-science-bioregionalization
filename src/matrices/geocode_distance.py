@@ -5,7 +5,6 @@ import polars as pl
 from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
 import umap
-from src.data_container import DataContainer
 from src.dataframes import geocode_taxa_counts
 import dataframely as dy
 from src.dataframes.geocode import GeocodeSchema
@@ -147,7 +146,7 @@ def reduce_dimensions_umap(
     return pl.from_numpy(reducer.fit_transform(X.to_numpy())) # type: ignore
 
 
-class GeocodeDistanceMatrix(DataContainer):
+class GeocodeDistanceMatrix:
     """
     A distance matrix where each column and row is a geocode, and the cell at the intersection of a
     column and row is the similarity (or distance) between the two geocodes. Internally it is stored

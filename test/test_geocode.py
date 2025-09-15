@@ -13,7 +13,6 @@ from src.dataframes.geocode import (
     index_of_geocode,
     graph,
 )
-from src.data_container import assert_dataframe_schema
 from polars_darwin_core import DarwinCoreLazyFrame
 
 

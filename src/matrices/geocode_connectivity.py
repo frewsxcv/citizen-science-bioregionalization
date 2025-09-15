@@ -5,7 +5,6 @@ from src.dataframes.geocode import (
     GeocodeSchema,
     index_of_geocode,
 )
-from src.data_container import DataContainer
 import networkx as nx
 from shapely.geometry import Point
 import logging
@@ -13,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class GeocodeConnectivityMatrix(DataContainer):
+class GeocodeConnectivityMatrix:
     _connectivity_matrix: np.ndarray
 
     def __init__(self, connectivity_matrix: np.ndarray):

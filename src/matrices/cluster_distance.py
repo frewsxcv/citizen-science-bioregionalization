@@ -4,7 +4,6 @@ import polars as pl
 from typing import Tuple, List
 from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
-from src.data_container import DataContainer
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 import dataframely as dy
 from src.logging import log_action, logger
@@ -67,7 +66,7 @@ def scale_values(X: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(scaler.fit_transform(X.to_numpy()))
 
 
-class ClusterDistanceMatrix(DataContainer):
+class ClusterDistanceMatrix:
     """
     A distance matrix where each column and row is a cluster, and the cell at the intersection of a
     column and row is the similarity (or distance) between the two clusters based on their taxonomic
