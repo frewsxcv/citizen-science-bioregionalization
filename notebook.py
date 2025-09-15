@@ -111,7 +111,7 @@ def _(args):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `DarwinCoreLazyFrame`""")
+    mo.md(r"""## `DarwinCore`""")
     return
 
 
@@ -157,7 +157,7 @@ def _(output_path, pl, polars_darwin_core):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeDataFrame`""")
+    mo.md(r"""## `Geocode`""")
     return
 
 
@@ -204,7 +204,7 @@ def _(folium, geocode_dataframe, pl):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `TaxonomyDataFrame`""")
+    mo.md(r"""## `Taxonomy`""")
     return
 
 
@@ -220,7 +220,7 @@ def _(darwin_core_lazy_frame):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeSpeciesCountsDataFrame`""")
+    mo.md(r"""## `GeocodeSpeciesCounts`""")
     return
 
 
@@ -240,7 +240,7 @@ def _(args, darwin_core_lazy_frame, taxonomy_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeConnectivityMatrix`""")
+    mo.md(r"""## `GeocodeConnectivity`""")
     return
 
 
@@ -256,7 +256,7 @@ def _(geocode_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeDistanceMatrix`""")
+    mo.md(r"""## `GeocodeDistance`""")
     return
 
 
@@ -280,7 +280,7 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeClusterDataFrame`""")
+    mo.md(r"""## `GeocodeCluster`""")
     return
 
 
@@ -350,7 +350,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterNeighborsDataframe`""")
+    mo.md(r"""## `ClusterNeighbors`""")
     return
 
 
@@ -385,7 +385,7 @@ def _(cluster_neighbors_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterTaxaStatisticsDataFrame`""")
+    mo.md(r"""## `ClusterTaxaStatistics`""")
     return
 
 
@@ -425,7 +425,7 @@ def _(cluster_taxa_statistics_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterSignificantDifferencesDataFrame`""")
+    mo.md(r"""## `ClusterSignificantDifferences`""")
     return
 
 
@@ -463,7 +463,7 @@ def _(cluster_significant_differences_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterBoundarySchema`""")
+    mo.md(r"""## `ClusterBoundary`""")
     return
 
 
@@ -508,7 +508,7 @@ def _(cluster_boundary_dataframe, pl):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterDistanceMatrix`""")
+    mo.md(r"""## `ClusterDistance`""")
     return
 
 
@@ -542,7 +542,7 @@ def _(cluster_distance_matrix):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterColorDataFrame`""")
+    mo.md(r"""## `ClusterColor`""")
     return
 
 
@@ -568,7 +568,7 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `PermanovaResultsDataFrame`""")
+    mo.md(r"""## `PermanovaResults`""")
     return
 
 
@@ -604,7 +604,7 @@ def _(permanova_results_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeSilhouetteScoreDataFrame`""")
+    mo.md(r"""## `GeocodeSilhouetteScore`""")
     return
 
 
