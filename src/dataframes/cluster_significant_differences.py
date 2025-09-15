@@ -1,30 +1,25 @@
 import polars as pl
-from typing import Self
+import dataframely as dy
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.data_container import DataContainer, assert_dataframe_schema
 
 
-class ClusterSignificantDifferencesDataFrame(DataContainer):
+class ClusterSignificantDifferencesSchema(dy.Schema):
     """
     A dataframe that contains the significant differences between clusters.
     """
 
     THRESHOLD = 10  # Percent difference
 
-    SCHEMA = {
-        "cluster": pl.UInt32(),
-        "taxonId": pl.UInt32(),
-        "percentage_difference": pl.Float64(),  # TODO: should this a p-value?
-    }
-
-    def __init__(self, df: pl.DataFrame):
-        assert_dataframe_schema(df, self.SCHEMA)
-        self.df = df
+    cluster = dy.UInt32(nullable=False)
+    taxonId = dy.UInt32(nullable=False)
+    percentage_difference = dy.Float64(
+        nullable=False
+    )  # TODO: should this a p-value?
 
     @classmethod
     def build(
         cls, all_stats: ClusterTaxaStatisticsDataFrame
-    ) -> Self:
+    ) -> dy.DataFrame["ClusterSignificantDifferencesSchema"]:
         # Calculate significant differences
         significant_differences = []
 
@@ -62,5 +57,8 @@ class ClusterSignificantDifferencesDataFrame(DataContainer):
                     )
 
         # Create a DataFrame from the significant differences
-        df = pl.DataFrame(significant_differences, schema=cls.SCHEMA)
-        return cls(df)
+        df = pl.DataFrame(significant_differences).with_columns(
+            pl.col("cluster").cast(pl.UInt32),
+            pl.col("taxonId").cast(pl.UInt32),
+        )
+        return cls.validate(df)

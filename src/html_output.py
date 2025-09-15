@@ -2,7 +2,7 @@ import polars as pl
 from src.dataframes.cluster_color import ClusterColorSchema
 import dataframely as dy
 from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesDataFrame,
+    ClusterSignificantDifferencesSchema,
 )
 from src.dataframes.taxonomy import TaxonomyDataFrame
 from src.render import plot_single_cluster, plot_entire_region
@@ -17,7 +17,7 @@ import io
 
 def prepare_cluster_data(
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
-    significant_differences_df: ClusterSignificantDifferencesDataFrame,
+    significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
     taxonomy_df: TaxonomyDataFrame,
 ) -> list:
     """
@@ -39,7 +39,7 @@ def prepare_cluster_data(
         cluster_data = {"id": cluster, "color": color, "species": []}
 
         # Get differences for this cluster
-        cluster_differences = significant_differences_df.df.filter(
+        cluster_differences = significant_differences_df.filter(
             pl.col("cluster") == cluster
         )
 
@@ -51,7 +51,7 @@ def prepare_cluster_data(
             taxon_info = taxonomy_df.df.filter(pl.col("taxonId") == taxon_id)
             if (
                 taxon_info.height > 0
-                and abs(percent_diff) > ClusterSignificantDifferencesDataFrame.THRESHOLD
+                and abs(percent_diff) > ClusterSignificantDifferencesSchema.THRESHOLD
             ):
                 species_data = {
                     "scientific_name": taxon_info["scientificName"][0],
@@ -68,7 +68,7 @@ def prepare_cluster_data(
 
 def prepare_full_report_data(
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
-    significant_differences_df: ClusterSignificantDifferencesDataFrame,
+    significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
     taxonomy_df: TaxonomyDataFrame,
     feature_collection: geojson.FeatureCollection,
 ) -> dict:
@@ -109,7 +109,7 @@ def prepare_full_report_data(
         }
 
         # Get differences for this cluster
-        cluster_differences = significant_differences_df.df.filter(
+        cluster_differences = significant_differences_df.filter(
             pl.col("cluster") == cluster
         )
 
@@ -121,7 +121,7 @@ def prepare_full_report_data(
             taxon_info = taxonomy_df.df.filter(pl.col("taxonId") == taxon_id)
             if (
                 taxon_info.height > 0
-                and abs(percent_diff) > ClusterSignificantDifferencesDataFrame.THRESHOLD
+                and abs(percent_diff) > ClusterSignificantDifferencesSchema.THRESHOLD
             ):
                 species_data = {
                     "scientific_name": taxon_info["scientificName"][0],

@@ -5,7 +5,9 @@ from scipy.cluster.hierarchy import linkage
 
 import dataframely as dy
 from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
-# Define a type variable for numeric series
+from src.dataframes.cluster_significant_differences import (
+    ClusterSignificantDifferencesSchema,
+)
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
@@ -14,7 +16,9 @@ def create_cluster_taxa_heatmap(
     geocode_cluster_dataframe,
     cluster_colors_dataframe: dy.DataFrame["ClusterColorSchema"],
     geocode_distance_matrix,
-    cluster_significant_differences_dataframe,
+    cluster_significant_differences_dataframe: dy.DataFrame[
+        "ClusterSignificantDifferencesSchema"
+    ],
     taxonomy_dataframe,
     geocode_taxa_counts_dataframe,
     cluster_taxa_statistics_dataframe,
@@ -61,7 +65,7 @@ def create_cluster_taxa_heatmap(
     linkage_array = linkage(geocode_distance_matrix.condensed(), "ward")
 
     # Join taxonomic information
-    joined = cluster_significant_differences_dataframe.df.join(
+    joined = cluster_significant_differences_dataframe.join(
         taxonomy_dataframe.df, on=["taxonId"], how="left"
     )
 

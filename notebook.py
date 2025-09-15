@@ -438,11 +438,11 @@ def _(mo):
 @app.cell
 def _(cluster_taxa_statistics_dataframe):
     from src.dataframes.cluster_significant_differences import (
-        ClusterSignificantDifferencesDataFrame,
+        ClusterSignificantDifferencesSchema,
     )
 
     cluster_significant_differences_dataframe = (
-        ClusterSignificantDifferencesDataFrame.build(
+        ClusterSignificantDifferencesSchema.build(
             cluster_taxa_statistics_dataframe,
         )
     )
@@ -457,7 +457,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_significant_differences_dataframe):
-    cluster_significant_differences_dataframe.df
+    cluster_significant_differences_dataframe
     return
 
 
