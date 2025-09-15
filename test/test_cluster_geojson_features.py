@@ -1,6 +1,10 @@
 import unittest
 
-from src.dataframes.cluster_geojson_features import ClusterGeojsonFeaturesDataFrame
+from src.dataframes.cluster_geojson_features import (
+    ClusterGeojsonFeaturesSchema,
+    get_feature_for_cluster,
+    to_feature_collection,
+)
 from src.geojson import (
     build_geojson_feature_collection,
 )
@@ -15,31 +19,25 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
 
     def test_build_cluster_geojson_features_dataframe(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesDataFrame.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 
         # Verify we have the expected number of rows
-        self.assertEqual(2, cluster_geojson_features_dataframe.df.height)
-
-        # Verify the schema is correct
-        self.assertEqual(
-            ClusterGeojsonFeaturesDataFrame.SCHEMA,
-            cluster_geojson_features_dataframe.df.schema,
-        )
+        self.assertEqual(2, cluster_geojson_features_dataframe.height)
 
         # Verify the clusters
-        clusters = cluster_geojson_features_dataframe.df["cluster"].to_list()
+        clusters = cluster_geojson_features_dataframe["cluster"].to_list()
         self.assertEqual([1, 2], clusters)
 
     def test_get_feature_for_cluster(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesDataFrame.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 
         # Get a feature for a specific cluster
-        feature = cluster_geojson_features_dataframe.get_feature_for_cluster(1)
+        feature = get_feature_for_cluster(cluster_geojson_features_dataframe, 1)
 
         # Verify the feature
         assert feature is not None
@@ -49,17 +47,17 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
         self.assertEqual("#800000", feature["properties"]["color"])
 
         # Test getting a non-existent cluster
-        feature = cluster_geojson_features_dataframe.get_feature_for_cluster(999)
+        feature = get_feature_for_cluster(cluster_geojson_features_dataframe, 999)
         self.assertIsNone(feature)
 
     def test_to_feature_collection(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesDataFrame.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 
         # Convert to feature collection
-        feature_collection = cluster_geojson_features_dataframe.to_feature_collection()
+        feature_collection = to_feature_collection(cluster_geojson_features_dataframe)
 
         # Verify the feature collection
         self.assertEqual("FeatureCollection", feature_collection["type"])

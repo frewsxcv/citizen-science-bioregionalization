@@ -362,9 +362,9 @@ def _(mo):
 
 @app.cell
 def _(geocode_cluster_dataframe, geocode_dataframe):
-    from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
+    from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
-    cluster_neighbors_dataframe = ClusterNeighborsDataFrame.build(
+    cluster_neighbors_dataframe = ClusterNeighborsSchema.build(
         geocode_dataframe,
         geocode_cluster_dataframe,
     )
@@ -379,7 +379,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_neighbors_dataframe):
-    cluster_neighbors_dataframe.df
+    cluster_neighbors_dataframe
     return
 
 

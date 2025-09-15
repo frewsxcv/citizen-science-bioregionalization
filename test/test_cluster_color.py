@@ -5,7 +5,7 @@ import shapely
 import numpy as np
 import dataframely as dy
 from src.dataframes.cluster_color import ClusterColorSchema, to_dict
-from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.geojson import find_ocean_clusters
@@ -31,7 +31,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsDataFrame(neighbors_df)
+        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Create mock cluster boundaries
         # Clusters 1 and 3 will be within the ocean area (-5,-5 to 5,5)
@@ -96,7 +96,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsDataFrame(neighbors_df)
+        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Create mock cluster boundaries
         # Same as above test
@@ -153,7 +153,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsDataFrame(neighbors_df)
+        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Create mock cluster boundaries
         ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])
@@ -254,7 +254,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsDataFrame(neighbors_df)
+        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Create mock cluster boundaries
         ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])

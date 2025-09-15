@@ -1,7 +1,7 @@
 from typing import Dict, Literal, Optional
 import polars as pl
 import dataframely as dy
-from src.dataframes.cluster_neighbors import ClusterNeighborsDataFrame
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
 from src.matrices.cluster_distance import ClusterDistanceMatrix
@@ -53,7 +53,7 @@ class ClusterColorSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
+        cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_taxa_statistics_dataframe: Optional[
             ClusterTaxaStatisticsDataFrame
@@ -80,7 +80,7 @@ class ClusterColorSchema(dy.Schema):
     @classmethod
     def _build_geographic(
         cls,
-        cluster_neighbors_dataframe: ClusterNeighborsDataFrame,
+        cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         ocean_threshold: float = 0.90,
     ) -> dy.DataFrame["ClusterColorSchema"]:
@@ -91,7 +91,7 @@ class ClusterColorSchema(dy.Schema):
         # Import here to avoid circular imports
         from src.geojson import find_ocean_clusters
 
-        G = cluster_neighbors_dataframe.graph()
+        G = to_graph(cluster_neighbors_dataframe)
 
         # Find ocean clusters
         ocean_clusters = set(
