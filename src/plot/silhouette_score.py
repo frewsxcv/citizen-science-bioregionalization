@@ -3,7 +3,7 @@ import polars as pl
 import numpy as np
 from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
-from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreDataFrame
+from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
 import dataframely as dy
 
@@ -11,7 +11,7 @@ import dataframely as dy
 def plot_silhouette_scores(
     geocode_cluster_dataframe: GeocodeClusterDataFrame,
     geocode_distance_matrix: GeocodeDistanceMatrix,
-    geocode_silhouette_score_dataframe: GeocodeSilhouetteScoreDataFrame,
+    geocode_silhouette_score_dataframe: dy.DataFrame[GeocodeSilhouetteScoreSchema],
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
 ) -> plt.Figure: # type: ignore
     """
@@ -40,7 +40,7 @@ def plot_silhouette_scores(
     y_lower = 10
     for i, cluster in enumerate(geocode_cluster_dataframe.df["cluster"].unique()):
         ith_cluster_silhouette_values = (
-            geocode_silhouette_score_dataframe.df.join(
+            geocode_silhouette_score_dataframe.join(
                 geocode_cluster_dataframe.df, on="geocode"
             )
             .filter(pl.col("cluster") == cluster)

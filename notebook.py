@@ -620,9 +620,9 @@ def _(
     geocode_cluster_dataframe,
     geocode_distance_matrix,
 ):
-    from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreDataFrame
+    from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
-    geocode_silhouette_score_dataframe = GeocodeSilhouetteScoreDataFrame.build(
+    geocode_silhouette_score_dataframe = GeocodeSilhouetteScoreSchema.build(
         cluster_neighbors_dataframe,
         geocode_distance_matrix,
         geocode_cluster_dataframe,
@@ -638,7 +638,7 @@ def _(mo):
 
 @app.cell
 def _(geocode_silhouette_score_dataframe):
-    geocode_silhouette_score_dataframe.df.sort(by="silhouette_score")
+    geocode_silhouette_score_dataframe.sort(by="silhouette_score")
     return
 
 
