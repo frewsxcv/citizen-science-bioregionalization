@@ -1,34 +1,43 @@
 import polars as pl
-from typing import Self
-from polars_darwin_core.darwin_core import KingdomDataType  # type: ignore
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
+import dataframely as dy
+from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
+from src.dataframes.geocode import GeocodeSchema
+from src.dataframes.taxonomy import TaxonomySchema
 import logging
-from src.data_container import DataContainer
 
 logger = logging.getLogger(__name__)
 
 
-class TaxaGeographicMeanDataFrame(DataContainer):
-    df: pl.DataFrame
-
-    SCHEMA = {
-        "kingdom": KingdomDataType,
-        "taxonRank": pl.String(),
-        "scientificName": pl.String(),
-        "mean_lat": pl.Float64(),
-        "mean_lon": pl.Float64(),
-    }
-
-    def __init__(self, df: pl.DataFrame):
-        self.df = df
+class TaxaGeographicMeanSchema(dy.Schema):
+    kingdom = dy.Categorical(nullable=True)
+    taxonRank = dy.Categorical(nullable=True)
+    scientificName = dy.String(nullable=True)
+    mean_lat = dy.Float64(nullable=False)
+    mean_lon = dy.Float64(nullable=False)
 
     @classmethod
     def build(
-        cls, geocode_taxa_counts: GeocodeTaxaCountsDataFrame
-    ) -> Self:
+        cls,
+        geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
+    ) -> dy.DataFrame["TaxaGeographicMeanSchema"]:
+        # Join geocode_taxa_counts with geocode_dataframe to get lat/lon
+        with_lat_lon = geocode_taxa_counts_dataframe.join(
+            geocode_dataframe.select("geocode", "lat", "lon"), on="geocode"
+        )
+
+        # Join with taxonomy_dataframe to get taxonomic info
+        with_taxonomy = with_lat_lon.join(
+            taxonomy_dataframe.select(
+                "taxonId", "kingdom", "taxonRank", "scientificName"
+            ),
+            on="taxonId",
+        )
+
         # TODO: this doesn't handle the international date line
         df = (
-            geocode_taxa_counts.df.lazy()
+            with_taxonomy.lazy()
             .with_columns(
                 (pl.col("lat") * pl.col("count")).alias("lat_scaled"),
                 (pl.col("lon") * pl.col("count")).alias("lon_scaled"),
@@ -38,5 +47,6 @@ class TaxaGeographicMeanDataFrame(DataContainer):
                 (pl.col("lat_scaled").sum() / pl.col("count").sum()).alias("mean_lat"),
                 (pl.col("lon_scaled").sum() / pl.col("count").sum()).alias("mean_lon"),
             )
+            .collect()
         )
-        return cls(df.collect())
+        return cls.validate(df)
