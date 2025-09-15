@@ -13,7 +13,7 @@ from src.dataframes.geocode import GeocodeDataFrame
 
 class ClusterBoundarySchema(dy.Schema):
     cluster = dy.UInt32(nullable=False)
-    geometry = dy.Any() # Binary
+    geometry = dy.Binary()
 
     @classmethod
     def build(
