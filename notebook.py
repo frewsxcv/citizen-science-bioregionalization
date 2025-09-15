@@ -799,19 +799,5 @@ def _(
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""## Data flow""")
-    return
-
-
-@app.cell
-def _(mo):
-    from src.dependency_graph import plot_dependency_graph
-
-    mo.mermaid(plot_dependency_graph())
-    return
-
-
 if __name__ == "__main__":
     app.run()
