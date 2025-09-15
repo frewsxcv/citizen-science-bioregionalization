@@ -12,7 +12,7 @@ import seaborn as sns
 import networkx as nx
 import numpy as np
 import matplotlib.colors as mcolors
-import umap  # type: ignore
+import umap
 
 
 def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:

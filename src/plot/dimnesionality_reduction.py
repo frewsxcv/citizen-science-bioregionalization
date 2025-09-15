@@ -1,7 +1,7 @@
 from typing import Literal
 import numpy as np
-from sklearn.manifold import TSNE # type: ignore
-import umap # type: ignore
+from sklearn.manifold import TSNE
+import umap
 import seaborn as sns
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.dataframes.geocode_cluster import GeocodeClusterSchema

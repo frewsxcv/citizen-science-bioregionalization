@@ -1,5 +1,5 @@
 import polars as pl
-import geojson  # type: ignore
+import geojson
 from typing import Optional
 import dataframely as dy
 

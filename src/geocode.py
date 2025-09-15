@@ -1,5 +1,5 @@
 import polars as pl
-import polars_h3  # type: ignore
+import polars_h3
 
 
 def geocode_lazy_frame(

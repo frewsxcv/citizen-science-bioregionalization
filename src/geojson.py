@@ -1,4 +1,4 @@
-import geojson  # type: ignore
+import geojson
 import polars as pl
 import shapely
 import os

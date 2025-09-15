@@ -2,7 +2,6 @@ import logging
 import polars as pl
 from typing import List
 from src.logging import Timer
-import polars_h3  # type: ignore
 
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.dataframes.geocode import GeocodeDataFrame

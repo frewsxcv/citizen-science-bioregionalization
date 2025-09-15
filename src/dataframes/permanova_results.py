@@ -3,7 +3,7 @@ from typing import Any
 import polars as pl
 import pandas as pd  # Import pandas for type hint
 import dataframely as dy
-from skbio.stats.distance import permanova, DistanceMatrix  # type: ignore
+from skbio.stats.distance import permanova, DistanceMatrix
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.dataframes.geocode import GeocodeDataFrame

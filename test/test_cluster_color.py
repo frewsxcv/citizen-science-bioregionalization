@@ -138,7 +138,7 @@ class TestClusterColorDataFrame(unittest.TestCase):
 
         # Create a mock ClusterTaxaStatisticsDataFrame with 4 clusters
         # This is below the minimum required for UMAP
-        cluster_taxa_stats = mock_cluster_taxa_statistics_dataframe()  # type: ignore
+        cluster_taxa_stats = mock_cluster_taxa_statistics_dataframe()
 
         # Create dummy neighbor and boundary data (not used for taxonomic coloring)
         neighbors_df = pl.DataFrame(

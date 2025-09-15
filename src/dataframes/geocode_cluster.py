@@ -3,7 +3,7 @@ import logging
 import polars as pl
 import dataframely as dy
 from scipy.sparse import csr_matrix
-from sklearn.cluster import AgglomerativeClustering  # type: ignore
+from sklearn.cluster import AgglomerativeClustering
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.dataframes.geocode import GeocodeDataFrame
 from src.types import Geocode, ClusterId

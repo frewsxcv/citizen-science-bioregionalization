@@ -2,13 +2,11 @@ import os
 import numpy as np
 import polars as pl
 from typing import Tuple, List
-from sklearn.preprocessing import RobustScaler  # type: ignore
+from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import pdist, squareform
-from sklearn.manifold import MDS  # type: ignore
 from src.data_container import DataContainer
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 import dataframely as dy
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.logging import log_action, logger
 
 

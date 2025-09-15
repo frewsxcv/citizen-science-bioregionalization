@@ -8,7 +8,7 @@ import shapely.ops
 from src.data_container import DataContainer, assert_dataframe_schema
 from src.geocode import geocode_lazy_frame
 from polars_darwin_core import DarwinCoreLazyFrame
-import polars_h3  # type: ignore
+import polars_h3
 import networkx as nx
 
 logger = logging.getLogger(__name__)

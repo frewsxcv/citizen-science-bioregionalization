@@ -4,7 +4,6 @@ from polars_darwin_core.darwin_core import KingdomDataType  # type: ignore
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsDataFrame
 import logging
 from src.data_container import DataContainer
-import polars_h3  # type: ignore
 
 logger = logging.getLogger(__name__)
 
