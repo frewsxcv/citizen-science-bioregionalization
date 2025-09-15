@@ -4,14 +4,14 @@ from sklearn.manifold import TSNE # type: ignore
 import umap # type: ignore
 import seaborn as sns
 from src.matrices.cluster_distance import ClusterDistanceMatrix
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.cluster_color import ClusterColorSchema, to_dict
 import dataframely as dy
 
 
 def create_dimensionality_reduction_plot(
     geocode_distance_matrix: ClusterDistanceMatrix,
-    geocode_cluster_dataframe: GeocodeClusterDataFrame,
+    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     cluster_color_dataframe: dy.DataFrame[ClusterColorSchema],
     method: Literal["umap", "tsne"] = "umap",
     n_neighbors: int = 3000,
@@ -62,7 +62,7 @@ def create_dimensionality_reduction_plot(
     return sns.scatterplot(
         x=X_reduced[:, 0],
         y=X_reduced[:, 1],
-        hue=geocode_cluster_dataframe.df["cluster"],
+        hue=geocode_cluster_dataframe["cluster"],
         palette=to_dict(cluster_color_dataframe),
         alpha=1,
     )

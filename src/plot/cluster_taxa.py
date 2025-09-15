@@ -8,12 +8,14 @@ from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_clust
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
+from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
 def create_cluster_taxa_heatmap(
     geocode_dataframe,
-    geocode_cluster_dataframe,
+    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     cluster_colors_dataframe: dy.DataFrame["ClusterColorSchema"],
     geocode_distance_matrix,
     cluster_significant_differences_dataframe: dy.DataFrame[
@@ -21,7 +23,7 @@ def create_cluster_taxa_heatmap(
     ],
     taxonomy_dataframe,
     geocode_taxa_counts_dataframe,
-    cluster_taxa_statistics_dataframe,
+    cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
     """
@@ -58,7 +60,7 @@ def create_cluster_taxa_heatmap(
     # Create color mapping for geocodes by cluster
     col_colors = []
     for geocode in ordered_geocodes:
-        cluster = geocode_cluster_dataframe.cluster_for_geocode(geocode)
+        cluster = cluster_for_geocode(geocode_cluster_dataframe, geocode)
         col_colors.append(get_color_for_cluster(cluster_colors_dataframe, cluster))
 
     # Compute linkage for clustering
@@ -99,7 +101,7 @@ def create_cluster_taxa_heatmap(
             )
             geocode_average = geocode_counts_species / geocode_counts_all
             all_average = (
-                cluster_taxa_statistics_dataframe.df.filter(
+                cluster_taxa_statistics_dataframe.filter(
                     pl.col("taxonId") == taxonId,
                     pl.col("cluster").is_null(),
                 )

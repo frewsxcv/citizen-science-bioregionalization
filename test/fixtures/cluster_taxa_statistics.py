@@ -1,8 +1,11 @@
 import polars as pl
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+import dataframely as dy
 
 
-def mock_cluster_taxa_statistics_dataframe() -> ClusterTaxaStatisticsDataFrame:
+def mock_cluster_taxa_statistics_dataframe() -> dy.DataFrame[
+    ClusterTaxaStatisticsSchema
+]:
     """
     Creates a mock ClusterTaxaStatisticsDataFrame for testing.
     """
@@ -20,4 +23,4 @@ def mock_cluster_taxa_statistics_dataframe() -> ClusterTaxaStatisticsDataFrame:
             "average": pl.Float64(),
         },
     )
-    return ClusterTaxaStatisticsDataFrame(taxa_stats_df)
+    return ClusterTaxaStatisticsSchema.validate(taxa_stats_df)

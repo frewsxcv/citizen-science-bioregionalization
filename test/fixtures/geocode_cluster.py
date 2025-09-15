@@ -1,8 +1,9 @@
 import polars as pl
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
+import dataframely as dy
 
 
-def mock_geocode_cluster_dataframe() -> GeocodeClusterDataFrame:
+def mock_geocode_cluster_dataframe() -> dy.DataFrame[GeocodeClusterSchema]:
     """
     Creates a mock GeocodeClusterDataFrame for testing.
     """
@@ -11,7 +12,8 @@ def mock_geocode_cluster_dataframe() -> GeocodeClusterDataFrame:
         {"geocode": 2000, "cluster": 0},
         {"geocode": 3000, "cluster": 1},
     ]
-    geocode_cluster_df = pl.DataFrame(
-        geocode_cluster_data, schema=GeocodeClusterDataFrame.SCHEMA
+    df = pl.DataFrame(geocode_cluster_data).with_columns(
+        pl.col("geocode").cast(pl.UInt64),
+        pl.col("cluster").cast(pl.UInt32),
     )
-    return GeocodeClusterDataFrame(geocode_cluster_df)
+    return GeocodeClusterSchema.validate(df)

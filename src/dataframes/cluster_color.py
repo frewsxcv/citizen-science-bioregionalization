@@ -3,7 +3,9 @@ import polars as pl
 import dataframely as dy
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.dataframes.cluster_taxa_statistics import (
+    ClusterTaxaStatisticsSchema,
+)
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
 import seaborn as sns
@@ -56,7 +58,7 @@ class ClusterColorSchema(dy.Schema):
         cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_taxa_statistics_dataframe: Optional[
-            ClusterTaxaStatisticsDataFrame
+            dy.DataFrame[ClusterTaxaStatisticsSchema]
         ] = None,
         color_method: Literal["geographic", "taxonomic"] = "geographic",
         ocean_threshold: float = 0.90,
@@ -152,7 +154,7 @@ class ClusterColorSchema(dy.Schema):
     @classmethod
     def _build_taxonomic(
         cls,
-        cluster_taxa_statistics_dataframe: ClusterTaxaStatisticsDataFrame,
+        cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
     ) -> dy.DataFrame["ClusterColorSchema"]:
         """
         Creates a coloring where clusters with similar taxonomic composition

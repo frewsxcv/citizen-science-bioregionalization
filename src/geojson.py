@@ -10,7 +10,7 @@ from typing import Union
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorSchema
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src import output
 
 

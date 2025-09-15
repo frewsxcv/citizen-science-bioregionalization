@@ -4,7 +4,7 @@ import numpy as np
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from sklearn.metrics import silhouette_score, silhouette_samples  # type: ignore
 
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 
@@ -17,7 +17,7 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
         cls,
         cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
         distance_matrix: GeocodeDistanceMatrix,
-        geocode_cluster_dataframe: GeocodeClusterDataFrame,
+        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["GeocodeSilhouetteScoreSchema"]:
         geocodes: list[int | None] = []
         silhouette_scores: list[float] = []
@@ -28,17 +28,17 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
             float(
                 silhouette_score(
                     X=distance_matrix.squareform(),
-                    labels=geocode_cluster_dataframe.df["cluster"],
+                    labels=geocode_cluster_dataframe["cluster"],
                     metric="precomputed",
                 )
             )
         )
 
         # Add the clusters and their scores
-        geocodes.extend(geocode_cluster_dataframe.df["geocode"])
+        geocodes.extend(geocode_cluster_dataframe["geocode"])
         samples = silhouette_samples(
             X=distance_matrix.squareform(),
-            labels=geocode_cluster_dataframe.df["cluster"],
+            labels=geocode_cluster_dataframe["cluster"],
             metric="precomputed",
         )
         silhouette_scores.extend(list(samples))  # type: ignore

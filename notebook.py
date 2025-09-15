@@ -297,9 +297,9 @@ def _(
     geocode_dataframe,
     geocode_distance_matrix,
 ):
-    from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+    from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
-    geocode_cluster_dataframe = GeocodeClusterDataFrame.build(
+    geocode_cluster_dataframe = GeocodeClusterSchema.build(
         geocode_dataframe,
         geocode_distance_matrix,
         geocode_connectivity_matrix,
@@ -316,7 +316,7 @@ def _(mo):
 
 @app.cell
 def _(geocode_cluster_dataframe):
-    geocode_cluster_dataframe.df.limit(3)
+    geocode_cluster_dataframe.limit(3)
     return
 
 
@@ -401,9 +401,9 @@ def _(
     geocode_taxa_counts_dataframe,
     taxonomy_dataframe,
 ):
-    from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+    from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
-    cluster_taxa_statistics_dataframe = ClusterTaxaStatisticsDataFrame.build(
+    cluster_taxa_statistics_dataframe = ClusterTaxaStatisticsSchema.build(
         geocode_taxa_counts_dataframe,
         geocode_cluster_dataframe,
         taxonomy_dataframe,
@@ -419,7 +419,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_taxa_statistics_dataframe):
-    cluster_taxa_statistics_dataframe.df
+    cluster_taxa_statistics_dataframe
     return
 
 
@@ -580,9 +580,9 @@ def _(mo):
 
 @app.cell
 def _(geocode_cluster_dataframe, geocode_dataframe, geocode_distance_matrix):
-    from src.dataframes.permanova_results import PermanovaResultsDataFrame
+    from src.dataframes.permanova_results import PermanovaResultsSchema
 
-    permanova_results_dataframe = PermanovaResultsDataFrame.build(
+    permanova_results_dataframe = PermanovaResultsSchema.build(
         geocode_distance_matrix=geocode_distance_matrix,
         geocode_cluster_dataframe=geocode_cluster_dataframe,
         geocode_dataframe=geocode_dataframe,
@@ -598,7 +598,7 @@ def _(mo):
 
 @app.cell
 def _(permanova_results_dataframe):
-    permanova_results_dataframe.df
+    permanova_results_dataframe
     return
 
 

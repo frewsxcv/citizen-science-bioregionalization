@@ -6,13 +6,14 @@ from sklearn.preprocessing import RobustScaler  # type: ignore
 from scipy.spatial.distance import pdist, squareform
 from sklearn.manifold import MDS  # type: ignore
 from src.data_container import DataContainer
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+import dataframely as dy
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.logging import log_action, logger
 
 
 def pivot_taxon_counts_for_clusters(
-    cluster_taxa_stats: ClusterTaxaStatisticsDataFrame,
+    cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
 ) -> pl.DataFrame:
     """
     Create a matrix where each row is a cluster and each column is a taxon ID.
@@ -32,7 +33,7 @@ def pivot_taxon_counts_for_clusters(
     ```
     """
     # Filter out the row with null cluster (represents overall statistics)
-    df = cluster_taxa_stats.df.filter(pl.col("cluster").is_not_null())
+    df = cluster_taxa_stats.filter(pl.col("cluster").is_not_null())
 
     # Pivot the DataFrame so each row is a cluster and each column is a taxon
     return df.pivot(
@@ -43,7 +44,7 @@ def pivot_taxon_counts_for_clusters(
 
 
 def build_X(
-    cluster_taxa_stats: ClusterTaxaStatisticsDataFrame,
+    cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
 ) -> Tuple[pl.DataFrame, List[int]]:
     X = log_action(
         "Building cluster matrix",
@@ -86,7 +87,7 @@ class ClusterDistanceMatrix(DataContainer):
     @classmethod
     def build(
         cls,
-        cluster_taxa_stats: ClusterTaxaStatisticsDataFrame,
+        cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
     ) -> "ClusterDistanceMatrix":
         X, cluster_ids = build_X(cluster_taxa_stats)
 

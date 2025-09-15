@@ -3,7 +3,7 @@ import polars as pl
 import dataframely as dy
 
 from src.dataframes.geocode import GeocodeDataFrame
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
 
 
 class ClusterNeighborsSchema(dy.Schema):
@@ -15,10 +15,10 @@ class ClusterNeighborsSchema(dy.Schema):
     def build(
         cls,
         geocode_dataframe: GeocodeDataFrame,
-        geocode_cluster_dataframe: GeocodeClusterDataFrame,
+        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["ClusterNeighborsSchema"]:
         # Get unique clusters
-        unique_clusters = geocode_cluster_dataframe.df["cluster"].unique()
+        unique_clusters = geocode_cluster_dataframe["cluster"].unique()
 
         # Initialize a dictionary to store the direct and indirect neighbors
         direct_neighbors_map: dict[int, set[int]] = {
@@ -39,12 +39,12 @@ class ClusterNeighborsSchema(dy.Schema):
             named=False
         ):
             # Get the cluster of the current geocode
-            current_cluster = geocode_cluster_dataframe.cluster_for_geocode(geocode)
+            current_cluster = cluster_for_geocode(geocode_cluster_dataframe, geocode)
 
             # For each direct neighbor, check if it's in a different cluster
             for neighbor in direct_neighbors:
-                neighbor_cluster = geocode_cluster_dataframe.cluster_for_geocode(
-                    neighbor
+                neighbor_cluster = cluster_for_geocode(
+                    geocode_cluster_dataframe, neighbor
                 )
 
                 # If clusters are different, add to direct neighbors
@@ -54,8 +54,8 @@ class ClusterNeighborsSchema(dy.Schema):
 
             # For each indirect neighbor, check if it's in a different cluster
             for neighbor in direct_and_indirect_neighbors:
-                neighbor_cluster = geocode_cluster_dataframe.cluster_for_geocode(
-                    neighbor
+                neighbor_cluster = cluster_for_geocode(
+                    geocode_cluster_dataframe, neighbor
                 )
 
                 # If clusters are different, add to all neighbors

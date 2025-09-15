@@ -1,6 +1,10 @@
 import polars as pl
 import dataframely as dy
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.dataframes.cluster_taxa_statistics import (
+    ClusterTaxaStatisticsSchema,
+    iter_cluster_ids,
+)
+import dataframely as dy
 
 
 class ClusterSignificantDifferencesSchema(dy.Schema):
@@ -18,14 +22,14 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
 
     @classmethod
     def build(
-        cls, all_stats: ClusterTaxaStatisticsDataFrame
+        cls, all_stats: dy.DataFrame[ClusterTaxaStatisticsSchema]
     ) -> dy.DataFrame["ClusterSignificantDifferencesSchema"]:
         # Calculate significant differences
         significant_differences = []
 
-        for cluster in all_stats.iter_cluster_ids():
+        for cluster in iter_cluster_ids(all_stats):
             for taxonId, average in (
-                all_stats.df.filter(
+                all_stats.filter(
                     (
                         pl.col("cluster").is_null()
                         if cluster is None
@@ -38,7 +42,7 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
                 .iter_rows(named=False)
             ):
                 all_average = (
-                    all_stats.df.filter(
+                    all_stats.filter(
                         pl.col("taxonId") == taxonId,
                         pl.col("cluster").is_null(),
                     )

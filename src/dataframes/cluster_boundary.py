@@ -4,7 +4,10 @@ import polars_st
 import shapely
 from typing import Dict, List
 
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import (
+    GeocodeClusterSchema,
+    iter_clusters_and_geocodes,
+)
 from src.dataframes.geocode import GeocodeDataFrame
 
 
@@ -15,7 +18,7 @@ class ClusterBoundarySchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_cluster_dataframe: GeocodeClusterDataFrame,
+        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
         geocode_dataframe: GeocodeDataFrame,
     ) -> dy.DataFrame["ClusterBoundarySchema"]:
         clusters: List[int] = []
@@ -32,7 +35,7 @@ class ClusterBoundarySchema(dy.Schema):
         for (
             cluster_id,
             geocodes,
-        ) in geocode_cluster_dataframe.iter_clusters_and_geocodes():
+        ) in iter_clusters_and_geocodes(geocode_cluster_dataframe):
             # Get all geocode boundaries for this cluster
             cluster_geocode_boundaries = []
             for geocode in geocodes:

@@ -4,8 +4,7 @@ from polars_darwin_core.darwin_core import kingdom_data_type
 from unittest.mock import patch
 
 from src.dataframes.cluster_taxa_statistics import (
-    ClusterTaxaStatisticsDataFrame,
-    assert_dataframe_schema,
+    ClusterTaxaStatisticsSchema,
 )
 from test.fixtures.taxonomy import mock_taxonomy_dataframe
 from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_dataframe
@@ -24,31 +23,31 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe()
         geocode_cluster_dataframe = mock_geocode_cluster_dataframe()
 
-        result = ClusterTaxaStatisticsDataFrame.build(
+        result = ClusterTaxaStatisticsSchema.build(
             geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_dataframe
         )
 
         # 5. Verify the result has the expected structure and values
 
         # Test that resulting dataframe structure is correct
-        self.assertIsNotNone(result.df)
-        self.assertIn("cluster", result.df.columns)
-        self.assertIn("taxonId", result.df.columns)
-        self.assertIn("count", result.df.columns)
-        self.assertIn("average", result.df.columns)
+        self.assertIsNotNone(result)
+        self.assertIn("cluster", result.columns)
+        self.assertIn("taxonId", result.columns)
+        self.assertIn("count", result.columns)
+        self.assertIn("average", result.columns)
 
         # Test the summary row (null cluster) is present
-        summary_rows = result.df.filter(pl.col("cluster").is_null())
+        summary_rows = result.filter(pl.col("cluster").is_null())
         self.assertGreater(len(summary_rows), 0)
 
         # Test cluster specific rows are present
-        cluster0_rows = result.df.filter(pl.col("cluster") == 0)
-        cluster1_rows = result.df.filter(pl.col("cluster") == 1)
+        cluster0_rows = result.filter(pl.col("cluster") == 0)
+        cluster1_rows = result.filter(pl.col("cluster") == 1)
         self.assertGreater(len(cluster0_rows), 0)
         self.assertGreater(len(cluster1_rows), 0)
 
         # Test that counts are correctly aggregated for Panthera leo (taxonId 0)
-        leo_in_cluster0 = result.df.filter(
+        leo_in_cluster0 = result.filter(
             (pl.col("cluster") == 0) & (pl.col("taxonId") == 0)
         )
         self.assertEqual(leo_in_cluster0["count"][0], 7)  # 5 from geo1 + 2 from geo2

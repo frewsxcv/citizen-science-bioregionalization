@@ -1,10 +1,10 @@
 # src/dataframes/permanova_results.py
-from typing import Any, Self
+from typing import Any
 import polars as pl
 import pandas as pd  # Import pandas for type hint
+import dataframely as dy
 from skbio.stats.distance import permanova, DistanceMatrix  # type: ignore
-from src.data_container import DataContainer, assert_dataframe_schema
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.dataframes.geocode import GeocodeDataFrame
 import logging
@@ -12,36 +12,25 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class PermanovaResultsDataFrame(DataContainer):
+class PermanovaResultsSchema(dy.Schema):
     """
     Stores the results of a PERMANOVA test.
-
-    Attributes:
-        df (pl.DataFrame): DataFrame containing PERMANOVA results.
-                           Expected columns match the SCHEMA.
     """
 
-    df: pl.DataFrame
-    SCHEMA = {
-        "method_name": pl.Utf8(),  # e.g., "PERMANOVA"
-        "test_statistic_name": pl.Utf8(),  # e.g., "pseudo-F"
-        "test_statistic": pl.Float64(),  # The calculated statistic value
-        "p_value": pl.Float64(),  # The p-value of the test
-        "permutations": pl.UInt64(),  # Number of permutations used
-    }
-
-    def __init__(self, df: pl.DataFrame) -> None:
-        assert_dataframe_schema(df, self.SCHEMA)
-        self.df = df
+    method_name = dy.String(nullable=False)  # e.g., "PERMANOVA"
+    test_statistic_name = dy.String(nullable=False)  # e.g., "pseudo-F"
+    test_statistic = dy.Float64(nullable=False)  # The calculated statistic value
+    p_value = dy.Float64(nullable=False)  # The p-value of the test
+    permutations = dy.UInt64(nullable=False)  # Number of permutations used
 
     @classmethod
     def build(
         cls,
         geocode_distance_matrix: GeocodeDistanceMatrix,
-        geocode_cluster_dataframe: GeocodeClusterDataFrame,
+        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
         geocode_dataframe: GeocodeDataFrame,
         permutations: int = 999,  # Default permutations
-    ) -> Self:
+    ) -> dy.DataFrame["PermanovaResultsSchema"]:
         """
         Runs the PERMANOVA test and stores the results.
         Asserts that all geocodes in the distance matrix have cluster assignments.
@@ -62,7 +51,7 @@ class PermanovaResultsDataFrame(DataContainer):
         dm_skbio = DistanceMatrix(geocode_distance_matrix.condensed(), ids=geocode_ids)
 
         # Assert that all geocodes in the distance matrix have cluster assignments.
-        cluster_geocodes = set(geocode_cluster_dataframe.df["geocode"].to_list())
+        cluster_geocodes = set(geocode_cluster_dataframe["geocode"].to_list())
         missing_geocodes = set(geocode_ids) - cluster_geocodes
         assert (
             not missing_geocodes
@@ -72,7 +61,7 @@ class PermanovaResultsDataFrame(DataContainer):
         # Join geocode_dataframe (which defines the order) with cluster assignments.
         # Inner join is safe because the assertion passed.
         grouping_df = geocode_dataframe.df.join(
-            geocode_cluster_dataframe.df.select(["geocode", "cluster"]),
+            geocode_cluster_dataframe.select(["geocode", "cluster"]),
             on="geocode",
             how="inner",  # Should match all rows due to assertion
         )
@@ -95,11 +84,8 @@ class PermanovaResultsDataFrame(DataContainer):
             "p_value": [results.get("p-value")],
             "permutations": [results.get("permutations")],
         }
-        results_df = pl.DataFrame(results_dict)
+        results_df = pl.DataFrame(results_dict).with_columns(
+            pl.col("permutations").cast(pl.UInt64).fill_null(0)
+        )
 
-        # Ensure schema types
-        results_df = results_df.cast({
-            name: dtype for name, dtype in cls.SCHEMA.items()
-        })
-
-        return cls(df=results_df)
+        return cls.validate(results_df)

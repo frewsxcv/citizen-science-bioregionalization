@@ -6,7 +6,8 @@ from src.matrices.cluster_distance import (
     pivot_taxon_counts_for_clusters,
     build_X,
 )
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsDataFrame
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+import dataframely as dy
 from test.fixtures.cluster_taxa_statistics import (
     mock_cluster_taxa_statistics_dataframe,
 )
@@ -30,7 +31,7 @@ class TestClusterDistanceMatrix(unittest.TestCase):
                 "average": pl.Float64(),
             },
         )
-        cluster_taxa_stats = ClusterTaxaStatisticsDataFrame(df)
+        cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(df)
 
         # Run the pivot function
         result = pivot_taxon_counts_for_clusters(cluster_taxa_stats)
@@ -84,7 +85,7 @@ class TestClusterDistanceMatrix(unittest.TestCase):
                 "average": pl.Float64(),
             },
         )
-        cluster_taxa_stats = ClusterTaxaStatisticsDataFrame(df)
+        cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(df)
 
         # Build the distance matrix
         distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_stats)
@@ -132,7 +133,7 @@ class TestClusterDistanceMatrix(unittest.TestCase):
             },
         )
 
-        cluster_taxa_stats = ClusterTaxaStatisticsDataFrame(df)
+        cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(df)
 
         # Use a custom implementation to build the matrix to have more control
         X, cluster_ids = build_X(cluster_taxa_stats)

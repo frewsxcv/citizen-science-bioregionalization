@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import polars as pl
 import numpy as np
-from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
@@ -9,7 +9,7 @@ import dataframely as dy
 
 
 def plot_silhouette_scores(
-    geocode_cluster_dataframe: GeocodeClusterDataFrame,
+    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     geocode_distance_matrix: GeocodeDistanceMatrix,
     geocode_silhouette_score_dataframe: dy.DataFrame[GeocodeSilhouetteScoreSchema],
     cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
@@ -26,7 +26,7 @@ def plot_silhouette_scores(
     Returns:
         matplotlib.Figure: The generated silhouette plot
     """
-    n_clusters = len(geocode_cluster_dataframe.df["cluster"].unique())
+    n_clusters = len(geocode_cluster_dataframe["cluster"].unique())
     n_geocodes = len(geocode_distance_matrix.squareform())
 
     # Create a subplot with 1 row and 2 columns
@@ -38,10 +38,10 @@ def plot_silhouette_scores(
     ax1.set_ylim(0, n_geocodes + (n_clusters + 1) * 10)
 
     y_lower = 10
-    for i, cluster in enumerate(geocode_cluster_dataframe.df["cluster"].unique()):
+    for i, cluster in enumerate(geocode_cluster_dataframe["cluster"].unique()):
         ith_cluster_silhouette_values = (
             geocode_silhouette_score_dataframe.join(
-                geocode_cluster_dataframe.df, on="geocode"
+                geocode_cluster_dataframe, on="geocode"
             )
             .filter(pl.col("cluster") == cluster)
             .sort("silhouette_score", descending=True)
