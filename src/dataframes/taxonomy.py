@@ -18,6 +18,7 @@ class TaxonomySchema(dy.Schema):
     species = dy.String(nullable=True)
     taxonRank = dy.Categorical(nullable=True)
     scientificName = dy.String(nullable=True)
+    gbifTaxonId = dy.UInt32(nullable=True)
 
     @classmethod
     def build(
@@ -34,7 +35,9 @@ class TaxonomySchema(dy.Schema):
                 "species",
                 "taxonRank",
                 "scientificName",
+                "acceptedTaxonKey",
             )
+            .rename({"acceptedTaxonKey": "gbifTaxonId"})
             .unique()
             .collect()
         )
