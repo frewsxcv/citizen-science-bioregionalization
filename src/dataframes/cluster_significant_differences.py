@@ -1,10 +1,12 @@
 import polars as pl
 import dataframely as dy
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_taxa_statistics import (
     ClusterTaxaStatisticsSchema,
     iter_cluster_ids,
 )
-import dataframely as dy
+from scipy.stats import fisher_exact
+import numpy as np
 
 
 class ClusterSignificantDifferencesSchema(dy.Schema):
@@ -12,55 +14,99 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
     A dataframe that contains the significant differences between clusters.
     """
 
-    THRESHOLD = 10  # Percent difference
+    P_VALUE_THRESHOLD = 0.05
 
     cluster = dy.UInt32(nullable=False)
     taxonId = dy.UInt32(nullable=False)
-    percentage_difference = dy.Float64(
-        nullable=False
-    )  # TODO: should this a p-value?
+    p_value = dy.Float64(nullable=False)
+    log2_fold_change = dy.Float64(nullable=False)
 
     @classmethod
     def build(
-        cls, all_stats: dy.DataFrame[ClusterTaxaStatisticsSchema]
+        cls,
+        all_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
+        cluster_neighbors: dy.DataFrame[ClusterNeighborsSchema],
     ) -> dy.DataFrame["ClusterSignificantDifferencesSchema"]:
-        # Calculate significant differences
         significant_differences = []
 
+        neighbors_map = {
+            row["cluster"]: row["direct_and_indirect_neighbors"]
+            for row in cluster_neighbors.iter_rows(named=True)
+        }
+
         for cluster in iter_cluster_ids(all_stats):
-            for taxonId, average in (
-                all_stats.filter(
-                    (
-                        pl.col("cluster").is_null()
-                        if cluster is None
-                        else pl.col("cluster") == cluster
-                    ),
-                )
-                .sort(by="count", descending=True)
-                .limit(20)  # TODO: Does this need to happen?
-                .select(["taxonId", "average"])
+            if cluster is None:
+                continue
+
+            neighbors = neighbors_map.get(cluster)
+            if not neighbors:
+                continue
+
+            cluster_stats = all_stats.filter(pl.col("cluster") == cluster)
+            neighbor_stats = all_stats.filter(pl.col("cluster").is_in(neighbors))
+
+            total_cluster_count = cluster_stats.get_column("count").sum()
+            total_neighbor_count = neighbor_stats.get_column("count").sum()
+
+            for taxonId, count in (
+                cluster_stats.sort(by="count", descending=True)
+                .select(["taxonId", "count"])
                 .iter_rows(named=False)
             ):
-                all_average = (
-                    all_stats.filter(
-                        pl.col("taxonId") == taxonId,
-                        pl.col("cluster").is_null(),
-                    )
-                    .get_column("average")
-                    .item()
+                neighbor_count = (
+                    neighbor_stats.filter(pl.col("taxonId") == taxonId)
+                    .get_column("count")
+                    .sum()
                 )
 
-                percent_diff = (average / all_average * 100) - 100
-                if abs(percent_diff) > cls.THRESHOLD:
+                # Create contingency table
+                table = np.array(
+                    [
+                        [count, total_cluster_count - count],
+                        [neighbor_count, total_neighbor_count - neighbor_count],
+                    ]
+                )
+
+                # Perform Fisher's exact test
+                odds_ratio, p_value = fisher_exact(table, alternative="two-sided")
+
+                if p_value < cls.P_VALUE_THRESHOLD:
+                    # Calculate log2 fold change
+                    mean_cluster = count / total_cluster_count
+                    mean_neighbor = neighbor_count / total_neighbor_count
+
+                    if mean_cluster == 0 or mean_neighbor == 0:
+                        continue
+
+                    log2_fold_change = np.log2(mean_cluster / mean_neighbor)
+
                     significant_differences.append(
                         {
                             "cluster": cluster,
                             "taxonId": taxonId,
-                            "percentage_difference": percent_diff,
+                            "p_value": p_value,
+                            "log2_fold_change": log2_fold_change,
                         }
                     )
 
-        # Create a DataFrame from the significant differences
+        if not significant_differences:
+            return cls.validate(
+                pl.DataFrame(
+                    {
+                        "cluster": [],
+                        "taxonId": [],
+                        "p_value": [],
+                        "log2_fold_change": [],
+                    },
+                    schema={
+                        "cluster": pl.UInt32,
+                        "taxonId": pl.UInt32,
+                        "p_value": pl.Float64,
+                        "log2_fold_change": pl.Float64,
+                    },
+                )
+            )
+
         df = pl.DataFrame(significant_differences).with_columns(
             pl.col("cluster").cast(pl.UInt32),
             pl.col("taxonId").cast(pl.UInt32),

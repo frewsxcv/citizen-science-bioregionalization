@@ -438,7 +438,7 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_taxa_statistics_dataframe):
+def _(cluster_neighbors_dataframe, cluster_taxa_statistics_dataframe):
     from src.dataframes.cluster_significant_differences import (
         ClusterSignificantDifferencesSchema,
     )
@@ -446,6 +446,7 @@ def _(cluster_taxa_statistics_dataframe):
     cluster_significant_differences_dataframe = (
         ClusterSignificantDifferencesSchema.build(
             cluster_taxa_statistics_dataframe,
+            cluster_neighbors_dataframe,
         )
     )
     return (cluster_significant_differences_dataframe,)
