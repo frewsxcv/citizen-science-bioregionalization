@@ -10,13 +10,14 @@ from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
 class TestClusterSignificantDifferences(unittest.TestCase):
     def test_build_significant_differences(self):
-        # Mock cluster taxa statistics with a clear case for significance
+        # Mock data to test all filtering conditions with Fisher's exact test
         taxa_stats_df = pl.DataFrame(
             {
-                "cluster": [1, 1, 2, 2, None, None],
-                "taxonId": [101, 102, 101, 102, 101, 102],
-                "count": [50, 5, 5, 50, 55, 55],
-                "average": [0.9, 0.1, 0.1, 0.9, 0.5, 0.5],
+                "cluster": [1, 1, 1, 2, 2, 2, None, None, None],
+                "taxonId": [101, 102, 103, 101, 102, 103, 101, 102, 103],
+                # Taxon 102 will be significant, 101/103 will be filtered by count
+                "count": [50, 20, 4, 4, 5, 50, 54, 25, 54],
+                "average": [0.8, 0.3, 0.05, 0.05, 0.1, 0.8, 0.4, 0.2, 0.4],
             },
             schema={
                 "cluster": pl.UInt32(),
@@ -47,19 +48,18 @@ class TestClusterSignificantDifferences(unittest.TestCase):
             cluster_taxa_stats, cluster_neighbors
         )
 
-        # Verify the results
-        self.assertGreater(len(significant_differences_df), 0)
-
-        # Check the case for cluster 1, taxon 101
-        diff_c1_t101 = significant_differences_df.filter(
-            (pl.col("cluster") == 1) & (pl.col("taxonId") == 101)
+        # Verify the filtering:
+        # - Taxon 101 (cluster 1): cluster_count=50, neighbor_count=4 -> FAIL (neighbor)
+        # - Taxon 102 (cluster 1): cluster_count=20, neighbor_count=5 -> PASS
+        # - Taxon 103 (cluster 1): cluster_count=4, neighbor_count=50 -> FAIL (cluster)
+        # The same logic applies to cluster 2, so we expect 2 rows in the output.
+        self.assertEqual(len(significant_differences_df), 2)
+        self.assertTrue(
+            102 in significant_differences_df.get_column("taxonId").to_list()
         )
-        self.assertLess(
-            diff_c1_t101.get_column("p_value").item(),
-            ClusterSignificantDifferencesSchema.P_VALUE_THRESHOLD,
+        self.assertFalse(
+            101 in significant_differences_df.get_column("taxonId").to_list()
         )
-        self.assertAlmostEqual(
-            diff_c1_t101.get_column("log2_fold_change").item(),
-            3.3219,
-            places=4,
+        self.assertFalse(
+            103 in significant_differences_df.get_column("taxonId").to_list()
         )

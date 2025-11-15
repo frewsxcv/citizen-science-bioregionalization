@@ -15,11 +15,14 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
     """
 
     P_VALUE_THRESHOLD = 0.05
+    MIN_COUNT_THRESHOLD = 5
 
     cluster = dy.UInt32(nullable=False)
     taxonId = dy.UInt32(nullable=False)
     p_value = dy.Float64(nullable=False)
     log2_fold_change = dy.Float64(nullable=False)
+    cluster_count = dy.UInt32(nullable=False)
+    neighbor_count = dy.UInt32(nullable=False)
 
     @classmethod
     def build(
@@ -53,11 +56,17 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
                 .select(["taxonId", "count"])
                 .iter_rows(named=False)
             ):
+                if count < cls.MIN_COUNT_THRESHOLD:
+                    continue
+
                 neighbor_count = (
                     neighbor_stats.filter(pl.col("taxonId") == taxonId)
                     .get_column("count")
                     .sum()
                 )
+
+                if neighbor_count < cls.MIN_COUNT_THRESHOLD:
+                    continue
 
                 # Create contingency table
                 table = np.array(
@@ -86,6 +95,8 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
                             "taxonId": taxonId,
                             "p_value": p_value,
                             "log2_fold_change": log2_fold_change,
+                            "cluster_count": count,
+                            "neighbor_count": neighbor_count,
                         }
                     )
 
@@ -97,12 +108,16 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
                         "taxonId": [],
                         "p_value": [],
                         "log2_fold_change": [],
+                        "cluster_count": [],
+                        "neighbor_count": [],
                     },
                     schema={
                         "cluster": pl.UInt32,
                         "taxonId": pl.UInt32,
                         "p_value": pl.Float64,
                         "log2_fold_change": pl.Float64,
+                        "cluster_count": pl.UInt32,
+                        "neighbor_count": pl.UInt32,
                     },
                 )
             )
@@ -110,5 +125,7 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
         df = pl.DataFrame(significant_differences).with_columns(
             pl.col("cluster").cast(pl.UInt32),
             pl.col("taxonId").cast(pl.UInt32),
+            pl.col("cluster_count").cast(pl.UInt32),
+            pl.col("neighbor_count").cast(pl.UInt32),
         )
         return cls.validate(df)
