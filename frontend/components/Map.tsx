@@ -2,19 +2,25 @@ import React, { useRef, useEffect } from "react";
 import type { FeatureCollection } from "geojson";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { ClusterData, SelectedCluster } from "../types";
+import { ClusterData } from "../types";
 import dataImport from "../aggregations.json";
 import { imageLoadQueue } from "../utils/ImageLoadQueue";
+import { useStore } from "../store/useStore";
 
 const data = dataImport as ClusterData[];
 
-interface MapProps {
-  setSelectedCluster: (cluster: SelectedCluster) => void;
-}
-
-const Map: React.FC<MapProps> = ({ setSelectedCluster }) => {
+const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+
+  const setSelectedCluster = useStore((state) => state.setSelectedCluster);
+  const setMapInstance = useStore((state) => state.setMapInstance);
+  const setClusterData = useStore((state) => state.setClusterData);
+
+  useEffect(() => {
+    // Load cluster data into the store
+    setClusterData(data);
+  }, []); // setClusterData is stable from Zustand
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -29,6 +35,9 @@ const Map: React.FC<MapProps> = ({ setSelectedCluster }) => {
 
     map.current.on("load", () => {
       if (!map.current) return;
+
+      // Store the map instance in the global store
+      setMapInstance(map.current);
 
       const geojson: FeatureCollection = {
         type: "FeatureCollection",
@@ -94,7 +103,15 @@ const Map: React.FC<MapProps> = ({ setSelectedCluster }) => {
         }
       });
     });
-  });
+
+    // Cleanup on unmount
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        setMapInstance(null);
+      }
+    };
+  }, []); // Zustand actions are stable and don't need to be in dependencies
 
   return <div ref={mapContainer} id="map" />;
 };
