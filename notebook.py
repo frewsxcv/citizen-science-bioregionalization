@@ -705,7 +705,7 @@ def _(feature_collection):
     from src import output
 
     write_geojson(feature_collection, output.get_geojson_path())
-    return (output,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -789,6 +789,35 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
+    mo.md("""## `SignificantTaxaImages`""")
+    return
+
+
+@app.cell
+def _(cluster_significant_differences_dataframe, taxonomy_dataframe):
+    from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
+
+    significant_taxa_images_dataframe = SignificantTaxaImagesSchema.build(
+        cluster_significant_differences_dataframe,
+        taxonomy_dataframe,
+    )
+    return (significant_taxa_images_dataframe,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""### Preview""")
+    return
+
+
+@app.cell
+def _(significant_taxa_images_dataframe):
+    significant_taxa_images_dataframe
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
     mo.md(r"""## Write output for frontend""")
     return
 
@@ -798,6 +827,7 @@ def _(
     cluster_boundary_dataframe,
     cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
+    significant_taxa_images_dataframe,
     taxonomy_dataframe,
 ):
     from src.json_output import write_json_output
@@ -807,6 +837,7 @@ def _(
         cluster_boundary_dataframe,
         taxonomy_dataframe,
         cluster_colors_dataframe,
+        significant_taxa_images_dataframe,
         "/dev/stdout",
     )
 
@@ -815,6 +846,7 @@ def _(
         cluster_boundary_dataframe,
         taxonomy_dataframe,
         cluster_colors_dataframe,
+        significant_taxa_images_dataframe,
         "frontend/aggregations.json",
     )
     return
