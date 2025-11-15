@@ -17,4 +17,8 @@ output/
 __marimo__/
 tmp/
 
+# Frontend
+frontend/node_modules/
+frontend/.parcel-cache/
+frontend/dist/
 frontend/aggregations.json
