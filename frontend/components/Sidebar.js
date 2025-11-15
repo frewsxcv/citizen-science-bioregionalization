@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import ImageWithRetry from "./ImageWithRetry";
 
 const Sidebar = ({ selectedCluster }) => {
   return (
@@ -12,40 +13,39 @@ const Sidebar = ({ selectedCluster }) => {
               <ul>
                 {selectedCluster.significantTaxa
                   .sort((a, b) => b.cluster_count - a.cluster_count)
-                  .map(taxa => (
+                  .map((taxa) => (
                     <li key={taxa.gbif_taxon_id}>
                       {taxa.image_url ? (
-                        <img
-                          src={`${taxa.image_url}?width=50`}
+                        <ImageWithRetry
+                          src={taxa.image_url}
                           alt={taxa.scientific_name}
                           style={{
-                            width: '50px',
-                            height: '50px',
-                            objectFit: 'cover',
-                            marginRight: '10px',
-                            float: 'left'
+                            width: "50px",
+                            height: "50px",
+                            objectFit: "cover",
+                            marginRight: "10px",
+                            float: "left",
                           }}
                         />
                       ) : (
                         <div
                           style={{
-                            width: '50px',
-                            height: '50px',
-                            float: 'left',
-                            marginRight: '10px',
-                            background: '#eee'
+                            width: "50px",
+                            height: "50px",
+                            float: "left",
+                            marginRight: "10px",
+                            background: "#eee",
                           }}
                         ></div>
                       )}
                       {taxa.scientific_name}
                       <br />
                       <small>
-                        p={taxa.p_value.toExponential(2)},
-                        log2fc={taxa.log2_fold_change.toFixed(2)},
-                        in-cluster={taxa.cluster_count},
-                        neighbors={taxa.neighbor_count}
+                        p={taxa.p_value.toExponential(2)}, log2fc=
+                        {taxa.log2_fold_change.toFixed(2)}, in-cluster=
+                        {taxa.cluster_count}, neighbors={taxa.neighbor_count}
                       </small>
-                      <div style={{ clear: 'both' }}></div>
+                      <div style={{ clear: "both" }}></div>
                     </li>
                   ))}
               </ul>
