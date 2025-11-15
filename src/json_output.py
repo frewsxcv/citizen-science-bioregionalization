@@ -1,16 +1,17 @@
+import json
+
 import dataframely as dy
 import polars as pl
 import shapely
-import json
-import shapely
+
 from src import output
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
+from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.taxonomy import TaxonomySchema
-from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
+from src.dataframes.taxonomy import TaxonomySchema
 
 
 def _wkb_to_geojson(wkb: bytes) -> dict:
@@ -64,6 +65,7 @@ def write_json_output(
                 {
                     "scientific_name": r["scientificName"],
                     "gbif_taxon_id": r["gbifTaxonId"],
+                    "taxon_id": r["taxonId"],
                     "p_value": r["p_value"],
                     "log2_fold_change": r["log2_fold_change"],
                     "cluster_count": r["cluster_count"],

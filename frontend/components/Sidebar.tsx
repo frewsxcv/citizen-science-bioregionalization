@@ -9,6 +9,7 @@ interface SidebarProps {
 interface TaxaItemProps {
   taxa: {
     gbif_taxon_id: number;
+    taxon_id: number;
     scientific_name: string;
     image_url: string | null;
     p_value: number;
@@ -77,7 +78,7 @@ const TaxaList: React.FC<TaxaListProps> = ({ significantTaxa }) => {
   return (
     <ul>
       {sortedTaxa.map((taxa) => (
-        <TaxaItem key={taxa.gbif_taxon_id} taxa={taxa} />
+        <TaxaItem key={taxa.taxon_id} taxa={taxa} />
       ))}
     </ul>
   );

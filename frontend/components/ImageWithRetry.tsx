@@ -51,24 +51,27 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
     }
   };
 
-  const attemptLoadImage = async (imageSrc: string) => {
-    const fullSrc = imageSrc + `?width=50&retry=${retryCountRef.current}`;
+  const attemptLoadImage = React.useCallback(
+    async (imageSrc: string) => {
+      const fullSrc = imageSrc + `?width=50&retry=${retryCountRef.current}`;
 
-    setQueued(true);
-    setLoading(true);
+      setQueued(true);
+      setLoading(true);
 
-    try {
-      // Queue the image load
-      await imageLoadQueue.loadImage(fullSrc);
-      // Image loaded successfully, now set it to display
-      setImageSrc(fullSrc);
-    } catch (error) {
-      console.error(`Failed to queue image ${alt}:`, error);
-      setError(true);
-      setLoading(false);
-      setQueued(false);
-    }
-  };
+      try {
+        // Queue the image load
+        await imageLoadQueue.loadImage(fullSrc);
+        // Image loaded successfully, now set it to display
+        setImageSrc(fullSrc);
+      } catch (error) {
+        console.error(`Failed to queue image ${alt}:`, error);
+        setError(true);
+        setLoading(false);
+        setQueued(false);
+      }
+    },
+    [alt],
+  );
 
   // Cleanup timeout on unmount
   React.useEffect(() => {
@@ -90,6 +93,7 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
       setImageSrc(null);
       setLoading(true);
       setError(false);
+      // Call async function without awaiting
       attemptLoadImage(src);
     } else {
       setImageSrc(null);
@@ -97,7 +101,7 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
       setError(true);
       setQueued(false);
     }
-  }, [src]);
+  }, [src, attemptLoadImage]);
 
   if (!src || error) {
     return (

@@ -2,6 +2,7 @@ import type { Polygon } from "geojson";
 
 export interface SignificantTaxa {
   gbif_taxon_id: number;
+  taxon_id: number;
   scientific_name: string;
   image_url: string | null;
   p_value: number;
