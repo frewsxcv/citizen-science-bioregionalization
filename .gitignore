@@ -16,3 +16,5 @@ data/
 output/
 __marimo__/
 tmp/
+
+frontend/aggregations.json
