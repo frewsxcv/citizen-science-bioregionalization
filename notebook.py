@@ -2,39 +2,46 @@
 
 import marimo
 
-__generated_with = "0.17.2"
+__generated_with = "0.17.8"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
-    import marimo as mo
-    import polars as pl
-    import polars_st as pl_st
-    import numpy as np
     import hashlib
     import os
-    import polars_darwin_core
+
     import folium
+    import marimo as mo
+    import numpy as np
+    import polars as pl
+    import polars_darwin_core
+    import polars_st as pl_st
     return folium, hashlib, mo, np, os, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# Citizen Science Bioregionalization""")
+    mo.md(r"""
+    # Citizen Science Bioregionalization
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Define inputs""")
+    mo.md(r"""
+    ## Define inputs
+    """)
     return
 
 
 @app.cell
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
-    input_dir_ui = mo.ui.file_browser(multiple=False, label="Input directory", selection_mode="directory")
+    input_dir_ui = mo.ui.file_browser(
+        multiple=False, label="Input directory", selection_mode="directory"
+    )
     geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
@@ -90,7 +97,11 @@ def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
     # Positional arguments
     path = str(input_dir_ui.path(index=0)) if input_dir_ui.path(index=0) else None
     parser.add_argument(
-        "input_dir", type=str, nargs="?", help="Path to the input directory", default=path
+        "input_dir",
+        type=str,
+        nargs="?",
+        help="Path to the input directory",
+        default=path,
     )
 
     args = parser.parse_args()
@@ -99,7 +110,9 @@ def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Set up logging""")
+    mo.md(r"""
+    ## Set up logging
+    """)
     return
 
 
@@ -113,7 +126,9 @@ def _(args):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `DarwinCore`""")
+    mo.md(r"""
+    ## `DarwinCore`
+    """)
     return
 
 
@@ -159,7 +174,9 @@ def _(output_path, pl, polars_darwin_core):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `Geocode`""")
+    mo.md(r"""
+    ## `Geocode`
+    """)
     return
 
 
@@ -206,7 +223,9 @@ def _(folium, geocode_dataframe, pl):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `Taxonomy`""")
+    mo.md(r"""
+    ## `Taxonomy`
+    """)
     return
 
 
@@ -222,7 +241,9 @@ def _(darwin_core_lazy_frame):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeSpeciesCounts`""")
+    mo.md(r"""
+    ## `GeocodeSpeciesCounts`
+    """)
     return
 
 
@@ -242,7 +263,9 @@ def _(args, darwin_core_lazy_frame, taxonomy_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeConnectivity`""")
+    mo.md(r"""
+    ## `GeocodeConnectivity`
+    """)
     return
 
 
@@ -258,7 +281,9 @@ def _(geocode_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeDistance`""")
+    mo.md(r"""
+    ## `GeocodeDistance`
+    """)
     return
 
 
@@ -282,13 +307,17 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeCluster`""")
+    mo.md(r"""
+    ## `GeocodeCluster`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -312,7 +341,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -352,13 +383,17 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterNeighbors`""")
+    mo.md(r"""
+    ## `ClusterNeighbors`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -375,7 +410,9 @@ def _(geocode_cluster_dataframe, geocode_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -387,13 +424,17 @@ def _(cluster_neighbors_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterTaxaStatistics`""")
+    mo.md(r"""
+    ## `ClusterTaxaStatistics`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -415,7 +456,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -427,13 +470,17 @@ def _(cluster_taxa_statistics_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterSignificantDifferences`""")
+    mo.md(r"""
+    ## `ClusterSignificantDifferences`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -454,7 +501,9 @@ def _(cluster_neighbors_dataframe, cluster_taxa_statistics_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -466,13 +515,17 @@ def _(cluster_significant_differences_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterBoundary`""")
+    mo.md(r"""
+    ## `ClusterBoundary`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -489,7 +542,9 @@ def _(geocode_cluster_dataframe, geocode_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -501,9 +556,7 @@ def _(cluster_boundary_dataframe):
 
 @app.cell(hide_code=True)
 def _(cluster_boundary_dataframe, folium):
-    _boundary = cluster_boundary_dataframe.select([
-        "geometry", "cluster"
-    ])
+    _boundary = cluster_boundary_dataframe.select(["geometry", "cluster"])
 
     _map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
@@ -513,7 +566,7 @@ def _(cluster_boundary_dataframe, folium):
         _boundary.st,
         popup=folium.GeoJsonPopup(
             fields=["cluster"],
-        )
+        ),
     ).add_to(_map)
 
     _map.fit_bounds(_map.get_bounds())
@@ -524,13 +577,17 @@ def _(cluster_boundary_dataframe, folium):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterDistance`""")
+    mo.md(r"""
+    ## `ClusterDistance`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -546,7 +603,9 @@ def _(cluster_taxa_statistics_dataframe):
 
 @app.cell
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -558,7 +617,9 @@ def _(cluster_distance_matrix):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `ClusterColor`""")
+    mo.md(r"""
+    ## `ClusterColor`
+    """)
     return
 
 
@@ -584,13 +645,17 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `PermanovaResults`""")
+    mo.md(r"""
+    ## `PermanovaResults`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -608,7 +673,9 @@ def _(geocode_cluster_dataframe, geocode_dataframe, geocode_distance_matrix):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -620,13 +687,17 @@ def _(permanova_results_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## `GeocodeSilhouetteScore`""")
+    mo.md(r"""
+    ## `GeocodeSilhouetteScore`
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Build""")
+    mo.md(r"""
+    ### Build
+    """)
     return
 
 
@@ -648,7 +719,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -678,7 +751,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Build and plot GeoJSON feature collection""")
+    mo.md(r"""
+    ## Build and plot GeoJSON feature collection
+    """)
     return
 
 
@@ -695,14 +770,16 @@ def _(cluster_boundary_dataframe, cluster_colors_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Save""")
+    mo.md(r"""
+    ### Save
+    """)
     return
 
 
 @app.cell
 def _(feature_collection):
-    from src.geojson import write_geojson
     from src import output
+    from src.geojson import write_geojson
 
     write_geojson(feature_collection, output.get_geojson_path())
     return
@@ -710,7 +787,9 @@ def _(feature_collection):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Plot""")
+    mo.md(r"""
+    ### Plot
+    """)
     return
 
 
@@ -733,7 +812,9 @@ def _(feature_collection, folium):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Dimensionality reduction plot""")
+    mo.md(r"""
+    ## Dimensionality reduction plot
+    """)
     return
 
 
@@ -756,7 +837,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Clustermap visualization""")
+    mo.md(r"""
+    ## Clustermap visualization
+    """)
     return
 
 
@@ -789,7 +872,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""## `SignificantTaxaImages`""")
+    mo.md("""
+    ## `SignificantTaxaImages`
+    """)
     return
 
 
@@ -806,7 +891,9 @@ def _(cluster_significant_differences_dataframe, taxonomy_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Preview""")
+    mo.md(r"""
+    ### Preview
+    """)
     return
 
 
@@ -818,7 +905,9 @@ def _(significant_taxa_images_dataframe):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Write output for frontend""")
+    mo.md(r"""
+    ## Write output for frontend
+    """)
     return
 
 
