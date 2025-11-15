@@ -499,12 +499,25 @@ def _(cluster_boundary_dataframe):
 
 
 @app.cell
-def _(cluster_boundary_dataframe, pl):
-    (
-        cluster_boundary_dataframe.select(pl.col("geometry"))
-        .st.plot(stroke="green")
-        .project(type="identity", reflectY=True)
+def _(cluster_boundary_dataframe, folium):
+    _boundary = cluster_boundary_dataframe.select([
+        "geometry", "cluster"
+    ])
+
+    _map = folium.Map(
+        tiles="Esri.WorldGrayCanvas",
     )
+
+    folium.GeoJson(
+        _boundary.st,
+        popup=folium.GeoJsonPopup(
+            fields=["cluster"],
+        )
+    ).add_to(_map)
+
+    _map.fit_bounds(_map.get_bounds())
+
+    _map
     return
 
 
