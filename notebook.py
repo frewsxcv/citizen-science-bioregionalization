@@ -499,7 +499,7 @@ def _(cluster_boundary_dataframe):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(cluster_boundary_dataframe, folium):
     _boundary = cluster_boundary_dataframe.select([
         "geometry", "cluster"
