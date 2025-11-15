@@ -53,6 +53,7 @@ def write_json_output(
         significant_taxa = [
             {
                 "scientific_name": r["scientificName"],
+                "gbif_taxon_id": r["gbifTaxonId"],
                 "p_value": r["p_value"],
                 "log2_fold_change": r["log2_fold_change"],
                 "cluster_count": r["cluster_count"],
