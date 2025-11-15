@@ -64,6 +64,15 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
         // Image loaded successfully, now set it to display
         setImageSrc(fullSrc);
       } catch (error) {
+        // Check if this is a queue clear error (user selected a new cluster)
+        if (error instanceof Error && error.message.includes("Queue cleared")) {
+          // Silently ignore - this is expected behavior when switching clusters
+          console.log(`Image load cancelled for ${alt} - new cluster selected`);
+          setLoading(false);
+          setQueued(false);
+          return;
+        }
+
         console.error(`Failed to queue image ${alt}:`, error);
         setError(true);
         setLoading(false);

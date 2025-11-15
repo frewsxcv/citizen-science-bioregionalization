@@ -37,7 +37,7 @@ class ImageLoadQueue {
       // Small delay between loads to be nice to the server
       if (this.queue.length > 0) {
         await new Promise((resolve) =>
-          setTimeout(resolve, this.delayBetweenLoads)
+          setTimeout(resolve, this.delayBetweenLoads),
         );
       }
     }
@@ -66,7 +66,13 @@ class ImageLoadQueue {
   }
 
   clear() {
-    this.queue = [];
+    // Reject all pending promises with a cancellation error
+    while (this.queue.length > 0) {
+      const item = this.queue.shift();
+      if (item) {
+        item.reject(new Error("Queue cleared - new cluster selected"));
+      }
+    }
   }
 
   getQueueLength(): number {
