@@ -824,6 +824,7 @@ def _(mo):
 @app.cell
 def _(
     cluster_boundary_dataframe,
+    cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
     taxonomy_dataframe,
 ):
@@ -833,14 +834,16 @@ def _(
         cluster_significant_differences_dataframe,
         cluster_boundary_dataframe,
         taxonomy_dataframe,
-        "/dev/stdout"
+        cluster_colors_dataframe,
+        "/dev/stdout",
     )
 
     write_json_output(
         cluster_significant_differences_dataframe,
         cluster_boundary_dataframe,
         taxonomy_dataframe,
-        "aggregations.json"
+        cluster_colors_dataframe,
+        "aggregations.json",
     )
     return
 

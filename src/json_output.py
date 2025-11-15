@@ -8,6 +8,7 @@ from src.dataframes.cluster_significant_differences import (
 )
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.taxonomy import TaxonomySchema
+from src.dataframes.cluster_color import ClusterColorSchema
 
 
 def _wkb_to_geojson(wkb: bytes) -> dict:
@@ -22,6 +23,7 @@ def write_json_output(
     cluster_significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
     cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
     taxonomy_df: dy.DataFrame[TaxonomySchema],
+    cluster_color_df: dy.DataFrame[ClusterColorSchema],
     output_path: str,
 ) -> None:
     """
@@ -31,13 +33,18 @@ def write_json_output(
         cluster_significant_differences_df: DataFrame with significant taxa for each cluster.
         cluster_boundary_df: DataFrame with the boundary for each cluster.
         taxonomy_df: DataFrame with taxonomy information.
+        cluster_color_df: DataFrame with color information for each cluster.
         output_path: The path to write the JSON file to.
     """
     output_data = []
 
-    for row in cluster_boundary_df.iter_rows(named=True):
+    cluster_data_df = cluster_boundary_df.join(cluster_color_df, on="cluster")
+
+    for row in cluster_data_df.iter_rows(named=True):
         cluster_id = row["cluster"]
         boundary_wkb = row["geometry"]
+        color = row["color"]
+        darkened_color = row["darkened_color"]
 
         significant_taxa_df = cluster_significant_differences_df.filter(
             pl.col("cluster") == cluster_id
@@ -59,6 +66,8 @@ def write_json_output(
                 "cluster": cluster_id,
                 "boundary": _wkb_to_geojson(boundary_wkb),
                 "significant_taxa": significant_taxa,
+                "color": color,
+                "darkened_color": darkened_color,
             }
         )
 
