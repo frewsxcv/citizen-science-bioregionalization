@@ -1,0 +1,69 @@
+import dataframely as dy
+import polars as pl
+import shapely
+import json
+from src import output
+from src.dataframes.cluster_significant_differences import (
+    ClusterSignificantDifferencesSchema,
+)
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
+from src.dataframes.taxonomy import TaxonomySchema
+
+
+def _wkb_to_geojson(wkb: bytes) -> dict:
+    """
+    Convert WKB geometry to a GeoJSON-compatible dictionary.
+    """
+    geom = shapely.from_wkb(wkb)
+    return json.loads(shapely.to_geojson(geom))
+
+
+def write_json_output(
+    cluster_significant_differences_df: dy.DataFrame[ClusterSignificantDifferencesSchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
+    taxonomy_df: dy.DataFrame[TaxonomySchema],
+    output_path: str,
+) -> None:
+    """
+    Writes the cluster data to a JSON file.
+
+    Args:
+        cluster_significant_differences_df: DataFrame with significant taxa for each cluster.
+        cluster_boundary_df: DataFrame with the boundary for each cluster.
+        taxonomy_df: DataFrame with taxonomy information.
+        output_path: The path to write the JSON file to.
+    """
+    output_data = []
+
+    for row in cluster_boundary_df.iter_rows(named=True):
+        cluster_id = row["cluster"]
+        boundary_wkb = row["geometry"]
+
+        significant_taxa_df = cluster_significant_differences_df.filter(
+            pl.col("cluster") == cluster_id
+        ).join(taxonomy_df, on="taxonId")
+
+        significant_taxa = [
+            {
+                "scientific_name": r["scientificName"],
+                "p_value": r["p_value"],
+                "log2_fold_change": r["log2_fold_change"],
+                "cluster_count": r["cluster_count"],
+                "neighbor_count": r["neighbor_count"],
+            }
+            for r in significant_taxa_df.iter_rows(named=True)
+        ]
+
+        output_data.append(
+            {
+                "cluster": cluster_id,
+                "boundary": _wkb_to_geojson(boundary_wkb),
+                "significant_taxa": significant_taxa,
+            }
+        )
+
+    # Prepare the output file path
+    output_file = output.prepare_file_path(output_path)
+
+    with open(output_file, "w") as json_writer:
+        json.dump(output_data, json_writer, indent=2)

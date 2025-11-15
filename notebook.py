@@ -815,5 +815,35 @@ def _(
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""## Write output for frontend""")
+    return
+
+
+@app.cell
+def _(
+    cluster_boundary_dataframe,
+    cluster_significant_differences_dataframe,
+    taxonomy_dataframe,
+):
+    from src.json_output import write_json_output
+
+    write_json_output(
+        cluster_significant_differences_dataframe,
+        cluster_boundary_dataframe,
+        taxonomy_dataframe,
+        "/dev/stdout"
+    )
+
+    write_json_output(
+        cluster_significant_differences_dataframe,
+        cluster_boundary_dataframe,
+        taxonomy_dataframe,
+        "aggregations.json"
+    )
+    return
+
+
 if __name__ == "__main__":
     app.run()
