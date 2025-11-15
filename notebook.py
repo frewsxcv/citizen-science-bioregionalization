@@ -733,34 +733,6 @@ def _(feature_collection, folium):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## Build and display HTML output""")
-    return
-
-
-@app.cell
-def _(
-    cluster_colors_dataframe,
-    cluster_significant_differences_dataframe,
-    feature_collection,
-    output,
-    taxonomy_dataframe,
-):
-    from src.html_output import prepare_full_report_data, render_html, write_html
-
-    report_data = prepare_full_report_data(
-        cluster_colors_dataframe,
-        cluster_significant_differences_dataframe,
-        taxonomy_dataframe,
-        feature_collection,
-    )
-    html_content = render_html("cluster_report.html", report_data)
-    html_output = output.get_html_path()
-    write_html(html_content, html_output)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""## Dimensionality reduction plot""")
     return
 
