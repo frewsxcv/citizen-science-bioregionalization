@@ -815,7 +815,7 @@ def _(
         cluster_boundary_dataframe,
         taxonomy_dataframe,
         cluster_colors_dataframe,
-        "aggregations.json",
+        "frontend/aggregations.json",
     )
     return
 
