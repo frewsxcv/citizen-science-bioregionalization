@@ -30,3 +30,14 @@ h2 {
 p {
     margin-bottom: 10px;
 }
+
+#cluster-details ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#cluster-details li {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}

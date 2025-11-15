@@ -61,6 +61,7 @@ map.on('load', () => {
                     html += '<ul>';
                     significantTaxa.forEach(taxa => {
                         html += `<li>
+                            ${taxa.image_url ? `<img src="${taxa.image_url}?width=50" alt="${taxa.scientific_name}" style="width:50px; height:50px; object-fit: cover; margin-right: 10px; float: left;">` : '<div style="width: 50px; height: 50px; float: left; margin-right: 10px; background: #eee;"></div>'}
                             ${taxa.scientific_name}<br>
                             <small>
                                 p=${taxa.p_value.toExponential(2)},
@@ -68,6 +69,7 @@ map.on('load', () => {
                                 in-cluster=${taxa.cluster_count},
                                 neighbors=${taxa.neighbor_count}
                             </small>
+                            <div style="clear: both;"></div>
                         </li>`;
                     });
                     html += '</ul>';
