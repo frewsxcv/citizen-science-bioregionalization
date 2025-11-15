@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import type { FeatureCollection } from "geojson";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { ClusterData, SelectedCluster } from "../types";
 import dataImport from "../aggregations.json";
 

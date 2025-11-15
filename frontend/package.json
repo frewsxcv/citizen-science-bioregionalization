@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "maplibre-gl": "^5.13.0",
     "parcel": "^2.16.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@babel/preset-react": "^7.28.5",
     "@types/geojson": "^7946.0.16",
+    "@types/maplibre-gl": "^1.13.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "typescript": "^5.9.3"
