@@ -1,7 +1,12 @@
 import React from "react";
 import ImageWithRetry from "./ImageWithRetry";
+import { SelectedCluster } from "../types";
 
-const Sidebar = ({ selectedCluster }) => {
+interface SidebarProps {
+  selectedCluster: SelectedCluster | null;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ selectedCluster }) => {
   return (
     <div id="sidebar">
       <h2>Cluster Information</h2>

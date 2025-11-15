@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, CSSProperties } from "react";
 
-const ImageWithRetry = ({ src, alt, style }) => {
-  const [imageSrc, setImageSrc] = useState(null);
+interface ImageWithRetryProps {
+  src: string | null;
+  alt: string;
+  style?: CSSProperties;
+}
+
+const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const retryCountRef = useRef(0);
@@ -18,7 +24,7 @@ const ImageWithRetry = ({ src, alt, style }) => {
 
     const maxRetries = 3;
 
-    const attemptLoad = async (delayMs = 0) => {
+    const attemptLoad = async (delayMs: number = 0): Promise<void> => {
       if (delayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
@@ -45,7 +51,7 @@ const ImageWithRetry = ({ src, alt, style }) => {
               } else {
                 const retryDate = new Date(retryAfter);
                 const now = new Date();
-                delaySeconds = Math.max(0, (retryDate - now) / 1000);
+                delaySeconds = Math.max(0, (retryDate.getTime() - now.getTime()) / 1000);
               }
             }
 

@@ -1,13 +1,21 @@
 import React, { useRef, useEffect } from "react";
+import type { FeatureCollection } from "geojson";
+import { ClusterData, SelectedCluster } from "../types";
+import dataImport from "../aggregations.json";
 
-const data = require("../aggregations.json");
+const data = dataImport as ClusterData[];
 
-const Map = ({ setSelectedCluster }) => {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
+interface MapProps {
+  setSelectedCluster: (cluster: SelectedCluster) => void;
+}
+
+const Map: React.FC<MapProps> = ({ setSelectedCluster }) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    if (map.current || !mapContainer.current) return; // initialize map only once
+
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style:
@@ -17,7 +25,9 @@ const Map = ({ setSelectedCluster }) => {
     });
 
     map.current.on("load", () => {
-      const geojson = {
+      if (!map.current) return;
+
+      const geojson: FeatureCollection = {
         type: "FeatureCollection",
         features: data.map((cluster) => ({
           type: "Feature",
@@ -56,7 +66,7 @@ const Map = ({ setSelectedCluster }) => {
         },
       });
 
-      map.current.on("click", "clusters-fill", (e) => {
+      map.current.on("click", "clusters-fill", (e: any) => {
         const properties = e.features[0].properties;
         const significantTaxa = JSON.parse(properties.significant_taxa);
         setSelectedCluster({
@@ -66,11 +76,15 @@ const Map = ({ setSelectedCluster }) => {
       });
 
       map.current.on("mouseenter", "clusters-fill", () => {
-        map.current.getCanvas().style.cursor = "pointer";
+        if (map.current) {
+          map.current.getCanvas().style.cursor = "pointer";
+        }
       });
 
       map.current.on("mouseleave", "clusters-fill", () => {
-        map.current.getCanvas().style.cursor = "";
+        if (map.current) {
+          map.current.getCanvas().style.cursor = "";
+        }
       });
     });
   });
