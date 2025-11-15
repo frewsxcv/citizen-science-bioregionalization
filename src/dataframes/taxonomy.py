@@ -54,6 +54,7 @@ class TaxonomySchema(dy.Schema):
                 "genus": pl.Categorical(),
                 "species": pl.String(),
                 "taxonRank": pl.Categorical(),
+                "gbifTaxonId": pl.UInt32(),
             }
         )
 
