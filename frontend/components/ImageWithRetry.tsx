@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, CSSProperties } from "react";
+import React, { useState, useRef, CSSProperties } from "react";
+import { imageLoadQueue } from "../utils/ImageLoadQueue";
 
 interface ImageWithRetryProps {
   src: string | null;
@@ -7,107 +8,96 @@ interface ImageWithRetryProps {
 }
 
 const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [queued, setQueued] = useState(false);
   const retryCountRef = useRef(0);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (!src) {
-      setLoading(false);
-      setError(true);
-      return;
-    }
-
-    const maxRetries = 3;
-
-    const attemptLoad = async (delayMs: number = 0): Promise<void> => {
-      if (delayMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-      }
-
-      if (!isMountedRef.current) return;
-
-      try {
-        // Try HEAD request to check for rate limiting
-        const headResponse = await fetch(src + "?width=50", {
-          method: "HEAD",
-        });
-
-        if (!isMountedRef.current) return;
-
-        if (!headResponse.ok) {
-          if (headResponse.status === 429 || headResponse.status === 503) {
-            const retryAfter = headResponse.headers.get("Retry-After");
-            let delaySeconds = 5;
-
-            if (retryAfter) {
-              const retryAfterNum = parseInt(retryAfter, 10);
-              if (!isNaN(retryAfterNum)) {
-                delaySeconds = retryAfterNum;
-              } else {
-                const retryDate = new Date(retryAfter);
-                const now = new Date();
-                delaySeconds = Math.max(0, (retryDate.getTime() - now.getTime()) / 1000);
-              }
-            }
-
-            delaySeconds = Math.min(delaySeconds, 30);
-
-            if (retryCountRef.current < maxRetries) {
-              retryCountRef.current++;
-              console.log(
-                `Rate limited on image ${alt}. Retrying in ${delaySeconds}s (attempt ${retryCountRef.current}/${maxRetries})`,
-              );
-              attemptLoad(delaySeconds * 1000);
-              return;
-            } else {
-              throw new Error(
-                `Rate limited after ${maxRetries} retries: ${headResponse.status}`,
-              );
-            }
-          }
-
-          throw new Error(`HTTP error ${headResponse.status}`);
-        }
-
-        // HEAD request succeeded, now load the actual image
-        if (isMountedRef.current) {
-          setImageSrc(src + "?width=50");
-        }
-      } catch (err) {
-        if (!isMountedRef.current) return;
-
-        console.error(`Failed to load image ${alt}:`, err);
-        setError(true);
-        setLoading(false);
-      }
-    };
-
-    attemptLoad();
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [src, alt]);
+  const retryTimeoutRef = useRef<number | null>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const attemptedLoadRef = useRef(false);
 
   const handleImageLoad = () => {
-    if (isMountedRef.current) {
-      setLoading(false);
-      setError(false);
-    }
+    setLoading(false);
+    setQueued(false);
+    setError(false);
+    retryCountRef.current = 0;
   };
 
   const handleImageError = () => {
-    if (isMountedRef.current) {
-      console.error(`Image tag failed to load: ${alt}`);
+    const maxRetries = 3;
+
+    if (retryCountRef.current < maxRetries) {
+      retryCountRef.current++;
+      const delaySeconds = Math.min(5 * retryCountRef.current, 30);
+
+      console.log(
+        `Failed to load image ${alt}. Retrying in ${delaySeconds}s (attempt ${retryCountRef.current}/${maxRetries})`,
+      );
+
+      setLoading(true);
+      setQueued(false);
+
+      // Retry with exponential backoff
+      retryTimeoutRef.current = setTimeout(() => {
+        if (src) {
+          attemptLoadImage(src);
+        }
+      }, delaySeconds * 1000);
+    } else {
+      console.error(`Image failed to load after ${maxRetries} retries: ${alt}`);
       setError(true);
       setLoading(false);
+      setQueued(false);
     }
   };
+
+  const attemptLoadImage = async (imageSrc: string) => {
+    const fullSrc = imageSrc + `?width=50&retry=${retryCountRef.current}`;
+
+    setQueued(true);
+    setLoading(true);
+
+    try {
+      // Queue the image load
+      await imageLoadQueue.loadImage(fullSrc);
+      // Image loaded successfully, now set it to display
+      setImageSrc(fullSrc);
+    } catch (error) {
+      console.error(`Failed to queue image ${alt}:`, error);
+      setError(true);
+      setLoading(false);
+      setQueued(false);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Update image source when src prop changes
+  React.useEffect(() => {
+    retryCountRef.current = 0;
+    attemptedLoadRef.current = false;
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+    if (src) {
+      setImageSrc(null);
+      setLoading(true);
+      setError(false);
+      attemptLoadImage(src);
+    } else {
+      setImageSrc(null);
+      setLoading(false);
+      setError(true);
+      setQueued(false);
+    }
+  }, [src]);
 
   if (!src || error) {
     return (
@@ -135,7 +125,7 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
             position: "absolute",
           }}
         >
-          ...
+          {queued ? "queued..." : "..."}
         </div>
       )}
       {imageSrc && (
