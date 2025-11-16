@@ -928,14 +928,14 @@ def _(
 ):
     from src.json_output import write_json_output
 
-    write_json_output(
-        cluster_significant_differences_dataframe,
-        cluster_boundary_dataframe,
-        taxonomy_dataframe,
-        cluster_colors_dataframe,
-        significant_taxa_images_dataframe,
-        "/dev/stdout",
-    )
+    # write_json_output(
+    #     cluster_significant_differences_dataframe,
+    #     cluster_boundary_dataframe,
+    #     taxonomy_dataframe,
+    #     cluster_colors_dataframe,
+    #     significant_taxa_images_dataframe,
+    #     "/dev/stdout",
+    # )
 
     write_json_output(
         cluster_significant_differences_dataframe,
