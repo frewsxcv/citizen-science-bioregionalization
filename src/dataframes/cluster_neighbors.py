@@ -1,8 +1,8 @@
+import dataframely as dy
 import networkx as nx
 import polars as pl
-import dataframely as dy
 
-from src.dataframes.geocode import GeocodeSchema
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
 
 
@@ -14,7 +14,7 @@ class ClusterNeighborsSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["ClusterNeighborsSchema"]:
         # Get unique clusters
@@ -35,9 +35,7 @@ class ClusterNeighborsSchema(dy.Schema):
             direct_and_indirect_neighbors,
         ) in geocode_dataframe.select(
             "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
-        ).iter_rows(
-            named=False
-        ):
+        ).iter_rows(named=False):
             # Get the cluster of the current geocode
             current_cluster = cluster_for_geocode(geocode_cluster_dataframe, geocode)
 

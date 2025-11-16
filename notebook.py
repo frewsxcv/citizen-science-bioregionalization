@@ -16,7 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-    import polars_st as pl_st
+
     return folium, hashlib, mo, np, os, pl, polars_darwin_core
 
 
@@ -182,11 +182,15 @@ def _(mo):
 
 @app.cell
 def _(args, darwin_core_lazy_frame):
-    from src.dataframes.geocode import GeocodeSchema
+    from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
 
-    geocode_dataframe = GeocodeSchema.build(
+    geocode_dataframe_with_edges = GeocodeSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
+    )
+
+    geocode_dataframe = GeocodeNoEdgesSchema.from_geocode_schema(
+        geocode_dataframe_with_edges,
     )
 
     geocode_dataframe
@@ -194,11 +198,11 @@ def _(args, darwin_core_lazy_frame):
 
 
 @app.cell(hide_code=True)
-def _(folium, geocode_dataframe, pl):
+def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
     _center = geocode_dataframe.select(
         pl.col("center").alias("geometry"),
     )
-    _boundary = geocode_dataframe.select(
+    _boundary = geocode_dataframe_with_edges.select(
         pl.col("boundary").alias("geometry"),
         pl.col("is_edge"),
     )
@@ -212,10 +216,8 @@ def _(folium, geocode_dataframe, pl):
         marker=folium.Circle(),
     ).add_to(_map)
 
-
     def style(n):
         return {"color": "grey" if n["properties"]["is_edge"] else "blue"}
-
 
     folium.GeoJson(_boundary.st, style_function=style).add_to(_map)
 
@@ -252,13 +254,14 @@ def _(mo):
 
 
 @app.cell
-def _(args, darwin_core_lazy_frame, taxonomy_dataframe):
+def _(args, darwin_core_lazy_frame, taxonomy_dataframe, geocode_dataframe):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
         taxonomy_dataframe,
+        geocode_dataframe,
     )
 
     geocode_taxa_counts_dataframe

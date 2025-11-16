@@ -1,13 +1,12 @@
-import os
-
+import dataframely as dy
 import numpy as np
 import polars as pl
-from sklearn.preprocessing import RobustScaler
-from scipy.spatial.distance import pdist, squareform
 import umap
+from scipy.spatial.distance import pdist, squareform
+from sklearn.preprocessing import RobustScaler
+
 from src.dataframes import geocode_taxa_counts
-import dataframely as dy
-from src.dataframes.geocode import GeocodeSchema
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.logging import log_action, logger
 
 
@@ -52,8 +51,10 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
 
 
 def build_X(
-    geocode_taxa_counts_dataframe: dy.DataFrame[geocode_taxa_counts.GeocodeTaxaCountsSchema],
-    geocode_dataframe: dy.DataFrame[GeocodeSchema],
+    geocode_taxa_counts_dataframe: dy.DataFrame[
+        geocode_taxa_counts.GeocodeTaxaCountsSchema
+    ],
+    geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -131,9 +132,9 @@ def reduce_dimensions_umap(
     # See: https://github.com/lmcinnes/umap/issues/201
     # The assertion ensures there are enough samples for the chosen n_components.
     # TODO: Revisit this constraint for smaller datasets if necessary.
-    assert (
-        X.height > 10
-    ), "UMAP requires more samples for the current n_components setting."
+    assert X.height > 10, (
+        "UMAP requires more samples for the current n_components setting."
+    )
 
     reducer = umap.UMAP(
         # Target number of dimensions. Must be < number of samples.
@@ -143,7 +144,7 @@ def reduce_dimensions_umap(
         # Controls how tightly UMAP is allowed to pack points together.
         min_dist=min_dist,
     )
-    return pl.from_numpy(reducer.fit_transform(X.to_numpy())) # type: ignore
+    return pl.from_numpy(reducer.fit_transform(X.to_numpy()))  # type: ignore
 
 
 class GeocodeDistanceMatrix:
@@ -165,7 +166,7 @@ class GeocodeDistanceMatrix:
         geocode_taxa_counts_dataframe: dy.DataFrame[
             geocode_taxa_counts.GeocodeTaxaCountsSchema
         ],
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":

@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import dataframely as dy
 import networkx as nx
@@ -121,8 +122,66 @@ class GeocodeSchema(dy.Schema):
         return GeocodeSchema.validate(df)
 
 
+class GeocodeNoEdgesSchema(GeocodeSchema):
+    """Schema that validates there are no edge hexagons in the dataset.
+
+    This schema inherits all columns and validations from GeocodeSchema
+    and adds an additional rule to ensure that no hexagons intersect
+    the bounding box boundary (i.e., all is_edge values must be False).
+    """
+
+    @dy.rule()
+    def no_edges(cls) -> pl.Expr:
+        """Validate that no hexagons are on the edge of the bounding box."""
+        return ~pl.col("is_edge")
+
+    @classmethod
+    def from_geocode_schema(
+        cls,
+        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+    ) -> dy.DataFrame["GeocodeNoEdgesSchema"]:
+        """Create a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
+
+        Args:
+            geocode_dataframe: A validated GeocodeSchema dataframe
+
+        Returns:
+            A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
+            and neighbor lists updated to exclude the removed edges.
+        """
+        df = geocode_dataframe.clone()
+
+        # Get the set of edge geocodes to remove
+        edge_geocodes = set(df.filter(pl.col("is_edge"))["geocode"].to_list())
+
+        logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
+
+        # Filter out edge hexagons
+        df = df.filter(~pl.col("is_edge"))
+
+        # Update neighbor lists to remove references to edge geocodes
+        # Get the set of remaining valid geocodes
+        valid_geocodes = set(df["geocode"].to_list())
+        valid_geocodes_lit = pl.lit(list(valid_geocodes), dtype=pl.List(pl.UInt64))
+
+        df = df.with_columns(
+            direct_neighbors=pl.col("direct_neighbors").list.set_intersection(
+                valid_geocodes_lit
+            ),
+            direct_and_indirect_neighbors=pl.col(
+                "direct_and_indirect_neighbors"
+            ).list.set_intersection(valid_geocodes_lit),
+        )
+
+        logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
+
+        return cls.validate(df)
+
+
 def graph(
-    geocode_dataframe: dy.DataFrame[GeocodeSchema],
+    geocode_dataframe: Union[
+        dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
+    ],
     include_indirect_neighbors: bool = False,
 ) -> nx.Graph:
     return _df_to_graph(geocode_dataframe, include_indirect_neighbors)
@@ -231,7 +290,10 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def index_of_geocode(
-    geocode: int, geocode_dataframe: dy.DataFrame[GeocodeSchema]
+    geocode: int,
+    geocode_dataframe: Union[
+        dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
+    ],
 ) -> int:
     index = geocode_dataframe["geocode"].index_of(geocode)
     if index is None:

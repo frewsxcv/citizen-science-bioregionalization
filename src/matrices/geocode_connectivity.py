@@ -1,13 +1,13 @@
-import numpy as np
+import logging
 
 import dataframely as dy
+import networkx as nx
+import numpy as np
+
 from src.dataframes.geocode import (
-    GeocodeSchema,
+    GeocodeNoEdgesSchema,
     index_of_geocode,
 )
-import networkx as nx
-from shapely.geometry import Point
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class GeocodeConnectivityMatrix:
 
     @classmethod
     def build(
-        cls, geocode_dataframe: dy.DataFrame[GeocodeSchema]
+        cls, geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema]
     ) -> "GeocodeConnectivityMatrix":
         num_geocodes = len(geocode_dataframe)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)

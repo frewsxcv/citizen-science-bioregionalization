@@ -1,9 +1,11 @@
-import polars as pl
-import dataframely as dy
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
-from src.dataframes.geocode import GeocodeSchema
-from src.dataframes.taxonomy import TaxonomySchema
 import logging
+
+import dataframely as dy
+import polars as pl
+
+from src.dataframes.geocode import GeocodeNoEdgesSchema
+from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
+from src.dataframes.taxonomy import TaxonomySchema
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +21,13 @@ class TaxaGeographicMeanSchema(dy.Schema):
     def build(
         cls,
         geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
         taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
     ) -> dy.DataFrame["TaxaGeographicMeanSchema"]:
         # Join geocode_taxa_counts with geocode_dataframe to get lat/lon
         with_lat_lon = geocode_taxa_counts_dataframe.join(
-            geocode_dataframe.select("geocode", "lat", "lon"), on="geocode"
+            geocode_dataframe.select("geocode", "lat", "lon"),
+            on="geocode",
         )
 
         # Join with taxonomy_dataframe to get taxonomic info

@@ -1,13 +1,15 @@
-from typing import Iterator, List, Tuple
 import logging
-import polars as pl
+from typing import Iterator, List, Tuple
+
 import dataframely as dy
+import polars as pl
 from scipy.sparse import csr_matrix
 from sklearn.cluster import AgglomerativeClustering
+
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
-from src.dataframes.geocode import GeocodeSchema
-from src.types import Geocode, ClusterId
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
+from src.types import ClusterId, Geocode
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ class GeocodeClusterSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,

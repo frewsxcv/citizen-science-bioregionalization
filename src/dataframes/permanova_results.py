@@ -1,13 +1,14 @@
 # src/dataframes/permanova_results.py
-from typing import Any
-import polars as pl
-import pandas as pd  # Import pandas for type hint
+import logging
+
 import dataframely as dy
-from skbio.stats.distance import permanova, DistanceMatrix
+import pandas as pd  # Import pandas for type hint
+import polars as pl
+from skbio.stats.distance import DistanceMatrix, permanova
+
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
-from src.dataframes.geocode import GeocodeSchema
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class PermanovaResultsSchema(dy.Schema):
         cls,
         geocode_distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
         permutations: int = 999,  # Default permutations
     ) -> dy.DataFrame["PermanovaResultsSchema"]:
         """
@@ -53,9 +54,9 @@ class PermanovaResultsSchema(dy.Schema):
         # Assert that all geocodes in the distance matrix have cluster assignments.
         cluster_geocodes = set(geocode_cluster_dataframe["geocode"].to_list())
         missing_geocodes = set(geocode_ids) - cluster_geocodes
-        assert (
-            not missing_geocodes
-        ), f"Missing cluster assignments for {len(missing_geocodes)} geocodes required by the distance matrix: {missing_geocodes}"
+        assert not missing_geocodes, (
+            f"Missing cluster assignments for {len(missing_geocodes)} geocodes required by the distance matrix: {missing_geocodes}"
+        )
 
         # Get cluster assignments in the correct order matching the distance matrix.
         # Join geocode_dataframe (which defines the order) with cluster assignments.
@@ -69,9 +70,9 @@ class PermanovaResultsSchema(dy.Schema):
         grouping = grouping_df["cluster"].to_list()
 
         # Verify lengths match (should always pass due to assertion and join logic)
-        assert len(grouping) == len(
-            dm_skbio.ids
-        ), f"Internal error: Mismatch between grouping length ({len(grouping)}) and distance matrix IDs length ({len(dm_skbio.ids)}) after alignment."
+        assert len(grouping) == len(dm_skbio.ids), (
+            f"Internal error: Mismatch between grouping length ({len(grouping)}) and distance matrix IDs length ({len(dm_skbio.ids)}) after alignment."
+        )
 
         # Run PERMANOVA. Let exceptions propagate.
         results: pd.Series = permanova(dm_skbio, grouping, permutations=permutations)
