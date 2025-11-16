@@ -1,6 +1,7 @@
-import polars as pl
 import dataframely as dy
+import polars as pl
 from polars_darwin_core import Kingdom
+
 from src.dataframes.taxonomy import TaxonomySchema
 
 
@@ -20,6 +21,7 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
             "species": "leo",
             "taxonRank": "species",
             "scientificName": "Panthera leo",
+            "gbifTaxonId": 5219404,
         },
         {
             "taxonId": 1,
@@ -32,6 +34,7 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
             "species": "lupus",
             "taxonRank": "species",
             "scientificName": "Canis lupus",
+            "gbifTaxonId": 5219243,
         },
         {
             "taxonId": 2,
@@ -44,6 +47,7 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
             "species": "robur",
             "taxonRank": "species",
             "scientificName": "Quercus robur",
+            "gbifTaxonId": 2878688,
         },
         {
             "taxonId": 3,
@@ -56,6 +60,7 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
             "species": "",
             "taxonRank": "order",
             "scientificName": "Anseriformes",
+            "gbifTaxonId": 711,
         },
     ]
     taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
@@ -67,5 +72,6 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
         pl.col("family").cast(pl.Categorical),
         pl.col("genus").cast(pl.Categorical),
         pl.col("taxonRank").cast(pl.Categorical),
+        pl.col("gbifTaxonId").cast(pl.UInt32),
     )
     return TaxonomySchema.validate(taxonomy_df)
