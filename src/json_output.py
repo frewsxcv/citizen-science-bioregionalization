@@ -66,10 +66,11 @@ def write_json_output(
                     "scientific_name": r["scientificName"],
                     "gbif_taxon_id": r["gbifTaxonId"],
                     "taxon_id": r["taxonId"],
-                    "p_value": r["p_value"],
                     "log2_fold_change": r["log2_fold_change"],
                     "cluster_count": r["cluster_count"],
                     "neighbor_count": r["neighbor_count"],
+                    "high_log2_high_count_score": r["high_log2_high_count_score"],
+                    "low_log2_high_count_score": r["low_log2_high_count_score"],
                     "image_url": r["image_url"],
                 }
             )

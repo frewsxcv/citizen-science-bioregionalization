@@ -5,10 +5,11 @@ export interface SignificantTaxa {
   taxon_id: number;
   scientific_name: string;
   image_url: string | null;
-  p_value: number;
   log2_fold_change: number;
   cluster_count: number;
   neighbor_count: number;
+  high_log2_high_count_score: number;
+  low_log2_high_count_score: number;
 }
 
 export interface ClusterData {
