@@ -16,6 +16,7 @@ const Map: React.FC = () => {
   const setSelectedCluster = useStore((state) => state.setSelectedCluster);
   const setMapInstance = useStore((state) => state.setMapInstance);
   const setClusterData = useStore((state) => state.setClusterData);
+  const selectedCluster = useStore((state) => state.selectedCluster);
 
   useEffect(() => {
     // Load cluster data into the store
@@ -78,6 +79,19 @@ const Map: React.FC = () => {
         },
       });
 
+      // Add a layer for highlighting selected cluster
+      map.current.addLayer({
+        id: "clusters-selected",
+        type: "line",
+        source: "clusters",
+        paint: {
+          "line-color": "#000000",
+          "line-width": 4,
+          "line-opacity": 0.8,
+        },
+        filter: ["==", ["get", "cluster"], -1], // Initially no cluster selected
+      });
+
       map.current.on("click", "clusters-fill", (e: any) => {
         const properties = e.features[0].properties;
         const significantTaxa = JSON.parse(properties.significant_taxa);
@@ -112,6 +126,45 @@ const Map: React.FC = () => {
       }
     };
   }, []); // Zustand actions are stable and don't need to be in dependencies
+
+  // Update map styling when selected cluster changes
+  useEffect(() => {
+    if (!map.current) return;
+
+    const mapInstance = map.current;
+
+    // Wait for the map to be fully loaded
+    if (!mapInstance.isStyleLoaded()) {
+      const onStyleLoad = () => {
+        updateSelectedClusterStyle();
+        mapInstance.off("styledata", onStyleLoad);
+      };
+      mapInstance.on("styledata", onStyleLoad);
+      return;
+    }
+
+    updateSelectedClusterStyle();
+
+    function updateSelectedClusterStyle() {
+      if (!mapInstance || !mapInstance.getLayer("clusters-selected")) return;
+
+      if (selectedCluster) {
+        // Update filter to show only the selected cluster
+        mapInstance.setFilter("clusters-selected", [
+          "==",
+          ["get", "cluster"],
+          selectedCluster.clusterId,
+        ]);
+      } else {
+        // Hide the selected layer by filtering to non-existent cluster
+        mapInstance.setFilter("clusters-selected", [
+          "==",
+          ["get", "cluster"],
+          -1,
+        ]);
+      }
+    }
+  }, [selectedCluster]);
 
   return <div ref={mapContainer} id="map" />;
 };
