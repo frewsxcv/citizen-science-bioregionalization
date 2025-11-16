@@ -2,6 +2,12 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { SelectedCluster, ClusterData } from "../types";
 
+type QueueItem = {
+  src: string;
+  resolve: (success: boolean) => void;
+  reject: (error: Error) => void;
+};
+
 interface AppState {
   // Cluster selection state
   selectedCluster: SelectedCluster | null;
@@ -24,6 +30,17 @@ interface AppState {
   clusterData: ClusterData[];
   setClusterData: (data: ClusterData[]) => void;
 
+  // Image load queue state
+  imageQueue: QueueItem[];
+  isProcessingQueue: boolean;
+  delayBetweenLoads: number;
+
+  // Image load queue actions
+  loadImage: (src: string) => Promise<boolean>;
+  setDelayBetweenLoads: (delayMs: number) => void;
+  clearImageQueue: () => void;
+  getQueueLength: () => number;
+
   // Actions
   clearSelection: () => void;
   selectClusterById: (clusterId: number) => void;
@@ -38,6 +55,9 @@ export const useStore = create<AppState>()(
       sidebarOpen: true,
       isLoading: false,
       clusterData: [],
+      imageQueue: [],
+      isProcessingQueue: false,
+      delayBetweenLoads: 100,
 
       // Setters
       setSelectedCluster: (cluster) => {
@@ -66,6 +86,92 @@ export const useStore = create<AppState>()(
 
       setClusterData: (data) => {
         set({ clusterData: data }, false, "setClusterData");
+      },
+
+      // Image load queue actions
+      loadImage: async (src) => {
+        return new Promise((resolve, reject) => {
+          set(
+            (state) => ({
+              imageQueue: [...state.imageQueue, { src, resolve, reject }],
+            }),
+            false,
+            "loadImage:enqueue",
+          );
+
+          // Trigger queue processing
+          const processQueue = async () => {
+            const state = get();
+            if (state.isProcessingQueue || state.imageQueue.length === 0) {
+              return;
+            }
+
+            set(
+              { isProcessingQueue: true },
+              false,
+              "loadImage:startProcessing",
+            );
+
+            while (get().imageQueue.length > 0) {
+              const currentState = get();
+              const item = currentState.imageQueue[0];
+              if (!item) break;
+
+              // Remove item from queue
+              set(
+                (state) => ({
+                  imageQueue: state.imageQueue.slice(1),
+                }),
+                false,
+                "loadImage:dequeue",
+              );
+
+              try {
+                const success = await new Promise<boolean>((resolveLoad) => {
+                  const img = new Image();
+                  img.onload = () => resolveLoad(true);
+                  img.onerror = () => resolveLoad(false);
+                  img.src = item.src;
+                });
+                item.resolve(success);
+              } catch (error) {
+                item.reject(error as Error);
+              }
+
+              // Small delay between loads to be nice to the server
+              if (get().imageQueue.length > 0) {
+                await new Promise((resolveDelay) =>
+                  setTimeout(resolveDelay, get().delayBetweenLoads),
+                );
+              }
+            }
+
+            set(
+              { isProcessingQueue: false },
+              false,
+              "loadImage:stopProcessing",
+            );
+          };
+
+          processQueue();
+        });
+      },
+
+      setDelayBetweenLoads: (delayMs) => {
+        set({ delayBetweenLoads: delayMs }, false, "setDelayBetweenLoads");
+      },
+
+      clearImageQueue: () => {
+        const { imageQueue } = get();
+        // Reject all pending promises with a cancellation error
+        imageQueue.forEach((item) => {
+          item.reject(new Error("Queue cleared - new cluster selected"));
+        });
+        set({ imageQueue: [] }, false, "clearImageQueue");
+      },
+
+      getQueueLength: () => {
+        return get().imageQueue.length;
       },
 
       // Actions

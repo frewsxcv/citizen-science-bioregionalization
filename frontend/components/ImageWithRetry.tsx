@@ -1,5 +1,5 @@
 import React, { useState, useRef, CSSProperties } from "react";
-import { imageLoadQueue } from "../utils/ImageLoadQueue";
+import { useImageLoadQueue } from "../utils/ImageLoadQueue";
 
 interface ImageWithRetryProps {
   src: string | null;
@@ -8,6 +8,7 @@ interface ImageWithRetryProps {
 }
 
 const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
+  const { loadImage } = useImageLoadQueue();
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [queued, setQueued] = useState(false);
@@ -60,7 +61,7 @@ const ImageWithRetry: React.FC<ImageWithRetryProps> = ({ src, alt, style }) => {
 
       try {
         // Queue the image load
-        await imageLoadQueue.loadImage(fullSrc);
+        await loadImage(fullSrc);
         // Image loaded successfully, now set it to display
         setImageSrc(fullSrc);
       } catch (error) {

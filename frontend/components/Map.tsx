@@ -4,7 +4,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { ClusterData } from "../types";
 import dataImport from "../aggregations.json";
-import { imageLoadQueue } from "../utils/ImageLoadQueue";
+
 import { useStore } from "../store/useStore";
 
 const data = dataImport as ClusterData[];
@@ -97,7 +97,7 @@ const Map: React.FC = () => {
         const significantTaxa = JSON.parse(properties.significant_taxa);
 
         // Clear the image queue to prioritize images from the newly selected cluster
-        imageLoadQueue.clear();
+        useStore.getState().clearImageQueue();
 
         setSelectedCluster({
           clusterId: properties.cluster,
