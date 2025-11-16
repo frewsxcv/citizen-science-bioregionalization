@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import ImageWithRetry from "./ImageWithRetry";
-import ClusterStats from "./ClusterStats";
 import {
   useSelectedCluster,
   useSidebarOpen,
@@ -136,8 +135,6 @@ const ClusterDetails: React.FC<ClusterDetailsProps> = ({ clusterId }) => {
           Clear
         </button>
       </div>
-
-      <ClusterStats />
 
       <div style={{ marginBottom: "12px" }}>
         <label
