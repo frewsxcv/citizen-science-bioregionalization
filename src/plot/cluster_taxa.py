@@ -1,15 +1,17 @@
-import seaborn as sns
-import polars as pl
-from typing import Dict, Union, TypeVar, cast
-from scipy.cluster.hierarchy import linkage
+from typing import Dict, TypeVar, Union, cast
 
 import dataframely as dy
+import polars as pl
+import seaborn as sns
+from scipy.cluster.hierarchy import linkage
+
 from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
-from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
+
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
@@ -75,6 +77,10 @@ def create_cluster_taxa_heatmap(
     data = {}
     species_query = joined.select("scientificName", "taxonId").unique()
 
+    # If there are no significant differences, return None
+    if species_query.height == 0:
+        return None
+
     # Apply limit if specified
     if limit_species is not None:
         species_query = species_query.limit(limit_species)
@@ -120,10 +126,10 @@ def create_cluster_taxa_heatmap(
     # Create dataframe and generate clustermap
     dataframe = pl.DataFrame(data=data)
     g = sns.clustermap(
-        data=dataframe, # type: ignore
+        data=dataframe,  # type: ignore
         col_cluster=False,
         row_cluster=True,
-        row_linkage=linkage_array, # type: ignore
+        row_linkage=linkage_array,  # type: ignore
         row_colors=col_colors,
         xticklabels=dataframe.columns,
         yticklabels=False,

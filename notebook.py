@@ -863,7 +863,7 @@ def _(
 ):
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
-    create_cluster_taxa_heatmap(
+    heatmap = create_cluster_taxa_heatmap(
         geocode_dataframe=geocode_dataframe,
         geocode_cluster_dataframe=geocode_cluster_dataframe,
         cluster_colors_dataframe=cluster_colors_dataframe,
@@ -874,6 +874,11 @@ def _(
         cluster_taxa_statistics_dataframe=cluster_taxa_statistics_dataframe,
         limit_species=5,
     )
+
+    if heatmap is None:
+        mo.md("No significant differences found between clusters.")
+    else:
+        heatmap
     return
 
 
