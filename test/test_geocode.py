@@ -1,19 +1,20 @@
-import unittest
-import polars as pl
-import networkx as nx
-import tempfile
 import os
-import polars_st as pl_st
+import tempfile
+import unittest
 
 import dataframely as dy
+import networkx as nx
+import polars as pl
+import polars_st as pl_st
+from polars_darwin_core import DarwinCoreLazyFrame
+
 from src.dataframes.geocode import (
     GeocodeSchema,
     _df_to_graph,
     _reduce_connected_components_to_one,
-    index_of_geocode,
     graph,
+    index_of_geocode,
 )
-from polars_darwin_core import DarwinCoreLazyFrame
 
 
 class TestGeocodeSchema(unittest.TestCase):
@@ -35,6 +36,7 @@ class TestGeocodeSchema(unittest.TestCase):
                     [[0x8514355555555557], [0x8514355555555555]],
                     dtype=pl.List(pl.UInt64),
                 ),
+                "is_edge": pl.Series([True, True], dtype=pl.Boolean),
             }
         )
 
@@ -55,7 +57,10 @@ class TestGeocodeSchema(unittest.TestCase):
             darwin_core_lazy_frame._inner.head()
         )
 
-        geocode_df = GeocodeSchema.build(darwin_core_lazy_frame, geocode_precision=8)
+        geocode_df = GeocodeSchema.build(
+            darwin_core_lazy_frame,
+            geocode_precision=8,
+        )
 
         # Validate the result
         self.assertIsInstance(geocode_df, pl.DataFrame)
@@ -100,6 +105,7 @@ class TestGeocodeSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.Series(
                     [[2], [1, 3], [2]], dtype=pl.List(pl.UInt64)
                 ),
+                "is_edge": pl.Series([True, False, True], dtype=pl.Boolean),
             }
         )
 
@@ -142,6 +148,7 @@ class TestGeocodeSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.Series(
                     [[2], [1], [4], [3]], dtype=pl.List(pl.UInt64)
                 ),
+                "is_edge": pl.Series([True, True, True, True], dtype=pl.Boolean),
             }
         )
 
@@ -193,6 +200,7 @@ class TestGeocodeSchema(unittest.TestCase):
                     [[8514355555555557], [8514355555555555]],
                     dtype=pl.List(pl.UInt64),
                 ),
+                "is_edge": pl.Series([True, True], dtype=pl.Boolean),
             }
         )
 
@@ -221,7 +229,12 @@ def points_series(count: int):
 def polygon_series(count: int):
     return pl.DataFrame(
         {
-            "polygon_wkt": pl.Series(["POLYGON((-122.1 37.5, -122.1 37.6, -122.0 37.6, -122.0 37.5, -122.1 37.5))"] * count),
+            "polygon_wkt": pl.Series(
+                [
+                    "POLYGON((-122.1 37.5, -122.1 37.6, -122.0 37.6, -122.0 37.5, -122.1 37.5))"
+                ]
+                * count
+            ),
         }
     ).select(pl_st.from_wkt("polygon_wkt").alias("polygon"))["polygon"]
 

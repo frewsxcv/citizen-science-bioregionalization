@@ -200,6 +200,7 @@ def _(folium, geocode_dataframe, pl):
     )
     _boundary = geocode_dataframe.select(
         pl.col("boundary").alias("geometry"),
+        pl.col("is_edge"),
     )
 
     _map = folium.Map(
@@ -211,9 +212,12 @@ def _(folium, geocode_dataframe, pl):
         marker=folium.Circle(),
     ).add_to(_map)
 
-    folium.GeoJson(
-        _boundary.st,
-    ).add_to(_map)
+
+    def style(n):
+        return {"color": "grey" if n["properties"]["is_edge"] else "blue"}
+
+
+    folium.GeoJson(_boundary.st, style_function=style).add_to(_map)
 
     _map.fit_bounds(_map.get_bounds())
 

@@ -1,15 +1,16 @@
-import polars as pl
-import polars_st as pl_st
 import logging
-from typing import Self
-import dataframely as dy
 
-from shapely import MultiPoint, Point
-import shapely.ops
-from src.geocode import geocode_lazy_frame
-from polars_darwin_core import DarwinCoreLazyFrame
-import polars_h3
+import dataframely as dy
 import networkx as nx
+import polars as pl
+import polars_h3
+import polars_st as pl_st
+import shapely.ops
+from polars_darwin_core import DarwinCoreLazyFrame
+from shapely import MultiPoint
+from shapely.geometry import box
+
+from src.geocode import geocode_lazy_frame
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ class GeocodeSchema(dy.Schema):
     direct_neighbors = dy.List(dy.UInt64(), nullable=False)
     # Direct and indirect neighbors (includes both H3 adjacency and added connections)
     direct_and_indirect_neighbors = dy.List(dy.UInt64(), nullable=False)
+    # Whether this hexagon is on the edge (intersects bounding box boundary)
+    is_edge = dy.Bool(nullable=False)
 
     @classmethod
     def build(
@@ -31,12 +34,13 @@ class GeocodeSchema(dy.Schema):
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
     ) -> dy.DataFrame["GeocodeSchema"]:
+        # First, get unique geocodes
+        geocoded_lf = darwin_core_lazy_frame._inner.pipe(
+            geocode_lazy_frame, geocode_precision=geocode_precision
+        ).filter(pl.col("geocode").is_not_null())
+
         df = (
-            darwin_core_lazy_frame._inner.pipe(
-                geocode_lazy_frame, geocode_precision=geocode_precision
-            )
-            .filter(pl.col("geocode").is_not_null())
-            .select("geocode")
+            geocoded_lf.select("geocode")
             .unique()
             .sort(by="geocode")
             .with_columns(
@@ -48,6 +52,7 @@ class GeocodeSchema(dy.Schema):
             .collect()
         )
 
+        # Calculate direct neighbors
         df = (
             df.with_columns(
                 direct_neighbors_including_unknown=polars_h3.grid_ring(
@@ -67,24 +72,58 @@ class GeocodeSchema(dy.Schema):
             )
         )
 
-        df = _reduce_connected_components_to_one(df)
-
+        # Create boundaries for all hexagons
         boundaries: list[shapely.Polygon] = []
 
         for geocode, geometry in df.select(
             "geocode",
             polars_h3.cell_to_boundary("geocode").alias("geometry"),
         ).iter_rows():
-            boundaries.append(shapely.Polygon(latlng_list_to_lnglat_list(geometry)))
+            boundary = shapely.Polygon(latlng_list_to_lnglat_list(geometry))
+            boundaries.append(boundary)
 
-        df = df.with_columns(boundary=pl_st.from_shapely(pl.Series(boundaries))).select(
-            list(GeocodeSchema.columns().keys())
+        # Calculate the bounding box from the hexagon centers
+        centers = df.select(pl_st.geom("center").st.to_shapely()).to_series().to_list()
+
+        min_lng = min(center.x for center in centers)
+        max_lng = max(center.x for center in centers)
+        min_lat = min(center.y for center in centers)
+        max_lat = max(center.y for center in centers)
+
+        logger.info(
+            f"Hexagon center extents: lat=[{min_lat:.4f}, {max_lat:.4f}], "
+            f"lng=[{min_lng:.4f}, {max_lng:.4f}]"
         )
+
+        # Create bounding box boundary (the edges, not the filled box)
+        bbox_boundary = box(min_lng, min_lat, max_lng, max_lat).boundary
+
+        # Check which hexagons intersect the bounding box edges
+        is_edge_list: list[bool] = []
+        for boundary in boundaries:
+            intersects_edge = boundary.intersects(bbox_boundary)
+            is_edge_list.append(intersects_edge)
+
+        df = df.with_columns(
+            boundary=pl_st.from_shapely(pl.Series(boundaries)),
+            is_edge=pl.Series(is_edge_list),
+        )
+
+        initial_count = len(df)
+        edge_count = df.filter(pl.col("is_edge")).shape[0]
+        logger.info(
+            f"Identified {edge_count} edge hexagons ({edge_count / initial_count * 100:.1f}%)"
+        )
+
+        df = _reduce_connected_components_to_one(df)
+
+        df = df.select(list(GeocodeSchema.columns().keys()))
         return GeocodeSchema.validate(df)
 
 
 def graph(
-    geocode_dataframe: dy.DataFrame[GeocodeSchema], include_indirect_neighbors: bool = False
+    geocode_dataframe: dy.DataFrame[GeocodeSchema],
+    include_indirect_neighbors: bool = False,
 ) -> nx.Graph:
     return _df_to_graph(geocode_dataframe, include_indirect_neighbors)
 
