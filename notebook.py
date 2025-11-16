@@ -852,6 +852,7 @@ def _(mo):
 
 @app.cell
 def _(
+    mo,
     cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
     cluster_taxa_statistics_dataframe,
