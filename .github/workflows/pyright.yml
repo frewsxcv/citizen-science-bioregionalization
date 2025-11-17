@@ -3,7 +3,7 @@ name: pyright
 on: push
 
 jobs:
-  mypy:
+  pyright:
     runs-on: ubuntu-latest
     steps:
       - name: Install the latest version of uv
