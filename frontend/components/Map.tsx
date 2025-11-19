@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import type { FeatureCollection } from "geojson";
+import type { FeatureCollection, Position } from "geojson";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { ClusterData } from "../types";
@@ -57,6 +57,34 @@ const Map: React.FC = () => {
       map.current.addSource("clusters", {
         type: "geojson",
         data: geojson,
+      });
+
+      // Calculate bounding box from all features and fit map to it
+      const bounds = new maplibregl.LngLatBounds();
+
+      const extendBoundsFromRing = (ring: Position[]) => {
+        ring.forEach((coord) => {
+          bounds.extend({
+            lng: coord[0],
+            lat: coord[1],
+          });
+        });
+      };
+
+      geojson.features.forEach((feature) => {
+        if (feature.geometry.type === "Polygon") {
+          extendBoundsFromRing(feature.geometry.coordinates[0]);
+        } else if (feature.geometry.type === "MultiPolygon") {
+          feature.geometry.coordinates.forEach((polygon) => {
+            extendBoundsFromRing(polygon[0]);
+          });
+        }
+      });
+
+      // Fit map to the calculated bounds with some padding
+      map.current.fitBounds(bounds, {
+        padding: 50,
+        duration: 0, // No animation on initial load
       });
 
       map.current.addLayer({
