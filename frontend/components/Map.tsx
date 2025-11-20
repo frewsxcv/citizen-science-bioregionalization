@@ -29,7 +29,7 @@ const Map: React.FC = () => {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style:
-        "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL",
+        "https://api.maptiler.com/maps/streets/style.json?key=S4hONr0ro9qORKWMzCHx",
       center: [-20, 65],
       zoom: 4,
     });
