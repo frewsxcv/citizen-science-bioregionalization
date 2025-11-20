@@ -30,6 +30,8 @@ jobs:
           npm run build
       - name: Move frontend to output
         run: mv frontend/dist output/frontend
+      - name: Copy aggregations.json
+        run: cp frontend/aggregations.json output/frontend/aggregations.json
       - name: 📦 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
