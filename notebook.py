@@ -133,40 +133,19 @@ def _(mo):
 
 
 @app.cell
-def _(args, polars_darwin_core):
-    darwin_core_csv_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+def _(args):
+    import polars_darwin_core
+
+    from src.cache_darwin_core_parquet import cache_darwin_core_parquet
+
+    darwin_core_lazy_frame = cache_darwin_core_parquet(
+        polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+            args.input_dir,
+            # input_file, taxon_filter=taxon_filter
+            # TODO: FIX THE TAXON FILTER ABOVE
+        ),
         args.input_dir,
-        # input_file, taxon_filter=taxon_filter
-        # TODO: FIX THE TAXON FILTER ABOVE
     )
-
-    darwin_core_csv_lazy_frame._inner.limit(3).collect()
-    return (darwin_core_csv_lazy_frame,)
-
-
-@app.cell
-def _(args, hashlib, os):
-    with open(os.path.join(args.input_dir, "occurrence.txt"), "rb") as f:
-        file_digest = hashlib.file_digest(f, "sha256").hexdigest()
-
-    output_dir = "tmp"
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"{file_digest}.parquet")
-    return (output_path,)
-
-
-@app.cell
-def _(darwin_core_csv_lazy_frame, os, output_path):
-    if not os.path.exists(output_path):
-        darwin_core_csv_lazy_frame._inner.sink_parquet(output_path)
-    return
-
-
-@app.cell
-def _(output_path, pl, polars_darwin_core):
-    inner = pl.scan_parquet(output_path)
-
-    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner)
 
     darwin_core_lazy_frame._inner.limit(200).collect()
     return (darwin_core_lazy_frame,)
@@ -194,7 +173,7 @@ def _(args, darwin_core_lazy_frame):
     )
 
     geocode_dataframe
-    return (geocode_dataframe,)
+    return geocode_dataframe, geocode_dataframe_with_edges
 
 
 @app.cell(hide_code=True)
@@ -254,7 +233,7 @@ def _(mo):
 
 
 @app.cell
-def _(args, darwin_core_lazy_frame, taxonomy_dataframe, geocode_dataframe):
+def _(args, darwin_core_lazy_frame, geocode_dataframe, taxonomy_dataframe):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
     geocode_taxa_counts_dataframe = GeocodeTaxaCountsSchema.build(
@@ -852,7 +831,6 @@ def _(mo):
 
 @app.cell
 def _(
-    mo,
     cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
     cluster_taxa_statistics_dataframe,
@@ -860,6 +838,7 @@ def _(
     geocode_dataframe,
     geocode_distance_matrix,
     geocode_taxa_counts_dataframe,
+    mo,
     taxonomy_dataframe,
 ):
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
