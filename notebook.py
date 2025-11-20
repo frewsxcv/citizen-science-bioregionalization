@@ -174,18 +174,18 @@ def _(args, darwin_core_lazy_frame):
     return (geocode_dataframe,)
 
 
-app._unparsable_cell(
-    r"""
-        _center = geocode_dataframe.select(
-        pl.col(\"center\").alias(\"geometry\"),
+@app.cell(hide_code=True)
+def _(mo, geocode_dataframe, geocode_dataframe_with_edges, folium, pl):
+    _center = geocode_dataframe.select(
+        pl.col("center").alias("geometry"),
     )
     _boundary = geocode_dataframe_with_edges.select(
-        pl.col(\"boundary\").alias(\"geometry\"),
-        pl.col(\"is_edge\"),
+        pl.col("boundary").alias("geometry"),
+        pl.col("is_edge"),
     )
 
     _map = folium.Map(
-        tiles=\"Esri.WorldGrayCanvas\",
+        tiles="Esri.WorldGrayCanvas",
     )
 
     folium.GeoJson(
@@ -194,19 +194,13 @@ app._unparsable_cell(
     ).add_to(_map)
 
     def style(n):
-        return {\"color\": \"grey\" if n[\"properties\"][\"is_edge\"] else \"blue\"}
+        return {"color": "grey" if n["properties"]["is_edge"] else "blue"}
 
     folium.GeoJson(_boundary.st, style_function=style).add_to(_map)
 
     _map.fit_bounds(_map.get_bounds())
 
     _map
-    """,
-    column=None,
-    disabled=False,
-    hide_code=True,
-    name="_",
-)
 
 
 @app.cell(hide_code=True)
