@@ -28,8 +28,12 @@ const Map: React.FC = () => {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style:
-        "https://api.maptiler.com/maps/streets/style.json?key=S4hONr0ro9qORKWMzCHx",
+      style: `https://api.maptiler.com/maps/streets/style.json?key=${
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "t1ukycgwh17DuSPj4uGY"
+          : "S4hONr0ro9qORKWMzCHx"
+      }`,
       center: [-20, 65],
       zoom: 4,
     });
