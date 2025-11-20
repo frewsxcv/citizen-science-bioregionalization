@@ -17,7 +17,7 @@ def _():
     import polars as pl
     import polars_darwin_core
 
-    return folium, hashlib, mo, np, os, pl, polars_darwin_core
+    return folium, mo, np, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -133,9 +133,7 @@ def _(mo):
 
 
 @app.cell
-def _(args):
-    import polars_darwin_core
-
+def _(args, polars_darwin_core):
     from src.cache_darwin_core_parquet import cache_darwin_core_parquet
 
     darwin_core_lazy_frame = cache_darwin_core_parquet(
@@ -173,21 +171,21 @@ def _(args, darwin_core_lazy_frame):
     )
 
     geocode_dataframe
-    return geocode_dataframe, geocode_dataframe_with_edges
+    return (geocode_dataframe,)
 
 
-@app.cell(hide_code=True)
-def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
-    _center = geocode_dataframe.select(
-        pl.col("center").alias("geometry"),
+app._unparsable_cell(
+    r"""
+        _center = geocode_dataframe.select(
+        pl.col(\"center\").alias(\"geometry\"),
     )
     _boundary = geocode_dataframe_with_edges.select(
-        pl.col("boundary").alias("geometry"),
-        pl.col("is_edge"),
+        pl.col(\"boundary\").alias(\"geometry\"),
+        pl.col(\"is_edge\"),
     )
 
     _map = folium.Map(
-        tiles="Esri.WorldGrayCanvas",
+        tiles=\"Esri.WorldGrayCanvas\",
     )
 
     folium.GeoJson(
@@ -196,14 +194,19 @@ def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
     ).add_to(_map)
 
     def style(n):
-        return {"color": "grey" if n["properties"]["is_edge"] else "blue"}
+        return {\"color\": \"grey\" if n[\"properties\"][\"is_edge\"] else \"blue\"}
 
     folium.GeoJson(_boundary.st, style_function=style).add_to(_map)
 
     _map.fit_bounds(_map.get_bounds())
 
     _map
-    return
+    """,
+    column=None,
+    disabled=False,
+    hide_code=True,
+    name="_",
+)
 
 
 @app.cell(hide_code=True)
