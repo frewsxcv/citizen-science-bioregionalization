@@ -16,8 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
-    return folium, mo, np, polars_darwin_core
+    return folium, mo, np, pl
 
 
 @app.cell(hide_code=True)
@@ -39,8 +38,9 @@ def _(mo):
 @app.cell
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
-    input_dir_ui = mo.ui.file_browser(
-        multiple=False, label="Input directory", selection_mode="directory"
+    input_dir_ui = mo.ui.text(
+        "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
+        label="Input GCS directory",
     )
     geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
@@ -95,13 +95,12 @@ def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
     )
 
     # Positional arguments
-    path = str(input_dir_ui.path(index=0)) if input_dir_ui.path(index=0) else None
     parser.add_argument(
         "input_dir",
         type=str,
         nargs="?",
         help="Path to the input directory",
-        default=path,
+        default=input_dir_ui.value,
     )
 
     args = parser.parse_args()
@@ -133,19 +132,17 @@ def _(mo):
 
 
 @app.cell
-def _(args, polars_darwin_core):
-    from src.cache_darwin_core_parquet import cache_darwin_core_parquet
-
-    darwin_core_lazy_frame = cache_darwin_core_parquet(
-        polars_darwin_core.DarwinCoreLazyFrame.from_archive(
-            args.input_dir,
-            # input_file, taxon_filter=taxon_filter
-            # TODO: FIX THE TAXON FILTER ABOVE
-        ),
-        args.input_dir,
+def _(args, pl):
+    credential_provider = pl.CredentialProviderGCP()
+    darwin_core_lazy_frame = pl.scan_parquet(
+        args.input_dir, credential_provider=credential_provider
     )
-
-    darwin_core_lazy_frame._inner.limit(200).collect()
+    filter_expr = (
+        (pl.col("countrycode") == "SE")
+        & (pl.col("class") == "Mammalia")
+        & (pl.col("year") > 1990)
+    )
+    darwin_core_lazy_frame.filter(filter_expr).limit(100).collect()
     return (darwin_core_lazy_frame,)
 
 
@@ -171,11 +168,11 @@ def _(args, darwin_core_lazy_frame):
     )
 
     geocode_dataframe
-    return (geocode_dataframe,)
+    return geocode_dataframe, geocode_dataframe_with_edges
 
 
 @app.cell(hide_code=True)
-def _(mo, geocode_dataframe, geocode_dataframe_with_edges, folium, pl):
+def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
     _center = geocode_dataframe.select(
         pl.col("center").alias("geometry"),
     )
@@ -201,6 +198,7 @@ def _(mo, geocode_dataframe, geocode_dataframe_with_edges, folium, pl):
     _map.fit_bounds(_map.get_bounds())
 
     _map
+    return
 
 
 @app.cell(hide_code=True)
