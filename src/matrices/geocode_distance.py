@@ -130,10 +130,10 @@ def reduce_dimensions_umap(
     """
     # UMAP requires n_components to be less than the number of samples (X.height).
     # See: https://github.com/lmcinnes/umap/issues/201
-    # The assertion ensures there are enough samples for the chosen n_components.
-    # TODO: Revisit this constraint for smaller datasets if necessary.
-    assert X.height > 10, (
-        "UMAP requires more samples for the current n_components setting."
+    assert n_components < X.height, (
+        f"UMAP requires n_components ({n_components}) to be less than "
+        f"the number of samples ({X.height}). "
+        f"Either reduce n_components or provide more geocodes."
     )
 
     reducer = umap.UMAP(
