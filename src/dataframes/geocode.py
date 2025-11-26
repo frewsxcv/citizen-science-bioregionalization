@@ -35,13 +35,11 @@ class GeocodeSchema(dy.Schema):
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
     ) -> dy.DataFrame["GeocodeSchema"]:
-        # First, get unique geocodes
-        geocoded_lf = darwin_core_lazy_frame._inner.pipe(
-            geocode_lazy_frame, geocode_precision=geocode_precision
-        ).filter(pl.col("geocode").is_not_null())
-
         df = (
-            geocoded_lf.select("geocode")
+            darwin_core_lazy_frame._inner.pipe(
+                geocode_lazy_frame, geocode_precision=geocode_precision
+            )
+            .filter(pl.col("geocode").is_not_null())
             .unique()
             .sort(by="geocode")
             .with_columns(
@@ -50,7 +48,7 @@ class GeocodeSchema(dy.Schema):
             .with_columns(
                 center=pl_st.point("center_xy"),
             )
-            .collect()
+            .collect(engine="streaming")
         )
 
         # Calculate direct neighbors
