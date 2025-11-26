@@ -142,7 +142,10 @@ def _(args, pl):
         & (pl.col("class") == "Mammalia")
         & (pl.col("year") > 1990)
     )
-    darwin_core_lazy_frame.filter(filter_expr).limit(100).collect()
+    result = darwin_core_lazy_frame.filter(filter_expr).limit(100).collect()
+    print(result)
+    raise Exception("Stop")
+
     return (darwin_core_lazy_frame,)
 
 
