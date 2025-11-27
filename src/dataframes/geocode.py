@@ -101,6 +101,10 @@ class GeocodeSchema(dy.Schema):
         is_edge_list: list[bool] = []
         for boundary in boundaries:
             intersects_edge = boundary.intersects(bbox_boundary)
+            if intersects_edge is None:
+                raise ValueError(
+                    f"boundary.intersects() returned None for boundary: {boundary}"
+                )
             is_edge_list.append(intersects_edge)
 
         df = df.with_columns(
