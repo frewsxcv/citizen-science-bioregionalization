@@ -15,6 +15,7 @@ from src.dataframes.geocode import (
     graph,
     index_of_geocode,
 )
+from src.types import Bbox
 
 
 class TestGeocodeSchema(unittest.TestCase):
@@ -60,6 +61,7 @@ class TestGeocodeSchema(unittest.TestCase):
         geocode_df = GeocodeSchema.build(
             darwin_core_lazy_frame,
             geocode_precision=8,
+            bounding_box=Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0),
         )
 
         # Validate the result

@@ -12,6 +12,7 @@ from shapely import MultiPoint
 from shapely.geometry import box
 
 from src.geocode import select_geocode_lazy_frame
+from src.types import Bbox, LatLng
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class GeocodeSchema(dy.Schema):
         cls,
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
-        bounding_box: tuple[float, float, float, float],
+        bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeSchema"]:
         df = (
             darwin_core_lazy_frame._inner.pipe(
@@ -83,14 +84,18 @@ class GeocodeSchema(dy.Schema):
             boundaries.append(boundary)
 
         # Use provided bounding box to determine edge hexagons
-        min_lat, max_lat, min_lng, max_lng = bounding_box
         logger.info(
-            f"Using provided bounding box: lat=[{min_lat:.4f}, {max_lat:.4f}], "
-            f"lng=[{min_lng:.4f}, {max_lng:.4f}]"
+            f"Using provided bounding box: lat=[{bounding_box.min_lat:.4f}, {bounding_box.max_lat:.4f}], "
+            f"lng=[{bounding_box.min_lng:.4f}, {bounding_box.max_lng:.4f}]"
         )
 
         # Create bounding box boundary (the edges, not the filled box)
-        bbox_boundary = box(min_lng, min_lat, max_lng, max_lat).boundary
+        bbox_boundary = box(
+            bounding_box.min_lng,
+            bounding_box.min_lat,
+            bounding_box.max_lng,
+            bounding_box.max_lat,
+        ).boundary
 
         # Check which hexagons intersect the bounding box edges
         is_edge_list: list[bool] = []
@@ -295,6 +300,6 @@ def index_of_geocode(
 
 
 def latlng_list_to_lnglat_list(
-    latlng_list: list[tuple[float, float]],
+    latlng_list: list[LatLng],
 ) -> list[tuple[float, float]]:
-    return [(lng, lat) for lat, lng in latlng_list]
+    return [(latlng.lng, latlng.lat) for latlng in latlng_list]
