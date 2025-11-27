@@ -13,7 +13,6 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -908,7 +907,9 @@ def _(
     if heatmap is None:
         result = mo.md("No significant differences found between clusters.")
     else:
-        result = heatmap
+        result = heatmap.figure
+
+    result
     return
 
 
