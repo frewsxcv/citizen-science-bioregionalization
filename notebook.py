@@ -16,6 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -214,6 +215,7 @@ def _(args, darwin_core_lazy_frame):
     geocode_dataframe_with_edges = GeocodeSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
+        bounding_box=(args.min_lat, args.max_lat, args.min_lon, args.max_lon),
     )
 
     geocode_dataframe = GeocodeNoEdgesSchema.from_geocode_schema(
