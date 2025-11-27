@@ -11,7 +11,7 @@ from polars_darwin_core import DarwinCoreLazyFrame
 from shapely import MultiPoint
 from shapely.geometry import box
 
-from src.geocode import geocode_lazy_frame
+from src.geocode import select_geocode_lazy_frame
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class GeocodeSchema(dy.Schema):
     ) -> dy.DataFrame["GeocodeSchema"]:
         df = (
             darwin_core_lazy_frame._inner.pipe(
-                geocode_lazy_frame, geocode_precision=geocode_precision
+                select_geocode_lazy_frame, geocode_precision=geocode_precision
             )
             .filter(pl.col("geocode").is_not_null())
             .unique()

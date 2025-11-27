@@ -3,11 +3,11 @@ import logging
 import dataframely as dy
 import polars as pl
 from pandas.core.dtypes.inference import is_integer
-from polars_darwin_core import DarwinCoreLazyFrame
+from polars_darwin_core import DarwinCoreLazyFrame, Kingdom
 
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
-from src.geocode import geocode_lazy_frame
+from src.geocode import with_geocode_lazy_frame
 from src.logging import Timer
 
 logger = logging.getLogger(__name__)
@@ -30,18 +30,19 @@ class GeocodeTaxaCountsSchema(dy.Schema):
             # First, create the raw aggregation with the old schema
             raw_aggregated = (
                 darwin_core_csv_lazy_frame._inner.pipe(
-                    geocode_lazy_frame, geocode_precision=geocode_precision
+                    with_geocode_lazy_frame, geocode_precision=geocode_precision
                 )
                 .filter(
                     # Ensure geocode exists and is not an edge
                     pl.col("geocode").is_in(geocode_dataframe["geocode"])
                 )
+                .rename({"scientificname": "scientificName", "taxonrank": "taxonRank"})
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
-                .cast({"taxonRank": pl.Categorical()})
+                .cast({"kingdom": pl.Enum(Kingdom), "taxonRank": pl.Categorical()})
                 .sort(by="geocode")
-                .collect()
+                .collect(engine="streaming")
             )
 
             # Join with taxonomy dataframe to get taxonId

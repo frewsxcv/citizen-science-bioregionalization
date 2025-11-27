@@ -1,6 +1,7 @@
 # pyright: reportUnusedExpression=false
 
 import marimo
+import polars_darwin_core
 
 __generated_with = "0.17.8"
 app = marimo.App(width="medium")
@@ -16,6 +17,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl
 
 
@@ -132,19 +134,18 @@ def _(mo):
 
 
 @app.cell
-def _(args, pl):
+def _(args, pl, darwin_core_lazy_frame):
     credential_provider = pl.CredentialProviderGCP()
-    darwin_core_lazy_frame = pl.scan_parquet(
-        args.input_dir, credential_provider=credential_provider
+    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
+        pl.scan_parquet(args.input_dir, credential_provider=credential_provider)
+        .filter(
+            pl.col("countrycode") == "IS"
+            # & (pl.col("class") == "Mammalia")
+            # & (pl.col("year") > 1990)
+            # BBOX?
+        )
+        .limit(1000)
     )
-    filter_expr = (
-        (pl.col("countrycode") == "SE")
-        & (pl.col("class") == "Mammalia")
-        & (pl.col("year") > 1990)
-    )
-    result = darwin_core_lazy_frame.filter(filter_expr).limit(100).collect()
-    print(result)
-    raise Exception("Stop")
 
     return (darwin_core_lazy_frame,)
 
