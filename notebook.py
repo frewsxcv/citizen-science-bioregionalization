@@ -8,14 +8,12 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    import hashlib
-    import os
-
     import folium
     import marimo as mo
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl, polars_darwin_core
 
 
