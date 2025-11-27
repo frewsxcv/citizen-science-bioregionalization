@@ -304,6 +304,6 @@ def index_of_geocode(
 
 
 def latlng_list_to_lnglat_list(
-    latlng_list: list[LatLng],
+    latlng_list: list[tuple[float, float]],
 ) -> list[tuple[float, float]]:
-    return [(latlng.lng, latlng.lat) for latlng in latlng_list]
+    return [(lng, lat) for (lat, lng) in latlng_list]
