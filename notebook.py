@@ -1,9 +1,8 @@
 # pyright: reportUnusedExpression=false
 
 import marimo
-import polars_darwin_core
 
-__generated_with = "0.17.8"
+__generated_with = "0.18.1"
 app = marimo.App(width="medium")
 
 
@@ -17,8 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
-    return folium, mo, np, pl
+    return folium, mo, np, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -47,6 +45,10 @@ def _(mo):
     geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    min_lat_ui = mo.ui.number(value=63.4963829617, label="Min Latitude")
+    max_lat_ui = mo.ui.number(value=66.5267923041, label="Max Latitude")
+    min_lon_ui = mo.ui.number(value=-24.3261840479, label="Min Longitude")
+    max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
 
     # Display inputs
     (
@@ -57,16 +59,38 @@ def _(mo):
                 geocode_precision_ui,
                 taxon_filter_ui,
                 num_clusters_ui,
+                min_lat_ui,
+                max_lat_ui,
+                min_lon_ui,
+                max_lon_ui,
             ]
         )
         if mo.running_in_notebook()
         else None
     )
-    return geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui
+    return (
+        geocode_precision_ui,
+        input_dir_ui,
+        max_lat_ui,
+        max_lon_ui,
+        min_lat_ui,
+        min_lon_ui,
+        num_clusters_ui,
+        taxon_filter_ui,
+    )
 
 
 @app.cell
-def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
+def _(
+    geocode_precision_ui,
+    input_dir_ui,
+    max_lat_ui,
+    max_lon_ui,
+    min_lat_ui,
+    min_lon_ui,
+    num_clusters_ui,
+    taxon_filter_ui,
+):
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -94,6 +118,30 @@ def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
         type=str,
         default=taxon_filter_ui.value,
         help="Filter to a specific taxon (e.g., 'Aves')",
+    )
+    parser.add_argument(
+        "--min-lat",
+        type=float,
+        default=min_lat_ui.value,
+        help="Minimum latitude for bounding box",
+    )
+    parser.add_argument(
+        "--max-lat",
+        type=float,
+        default=max_lat_ui.value,
+        help="Maximum latitude for bounding box",
+    )
+    parser.add_argument(
+        "--min-lon",
+        type=float,
+        default=min_lon_ui.value,
+        help="Minimum longitude for bounding box",
+    )
+    parser.add_argument(
+        "--max-lon",
+        type=float,
+        default=max_lon_ui.value,
+        help="Maximum longitude for bounding box",
     )
 
     # Positional arguments
@@ -134,19 +182,20 @@ def _(mo):
 
 
 @app.cell
-def _(args, pl, darwin_core_lazy_frame):
+def _(args, pl, polars_darwin_core):
     credential_provider = pl.CredentialProviderGCP()
     darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
         pl.scan_parquet(args.input_dir, credential_provider=credential_provider)
         .filter(
-            pl.col("countrycode") == "IS"
+            (pl.col("decimallatitude") >= args.min_lat)
+            & (pl.col("decimallatitude") <= args.max_lat)
+            & (pl.col("decimallongitude") >= args.min_lon)
+            & (pl.col("decimallongitude") <= args.max_lon)
             # & (pl.col("class") == "Mammalia")
             # & (pl.col("year") > 1990)
-            # BBOX?
         )
-        .limit(1000)
+        .limit(10000)
     )
-
     return (darwin_core_lazy_frame,)
 
 
