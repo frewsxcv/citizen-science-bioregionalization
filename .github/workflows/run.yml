@@ -12,6 +12,8 @@ jobs:
           version: "latest"
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Lint notebook
+        run: uv run marimo check notebook.py
       - name: Run and export notebook
         run: |
           uv run marimo export html notebook.py -o output/index.html -- \

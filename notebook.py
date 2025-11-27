@@ -16,7 +16,6 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -36,7 +35,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
     input_dir_ui = mo.ui.text(
@@ -81,7 +80,7 @@ def _(mo):
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
     input_dir_ui,
@@ -909,9 +908,9 @@ def _(
     )
 
     if heatmap is None:
-        mo.md("No significant differences found between clusters.")
+        result = mo.md("No significant differences found between clusters.")
     else:
-        heatmap
+        result = heatmap
     return
 
 
