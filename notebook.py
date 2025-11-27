@@ -35,46 +35,55 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
+    log_file_ui
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
     input_dir_ui = mo.ui.text(
         "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
         label="Input GCS directory",
     )
-    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
-    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
-    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
-    min_lat_ui = mo.ui.number(value=63.4963829617, label="Min Latitude")
-    max_lat_ui = mo.ui.number(value=66.5267923041, label="Max Latitude")
-    min_lon_ui = mo.ui.number(value=-24.3261840479, label="Min Longitude")
-    max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
+    input_dir_ui
+    return (input_dir_ui,)
 
-    # Display inputs
-    (
-        mo.vstack(
-            [
-                log_file_ui,
-                input_dir_ui,
-                geocode_precision_ui,
-                taxon_filter_ui,
-                num_clusters_ui,
-                min_lat_ui,
-                max_lat_ui,
-                min_lon_ui,
-                max_lon_ui,
-            ]
-        )
-        if mo.running_in_notebook()
-        else None
-    )
-    return (
-        geocode_precision_ui,
-        input_dir_ui,
-        max_lat_ui,
-        max_lon_ui,
-        min_lat_ui,
-        min_lon_ui,
-        num_clusters_ui,
-        taxon_filter_ui,
-    )
+
+@app.cell(hide_code=True)
+def _(mo):
+    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
+    geocode_precision_ui
+    return (geocode_precision_ui,)
+
+
+@app.cell
+def _(mo):
+    num_clusters_ui= mo.ui.number(value=10, label="Number of clusters")
+    num_clusters_ui
+    return (num_clusters_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+    taxon_filter_ui
+    return (taxon_filter_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    min_lon_ui = mo.ui.number(value=-24.3261840479, label="Min Longitude")
+    min_lat_ui = mo.ui.number(value=63.4963829617, label="Min Latitude")
+    mo.vstack([min_lon_ui, min_lat_ui])
+    return min_lat_ui, min_lon_ui
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    max_lat_ui = mo.ui.number(value=66.5267923041, label="Max Latitude")
+    max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
+    mo.vstack([max_lon_ui, max_lat_ui])
+    return max_lat_ui, max_lon_ui
 
 
 @app.cell(hide_code=True)
