@@ -13,6 +13,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -58,7 +59,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    num_clusters_ui= mo.ui.number(value=10, label="Number of clusters")
+    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
     num_clusters_ui
     return (num_clusters_ui,)
 
@@ -68,6 +69,13 @@ def _(mo):
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     taxon_filter_ui
     return (taxon_filter_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    limit_results_ui = mo.ui.number(value=10000, label="Limit results")
+    limit_results_ui
+    return (limit_results_ui,)
 
 
 @app.cell(hide_code=True)
@@ -90,6 +98,7 @@ def _(mo):
 def _(
     geocode_precision_ui,
     input_dir_ui,
+    limit_results_ui,
     max_lat_ui,
     max_lon_ui,
     min_lat_ui,
@@ -149,6 +158,12 @@ def _(
         default=max_lon_ui.value,
         help="Maximum longitude for bounding box",
     )
+    parser.add_argument(
+        "--limit-results",
+        type=int,
+        default=limit_results_ui.value,
+        help="Limit the number of results fetched",
+    )
 
     # Positional arguments
     parser.add_argument(
@@ -200,7 +215,7 @@ def _(args, pl, polars_darwin_core):
             # & (pl.col("class") == "Mammalia")
             # & (pl.col("year") > 1990)
         )
-        .limit(10000)
+        .limit(args.limit_results)
     )
     return (darwin_core_lazy_frame,)
 
