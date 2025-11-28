@@ -5,6 +5,25 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: local-archive
+            source_path: test/sample-archive/
+            min_lat: 40
+            max_lat: 50
+            min_lon: 5
+            max_lon: 10
+            limit_results: ""
+            output_dir: output
+          - name: gbif-snapshot
+            source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
+            min_lat: 45
+            max_lat: 47
+            min_lon: -123
+            max_lon: -121
+            limit_results: "--limit-results 100000"
+            output_dir: output-gbif
     steps:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v4
@@ -13,18 +32,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Lint notebook
+        if: matrix.name == 'local-archive'
         run: uv run marimo check notebook.py
-      - name: Run and export notebook
+      - name: Run and export notebook (${{ matrix.name }})
         run: |
-          uv run marimo export html notebook.py -o output/index.html --force -- \
+          uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
             --geocode-precision 8 \
             --num-clusters 10 \
             --log-file run.log \
-            --min-lat 40 \
-            --max-lat 50 \
-            --min-lon 5 \
-            --max-lon 10 \
-            test/sample-archive/
+            --min-lat ${{ matrix.min_lat }} \
+            --max-lat ${{ matrix.max_lat }} \
+            --min-lon ${{ matrix.min_lon }} \
+            --max-lon ${{ matrix.max_lon }} \
+            ${{ matrix.limit_results }} \
+            "${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -35,13 +56,14 @@ jobs:
           npm install
           npm run build
       - name: Move frontend to output
-        run: mv frontend/dist output/frontend
+        run: mv frontend/dist ${{ matrix.output_dir }}/frontend
       - name: Copy aggregations.json
-        run: cp frontend/aggregations.json output/frontend/aggregations.json
+        run: cp frontend/aggregations.json ${{ matrix.output_dir }}/frontend/aggregations.json
       - name: 📦 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: output/
+          path: ${{ matrix.output_dir }}/
+          name: github-pages-${{ matrix.name }}
 
   deploy:
     needs: build
@@ -59,4 +81,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         with:
-          artifact_name: github-pages
+          artifact_name: github-pages-gbif-snapshot
