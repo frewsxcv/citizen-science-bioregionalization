@@ -42,12 +42,12 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    input_dir_ui = mo.ui.text(
+    parquet_source_path_ui = mo.ui.text(
         "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
         label="Input GCS directory",
     )
-    input_dir_ui
-    return (input_dir_ui,)
+    parquet_source_path_ui
+    return (parquet_source_path_ui,)
 
 
 @app.cell(hide_code=True)
@@ -97,7 +97,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
-    input_dir_ui,
+    parquet_source_path_ui,
     limit_results_ui,
     max_lat_ui,
     max_lon_ui,
@@ -167,11 +167,11 @@ def _(
 
     # Positional arguments
     parser.add_argument(
-        "input_dir",
+        "parquet_source_path",
         type=str,
         nargs="?",
-        help="Path to the input directory",
-        default=input_dir_ui.value,
+        help="Path to the parquet data source",
+        default=parquet_source_path_ui.value,
     )
 
     args = parser.parse_args()
@@ -228,7 +228,9 @@ def _(args, pl, polars_darwin_core):
         base_filters = base_filters & taxon_filter_expr
 
     darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
-        pl.scan_parquet(args.input_dir, credential_provider=credential_provider)
+        pl.scan_parquet(
+            args.parquet_source_path, credential_provider=credential_provider
+        )
         .filter(base_filters)
         .limit(args.limit_results)
     )
