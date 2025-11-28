@@ -33,10 +33,10 @@ class TaxonomySchema(dy.Schema):
                 "family",
                 "genus",
                 "species",
-                pl.col("taxonrank").alias("taxonRank"),
-                pl.col("scientificname").alias("scientificName"),
-                # pl.col("acceptedtaxonkey").alias("gbifTaxonId"),
-                pl.col("taxonkey").alias("gbifTaxonId"),
+                "taxonRank",
+                "scientificName",
+                # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
+                pl.col("taxonKey").alias("gbifTaxonId"),
             )
             .unique()
             .collect(engine="streaming")

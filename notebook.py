@@ -8,13 +8,16 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    import os
+    from pathlib import Path
+
     import folium
     import marimo as mo
     import numpy as np
     import polars as pl
     import polars_darwin_core
 
-    return folium, mo, np, pl, polars_darwin_core
+    return Path, folium, mo, np, os, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -203,15 +206,25 @@ def _(mo):
 
 
 @app.cell
-def _(args, pl, polars_darwin_core):
+def _(Path, args, os, pl, polars_darwin_core):
     credential_provider = pl.CredentialProviderGCP()
 
+    # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
+    source_path = Path(args.parquet_source_path)
+    is_darwin_core_archive = (
+        source_path.is_dir() and (source_path / "meta.xml").exists()
+    )
+
     # Build base filters for geographic bounds
+    # Use camelCase column names (Darwin Core standard)
+    # First filter out null coordinates, then apply bounds
     base_filters = (
-        (pl.col("decimallatitude") >= args.min_lat)
-        & (pl.col("decimallatitude") <= args.max_lat)
-        & (pl.col("decimallongitude") >= args.min_lon)
-        & (pl.col("decimallongitude") <= args.max_lon)
+        pl.col("decimalLatitude").is_not_null()
+        & pl.col("decimalLongitude").is_not_null()
+        & (pl.col("decimalLatitude") >= args.min_lat)
+        & (pl.col("decimalLatitude") <= args.max_lat)
+        & (pl.col("decimalLongitude") >= args.min_lon)
+        & (pl.col("decimalLongitude") <= args.max_lon)
     )
 
     # Add taxon filter if specified
@@ -227,13 +240,58 @@ def _(args, pl, polars_darwin_core):
         )
         base_filters = base_filters & taxon_filter_expr
 
-    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
-        pl.scan_parquet(
+    # Mapping from lowercase (parquet snapshots) to camelCase (Darwin Core standard)
+    parquet_to_darwin_core_columns = {
+        "decimallatitude": "decimalLatitude",
+        "decimallongitude": "decimalLongitude",
+        "taxonkey": "taxonKey",
+        "specieskey": "speciesKey",
+        "acceptedtaxonkey": "acceptedTaxonKey",
+        "kingdomkey": "kingdomKey",
+        "phylumkey": "phylumKey",
+        "classkey": "classKey",
+        "orderkey": "orderKey",
+        "familykey": "familyKey",
+        "genuskey": "genusKey",
+        "subgenuskey": "subgenusKey",
+        "taxonrank": "taxonRank",
+        "scientificname": "scientificName",
+        "verbatimscientificname": "verbatimScientificName",
+        "countrycode": "countryCode",
+        "gbifid": "gbifID",
+        "datasetkey": "datasetKey",
+        "occurrenceid": "occurrenceID",
+        "eventdate": "eventDate",
+        "basisofrecord": "basisOfRecord",
+        "individualcount": "individualCount",
+        "publishingorgkey": "publishingOrgKey",
+        "coordinateuncertaintyinmeters": "coordinateUncertaintyInMeters",
+        "coordinateprecision": "coordinatePrecision",
+        "hascoordinate": "hasCoordinate",
+        "hasgeospatialissues": "hasGeospatialIssues",
+        "stateprovince": "stateProvince",
+        "iucnredlistcategory": "iucnRedListCategory",
+    }
+
+    if is_darwin_core_archive:
+        # Load from Darwin Core archive (already uses camelCase)
+        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
+            polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+                args.parquet_source_path
+            )
+            ._inner.filter(base_filters)
+            .limit(args.limit_results)
+        )
+    else:
+        # Load from parquet snapshot and rename columns to camelCase
+        inner_lf = pl.scan_parquet(
             args.parquet_source_path, credential_provider=credential_provider
         )
-        .filter(base_filters)
-        .limit(args.limit_results)
-    )
+        # Rename lowercase columns to camelCase (Darwin Core standard)
+        inner_lf = inner_lf.rename(parquet_to_darwin_core_columns)
+        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
+            inner_lf.filter(base_filters).limit(args.limit_results)
+        )
     return (darwin_core_lazy_frame,)
 
 

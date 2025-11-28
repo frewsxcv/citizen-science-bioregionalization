@@ -36,7 +36,6 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                     # Ensure geocode exists and is not an edge
                     pl.col("geocode").is_in(geocode_dataframe["geocode"])
                 )
-                .rename({"scientificname": "scientificName", "taxonrank": "taxonRank"})
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
