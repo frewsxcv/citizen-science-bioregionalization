@@ -35,11 +35,11 @@ class TaxonomySchema(dy.Schema):
                 "species",
                 "taxonRank",
                 "scientificName",
-                "acceptedTaxonKey",
+                # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
+                pl.col("taxonKey").alias("gbifTaxonId"),
             )
-            .rename({"acceptedTaxonKey": "gbifTaxonId"})
             .unique()
-            .collect()
+            .collect(engine="streaming")
         )
 
         # Add a unique taxonId for each row

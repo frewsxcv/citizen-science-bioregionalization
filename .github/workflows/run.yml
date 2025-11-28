@@ -12,12 +12,18 @@ jobs:
           version: "latest"
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Lint notebook
+        run: uv run marimo check notebook.py
       - name: Run and export notebook
         run: |
-          uv run marimo export html notebook.py -o output/index.html -- \
+          uv run marimo export html notebook.py -o output/index.html --force -- \
             --geocode-precision 8 \
             --num-clusters 10 \
             --log-file run.log \
+            --min-lat 40 \
+            --max-lat 50 \
+            --min-lon 5 \
+            --max-lon 10 \
             test/sample-archive/
       - name: Set up Node.js
         uses: actions/setup-node@v4

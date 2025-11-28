@@ -2,14 +2,14 @@
 
 import marimo
 
-__generated_with = "0.17.8"
+__generated_with = "0.18.1"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
-    import hashlib
     import os
+    from pathlib import Path
 
     import folium
     import marimo as mo
@@ -17,7 +17,7 @@ def _():
     import polars as pl
     import polars_darwin_core
 
-    return folium, mo, np, polars_darwin_core
+    return Path, folium, mo, np, os, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -36,35 +36,79 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
-    input_dir_ui = mo.ui.file_browser(
-        multiple=False, label="Input directory", selection_mode="directory"
-    )
-    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
-    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
-    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    log_file_ui
+    return
 
-    # Display inputs
-    (
-        mo.vstack(
-            [
-                log_file_ui,
-                input_dir_ui,
-                geocode_precision_ui,
-                taxon_filter_ui,
-                num_clusters_ui,
-            ]
-        )
-        if mo.running_in_notebook()
-        else None
+
+@app.cell(hide_code=True)
+def _(mo):
+    parquet_source_path_ui = mo.ui.text(
+        "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
+        label="Input GCS directory",
     )
-    return geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui
+    parquet_source_path_ui
+    return (parquet_source_path_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
+    geocode_precision_ui
+    return (geocode_precision_ui,)
 
 
 @app.cell
-def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
+def _(mo):
+    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    num_clusters_ui
+    return (num_clusters_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+    taxon_filter_ui
+    return (taxon_filter_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    limit_results_ui = mo.ui.number(value=10000, label="Limit results")
+    limit_results_ui
+    return (limit_results_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    min_lon_ui = mo.ui.number(value=-24.3261840479, label="Min Longitude")
+    min_lat_ui = mo.ui.number(value=63.4963829617, label="Min Latitude")
+    mo.vstack([min_lon_ui, min_lat_ui])
+    return min_lat_ui, min_lon_ui
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    max_lat_ui = mo.ui.number(value=66.5267923041, label="Max Latitude")
+    max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
+    mo.vstack([max_lon_ui, max_lat_ui])
+    return max_lat_ui, max_lon_ui
+
+
+@app.cell(hide_code=True)
+def _(
+    geocode_precision_ui,
+    parquet_source_path_ui,
+    limit_results_ui,
+    max_lat_ui,
+    max_lon_ui,
+    min_lat_ui,
+    min_lon_ui,
+    num_clusters_ui,
+    taxon_filter_ui,
+):
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -93,15 +137,44 @@ def _(geocode_precision_ui, input_dir_ui, num_clusters_ui, taxon_filter_ui):
         default=taxon_filter_ui.value,
         help="Filter to a specific taxon (e.g., 'Aves')",
     )
+    parser.add_argument(
+        "--min-lat",
+        type=float,
+        default=min_lat_ui.value,
+        help="Minimum latitude for bounding box",
+    )
+    parser.add_argument(
+        "--max-lat",
+        type=float,
+        default=max_lat_ui.value,
+        help="Maximum latitude for bounding box",
+    )
+    parser.add_argument(
+        "--min-lon",
+        type=float,
+        default=min_lon_ui.value,
+        help="Minimum longitude for bounding box",
+    )
+    parser.add_argument(
+        "--max-lon",
+        type=float,
+        default=max_lon_ui.value,
+        help="Maximum longitude for bounding box",
+    )
+    parser.add_argument(
+        "--limit-results",
+        type=int,
+        default=limit_results_ui.value,
+        help="Limit the number of results fetched",
+    )
 
     # Positional arguments
-    path = str(input_dir_ui.path(index=0)) if input_dir_ui.path(index=0) else None
     parser.add_argument(
-        "input_dir",
+        "parquet_source_path",
         type=str,
         nargs="?",
-        help="Path to the input directory",
-        default=path,
+        help="Path to the parquet data source",
+        default=parquet_source_path_ui.value,
     )
 
     args = parser.parse_args()
@@ -133,19 +206,92 @@ def _(mo):
 
 
 @app.cell
-def _(args, polars_darwin_core):
-    from src.cache_darwin_core_parquet import cache_darwin_core_parquet
+def _(Path, args, os, pl, polars_darwin_core):
+    credential_provider = pl.CredentialProviderGCP()
 
-    darwin_core_lazy_frame = cache_darwin_core_parquet(
-        polars_darwin_core.DarwinCoreLazyFrame.from_archive(
-            args.input_dir,
-            # input_file, taxon_filter=taxon_filter
-            # TODO: FIX THE TAXON FILTER ABOVE
-        ),
-        args.input_dir,
+    # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
+    source_path = Path(args.parquet_source_path)
+    is_darwin_core_archive = (
+        source_path.is_dir() and (source_path / "meta.xml").exists()
     )
 
-    darwin_core_lazy_frame._inner.limit(200).collect()
+    # Build base filters for geographic bounds
+    # Use camelCase column names (Darwin Core standard)
+    # First filter out null coordinates, then apply bounds
+    base_filters = (
+        pl.col("decimalLatitude").is_not_null()
+        & pl.col("decimalLongitude").is_not_null()
+        & (pl.col("decimalLatitude") >= args.min_lat)
+        & (pl.col("decimalLatitude") <= args.max_lat)
+        & (pl.col("decimalLongitude") >= args.min_lon)
+        & (pl.col("decimalLongitude") <= args.max_lon)
+    )
+
+    # Add taxon filter if specified
+    if args.taxon_filter:
+        taxon_filter_expr = (
+            (pl.col("kingdom") == args.taxon_filter)
+            | (pl.col("phylum") == args.taxon_filter)
+            | (pl.col("class") == args.taxon_filter)
+            | (pl.col("order") == args.taxon_filter)
+            | (pl.col("family") == args.taxon_filter)
+            | (pl.col("genus") == args.taxon_filter)
+            | (pl.col("species") == args.taxon_filter)
+        )
+        base_filters = base_filters & taxon_filter_expr
+
+    # Mapping from lowercase (parquet snapshots) to camelCase (Darwin Core standard)
+    parquet_to_darwin_core_columns = {
+        "decimallatitude": "decimalLatitude",
+        "decimallongitude": "decimalLongitude",
+        "taxonkey": "taxonKey",
+        "specieskey": "speciesKey",
+        "acceptedtaxonkey": "acceptedTaxonKey",
+        "kingdomkey": "kingdomKey",
+        "phylumkey": "phylumKey",
+        "classkey": "classKey",
+        "orderkey": "orderKey",
+        "familykey": "familyKey",
+        "genuskey": "genusKey",
+        "subgenuskey": "subgenusKey",
+        "taxonrank": "taxonRank",
+        "scientificname": "scientificName",
+        "verbatimscientificname": "verbatimScientificName",
+        "countrycode": "countryCode",
+        "gbifid": "gbifID",
+        "datasetkey": "datasetKey",
+        "occurrenceid": "occurrenceID",
+        "eventdate": "eventDate",
+        "basisofrecord": "basisOfRecord",
+        "individualcount": "individualCount",
+        "publishingorgkey": "publishingOrgKey",
+        "coordinateuncertaintyinmeters": "coordinateUncertaintyInMeters",
+        "coordinateprecision": "coordinatePrecision",
+        "hascoordinate": "hasCoordinate",
+        "hasgeospatialissues": "hasGeospatialIssues",
+        "stateprovince": "stateProvince",
+        "iucnredlistcategory": "iucnRedListCategory",
+    }
+
+    if is_darwin_core_archive:
+        # Load from Darwin Core archive (already uses camelCase)
+        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
+            polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+                args.parquet_source_path
+            )
+            ._inner.filter(base_filters)
+            .limit(args.limit_results)
+        )
+    else:
+        # Load from parquet snapshot and rename columns to camelCase
+        inner_lf = pl.scan_parquet(
+            args.parquet_source_path, credential_provider=credential_provider
+        )
+        # Rename lowercase columns to camelCase (Darwin Core standard)
+        inner_lf = inner_lf.rename(parquet_to_darwin_core_columns)
+        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
+            inner_lf.filter(base_filters).limit(args.limit_results)
+        )
     return (darwin_core_lazy_frame,)
 
 
@@ -160,10 +306,14 @@ def _(mo):
 @app.cell
 def _(args, darwin_core_lazy_frame):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
+    from src.types import Bbox
 
     geocode_dataframe_with_edges = GeocodeSchema.build(
         darwin_core_lazy_frame,
         args.geocode_precision,
+        bounding_box=Bbox.from_coordinates(
+            args.min_lat, args.max_lat, args.min_lon, args.max_lon
+        ),
     )
 
     geocode_dataframe = GeocodeNoEdgesSchema.from_geocode_schema(
@@ -171,11 +321,11 @@ def _(args, darwin_core_lazy_frame):
     )
 
     geocode_dataframe
-    return (geocode_dataframe,)
+    return geocode_dataframe, geocode_dataframe_with_edges
 
 
 @app.cell(hide_code=True)
-def _(mo, geocode_dataframe, geocode_dataframe_with_edges, folium, pl):
+def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
     _center = geocode_dataframe.select(
         pl.col("center").alias("geometry"),
     )
@@ -201,6 +351,7 @@ def _(mo, geocode_dataframe, geocode_dataframe_with_edges, folium, pl):
     _map.fit_bounds(_map.get_bounds())
 
     _map
+    return
 
 
 @app.cell(hide_code=True)
@@ -853,9 +1004,11 @@ def _(
     )
 
     if heatmap is None:
-        mo.md("No significant differences found between clusters.")
+        result = mo.md("No significant differences found between clusters.")
     else:
-        heatmap
+        result = heatmap.figure
+
+    result
     return
 
 

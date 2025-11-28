@@ -11,7 +11,8 @@ from polars_darwin_core import DarwinCoreLazyFrame
 from shapely import MultiPoint
 from shapely.geometry import box
 
-from src.geocode import geocode_lazy_frame
+from src.geocode import select_geocode_lazy_frame
+from src.types import Bbox, LatLng
 
 logger = logging.getLogger(__name__)
 
@@ -34,14 +35,13 @@ class GeocodeSchema(dy.Schema):
         cls,
         darwin_core_lazy_frame: DarwinCoreLazyFrame,
         geocode_precision: int,
+        bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeSchema"]:
-        # First, get unique geocodes
-        geocoded_lf = darwin_core_lazy_frame._inner.pipe(
-            geocode_lazy_frame, geocode_precision=geocode_precision
-        ).filter(pl.col("geocode").is_not_null())
-
         df = (
-            geocoded_lf.select("geocode")
+            darwin_core_lazy_frame._inner.pipe(
+                select_geocode_lazy_frame, geocode_precision=geocode_precision
+            )
+            .filter(pl.col("geocode").is_not_null())
             .unique()
             .sort(by="geocode")
             .with_columns(
@@ -50,7 +50,7 @@ class GeocodeSchema(dy.Schema):
             .with_columns(
                 center=pl_st.point("center_xy"),
             )
-            .collect()
+            .collect(engine="streaming")
         )
 
         # Calculate direct neighbors
@@ -83,26 +83,28 @@ class GeocodeSchema(dy.Schema):
             boundary = shapely.Polygon(latlng_list_to_lnglat_list(geometry))
             boundaries.append(boundary)
 
-        # Calculate the bounding box from the hexagon centers
-        centers = df.select(pl_st.geom("center").st.to_shapely()).to_series().to_list()
-
-        min_lng = min(center.x for center in centers)
-        max_lng = max(center.x for center in centers)
-        min_lat = min(center.y for center in centers)
-        max_lat = max(center.y for center in centers)
-
+        # Use provided bounding box to determine edge hexagons
         logger.info(
-            f"Hexagon center extents: lat=[{min_lat:.4f}, {max_lat:.4f}], "
-            f"lng=[{min_lng:.4f}, {max_lng:.4f}]"
+            f"Using provided bounding box: lat=[{bounding_box.min_lat:.4f}, {bounding_box.max_lat:.4f}], "
+            f"lng=[{bounding_box.min_lng:.4f}, {bounding_box.max_lng:.4f}]"
         )
 
         # Create bounding box boundary (the edges, not the filled box)
-        bbox_boundary = box(min_lng, min_lat, max_lng, max_lat).boundary
+        bbox_boundary = box(
+            bounding_box.min_lng,
+            bounding_box.min_lat,
+            bounding_box.max_lng,
+            bounding_box.max_lat,
+        ).boundary
 
         # Check which hexagons intersect the bounding box edges
         is_edge_list: list[bool] = []
         for boundary in boundaries:
             intersects_edge = boundary.intersects(bbox_boundary)
+            if intersects_edge is None:
+                raise ValueError(
+                    f"boundary.intersects() returned None for boundary: {boundary}"
+                )
             is_edge_list.append(intersects_edge)
 
         df = df.with_columns(
@@ -304,4 +306,4 @@ def index_of_geocode(
 def latlng_list_to_lnglat_list(
     latlng_list: list[tuple[float, float]],
 ) -> list[tuple[float, float]]:
-    return [(lng, lat) for lat, lng in latlng_list]
+    return [(lng, lat) for (lat, lng) in latlng_list]
