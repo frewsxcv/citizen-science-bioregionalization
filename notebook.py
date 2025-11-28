@@ -205,16 +205,31 @@ def _(mo):
 @app.cell
 def _(args, pl, polars_darwin_core):
     credential_provider = pl.CredentialProviderGCP()
+
+    # Build base filters for geographic bounds
+    base_filters = (
+        (pl.col("decimallatitude") >= args.min_lat)
+        & (pl.col("decimallatitude") <= args.max_lat)
+        & (pl.col("decimallongitude") >= args.min_lon)
+        & (pl.col("decimallongitude") <= args.max_lon)
+    )
+
+    # Add taxon filter if specified
+    if args.taxon_filter:
+        taxon_filter_expr = (
+            (pl.col("kingdom") == args.taxon_filter)
+            | (pl.col("phylum") == args.taxon_filter)
+            | (pl.col("class") == args.taxon_filter)
+            | (pl.col("order") == args.taxon_filter)
+            | (pl.col("family") == args.taxon_filter)
+            | (pl.col("genus") == args.taxon_filter)
+            | (pl.col("species") == args.taxon_filter)
+        )
+        base_filters = base_filters & taxon_filter_expr
+
     darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
         pl.scan_parquet(args.input_dir, credential_provider=credential_provider)
-        .filter(
-            (pl.col("decimallatitude") >= args.min_lat)
-            & (pl.col("decimallatitude") <= args.max_lat)
-            & (pl.col("decimallongitude") >= args.min_lon)
-            & (pl.col("decimallongitude") <= args.max_lon)
-            # & (pl.col("class") == "Mammalia")
-            # & (pl.col("year") > 1990)
-        )
+        .filter(base_filters)
         .limit(args.limit_results)
     )
     return (darwin_core_lazy_frame,)
