@@ -207,8 +207,6 @@ def _(mo):
 
 @app.cell
 def _(Path, args, os, pl, polars_darwin_core):
-    credential_provider = pl.CredentialProviderGCP()
-
     # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
     source_path = Path(args.parquet_source_path)
     is_darwin_core_archive = (
@@ -284,11 +282,16 @@ def _(Path, args, os, pl, polars_darwin_core):
         )
     else:
         # Load from parquet snapshot and rename columns to camelCase
-        inner_lf = pl.scan_parquet(
-            args.parquet_source_path, credential_provider=credential_provider
-        )
-        # Rename lowercase columns to camelCase (Darwin Core standard)
-        inner_lf = inner_lf.rename(parquet_to_darwin_core_columns)
+        # Public GCS buckets (like GBIF) are accessible without credentials
+        inner_lf = pl.scan_parquet(args.parquet_source_path)
+        # Only rename columns that actually exist in the parquet file
+        existing_columns = set(inner_lf.collect_schema().names())
+        columns_to_rename = {
+            k: v
+            for k, v in parquet_to_darwin_core_columns.items()
+            if k in existing_columns
+        }
+        inner_lf = inner_lf.rename(columns_to_rename)
         darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
             inner_lf.filter(base_filters).limit(args.limit_results)
         )
