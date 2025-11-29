@@ -24,7 +24,13 @@ jobs:
             max_lon: -121
             limit_results: "--limit-results 100000"
             output_dir: output-gbif
+    permissions:
+      contents: "read"
+      id-token: "write"
     steps:
+      - uses: "google-github-actions/auth@v3"
+        with:
+          credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT }}"
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v4
         with:
