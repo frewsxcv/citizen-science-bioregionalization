@@ -15,6 +15,8 @@ jobs:
             min_lon: 5
             max_lon: 10
             limit_results: ""
+            geocode_precision: 8
+            num_clusters: 5
             output_dir: output
           - name: gbif-snapshot
             source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
@@ -22,7 +24,9 @@ jobs:
             max_lat: 47
             min_lon: -123
             max_lon: -121
-            limit_results: "--limit-results 5000"
+            limit_results: 5000
+            geocode_precision: 5
+            num_clusters: 5
             output_dir: output-gbif
     permissions:
       contents: "read"
@@ -43,14 +47,14 @@ jobs:
       - name: Run and export notebook (${{ matrix.name }})
         run: |
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
-            --geocode-precision 5 \
-            --num-clusters 5 \
+            --geocode-precision {{ matrix.geocode_precision }} \
+            --num-clusters {{ matrix.num_clusters }} \
             --log-file run.log \
             --min-lat ${{ matrix.min_lat }} \
             --max-lat ${{ matrix.max_lat }} \
             --min-lon ${{ matrix.min_lon }} \
             --max-lon ${{ matrix.max_lon }} \
-            ${{ matrix.limit_results }} \
+            --limit-results ${{ matrix.limit_results }} \
             "${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
