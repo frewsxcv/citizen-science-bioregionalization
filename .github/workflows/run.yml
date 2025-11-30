@@ -22,7 +22,7 @@ jobs:
             max_lat: 47
             min_lon: -123
             max_lon: -121
-            limit_results: "--limit-results 100000"
+            limit_results: "--limit-results 1000"
             output_dir: output-gbif
     permissions:
       contents: "read"
@@ -43,7 +43,7 @@ jobs:
       - name: Run and export notebook (${{ matrix.name }})
         run: |
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
-            --geocode-precision 8 \
+            --geocode-precision 5 \
             --num-clusters 10 \
             --log-file run.log \
             --min-lat ${{ matrix.min_lat }} \
