@@ -76,7 +76,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    limit_results_ui = mo.ui.number(value=10000, label="Limit results")
+    limit_results_ui = mo.ui.number(value=1000, label="Limit results")
     limit_results_ui
     return (limit_results_ui,)
 
