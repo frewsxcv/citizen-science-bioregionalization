@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bulma": "^1.0.4",
     "maplibre-gl": "^5.13.0",
     "parcel": "^2.16.1",
     "react": "^19.2.0",

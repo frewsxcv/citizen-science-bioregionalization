@@ -11,19 +11,14 @@ const App: React.FC = () => {
     <>
       <Map />
       <Sidebar />
-      {/* Optional: Add a toggle button for the sidebar */}
       <button
         onClick={toggleSidebar}
+        className="button is-small"
         style={{
           position: "absolute",
           top: "10px",
           right: "10px",
           zIndex: 1000,
-          padding: "8px 12px",
-          background: "white",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          cursor: "pointer",
         }}
       >
         {sidebarOpen ? "Hide" : "Show"} Sidebar
