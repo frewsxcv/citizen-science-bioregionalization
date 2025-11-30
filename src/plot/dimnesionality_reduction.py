@@ -1,12 +1,14 @@
 from typing import Literal
-import numpy as np
-from sklearn.manifold import TSNE
-import umap
-import seaborn as sns
-from src.matrices.cluster_distance import ClusterDistanceMatrix
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src.dataframes.cluster_color import ClusterColorSchema, to_dict
+
 import dataframely as dy
+import numpy as np
+import seaborn as sns
+import umap
+from sklearn.manifold import TSNE
+
+from src.dataframes.cluster_color import ClusterColorSchema, to_dict
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
+from src.matrices.cluster_distance import ClusterDistanceMatrix
 
 
 def create_dimensionality_reduction_plot(
@@ -57,7 +59,7 @@ def create_dimensionality_reduction_plot(
             # min_dist=1,
             # init="random",
         )
-        X_reduced: np.ndarray = umap_reducer.fit_transform(geocode_distance_matrix.squareform()) # type: ignore
+        X_reduced = umap_reducer.fit_transform(geocode_distance_matrix.squareform())  # type: ignore
 
     return sns.scatterplot(
         x=X_reduced[:, 0],
