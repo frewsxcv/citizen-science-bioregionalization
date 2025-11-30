@@ -16,7 +16,7 @@ jobs:
             max_lon: 10
             limit_results: 5000
             geocode_precision: 8
-            num_clusters: 5
+            num_clusters: 10
             output_dir: output
           - name: gbif-snapshot
             source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
