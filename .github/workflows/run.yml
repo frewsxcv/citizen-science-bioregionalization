@@ -47,8 +47,8 @@ jobs:
       - name: Run and export notebook (${{ matrix.name }})
         run: |
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
-            --geocode-precision {{ matrix.geocode_precision }} \
-            --num-clusters {{ matrix.num_clusters }} \
+            --geocode-precision ${{ matrix.geocode_precision }} \
+            --num-clusters ${{ matrix.num_clusters }} \
             --log-file run.log \
             --min-lat ${{ matrix.min_lat }} \
             --max-lat ${{ matrix.max_lat }} \
