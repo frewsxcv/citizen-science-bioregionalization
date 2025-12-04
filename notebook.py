@@ -109,75 +109,19 @@ def _(
     num_clusters_ui,
     taxon_filter_ui,
 ):
-    import argparse
+    from src.cli import parse_args_with_defaults
 
-    parser = argparse.ArgumentParser(
-        description="Process Darwin Core CSV data and generate clusters."
+    args = parse_args_with_defaults(
+        geocode_precision=geocode_precision_ui.value,
+        num_clusters=num_clusters_ui.value,
+        taxon_filter=taxon_filter_ui.value,
+        min_lat=min_lat_ui.value,
+        max_lat=max_lat_ui.value,
+        min_lon=min_lon_ui.value,
+        max_lon=max_lon_ui.value,
+        limit_results=limit_results_ui.value,
+        parquet_source_path=parquet_source_path_ui.value,
     )
-
-    # Add required options
-    parser.add_argument(
-        "--geocode-precision",
-        type=int,
-        help="Precision of the geocode",
-        default=geocode_precision_ui.value,
-    )
-    parser.add_argument(
-        "--num-clusters",
-        type=int,
-        help="Number of clusters to generate",
-        default=num_clusters_ui.value,
-    )
-    parser.add_argument("--log-file", type=str, help="Path to the log file")
-
-    # Add optional arguments
-    parser.add_argument(
-        "--taxon-filter",
-        type=str,
-        default=taxon_filter_ui.value,
-        help="Filter to a specific taxon (e.g., 'Aves')",
-    )
-    parser.add_argument(
-        "--min-lat",
-        type=float,
-        default=min_lat_ui.value,
-        help="Minimum latitude for bounding box",
-    )
-    parser.add_argument(
-        "--max-lat",
-        type=float,
-        default=max_lat_ui.value,
-        help="Maximum latitude for bounding box",
-    )
-    parser.add_argument(
-        "--min-lon",
-        type=float,
-        default=min_lon_ui.value,
-        help="Minimum longitude for bounding box",
-    )
-    parser.add_argument(
-        "--max-lon",
-        type=float,
-        default=max_lon_ui.value,
-        help="Maximum longitude for bounding box",
-    )
-    parser.add_argument(
-        "--limit-results",
-        type=int,
-        default=limit_results_ui.value,
-        help="Limit the number of results fetched",
-    )
-
-    # Positional arguments
-    parser.add_argument(
-        "parquet_source_path",
-        type=str,
-        nargs="?",
-        help="Path to the parquet data source",
-        default=parquet_source_path_ui.value,
-    )
-
-    args = parser.parse_args()
     return (args,)
 
 
