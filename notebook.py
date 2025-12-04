@@ -150,48 +150,19 @@ def _(mo):
 
 
 @app.cell
-def _(Path, args, os, pl, polars_darwin_core):
-    # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
-    source_path = Path(args.parquet_source_path)
-    is_darwin_core_archive = (
-        source_path.is_dir() and (source_path / "meta.xml").exists()
+def _(args, polars_darwin_core):
+    from src.darwin_core_utils import load_darwin_core_data
+
+    darwin_core_lazy_frame = load_darwin_core_data(
+        source_path=args.parquet_source_path,
+        min_lat=args.min_lat,
+        max_lat=args.max_lat,
+        min_lon=args.min_lon,
+        max_lon=args.max_lon,
+        limit_results=args.limit_results,
+        taxon_filter=args.taxon_filter,
+        polars_darwin_core=polars_darwin_core,
     )
-
-    # Build base filters for geographic bounds
-    # Use camelCase column names (Darwin Core standard)
-    # First filter out null coordinates, then apply bounds
-    base_filters = (
-        pl.col("decimalLatitude").is_not_null()
-        & pl.col("decimalLongitude").is_not_null()
-        & (pl.col("decimalLatitude") >= args.min_lat)
-        & (pl.col("decimalLatitude") <= args.max_lat)
-        & (pl.col("decimalLongitude") >= args.min_lon)
-        & (pl.col("decimalLongitude") <= args.max_lon)
-    )
-
-    # Add taxon filter if specified
-    if args.taxon_filter:
-        from src.darwin_core_utils import build_taxon_filter
-
-        taxon_filter_expr = build_taxon_filter(args.taxon_filter)
-        base_filters = base_filters & taxon_filter_expr
-
-    if is_darwin_core_archive:
-        # Load from Darwin Core archive (already uses camelCase)
-        inner_lf = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
-            args.parquet_source_path
-        )._inner
-    else:
-        # Load from parquet snapshot and rename columns to camelCase
-        # Public GCS buckets (like GBIF) are accessible without credentials
-        from src.darwin_core_utils import rename_parquet_columns_to_darwin_core
-
-        inner_lf = pl.scan_parquet(args.parquet_source_path)
-        inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
-
-    # Apply filters and limit to the lazy frame
-    inner_lf = inner_lf.filter(base_filters).limit(args.limit_results)
-    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner_lf)
 
     return (darwin_core_lazy_frame,)
 

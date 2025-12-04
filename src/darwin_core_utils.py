@@ -1,5 +1,8 @@
 """Utility functions for working with Darwin Core data."""
 
+from pathlib import Path
+from typing import Any
+
 import polars as pl
 
 
@@ -89,3 +92,70 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
         | (pl.col("genus") == taxon_name)
         | (pl.col("species") == taxon_name)
     )
+
+
+def load_darwin_core_data(
+    source_path: str,
+    min_lat: float,
+    max_lat: float,
+    min_lon: float,
+    max_lon: float,
+    limit_results: int,
+    taxon_filter: str = "",
+    polars_darwin_core: Any = None,
+) -> Any:
+    """
+    Load Darwin Core data from either a Darwin Core archive or Parquet file.
+
+    Automatically detects the source type and applies geographic and taxonomic filters.
+
+    Args:
+        source_path: Path to either a Darwin Core archive directory or Parquet file/directory
+        min_lat: Minimum latitude for bounding box filter
+        max_lat: Maximum latitude for bounding box filter
+        min_lon: Minimum longitude for bounding box filter
+        max_lon: Maximum longitude for bounding box filter
+        limit_results: Maximum number of results to return
+        taxon_filter: Optional taxon name to filter by (e.g., 'Aves')
+        polars_darwin_core: The polars_darwin_core module (must be passed in)
+
+    Returns:
+        A DarwinCoreLazyFrame with filtered data
+    """
+    # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
+    path = Path(source_path)
+    is_darwin_core_archive = path.is_dir() and (path / "meta.xml").exists()
+
+    # Build base filters for geographic bounds
+    # Use camelCase column names (Darwin Core standard)
+    # First filter out null coordinates, then apply bounds
+    base_filters = (
+        pl.col("decimalLatitude").is_not_null()
+        & pl.col("decimalLongitude").is_not_null()
+        & (pl.col("decimalLatitude") >= min_lat)
+        & (pl.col("decimalLatitude") <= max_lat)
+        & (pl.col("decimalLongitude") >= min_lon)
+        & (pl.col("decimalLongitude") <= max_lon)
+    )
+
+    # Add taxon filter if specified
+    if taxon_filter:
+        taxon_filter_expr = build_taxon_filter(taxon_filter)
+        base_filters = base_filters & taxon_filter_expr
+
+    if is_darwin_core_archive:
+        # Load from Darwin Core archive (already uses camelCase)
+        inner_lf = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+            source_path
+        )._inner
+    else:
+        # Load from parquet snapshot and rename columns to camelCase
+        # Public GCS buckets (like GBIF) are accessible without credentials
+        inner_lf = pl.scan_parquet(source_path)
+        inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
+
+    # Apply filters and limit to the lazy frame
+    inner_lf = inner_lf.filter(base_filters).limit(limit_results)
+    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner_lf)
+
+    return darwin_core_lazy_frame
