@@ -1,17 +1,19 @@
 from typing import Dict, List, Literal, Optional
-import polars as pl
+
 import dataframely as dy
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
+import matplotlib.colors as mcolors
+import networkx as nx
+import numpy as np
+import polars as pl
+import seaborn as sns
+import umap  # type: ignore
+from sklearn.manifold import MDS  # type: ignore
+
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
-import seaborn as sns
-import networkx as nx
-import numpy as np
-from sklearn.manifold import MDS  # type: ignore
-import matplotlib.colors as mcolors
-import umap  # type: ignore
 
 
 class ClusterColorSchema(dy.Schema):
@@ -49,10 +51,15 @@ class ClusterColorSchema(dy.Schema):
                 cluster_neighbors_dataframe, cluster_boundary_dataframe, ocean_threshold
             )
         elif color_method == "taxonomic":
-            assert (
-                cluster_taxa_statistics_dataframe is not None
-            ), "cluster_taxa_statistics_dataframe is required for taxonomic coloring"
-            df = _build_taxonomic(cluster_taxa_statistics_dataframe)
+            assert cluster_taxa_statistics_dataframe is not None, (
+                "cluster_taxa_statistics_dataframe is required for taxonomic coloring"
+            )
+            df = _build_taxonomic(
+                cluster_taxa_statistics_dataframe,
+                cluster_neighbors_dataframe,
+                cluster_boundary_dataframe,
+                ocean_threshold,
+            )
         else:
             raise ValueError(f"Invalid color_method: {color_method}")
         return cls.validate(df)
@@ -102,9 +109,7 @@ def _build_geographic(
     ocean_color_indices = {
         cluster: color_indices[cluster] for cluster in ocean_clusters
     }
-    land_color_indices = {
-        cluster: color_indices[cluster] for cluster in land_clusters
-    }
+    land_color_indices = {cluster: color_indices[cluster] for cluster in land_clusters}
 
     # Determine how many unique colors needed for each group
     num_ocean_colors = len(set(ocean_color_indices.values()))
@@ -118,9 +123,7 @@ def _build_geographic(
     ocean_palette_map = dict(
         zip(sorted(set(ocean_color_indices.values())), ocean_palette)
     )
-    land_palette_map = dict(
-        zip(sorted(set(land_color_indices.values())), land_palette)
-    )
+    land_palette_map = dict(zip(sorted(set(land_color_indices.values())), land_palette))
 
     # Map color indices to actual colors
     rows = []
@@ -143,34 +146,46 @@ def _build_geographic(
 
 def _build_taxonomic(
     cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
+    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
+    ocean_threshold: float = 0.90,
 ) -> pl.DataFrame:
     """
     Creates a coloring where clusters with similar taxonomic composition
     have similar colors, using UMAP for dimensionality reduction.
 
-    Requires at least 10 clusters to work properly with the UMAP algorithm.
+    If fewer than 10 clusters exist, falls back to geographic coloring method.
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     # Build the distance matrix based on taxonomic composition
     distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_statistics_dataframe)
 
     clusters = distance_matrix.cluster_ids()
 
+    # Check if we have enough clusters for UMAP
+    # UMAP has known issues with very small datasets when using precomputed metrics
+    if len(clusters) < 10:
+        logger.warning(
+            f"Only {len(clusters)} clusters found. UMAP taxonomic coloring requires "
+            f"at least 10 clusters. Falling back to geographic coloring method."
+        )
+        return _build_geographic(
+            cluster_neighbors_dataframe, cluster_boundary_dataframe, ocean_threshold
+        )
+
     # Get the square-form distance matrix for dimensionality reduction
     square_matrix = distance_matrix.squareform()
-
-    # Assert that we have enough clusters for UMAP
-    # UMAP has known issues with very small datasets when using precomputed metrics
-    assert (
-        len(clusters) >= 10
-    ), f"UMAP requires at least 10 clusters, got {len(clusters)}"
 
     # Set appropriate parameters for UMAP
     n_components = 3  # Always use 3 dimensions for color mapping
 
     # Assert that we have enough samples for the chosen number of components
-    assert (
-        len(clusters) > n_components + 1
-    ), f"Need at least {n_components + 2} clusters for {n_components}D UMAP, got {len(clusters)}"
+    assert len(clusters) > n_components + 1, (
+        f"Need at least {n_components + 2} clusters for {n_components}D UMAP, got {len(clusters)}"
+    )
 
     # Set n_neighbors to be less than number of clusters
     n_neighbors = min(len(clusters) - 1, 5)

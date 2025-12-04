@@ -16,8 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
-    return Path, folium, mo, np, os, pl, polars_darwin_core
+    return Path, folium, mo, np, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -60,11 +59,70 @@ def _(mo):
     return (geocode_precision_ui,)
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Cluster Count Selection
+
+    Choose between manual selection or automatic optimization.
+    """)
+    return
+
+
 @app.cell
 def _(mo):
-    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
-    num_clusters_ui
+    use_auto_k_ui = mo.ui.checkbox(
+        value=True, label="Use automatic cluster optimization"
+    )
+    use_auto_k_ui
+    return (use_auto_k_ui,)
+
+
+@app.cell
+def _(mo, use_auto_k_ui):
+    # Always create num_clusters_ui to avoid None reference errors
+    # But only display it when not using auto optimization
+    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters (manual)")
+
+    if not use_auto_k_ui.value:
+        display_manual = num_clusters_ui
+    else:
+        display_manual = mo.md("*Using automatic optimization (see below)*")
+
+    display_manual
     return (num_clusters_ui,)
+
+
+@app.cell
+def _(mo, use_auto_k_ui):
+    # Automatic optimization parameters
+    if use_auto_k_ui.value:
+        k_min_ui = mo.ui.number(value=5, label="Minimum clusters to evaluate")
+        k_max_ui = mo.ui.number(value=15, label="Maximum clusters to evaluate")
+        optimization_method_ui = mo.ui.dropdown(
+            options={
+                "multi_criteria": "Multi-Criteria (Recommended)",
+                "silhouette": "Best Silhouette Score",
+                "elbow": "Elbow Method",
+                "compromise": "Quality Compromise",
+            },
+            value="multi_criteria",
+            label="Selection method",
+        )
+        display_auto = mo.vstack(
+            [
+                mo.hstack([k_min_ui, k_max_ui]),
+                optimization_method_ui,
+            ]
+        )
+    else:
+        k_min_ui = None
+        k_max_ui = None
+        optimization_method_ui = None
+        display_auto = mo.md("")
+
+    display_auto
+    return k_max_ui, k_min_ui, optimization_method_ui
 
 
 @app.cell(hide_code=True)
@@ -100,13 +158,13 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
-    parquet_source_path_ui,
     limit_results_ui,
     max_lat_ui,
     max_lon_ui,
     min_lat_ui,
     min_lon_ui,
     num_clusters_ui,
+    parquet_source_path_ui,
     taxon_filter_ui,
 ):
     import argparse
@@ -206,7 +264,7 @@ def _(mo):
 
 
 @app.cell
-def _(Path, args, os, pl, polars_darwin_core):
+def _(Path, args, pl, polars_darwin_core):
     # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
     source_path = Path(args.parquet_source_path)
     is_darwin_core_archive = (
@@ -445,6 +503,90 @@ def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## Cluster Optimization (Optional)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo, use_auto_k_ui):
+    if use_auto_k_ui.value:
+        display_optimization_header = mo.md(r"""
+        ### Running Automatic Cluster Selection
+
+        Evaluating multiple cluster counts using statistical metrics...
+        """)
+    else:
+        display_optimization_header = mo.md("")
+
+    display_optimization_header
+    return
+
+
+@app.cell
+def _(
+    geocode_connectivity_matrix,
+    geocode_dataframe,
+    geocode_distance_matrix,
+    k_max_ui,
+    k_min_ui,
+    optimization_method_ui,
+    use_auto_k_ui,
+):
+    cluster_optimization_result = None
+    cluster_metrics_list = None
+
+    if use_auto_k_ui.value:
+        from src.cluster_optimization import ClusterOptimizer
+
+        optimizer = ClusterOptimizer(
+            geocode_dataframe=geocode_dataframe,
+            distance_matrix=geocode_distance_matrix,
+            connectivity_matrix=geocode_connectivity_matrix,
+        )
+
+        cluster_metrics_list = optimizer.evaluate_k_range(
+            k_min=k_min_ui.value,
+            k_max=k_max_ui.value,
+        )
+
+        cluster_optimization_result = optimizer.suggest_optimal_k(
+            cluster_metrics_list, method=optimization_method_ui.value
+        )
+    return (cluster_optimization_result,)
+
+
+@app.cell(hide_code=True)
+def _(cluster_optimization_result, mo, use_auto_k_ui):
+    if use_auto_k_ui.value and cluster_optimization_result:
+        from src.cluster_optimization import create_metrics_report
+
+        report = create_metrics_report(cluster_optimization_result)
+        display_report = mo.md(f"```\n{report}\n```")
+    else:
+        display_report = mo.md("")
+
+    display_report
+    return
+
+
+@app.cell(hide_code=True)
+def _(cluster_optimization_result, mo, use_auto_k_ui):
+    if use_auto_k_ui.value and cluster_optimization_result:
+        from src.plot.cluster_optimization import plot_optimization_metrics
+
+        fig = plot_optimization_metrics(cluster_optimization_result)
+        display_optimization_plot = mo.mpl.interactive(fig)
+    else:
+        display_optimization_plot = mo.md("")
+
+    display_optimization_plot
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## `GeocodeCluster`
     """)
     return
@@ -460,20 +602,41 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
+    cluster_optimization_result,
     geocode_connectivity_matrix,
     geocode_dataframe,
     geocode_distance_matrix,
+    num_clusters_ui,
+    use_auto_k_ui,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
+
+    # Determine which k to use
+    if use_auto_k_ui.value and cluster_optimization_result:
+        optimal_k = cluster_optimization_result.optimal_k
+    else:
+        optimal_k = num_clusters_ui.value
 
     geocode_cluster_dataframe = GeocodeClusterSchema.build(
         geocode_dataframe,
         geocode_distance_matrix,
         geocode_connectivity_matrix,
-        args.num_clusters,
+        optimal_k,
     )
-    return (geocode_cluster_dataframe,)
+    return geocode_cluster_dataframe, optimal_k
+
+
+@app.cell(hide_code=True)
+def _(mo, optimal_k, use_auto_k_ui):
+    if use_auto_k_ui.value:
+        display_k_used = mo.md(
+            f"**Using k={optimal_k} clusters (automatically selected)**"
+        )
+    else:
+        display_k_used = mo.md(f"**Using k={optimal_k} clusters (manually specified)**")
+
+    display_k_used
+    return
 
 
 @app.cell(hide_code=True)
@@ -755,7 +918,10 @@ def _(cluster_distance_matrix):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `ClusterColor`
+    ## `ClusterColors`
+
+    **Note:** Taxonomic coloring requires ≥10 clusters for UMAP dimensionality reduction.
+    If fewer clusters exist, the system automatically falls back to geographic coloring.
     """)
     return
 
