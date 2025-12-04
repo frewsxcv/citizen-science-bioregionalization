@@ -227,74 +227,28 @@ def _(Path, args, os, pl, polars_darwin_core):
 
     # Add taxon filter if specified
     if args.taxon_filter:
-        taxon_filter_expr = (
-            (pl.col("kingdom") == args.taxon_filter)
-            | (pl.col("phylum") == args.taxon_filter)
-            | (pl.col("class") == args.taxon_filter)
-            | (pl.col("order") == args.taxon_filter)
-            | (pl.col("family") == args.taxon_filter)
-            | (pl.col("genus") == args.taxon_filter)
-            | (pl.col("species") == args.taxon_filter)
-        )
-        base_filters = base_filters & taxon_filter_expr
+        from src.darwin_core_utils import build_taxon_filter
 
-    # Mapping from lowercase (parquet snapshots) to camelCase (Darwin Core standard)
-    parquet_to_darwin_core_columns = {
-        "decimallatitude": "decimalLatitude",
-        "decimallongitude": "decimalLongitude",
-        "taxonkey": "taxonKey",
-        "specieskey": "speciesKey",
-        "acceptedtaxonkey": "acceptedTaxonKey",
-        "kingdomkey": "kingdomKey",
-        "phylumkey": "phylumKey",
-        "classkey": "classKey",
-        "orderkey": "orderKey",
-        "familykey": "familyKey",
-        "genuskey": "genusKey",
-        "subgenuskey": "subgenusKey",
-        "taxonrank": "taxonRank",
-        "scientificname": "scientificName",
-        "verbatimscientificname": "verbatimScientificName",
-        "countrycode": "countryCode",
-        "gbifid": "gbifID",
-        "datasetkey": "datasetKey",
-        "occurrenceid": "occurrenceID",
-        "eventdate": "eventDate",
-        "basisofrecord": "basisOfRecord",
-        "individualcount": "individualCount",
-        "publishingorgkey": "publishingOrgKey",
-        "coordinateuncertaintyinmeters": "coordinateUncertaintyInMeters",
-        "coordinateprecision": "coordinatePrecision",
-        "hascoordinate": "hasCoordinate",
-        "hasgeospatialissues": "hasGeospatialIssues",
-        "stateprovince": "stateProvince",
-        "iucnredlistcategory": "iucnRedListCategory",
-    }
+        taxon_filter_expr = build_taxon_filter(args.taxon_filter)
+        base_filters = base_filters & taxon_filter_expr
 
     if is_darwin_core_archive:
         # Load from Darwin Core archive (already uses camelCase)
-        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
-            polars_darwin_core.DarwinCoreLazyFrame.from_archive(
-                args.parquet_source_path
-            )
-            ._inner.filter(base_filters)
-            .limit(args.limit_results)
-        )
+        inner_lf = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
+            args.parquet_source_path
+        )._inner
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
+        from src.darwin_core_utils import rename_parquet_columns_to_darwin_core
+
         inner_lf = pl.scan_parquet(args.parquet_source_path)
-        # Only rename columns that actually exist in the parquet file
-        existing_columns = set(inner_lf.collect_schema().names())
-        columns_to_rename = {
-            k: v
-            for k, v in parquet_to_darwin_core_columns.items()
-            if k in existing_columns
-        }
-        inner_lf = inner_lf.rename(columns_to_rename)
-        darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(
-            inner_lf.filter(base_filters).limit(args.limit_results)
-        )
+        inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
+
+    # Apply filters and limit to the lazy frame
+    inner_lf = inner_lf.filter(base_filters).limit(args.limit_results)
+    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner_lf)
+
     return (darwin_core_lazy_frame,)
 
 
