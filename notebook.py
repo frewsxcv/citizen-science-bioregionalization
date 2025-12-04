@@ -16,8 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
-    return Path, folium, mo, np, os, pl, polars_darwin_core
+    return folium, mo, np, pl, polars_darwin_core
 
 
 @app.cell(hide_code=True)
@@ -100,13 +99,13 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
-    parquet_source_path_ui,
     limit_results_ui,
     max_lat_ui,
     max_lon_ui,
     min_lat_ui,
     min_lon_ui,
     num_clusters_ui,
+    parquet_source_path_ui,
     taxon_filter_ui,
 ):
     from src.cli import parse_args_with_defaults
@@ -163,7 +162,6 @@ def _(args, polars_darwin_core):
         taxon_filter=args.taxon_filter,
         polars_darwin_core=polars_darwin_core,
     )
-
     return (darwin_core_lazy_frame,)
 
 
@@ -356,34 +354,6 @@ def _(mo):
 @app.cell
 def _(geocode_cluster_dataframe):
     geocode_cluster_dataframe.limit(3)
-    return
-
-
-@app.cell
-def _():
-    # # TMP
-
-    # from src.dataframes.geocode_cluster import GeocodeClusterDataFrame
-    # from sklearn.metrics import silhouette_score
-
-    # results = []
-
-    # for i in range(2, 200):
-    #     geocode_cluster_dataframe = GeocodeClusterDataFrame.build(
-    #         geocode_dataframe,
-    #         distance_matrix,
-    #         connectivity_matrix,
-    #         num_clusters=i,
-    #     )
-    #     score = silhouette_score(
-    #         X=distance_matrix.squareform(),
-    #         labels=geocode_cluster_dataframe.df["cluster"],
-    #         metric="precomputed",
-    #     )
-    #     print(f"{i}: {score}")
-    #     results.append((i, score))
-
-    # results
     return
 
 
