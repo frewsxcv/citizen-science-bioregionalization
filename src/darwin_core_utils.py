@@ -100,7 +100,7 @@ def load_darwin_core_data(
     max_lat: float,
     min_lon: float,
     max_lon: float,
-    limit_results: int,
+    limit_results: int | None,
     taxon_filter: str = "",
     polars_darwin_core: Any = None,
 ) -> Any:
@@ -155,7 +155,9 @@ def load_darwin_core_data(
         inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
 
     # Apply filters and limit to the lazy frame
-    inner_lf = inner_lf.filter(base_filters).limit(limit_results)
+    inner_lf = inner_lf.filter(base_filters)
+    if limit_results is not None:
+        inner_lf = inner_lf.limit(limit_results)
     darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner_lf)
 
     return darwin_core_lazy_frame

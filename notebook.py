@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.18.1"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -75,9 +75,18 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    limit_results_ui = mo.ui.number(value=1000, label="Limit results")
-    limit_results_ui
-    return (limit_results_ui,)
+    limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
+    limit_results_enabled_ui
+    return (limit_results_enabled_ui,)
+
+
+@app.cell(hide_code=True)
+def _(limit_results_enabled_ui, mo):
+    limit_results_value_ui = mo.ui.number(
+        value=1000, label="Limit results", disabled=not limit_results_enabled_ui.value
+    )
+    limit_results_value_ui
+    return (limit_results_value_ui,)
 
 
 @app.cell(hide_code=True)
@@ -99,7 +108,8 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
-    limit_results_ui,
+    limit_results_enabled_ui,
+    limit_results_value_ui,
     max_lat_ui,
     max_lon_ui,
     min_lat_ui,
@@ -118,10 +128,19 @@ def _(
         max_lat=max_lat_ui.value,
         min_lon=min_lon_ui.value,
         max_lon=max_lon_ui.value,
-        limit_results=limit_results_ui.value,
+        limit_results=limit_results_value_ui.value
+        if limit_results_enabled_ui.value
+        else None,
         parquet_source_path=parquet_source_path_ui.value,
     )
     return (args,)
+
+
+@app.cell
+def _(mo):
+    run_button_ui = mo.ui.run_button()
+    run_button_ui
+    return (run_button_ui,)
 
 
 @app.cell(hide_code=True)
@@ -149,8 +168,10 @@ def _(mo):
 
 
 @app.cell
-def _(args, polars_darwin_core):
+def _(args, mo, polars_darwin_core, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
+
+    mo.stop(not run_button_ui.value)
 
     darwin_core_lazy_frame = load_darwin_core_data(
         source_path=args.parquet_source_path,
@@ -163,6 +184,12 @@ def _(args, polars_darwin_core):
         polars_darwin_core=polars_darwin_core,
     )
     return (darwin_core_lazy_frame,)
+
+
+@app.cell
+def _(darwin_core_lazy_frame):
+    darwin_core_lazy_frame._inner.select("gbifID").count().collect(engine="streaming")
+    return
 
 
 @app.cell(hide_code=True)
