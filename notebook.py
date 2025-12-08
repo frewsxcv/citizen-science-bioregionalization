@@ -171,8 +171,6 @@ def _(mo):
 def _(args, mo, polars_darwin_core, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
 
-    mo.stop(not run_button_ui.value)
-
     darwin_core_lazy_frame = load_darwin_core_data(
         source_path=args.parquet_source_path,
         min_lat=args.min_lat,
@@ -183,6 +181,9 @@ def _(args, mo, polars_darwin_core, run_button_ui):
         taxon_filter=args.taxon_filter,
         polars_darwin_core=polars_darwin_core,
     )
+
+    if mo.running_in_notebook():
+        mo.stop(not run_button_ui.value)
     return (darwin_core_lazy_frame,)
 
 
