@@ -12,7 +12,7 @@ def create_argument_parser(
     max_lat: float,
     min_lon: float,
     max_lon: float,
-    limit_results: int,
+    limit_results: None | int,
     parquet_source_path: str,
 ) -> argparse.ArgumentParser:
     """
@@ -109,7 +109,7 @@ def parse_args_with_defaults(
     max_lat: float,
     min_lon: float,
     max_lon: float,
-    limit_results: int,
+    limit_results: None | int,
     parquet_source_path: str,
 ) -> Any:
     """

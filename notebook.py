@@ -16,6 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl, polars_darwin_core
 
 
