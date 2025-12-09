@@ -90,10 +90,12 @@ def _(limit_results_enabled_ui, mo):
 
 @app.cell(hide_code=True)
 def _(limit_results_enabled_ui, limit_results_value_ui, mo):
-    mo.vstack([
-        limit_results_enabled_ui,
-        limit_results_value_ui,
-    ])
+    mo.vstack(
+        [
+            limit_results_enabled_ui,
+            limit_results_value_ui,
+        ]
+    )
     return
 
 
