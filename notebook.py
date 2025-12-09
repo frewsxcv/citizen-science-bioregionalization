@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.18.0"
+__generated_with = "0.18.3"
 app = marimo.App(width="medium")
 
 
@@ -76,7 +76,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
-    limit_results_enabled_ui
+
     return (limit_results_enabled_ui,)
 
 
@@ -85,8 +85,16 @@ def _(limit_results_enabled_ui, mo):
     limit_results_value_ui = mo.ui.number(
         value=1000, label="Limit results", disabled=not limit_results_enabled_ui.value
     )
-    limit_results_value_ui
     return (limit_results_value_ui,)
+
+
+@app.cell(hide_code=True)
+def _(limit_results_enabled_ui, limit_results_value_ui, mo):
+    mo.vstack([
+        limit_results_enabled_ui,
+        limit_results_value_ui,
+    ])
+    return
 
 
 @app.cell(hide_code=True)
