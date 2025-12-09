@@ -16,7 +16,6 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
-
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -77,7 +76,6 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
-
     return (limit_results_enabled_ui,)
 
 
@@ -114,6 +112,25 @@ def _(mo):
     max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
     mo.vstack([max_lon_ui, max_lat_ui])
     return max_lat_ui, max_lon_ui
+
+
+@app.cell(hide_code=True)
+def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui):
+    _map = folium.Map(
+        tiles="Esri.WorldGrayCanvas",
+    )
+
+    _bounds = [
+        [min_lat_ui.value, min_lon_ui.value],
+        [max_lat_ui.value, max_lon_ui.value],
+    ]
+
+    folium.Rectangle(bounds=_bounds).add_to(_map)
+
+    _map.fit_bounds(_bounds, padding=[20, 20])
+
+    _map
+    return
 
 
 @app.cell(hide_code=True)
