@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# Output and temporary files
+output/
+tmp/
+*.log
+run.log
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+
+# Lock files (using requirements.txt instead)
+uv.lock
+
+# Test files
+test/
+tests/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
