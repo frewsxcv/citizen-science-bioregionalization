@@ -193,7 +193,8 @@ def _(args, mo, polars_darwin_core, run_button_ui):
         polars_darwin_core=polars_darwin_core,
     )
 
-    if mo.running_in_notebook():
+    if mo.running_in_notebook() and not args.no_stop:
+        print("STOPPING")
         mo.stop(not run_button_ui.value)
     return (darwin_core_lazy_frame,)
 

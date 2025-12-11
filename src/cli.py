@@ -50,6 +50,12 @@ def create_argument_parser(
         default=num_clusters,
     )
     parser.add_argument("--log-file", type=str, help="Path to the log file")
+    parser.add_argument(
+        "--no-stop",
+        action="store_true",
+        default=False,
+        help="Bypass mo.stop when running from the command line",
+    )
 
     # Add optional arguments
     parser.add_argument(
