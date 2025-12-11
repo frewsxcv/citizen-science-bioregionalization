@@ -1,0 +1,12 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# Required: Your GCP project ID
+project_id = "your-gcp-project-id"
+
+# Optional: Override defaults if needed
+# region         = "us-central1"
+# zone           = "us-central1-a"
+# instance_name  = "marimo-ecoregions"
+# machine_type   = "e2-standard-2"
+# disk_size      = 400
+# boot_disk_size = 10
