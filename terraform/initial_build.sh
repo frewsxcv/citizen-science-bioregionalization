@@ -15,22 +15,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../" && pwd)"
 
-# Load project ID from terraform.tfvars if it exists
-if [ -f "$SCRIPT_DIR/terraform.tfvars" ]; then
-  PROJECT_ID=$(grep -E '^project_id\s*=' "$SCRIPT_DIR/terraform.tfvars" | sed 's/.*=\s*"\(.*\)"/\1/' | tr -d ' ')
-fi
-
-# Fall back to gcloud config
-if [ -z "$PROJECT_ID" ]; then
-  PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
-fi
-
-if [ -z "$PROJECT_ID" ]; then
-  echo "Error: Could not determine project ID."
-  echo "Either set up terraform.tfvars or run: gcloud config set project YOUR_PROJECT_ID"
-  exit 1
-fi
-
+PROJECT_ID="frewsxcv"
 INSTANCE_NAME="marimo-ecoregions"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${INSTANCE_NAME}"
 
