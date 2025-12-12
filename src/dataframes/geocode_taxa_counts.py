@@ -2,7 +2,6 @@ import logging
 
 import dataframely as dy
 import polars as pl
-from pandas.core.dtypes.inference import is_integer
 from polars_darwin_core import DarwinCoreLazyFrame, Kingdom
 
 from src.dataframes.geocode import GeocodeNoEdgesSchema
