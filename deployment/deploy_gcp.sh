@@ -11,7 +11,7 @@ DISK_NAME="${INSTANCE_NAME}-data"
 DISK_SIZE="400"
 
 echo "Building and pushing Docker image..."
-gcloud builds submit --tag ${IMAGE_NAME}
+gcloud builds submit deployment/Dockerfile --tag ${IMAGE_NAME}
 
 echo "Checking if instance exists..."
 if gcloud compute instances describe ${INSTANCE_NAME} --zone=${ZONE} &>/dev/null; then
