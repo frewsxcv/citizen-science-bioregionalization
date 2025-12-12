@@ -32,7 +32,7 @@ gcloud compute instances create ${INSTANCE_NAME} \
   --tags=marimo-server \
   --image-family=ubuntu-2204-lts \
   --image-project=ubuntu-os-cloud \
-  --boot-disk-size=20GB \
+  --boot-disk-size=10GB \
   --metadata-from-file=startup-script=./startup_script.sh
 
 echo "Deployment complete!"
