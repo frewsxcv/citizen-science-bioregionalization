@@ -11,7 +11,7 @@ DISK_NAME="${INSTANCE_NAME}-data"
 DISK_SIZE="400"
 
 echo "Building and pushing Docker image..."
-gcloud builds submit deployment/Dockerfile --tag ${IMAGE_NAME}
+gcloud builds submit --tag ${IMAGE_NAME}
 
 echo "Checking if instance exists..."
 if gcloud compute instances describe ${INSTANCE_NAME} --zone=${ZONE} &>/dev/null; then
@@ -48,7 +48,7 @@ gcloud compute instances create ${INSTANCE_NAME} \
   --image-project=ubuntu-os-cloud \
   --boot-disk-size=10GB \
   --disk=name=${DISK_NAME},device-name=data-disk,mode=rw,boot=no \
-  --metadata-from-file=startup-script=./startup_script.sh
+  --metadata-from-file=startup-script=./Deployment/startup_script.sh
 
 echo "Deployment complete!"
 echo "Getting external IP address..."
