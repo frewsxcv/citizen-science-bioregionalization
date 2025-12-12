@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.4
+
 
 # Choose Python 3.13 to match the project requirements
 FROM python:3.13-slim
@@ -11,19 +11,19 @@ ENV GOOGLE_APPLICATION_CREDENTIALS=/home/app_user/.config/gcloud/application_def
 WORKDIR /app
 
 # Copy dependency files
-COPY --link pyproject.toml .
+COPY pyproject.toml .
 
 # Install the requirements using uv
 RUN uv pip install -e .
 
 # Copy application files
-COPY --link notebook.py .
+COPY notebook.py .
 
 # Copy any additional files that might be needed
-COPY --link ocean.geojson .
+COPY ocean.geojson .
 
 # Copy src directory with all modules
-COPY --link src/ ./src/
+COPY src/ ./src/
 
 # Create necessary directories
 RUN mkdir -p data output tmp
