@@ -16,6 +16,7 @@ def _():
     import numpy as np
     import polars as pl
     import polars_darwin_core
+
     return folium, mo, np, pl, polars_darwin_core
 
 
@@ -100,16 +101,16 @@ def _(limit_results_enabled_ui, limit_results_value_ui, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    min_lon_ui = mo.ui.number(value=-24.3261840479, label="Min Longitude")
-    min_lat_ui = mo.ui.number(value=63.4963829617, label="Min Latitude")
+    min_lon_ui = mo.ui.number(value=-87.0, label="Min Longitude")
+    min_lat_ui = mo.ui.number(value=25.0, label="Min Latitude")
     mo.vstack([min_lon_ui, min_lat_ui])
     return min_lat_ui, min_lon_ui
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    max_lat_ui = mo.ui.number(value=66.5267923041, label="Max Latitude")
-    max_lon_ui = mo.ui.number(value=-13.609732225, label="Max Longitude")
+    max_lat_ui = mo.ui.number(value=47.0, label="Max Latitude")
+    max_lon_ui = mo.ui.number(value=-66.0, label="Max Longitude")
     mo.vstack([max_lon_ui, max_lat_ui])
     return max_lat_ui, max_lon_ui
 

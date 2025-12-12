@@ -9,7 +9,7 @@ MACHINE_TYPE="e2-standard-2"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${INSTANCE_NAME}"
 
 echo "Building and pushing Docker image..."
-# gcloud builds submit --tag ${IMAGE_NAME}
+gcloud builds submit --tag ${IMAGE_NAME}
 
 echo "Checking if instance exists..."
 if gcloud compute instances describe ${INSTANCE_NAME} --zone=${ZONE} &>/dev/null; then
