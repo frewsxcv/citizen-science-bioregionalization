@@ -25,14 +25,15 @@ if ! gcloud compute firewall-rules describe allow-marimo &>/dev/null; then
     --description="Allow access to Marimo notebook on port 8080"
 fi
 
-echo "Creating Compute Engine instance with container..."
-gcloud compute instances create-with-container ${INSTANCE_NAME} \
+echo "Creating Compute Engine instance with Ubuntu 22.04 LTS..."
+gcloud compute instances create ${INSTANCE_NAME} \
   --zone=${ZONE} \
   --machine-type=${MACHINE_TYPE} \
   --tags=marimo-server \
-  --container-image=${IMAGE_NAME} \
-  --container-restart-policy=always \
-  --boot-disk-size=20GB
+  --image-family=ubuntu-2204-lts \
+  --image-project=ubuntu-os-cloud \
+  --boot-disk-size=20GB \
+  --metadata-from-file=startup-script=./startup_script.sh
 
 echo "Deployment complete!"
 echo "Getting external IP address..."
@@ -41,4 +42,5 @@ echo ""
 echo "Your Marimo notebook is available at: http://${EXTERNAL_IP}:8080"
 echo ""
 echo "Note: It may take 1-2 minutes for the container to start."
-echo "To view logs: gcloud compute instances get-serial-port-output ${INSTANCE_NAME} --zone=${ZONE}"
+echo "To view startup script logs: gcloud compute instances get-serial-port-output ${INSTANCE_NAME} --zone=${ZONE} | grep startup-script"
+echo "To view container logs: gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command='docker logs marimo-ecoregions'"
