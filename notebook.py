@@ -291,10 +291,14 @@ def _(mo):
 
 
 @app.cell
-def _(darwin_core_lazy_frame):
+def _(args, darwin_core_lazy_frame, geocode_dataframe):
     from src.dataframes.taxonomy import TaxonomySchema
 
-    taxonomy_dataframe = TaxonomySchema.build(darwin_core_lazy_frame)
+    taxonomy_dataframe = TaxonomySchema.build(
+        darwin_core_lazy_frame,
+        args.geocode_precision,
+        geocode_dataframe,
+    )
 
     taxonomy_dataframe
     return (taxonomy_dataframe,)

@@ -2,6 +2,9 @@ import dataframely as dy
 import polars as pl
 from polars_darwin_core import DarwinCoreLazyFrame, Kingdom
 
+from src.dataframes.geocode import GeocodeNoEdgesSchema
+from src.geocode import with_geocode_lazy_frame
+
 
 class TaxonomySchema(dy.Schema):
     """
@@ -22,10 +25,20 @@ class TaxonomySchema(dy.Schema):
 
     @classmethod
     def build(
-        cls, darwin_core_csv_lazy_frame: DarwinCoreLazyFrame
+        cls,
+        darwin_core_csv_lazy_frame: DarwinCoreLazyFrame,
+        geocode_precision: int,
+        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["TaxonomySchema"]:
         df = (
-            darwin_core_csv_lazy_frame._inner.select(
+            darwin_core_csv_lazy_frame._inner.pipe(
+                with_geocode_lazy_frame, geocode_precision=geocode_precision
+            )
+            .filter(
+                # Ensure geocode exists and is not an edge
+                pl.col("geocode").is_in(geocode_dataframe["geocode"])
+            )
+            .select(
                 "kingdom",
                 "phylum",
                 "class",
@@ -38,7 +51,14 @@ class TaxonomySchema(dy.Schema):
                 # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
                 pl.col("taxonKey").alias("gbifTaxonId"),
             )
-            .unique()
+            .unique(
+                subset=[
+                    "scientificName",  # Need to confirm this. Will there be different scientific names for the same GBIF taxon ID?
+                    "gbifTaxonId",
+                ],
+                keep="any",  # Fastest - doesn't track order
+                maintain_order=False,  # Faster - no order tracking needed
+            )
             .collect(engine="streaming")
         )
 
