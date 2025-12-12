@@ -13,7 +13,7 @@ set -e
 
 # Change to repository root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../" && pwd)"
 
 # Load project ID from terraform.tfvars if it exists
 if [ -f "$SCRIPT_DIR/terraform.tfvars" ]; then
