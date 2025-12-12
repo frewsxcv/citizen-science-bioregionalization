@@ -5,6 +5,7 @@ set -e
 PROJECT_ID=${GCP_PROJECT_ID:-$(gcloud config get-value project)}
 INSTANCE_NAME="marimo-ecoregions"
 ZONE="us-central1-a"
+DISK_NAME="${INSTANCE_NAME}-data"
 
 echo "Deleting Compute Engine instance..."
 if gcloud compute instances describe ${INSTANCE_NAME} --zone=${ZONE} &>/dev/null; then
@@ -20,6 +21,14 @@ if gcloud compute firewall-rules describe allow-marimo &>/dev/null; then
   echo "Firewall rule deleted."
 else
   echo "Firewall rule allow-marimo not found."
+fi
+
+echo "Deleting persistent disk..."
+if gcloud compute disks describe ${DISK_NAME} --zone=${ZONE} &>/dev/null; then
+  gcloud compute disks delete ${DISK_NAME} --zone=${ZONE} --quiet
+  echo "Disk deleted."
+else
+  echo "Disk ${DISK_NAME} not found."
 fi
 
 echo "Teardown complete!"
