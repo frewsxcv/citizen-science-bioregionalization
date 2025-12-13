@@ -27,7 +27,7 @@ resource "google_project_service" "compute" {
 # Persistent disk for data storage
 resource "google_compute_disk" "data_disk" {
   name = "${var.instance_name}-data"
-  type = "pd-standard"
+  type = "pd-balanced"
   zone = var.zone
   size = var.disk_size
 
@@ -68,6 +68,7 @@ resource "google_compute_instance" "marimo" {
     initialize_params {
       image = "cos-cloud/cos-stable"
       size  = 10
+      type  = "pd-balanced"
     }
   }
 
@@ -85,6 +86,7 @@ resource "google_compute_instance" "marimo" {
   }
 
   metadata = {
+    google-monitoring-enabled = "true"
     startup-script = templatefile("${path.module}/startup_script.sh.tpl", {
       container_name = var.instance_name
       project_id     = var.project_id

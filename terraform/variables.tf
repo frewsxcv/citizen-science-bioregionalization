@@ -24,7 +24,7 @@ variable "instance_name" {
 variable "machine_type" {
   description = "Machine type for the compute instance"
   type        = string
-  default     = "e2-standard-2"
+  default     = "c3-highmem-4"
 }
 
 variable "disk_size" {
