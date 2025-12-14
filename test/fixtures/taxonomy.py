@@ -1,7 +1,7 @@
 import dataframely as dy
 import polars as pl
-from polars_darwin_core import Kingdom
 
+from src.constants import KINGDOM_VALUES
 from src.dataframes.taxonomy import TaxonomySchema
 
 
@@ -65,7 +65,7 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
     ]
     taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
         pl.col("taxonId").cast(pl.UInt32),
-        pl.col("kingdom").cast(pl.Enum(Kingdom)),
+        pl.col("kingdom").cast(pl.Enum(KINGDOM_VALUES)),
         pl.col("phylum").cast(pl.Categorical),
         pl.col("class").cast(pl.Categorical),
         pl.col("order").cast(pl.Categorical),

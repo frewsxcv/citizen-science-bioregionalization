@@ -1,9 +1,10 @@
 """Utility functions for working with Darwin Core data."""
 
 from pathlib import Path
-from typing import Any
 
 import polars as pl
+
+from src.dataframes.darwin_core import scan_darwin_core_archive
 
 
 def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
@@ -102,8 +103,7 @@ def load_darwin_core_data(
     max_lon: float,
     limit_results: int | None,
     taxon_filter: str = "",
-    polars_darwin_core: Any = None,
-) -> Any:
+) -> pl.LazyFrame:
     """
     Load Darwin Core data from either a Darwin Core archive or Parquet file.
 
@@ -117,10 +117,9 @@ def load_darwin_core_data(
         max_lon: Maximum longitude for bounding box filter
         limit_results: Maximum number of results to return
         taxon_filter: Optional taxon name to filter by (e.g., 'Aves')
-        polars_darwin_core: The polars_darwin_core module (must be passed in)
 
     Returns:
-        A DarwinCoreLazyFrame with filtered data
+        A LazyFrame with filtered Darwin Core data
     """
     # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
     path = Path(source_path)
@@ -145,9 +144,7 @@ def load_darwin_core_data(
 
     if is_darwin_core_archive:
         # Load from Darwin Core archive (already uses camelCase)
-        inner_lf = polars_darwin_core.DarwinCoreLazyFrame.from_archive(
-            source_path
-        )._inner
+        inner_lf = scan_darwin_core_archive(source_path)
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
@@ -158,6 +155,5 @@ def load_darwin_core_data(
     inner_lf = inner_lf.filter(base_filters)
     if limit_results is not None:
         inner_lf = inner_lf.limit(limit_results)
-    darwin_core_lazy_frame = polars_darwin_core.DarwinCoreLazyFrame(inner_lf)
 
-    return darwin_core_lazy_frame
+    return inner_lf

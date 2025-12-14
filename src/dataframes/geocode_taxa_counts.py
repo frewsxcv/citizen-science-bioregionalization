@@ -2,8 +2,8 @@ import logging
 
 import dataframely as dy
 import polars as pl
-from polars_darwin_core import DarwinCoreLazyFrame, Kingdom
 
+from src.constants import KINGDOM_VALUES
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
 from src.geocode import with_geocode_lazy_frame
@@ -20,7 +20,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_csv_lazy_frame: DarwinCoreLazyFrame,
+        darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
         taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
         geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
@@ -28,7 +28,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
         with Timer(output=logger.info, prefix="Reading rows"):
             # First, create the raw aggregation with the old schema
             raw_aggregated = (
-                darwin_core_csv_lazy_frame._inner.pipe(
+                darwin_core_csv_lazy_frame.pipe(
                     with_geocode_lazy_frame, geocode_precision=geocode_precision
                 )
                 .filter(
@@ -38,7 +38,9 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
                 .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
-                .cast({"kingdom": pl.Enum(Kingdom), "taxonRank": pl.Categorical()})
+                .cast(
+                    {"kingdom": pl.Enum(KINGDOM_VALUES), "taxonRank": pl.Categorical()}
+                )
                 .sort(by="geocode")
                 .collect(engine="streaming")
             )

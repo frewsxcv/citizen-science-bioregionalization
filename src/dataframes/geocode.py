@@ -7,7 +7,6 @@ import polars as pl
 import polars_h3
 import polars_st as pl_st
 import shapely.ops
-from polars_darwin_core import DarwinCoreLazyFrame
 from shapely import MultiPoint
 from shapely.geometry import box
 
@@ -33,12 +32,12 @@ class GeocodeSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_lazy_frame: DarwinCoreLazyFrame,
+        darwin_core_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
         bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeSchema"]:
         df = (
-            darwin_core_lazy_frame._inner.pipe(
+            darwin_core_lazy_frame.pipe(
                 select_geocode_lazy_frame, geocode_precision=geocode_precision
             )
             .filter(pl.col("geocode").is_not_null())

@@ -15,9 +15,8 @@ def _():
     import marimo as mo
     import numpy as np
     import polars as pl
-    import polars_darwin_core
 
-    return folium, mo, np, pl, polars_darwin_core
+    return folium, mo, np, pl
 
 
 @app.cell(hide_code=True)
@@ -197,7 +196,7 @@ def _(mo):
 
 
 @app.cell
-def _(args, mo, polars_darwin_core, run_button_ui):
+def _(args, mo, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
 
     darwin_core_lazy_frame = load_darwin_core_data(
@@ -208,7 +207,6 @@ def _(args, mo, polars_darwin_core, run_button_ui):
         max_lon=args.max_lon,
         limit_results=args.limit_results,
         taxon_filter=args.taxon_filter,
-        polars_darwin_core=polars_darwin_core,
     )
 
     if mo.running_in_notebook() and not args.no_stop:
@@ -219,7 +217,7 @@ def _(args, mo, polars_darwin_core, run_button_ui):
 
 @app.cell
 def _(darwin_core_lazy_frame):
-    darwin_core_lazy_frame._inner.select("gbifID").count().collect(engine="streaming")
+    darwin_core_lazy_frame.select("gbifID").count().collect(engine="streaming")
     return
 
 

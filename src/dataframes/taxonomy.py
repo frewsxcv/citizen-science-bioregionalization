@@ -1,7 +1,7 @@
 import dataframely as dy
 import polars as pl
-from polars_darwin_core import DarwinCoreLazyFrame, Kingdom
 
+from src.constants import KINGDOM_VALUES
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import with_geocode_lazy_frame
 
@@ -12,7 +12,7 @@ class TaxonomySchema(dy.Schema):
     """
 
     taxonId = dy.UInt32(nullable=False)  # Unique identifier for each taxon
-    kingdom = dy.Enum(Kingdom, nullable=True)
+    kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
     phylum = dy.Categorical(nullable=True)
     class_ = dy.Categorical(nullable=True, alias="class")
     order = dy.Categorical(nullable=True)
@@ -26,12 +26,12 @@ class TaxonomySchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_csv_lazy_frame: DarwinCoreLazyFrame,
+        darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
         geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["TaxonomySchema"]:
         df = (
-            darwin_core_csv_lazy_frame._inner.pipe(
+            darwin_core_csv_lazy_frame.pipe(
                 with_geocode_lazy_frame, geocode_precision=geocode_precision
             )
             .filter(
@@ -66,7 +66,7 @@ class TaxonomySchema(dy.Schema):
         df = df.with_row_index("taxonId").cast(
             {
                 "taxonId": pl.UInt32(),
-                "kingdom": pl.Enum(Kingdom),
+                "kingdom": pl.Enum(KINGDOM_VALUES),
                 "phylum": pl.Categorical(),
                 "class": pl.Categorical(),
                 "order": pl.Categorical(),

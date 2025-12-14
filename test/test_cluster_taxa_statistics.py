@@ -1,14 +1,14 @@
 import unittest
-import polars as pl
-from polars_darwin_core.darwin_core import kingdom_data_type
 from unittest.mock import patch
+
+import polars as pl
 
 from src.dataframes.cluster_taxa_statistics import (
     ClusterTaxaStatisticsSchema,
 )
-from test.fixtures.taxonomy import mock_taxonomy_dataframe
-from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_dataframe
 from test.fixtures.geocode_cluster import mock_geocode_cluster_dataframe
+from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_dataframe
+from test.fixtures.taxonomy import mock_taxonomy_dataframe
 
 
 class TestClusterTaxaStatistics(unittest.TestCase):

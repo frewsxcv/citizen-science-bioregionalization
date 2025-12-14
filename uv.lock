@@ -391,7 +391,6 @@ dependencies = [
     { name = "numba" },
     { name = "polars" },
     { name = "polars-cloud" },
-    { name = "polars-darwin-core" },
     { name = "polars-h3" },
     { name = "polars-st" },
     { name = "pyright" },
@@ -423,7 +422,6 @@ requires-dist = [
     { name = "numba", specifier = ">=0.61.0" },
     { name = "polars", specifier = ">=1.32.0" },
     { name = "polars-cloud", specifier = ">=0.4.1" },
-    { name = "polars-darwin-core", specifier = ">=4.0.0" },
     { name = "polars-h3", specifier = ">=0.5.1" },
     { name = "polars-st", specifier = ">=0.1.0a10" },
     { name = "pyright", specifier = ">=1.1.405" },
@@ -1031,17 +1029,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/d0/679bb3e8498851d30778a9cddc63dd421cea322c8fc4e50df870fbfaa248/polars_cloud-0.4.2-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:5436b26b386f364eec821bf6bac4ff3dbae312dead9761de9a2442b71ad70f74", size = 3460825, upload-time = "2025-12-10T15:15:38.891Z" },
     { url = "https://files.pythonhosted.org/packages/ed/0e/8b2b1989e168c821e9767c337d31ce567ef73fefc3240cf996ef22ee0418/polars_cloud-0.4.2-cp39-abi3-win_amd64.whl", hash = "sha256:5671709b7beff1f6fb94c4d182c64533179ce31fc922fc7f85385d33388418d0", size = 3060457, upload-time = "2025-12-10T15:15:40.483Z" },
     { url = "https://files.pythonhosted.org/packages/d5/04/c91bb1fbe9c88b672b81ac1d92e0839f0ed8e8f23a27401138de2d916c95/polars_cloud-0.4.2-cp39-abi3-win_arm64.whl", hash = "sha256:fa137d799bc8314844d2f638724f826c3226d7eff0787002836b7b6d686a6e39", size = 2918591, upload-time = "2025-12-10T15:15:42.381Z" },
-]
-
-[[package]]
-name = "polars-darwin-core"
-version = "4.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "polars" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/32/29/c53a40fd1605de64705b42ee22ffff89e053850ddc4feb70b645c8ce3618/polars_darwin_core-4.1.0-py3-none-any.whl", hash = "sha256:0514ca2fb6f95e3c739715ea00e96da012b533c44ea153ce9e4634f33af0ff6e", size = 6893, upload-time = "2025-11-01T05:32:13.861Z" },
 ]
 
 [[package]]
