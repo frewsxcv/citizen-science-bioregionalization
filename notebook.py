@@ -963,7 +963,7 @@ def _(
     significant_taxa_images_dataframe,
     taxonomy_dataframe,
 ):
-    from src.json_output import write_json_output
+    from src.output import write_json_output
 
     # write_json_output(
     #     cluster_significant_differences_dataframe,
