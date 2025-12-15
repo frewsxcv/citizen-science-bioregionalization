@@ -212,84 +212,62 @@ def _df_to_graph(
     return graph
 
 
+def _add_indirect_neighbor_edge(
+    df: pl.DataFrame, geocode1: int, geocode2: int
+) -> pl.DataFrame:
+    """Add a bidirectional indirect neighbor connection between two geocodes."""
+    return df.with_columns(
+        pl.when(pl.col("geocode") == geocode1)
+        .then(pl.col("direct_and_indirect_neighbors").list.concat([geocode2]))
+        .when(pl.col("geocode") == geocode2)
+        .then(pl.col("direct_and_indirect_neighbors").list.concat([geocode1]))
+        .otherwise(pl.col("direct_and_indirect_neighbors"))
+        .alias("direct_and_indirect_neighbors")
+    )
+
+
 def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
     graph = _df_to_graph(df)
-    number_of_connected_components = nx.number_connected_components(graph)
-    while number_of_connected_components > 1:
+
+    while nx.number_connected_components(graph) > 1:
+        num_components = nx.number_connected_components(graph)
         logger.info(
-            f"More than one connected component (n={number_of_connected_components}), connecting the first with the closest node not in that component"
+            f"More than one connected component (n={num_components}), connecting the first with the closest node not in that component"
         )
-        components = nx.connected_components(graph)
-        first_component: set[int] = next(components)
 
-        first_component_nodes = list(
+        first_component: set[int] = next(nx.connected_components(graph))
+
+        # Build point-to-geocode mapping for efficient lookup
+        all_nodes = list(
             df.select(
-                pl_st.geom("center").st.to_shapely(),
+                pl_st.geom("center").st.to_shapely().alias("center"),
                 "geocode",
-            )
-            .filter(pl.col("geocode").is_in(first_component))
-            .iter_rows()
+                pl.col("direct_neighbors").list.len().alias("num_neighbors"),
+            ).iter_rows()
         )
-        first_component_points = [center1 for center1, _ in first_component_nodes]
+        point_to_geocode = {point.wkb: geocode for point, geocode, _ in all_nodes}
 
-        other_component_nodes = list(
-            df.filter(pl.col("direct_neighbors").list.len() != MAX_NUM_NEIGHBORS)
-            .filter(pl.col("geocode").is_in(first_component).not_())
-            .select(
-                pl_st.geom("center").st.to_shapely(),
-                "geocode",
-            )
-            .iter_rows()
-        )
-        other_component_points = [center2 for center2, _ in other_component_nodes]
+        first_component_points = [p for p, g, _ in all_nodes if g in first_component]
+        other_component_points = [
+            p
+            for p, g, n in all_nodes
+            if g not in first_component and n != MAX_NUM_NEIGHBORS
+        ]
 
         p1, p2 = shapely.ops.nearest_points(
             MultiPoint(first_component_points),
             MultiPoint(other_component_points),
         )
 
-        geocode1 = None
-        for i, node in enumerate(first_component_points):
-            if node.equals_exact(p1, 1e-6):
-                geocode1 = first_component_nodes[i][1]
-                break
-
-        geocode2 = None
-        for i, node in enumerate(other_component_points):
-            if node.equals_exact(p2, 1e-6):
-                geocode2 = other_component_nodes[i][1]
-                break
+        geocode1 = point_to_geocode.get(p1.wkb)
+        geocode2 = point_to_geocode.get(p2.wkb)
 
         if geocode1 is None or geocode2 is None:
             raise ValueError("No closest pair found")
 
-        # Add edge between the closest nodes in both the graph and connectivity matrix
         logger.info(f"Adding edge between {geocode1} and {geocode2}")
         graph.add_edge(geocode1, geocode2)
-        df = df.with_columns(
-            pl.when(pl.col("geocode") == geocode1)
-            .then(
-                pl.concat_list(
-                    [
-                        pl.col("direct_and_indirect_neighbors"),
-                        pl.lit([geocode2], dtype=pl.List(pl.UInt64)),
-                    ]
-                )
-            )
-            .when(pl.col("geocode") == geocode2)
-            .then(
-                pl.concat_list(
-                    [
-                        pl.col("direct_and_indirect_neighbors"),
-                        pl.lit([geocode1], dtype=pl.List(pl.UInt64)),
-                    ]
-                )
-            )
-            .otherwise(pl.col("direct_and_indirect_neighbors"))
-            .alias("direct_and_indirect_neighbors")
-        )
-
-        number_of_connected_components = nx.number_connected_components(graph)
+        df = _add_indirect_neighbor_edge(df, geocode1, geocode2)
 
     return df
 
