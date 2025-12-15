@@ -63,9 +63,9 @@ class GeocodeSchema(dy.Schema):
                 ),
             )
             .with_columns(
-                direct_neighbors=pl.col(
-                    "direct_neighbors_including_unknown"
-                ).list.set_intersection(pl.col("known_geocodes")),
+                direct_neighbors=pl.col("direct_neighbors_including_unknown")
+                .list.set_intersection(pl.col("known_geocodes"))
+                .cast(pl.List(pl.UInt64)),
             )
             .with_columns(
                 direct_and_indirect_neighbors=pl.col("direct_neighbors"),
@@ -222,6 +222,7 @@ def _add_indirect_neighbor_edge(
         .when(pl.col("geocode") == geocode2)
         .then(pl.col("direct_and_indirect_neighbors").list.concat([geocode1]))
         .otherwise(pl.col("direct_and_indirect_neighbors"))
+        .cast(pl.List(pl.UInt64))
         .alias("direct_and_indirect_neighbors")
     )
 
