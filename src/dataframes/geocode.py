@@ -174,6 +174,10 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
             ).list.set_intersection(valid_geocodes_lit),
         )
 
+        # After removing edge geocodes, we may have disconnected components again
+        # (e.g., if indirect connections went through edge geocodes)
+        df = _reduce_connected_components_to_one(df)
+
         logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
 
         return cls.validate(df)
