@@ -20,15 +20,17 @@ class ClusterBoundarySchema(dy.Schema):
     def build(
         cls,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["ClusterBoundarySchema"]:
         clusters: List[int] = []
         boundaries: List[shapely.Polygon] = []
 
         # Create a mapping of geocode to boundary for faster lookup
         geocode_to_boundary: Dict[str, bytes] = {}
-        for row in geocode_dataframe.select("geocode", "boundary").iter_rows(
-            named=True
+        for row in (
+            geocode_lf.select("geocode", "boundary")
+            .collect(engine="streaming")
+            .iter_rows(named=True)
         ):
             geocode_to_boundary[row["geocode"]] = row["boundary"]
 

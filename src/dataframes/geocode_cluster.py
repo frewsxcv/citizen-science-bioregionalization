@@ -21,12 +21,18 @@ class GeocodeClusterSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
     ) -> dy.DataFrame["GeocodeClusterSchema"]:
-        geocodes = geocode_dataframe["geocode"]
+        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
+        geocode_df = (
+            geocode_dataframe.collect()
+            if isinstance(geocode_dataframe, pl.LazyFrame)
+            else geocode_dataframe
+        )
+        geocodes = geocode_df["geocode"]
         clusters = AgglomerativeClustering(
             n_clusters=num_clusters,
             connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),  # type: ignore

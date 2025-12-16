@@ -139,26 +139,29 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
     @classmethod
     def from_geocode_schema(
         cls,
-        geocode_dataframe: dy.DataFrame[GeocodeSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeSchema],
     ) -> dy.DataFrame["GeocodeNoEdgesSchema"]:
         """Create a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
         Args:
-            geocode_dataframe: A validated GeocodeSchema dataframe
+            geocode_dataframe: A validated GeocodeSchema lazy dataframe
 
         Returns:
             A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
             and neighbor lists updated to exclude the removed edges.
         """
-        df = geocode_dataframe.clone()
-
-        # Get the set of edge geocodes to remove
-        edge_geocodes = set(df.filter(pl.col("is_edge"))["geocode"].to_list())
+        # Get the set of edge geocodes to remove by collecting just those rows
+        edge_geocodes = set(
+            geocode_dataframe.filter(pl.col("is_edge"))
+            .select("geocode")
+            .collect(engine="streaming")["geocode"]
+            .to_list()
+        )
 
         logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
 
-        # Filter out edge hexagons
-        df = df.filter(~pl.col("is_edge"))
+        # Filter out edge hexagons and collect to get valid geocodes
+        df = geocode_dataframe.filter(~pl.col("is_edge")).collect(engine="streaming")
 
         # Update neighbor lists to remove references to edge geocodes
         # Get the set of remaining valid geocodes

@@ -29,7 +29,7 @@ class PermanovaResultsSchema(dy.Schema):
         cls,
         geocode_distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         permutations: int = 999,  # Default permutations
     ) -> dy.DataFrame["PermanovaResultsSchema"]:
         """
@@ -48,7 +48,13 @@ class PermanovaResultsSchema(dy.Schema):
             An instance of PermanovaResultsDataFrame.
         """
         # Create the skbio DistanceMatrix object. Let ValueError propagate if IDs mismatch.
-        geocode_ids = geocode_dataframe["geocode"].to_list()
+        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
+        geocode_df = (
+            geocode_dataframe.collect()
+            if isinstance(geocode_dataframe, pl.LazyFrame)
+            else geocode_dataframe
+        )
+        geocode_ids = geocode_df["geocode"].to_list()
         dm_skbio = DistanceMatrix(geocode_distance_matrix.condensed(), ids=geocode_ids)
 
         # Assert that all geocodes in the distance matrix have cluster assignments.
@@ -61,7 +67,7 @@ class PermanovaResultsSchema(dy.Schema):
         # Get cluster assignments in the correct order matching the distance matrix.
         # Join geocode_dataframe (which defines the order) with cluster assignments.
         # Inner join is safe because the assertion passed.
-        grouping_df = geocode_dataframe.join(
+        grouping_df = geocode_df.join(
             geocode_cluster_dataframe.select(["geocode", "cluster"]),
             on="geocode",
             how="inner",  # Should match all rows due to assertion
