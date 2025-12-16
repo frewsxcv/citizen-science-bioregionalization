@@ -242,7 +242,7 @@ def _(args, cache_parquet, darwin_core_lazy_frame):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
     from src.types import Bbox
 
-    geocode_dataframe_with_edges = cache_parquet(
+    geocode_lf_with_edges = cache_parquet(
         GeocodeSchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
@@ -253,23 +253,23 @@ def _(args, cache_parquet, darwin_core_lazy_frame):
         cache_key="GeocodeSchema",
     )
 
-    geocode_dataframe = cache_parquet(
+    geocode_lf = cache_parquet(
         GeocodeNoEdgesSchema.from_geocode_schema(
-            geocode_dataframe_with_edges,
+            geocode_lf_with_edges,
         ),
         cache_key="GeocodeNoEdgesSchema",
     )
 
-    geocode_dataframe
-    return geocode_dataframe, geocode_dataframe_with_edges
+    geocode_lf
+    return geocode_lf, geocode_lf_with_edges
 
 
 @app.cell(hide_code=True)
-def _(folium, geocode_dataframe, geocode_dataframe_with_edges, pl):
-    _center = geocode_dataframe.select(
+def _(folium, geocode_lf, geocode_lf_with_edges, pl):
+    _center = geocode_lf.select(
         pl.col("center").alias("geometry"),
     ).collect()
-    _boundary = geocode_dataframe_with_edges.select(
+    _boundary = geocode_lf_with_edges.select(
         pl.col("boundary").alias("geometry"),
         pl.col("is_edge"),
     ).collect()
@@ -303,14 +303,14 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, darwin_core_lazy_frame, geocode_dataframe):
+def _(args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
     taxonomy_dataframe = cache_parquet(
         TaxonomySchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
-            geocode_dataframe,
+            geocode_lf,
         ),
         cache_key="TaxonomySchema",
     ).collect(engine="streaming")
@@ -332,7 +332,7 @@ def _(
     args,
     cache_parquet,
     darwin_core_lazy_frame,
-    geocode_dataframe,
+    geocode_lf,
     taxonomy_dataframe,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
@@ -342,7 +342,7 @@ def _(
             darwin_core_lazy_frame,
             args.geocode_precision,
             taxonomy_dataframe,
-            geocode_dataframe,
+            geocode_lf,
         ),
         cache_key="GeocodeTaxaCountsSchema",
     ).collect(engine="streaming")
@@ -360,10 +360,10 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_dataframe):
+def _(geocode_lf):
     from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 
-    geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_dataframe)
+    geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
 
     geocode_connectivity_matrix._connectivity_matrix
     return (geocode_connectivity_matrix,)
@@ -378,12 +378,12 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_dataframe, geocode_taxa_counts_dataframe, mo, np):
+def _(geocode_lf, geocode_taxa_counts_dataframe, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_dataframe,
-        geocode_dataframe,
+        geocode_lf,
     )
 
     mo.vstack(
@@ -416,14 +416,14 @@ def _(
     args,
     cache_parquet,
     geocode_connectivity_matrix,
-    geocode_dataframe,
+    geocode_lf,
     geocode_distance_matrix,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
     geocode_cluster_dataframe = cache_parquet(
         GeocodeClusterSchema.build(
-            geocode_dataframe,
+            geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
             args.num_clusters,
@@ -464,12 +464,12 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, geocode_cluster_dataframe, geocode_dataframe):
+def _(args, cache_parquet, geocode_cluster_dataframe, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
     cluster_neighbors_dataframe = cache_parquet(
         ClusterNeighborsSchema.build(
-            geocode_dataframe,
+            geocode_lf,
             geocode_cluster_dataframe,
         ),
         cache_key="ClusterNeighborsSchema",
@@ -610,13 +610,13 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, geocode_cluster_dataframe, geocode_dataframe):
+def _(args, cache_parquet, geocode_cluster_dataframe, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
     cluster_boundary_dataframe = cache_parquet(
         ClusterBoundarySchema.build(
             geocode_cluster_dataframe,
-            geocode_dataframe,
+            geocode_lf,
         ),
         cache_key="ClusterBoundarySchema",
     ).collect(engine="streaming")
@@ -752,7 +752,7 @@ def _(
     args,
     cache_parquet,
     geocode_cluster_dataframe,
-    geocode_dataframe,
+    geocode_lf,
     geocode_distance_matrix,
 ):
     from src.dataframes.permanova_results import PermanovaResultsSchema
@@ -761,7 +761,7 @@ def _(
         PermanovaResultsSchema.build(
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_dataframe=geocode_cluster_dataframe,
-            geocode_dataframe=geocode_dataframe,
+            geocode_dataframe=geocode_lf,
         ),
         cache_key="PermanovaResultsSchema",
     ).collect(engine="streaming")
@@ -951,7 +951,7 @@ def _(
     cluster_significant_differences_dataframe,
     cluster_taxa_statistics_dataframe,
     geocode_cluster_dataframe,
-    geocode_dataframe,
+    geocode_lf,
     geocode_distance_matrix,
     geocode_taxa_counts_dataframe,
     mo,
@@ -960,7 +960,7 @@ def _(
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
     heatmap = create_cluster_taxa_heatmap(
-        geocode_dataframe=geocode_dataframe,
+        geocode_dataframe=geocode_lf,
         geocode_cluster_dataframe=geocode_cluster_dataframe,
         cluster_colors_dataframe=cluster_colors_dataframe,
         geocode_distance_matrix=geocode_distance_matrix,
