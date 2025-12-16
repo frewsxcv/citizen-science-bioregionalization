@@ -10,13 +10,14 @@ from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
 
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
 def create_cluster_taxa_heatmap(
-    geocode_dataframe,
+    geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     cluster_colors_dataframe: dy.DataFrame["ClusterColorSchema"],
     geocode_distance_matrix,
@@ -28,36 +29,12 @@ def create_cluster_taxa_heatmap(
     cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
-    """
-    Create a heatmap visualization of taxa distributions across geocodes.
-
-    Parameters:
-    -----------
-    geocode_dataframe: DataContainer
-        The dataframe containing geocode data
-    geocode_cluster_dataframe: DataContainer
-        The dataframe with geocode-to-cluster mappings
-    cluster_colors_dataframe: DataContainer
-        The dataframe with cluster color information
-    geocode_distance_matrix: GeocodeDistanceMatrix
-        The distance matrix between geocodes
-    cluster_significant_differences_dataframe: DataContainer
-        The dataframe with significant taxonomic differences
-    taxonomy_dataframe: DataContainer
-        The dataframe with taxonomy information
-    geocode_taxa_counts_dataframe: DataContainer
-        The dataframe with taxa counts per geocode
-    cluster_taxa_statistics_dataframe: DataContainer
-        The dataframe with taxa statistics per cluster
-    limit_species: int, optional
-        If provided, limit the number of species shown in the heatmap
-
-    Returns:
-    --------
-    g: seaborn.ClusterGrid
-        The resulting clustermap visualization
-    """
-    ordered_geocodes = geocode_dataframe["geocode"].unique()
+    ordered_geocodes = (
+        geocode_dataframe.select("geocode")
+        .unique()
+        .collect(engine="streaming")
+        .to_series()
+    )
 
     # Create color mapping for geocodes by cluster
     col_colors = []
