@@ -214,7 +214,7 @@ def _(args, cache_parquet, mo, run_button_ui):
             limit_results=args.limit_results,
             taxon_filter=args.taxon_filter,
         ),
-        cache_key=f"darwin_core_{args.parquet_source_path}_{args.min_lat}_{args.max_lat}_{args.min_lon}_{args.max_lon}_{args.limit_results}_{args.taxon_filter}",
+        cache_key="darwin_core",
     )
 
     if mo.running_in_notebook() and not args.no_stop:
@@ -250,14 +250,14 @@ def _(args, cache_parquet, darwin_core_lazy_frame):
                 args.min_lat, args.max_lat, args.min_lon, args.max_lon
             ),
         ),
-        cache_key=f"geocode_with_edges_{args.geocode_precision}_{args.min_lat}_{args.max_lat}_{args.min_lon}_{args.max_lon}",
+        cache_key="GeocodeSchema",
     )
 
     geocode_dataframe = cache_parquet(
         GeocodeNoEdgesSchema.from_geocode_schema(
             geocode_dataframe_with_edges,
         ),
-        cache_key=f"geocode_{args.geocode_precision}_{args.min_lat}_{args.max_lat}_{args.min_lon}_{args.max_lon}",
+        cache_key="GeocodeNoEdgesSchema",
     )
 
     geocode_dataframe
@@ -312,7 +312,7 @@ def _(args, cache_parquet, darwin_core_lazy_frame, geocode_dataframe):
             args.geocode_precision,
             geocode_dataframe,
         ),
-        cache_key=f"taxonomy_{args.geocode_precision}",
+        cache_key="TaxonomySchema",
     ).collect(engine="streaming")
 
     taxonomy_dataframe
@@ -344,7 +344,7 @@ def _(
             taxonomy_dataframe,
             geocode_dataframe,
         ),
-        cache_key=f"geocode_taxa_counts_{args.geocode_precision}",
+        cache_key="GeocodeTaxaCountsSchema",
     ).collect(engine="streaming")
 
     geocode_taxa_counts_dataframe
@@ -428,7 +428,7 @@ def _(
             geocode_connectivity_matrix,
             args.num_clusters,
         ),
-        cache_key=f"geocode_cluster_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="GeocodeClusterSchema",
     ).collect(engine="streaming")
     return (geocode_cluster_dataframe,)
 
@@ -472,7 +472,7 @@ def _(args, cache_parquet, geocode_cluster_dataframe, geocode_dataframe):
             geocode_dataframe,
             geocode_cluster_dataframe,
         ),
-        cache_key=f"cluster_neighbors_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="ClusterNeighborsSchema",
     ).collect(engine="streaming")
     return (cluster_neighbors_dataframe,)
 
@@ -523,7 +523,7 @@ def _(
             geocode_cluster_dataframe,
             taxonomy_dataframe,
         ),
-        cache_key=f"cluster_taxa_statistics_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="ClusterTaxaStatisticsSchema",
     ).collect(engine="streaming")
     return (cluster_taxa_statistics_dataframe,)
 
@@ -574,7 +574,7 @@ def _(
             cluster_taxa_statistics_dataframe,
             cluster_neighbors_dataframe,
         ),
-        cache_key=f"cluster_significant_differences_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="ClusterSignificantDifferencesSchema",
     ).collect(engine="streaming")
     return (cluster_significant_differences_dataframe,)
 
@@ -618,7 +618,7 @@ def _(args, cache_parquet, geocode_cluster_dataframe, geocode_dataframe):
             geocode_cluster_dataframe,
             geocode_dataframe,
         ),
-        cache_key=f"cluster_boundary_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="ClusterBoundarySchema",
     ).collect(engine="streaming")
     return (cluster_boundary_dataframe,)
 
@@ -724,7 +724,7 @@ def _(
             color_method="taxonomic",
             # color_method="geographic",
         ),
-        cache_key=f"cluster_colors_{args.geocode_precision}_{args.num_clusters}_taxonomic",
+        cache_key="ClusterColorSchema",
     ).collect(engine="streaming")
 
     cluster_colors_dataframe
@@ -763,7 +763,7 @@ def _(
             geocode_cluster_dataframe=geocode_cluster_dataframe,
             geocode_dataframe=geocode_dataframe,
         ),
-        cache_key=f"permanova_results_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="PermanovaResultsSchema",
     ).collect(engine="streaming")
     return (permanova_results_dataframe,)
 
@@ -814,7 +814,7 @@ def _(
             geocode_distance_matrix,
             geocode_cluster_dataframe,
         ),
-        cache_key=f"geocode_silhouette_score_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="GeocodeSilhouetteScoreSchema",
     ).collect(engine="streaming")
     return (geocode_silhouette_score_dataframe,)
 
@@ -1002,7 +1002,7 @@ def _(
             cluster_significant_differences_dataframe,
             taxonomy_dataframe,
         ),
-        cache_key=f"significant_taxa_images_{args.geocode_precision}_{args.num_clusters}",
+        cache_key="SignificantTaxaImagesSchema",
     ).collect(engine="streaming")
     return (significant_taxa_images_dataframe,)
 
