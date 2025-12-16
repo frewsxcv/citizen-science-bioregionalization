@@ -28,15 +28,22 @@ class TaxonomySchema(dy.Schema):
         cls,
         darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["TaxonomySchema"]:
+        # Collect geocode list - handle both LazyFrame and DataFrame
+        geocode_df = (
+            geocode_dataframe.collect()
+            if isinstance(geocode_dataframe, pl.LazyFrame)
+            else geocode_dataframe
+        )
+
         df = (
             darwin_core_csv_lazy_frame.pipe(
                 with_geocode_lazy_frame, geocode_precision=geocode_precision
             )
             .filter(
                 # Ensure geocode exists and is not an edge
-                pl.col("geocode").is_in(geocode_dataframe["geocode"])
+                pl.col("geocode").is_in(geocode_df["geocode"])
             )
             .select(
                 "kingdom",

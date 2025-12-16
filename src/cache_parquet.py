@@ -1,49 +1,35 @@
 import hashlib
 import os
 import tempfile
-from typing import TypeVar, Union, overload
+from typing import TypeVar, cast, overload
 
+import dataframely as dy
 import polars as pl
 
-T = TypeVar("T", pl.LazyFrame, pl.DataFrame)
+SchemaT = TypeVar("SchemaT", bound=dy.Schema)
 
 
 @overload
 def cache_parquet(
-    data: pl.LazyFrame,
+    data: dy.LazyFrame[SchemaT],
     cache_key: str,
     cache_dir: str | None = None,
-) -> pl.LazyFrame: ...
+) -> dy.LazyFrame[SchemaT]: ...
 
 
 @overload
 def cache_parquet(
-    data: pl.DataFrame,
+    data: dy.DataFrame[SchemaT],
     cache_key: str,
     cache_dir: str | None = None,
-) -> pl.LazyFrame: ...
+) -> dy.LazyFrame[SchemaT]: ...
 
 
 def cache_parquet(
-    data: Union[pl.LazyFrame, pl.DataFrame],
+    data: dy.LazyFrame[SchemaT] | dy.DataFrame[SchemaT],
     cache_key: str,
     cache_dir: str | None = None,
-) -> pl.LazyFrame:
-    """
-    Cache a Polars LazyFrame or DataFrame as a parquet file for faster reloading.
-
-    This function creates a cached parquet version using the provided cache key.
-    If the cache already exists, it loads from the cache instead of re-processing
-    the data.
-
-    Args:
-        data: The LazyFrame or DataFrame to cache
-        cache_key: A unique string identifier for this cache (will be hashed)
-        cache_dir: Optional directory for cache files. Defaults to system temp directory.
-
-    Returns:
-        A new LazyFrame loaded from the cached parquet file
-    """
+) -> dy.LazyFrame[SchemaT]:
     # Hash the cache key to create a consistent filename
     cache_hash = hashlib.sha256(cache_key.encode()).hexdigest()
 
@@ -54,11 +40,9 @@ def cache_parquet(
 
     output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
 
-    # Write cache if it doesn't exist
-    if not os.path.exists(output_path):
-        if isinstance(data, pl.LazyFrame):
-            data.sink_parquet(output_path)
-        else:  # pl.DataFrame
-            data.write_parquet(output_path)
+    if isinstance(data, pl.LazyFrame):
+        data.sink_parquet(output_path)
+    else:
+        data.write_parquet(output_path)
 
-    return pl.scan_parquet(output_path)
+    return cast(dy.LazyFrame[SchemaT], pl.scan_parquet(output_path))

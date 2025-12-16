@@ -14,9 +14,16 @@ class ClusterNeighborsSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["ClusterNeighborsSchema"]:
+        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
+        geocode_df = (
+            geocode_dataframe.collect()
+            if isinstance(geocode_dataframe, pl.LazyFrame)
+            else geocode_dataframe
+        )
+
         # Get unique clusters
         unique_clusters = geocode_cluster_dataframe["cluster"].unique()
 
@@ -33,7 +40,7 @@ class ClusterNeighborsSchema(dy.Schema):
             geocode,
             direct_neighbors,
             direct_and_indirect_neighbors,
-        ) in geocode_dataframe.select(
+        ) in geocode_df.select(
             "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
         ).iter_rows(named=False):
             # Get the cluster of the current geocode

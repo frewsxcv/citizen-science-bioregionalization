@@ -1,3 +1,5 @@
+from typing import Union
+
 import dataframely as dy
 import numpy as np
 import polars as pl
@@ -54,7 +56,9 @@ def build_X(
     geocode_taxa_counts_dataframe: dy.DataFrame[
         geocode_taxa_counts.GeocodeTaxaCountsSchema
     ],
-    geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+    geocode_dataframe: Union[
+        dy.LazyFrame[GeocodeNoEdgesSchema], dy.DataFrame[GeocodeNoEdgesSchema]
+    ],
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -85,9 +89,14 @@ def build_X(
 
     # 3. Ensure the order of geocodes in the matrix matches the input geocode list.
     # This is crucial for later steps that rely on matching indices.
-    assert (
-        feature_matrix["geocode"].to_list() == geocode_dataframe["geocode"].to_list()
-    ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
+    geocode_list = (
+        geocode_dataframe.select("geocode").collect()["geocode"]
+        if isinstance(geocode_dataframe, pl.LazyFrame)
+        else geocode_dataframe["geocode"]
+    )
+    assert feature_matrix["geocode"].to_list() == geocode_list.to_list(), (
+        "Geocode order mismatch between pivoted matrix and geocode dataframe."
+    )
 
     # 4. Drop the geocode identifier column
     feature_matrix = log_action(
@@ -166,7 +175,7 @@ class GeocodeDistanceMatrix:
         geocode_taxa_counts_dataframe: dy.DataFrame[
             geocode_taxa_counts.GeocodeTaxaCountsSchema
         ],
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
+        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":

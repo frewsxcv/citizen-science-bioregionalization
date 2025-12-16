@@ -3,6 +3,7 @@ import logging
 import dataframely as dy
 import networkx as nx
 import numpy as np
+import polars as pl
 
 from src.dataframes.geocode import (
     GeocodeNoEdgesSchema,
@@ -20,16 +21,20 @@ class GeocodeConnectivityMatrix:
 
     @classmethod
     def build(
-        cls, geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema]
+        cls, geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema]
     ) -> "GeocodeConnectivityMatrix":
-        num_geocodes = len(geocode_dataframe)
+        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
+        if isinstance(geocode_dataframe, pl.LazyFrame):
+            geocode_df: dy.DataFrame[GeocodeNoEdgesSchema] = geocode_dataframe.collect()
+        else:
+            geocode_df = geocode_dataframe
+
+        num_geocodes = len(geocode_df)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
-        for i, neighbors in enumerate(
-            geocode_dataframe["direct_and_indirect_neighbors"]
-        ):
+        for i, neighbors in enumerate(geocode_df["direct_and_indirect_neighbors"]):
             for neighbor in neighbors:
-                j = index_of_geocode(neighbor, geocode_dataframe)
+                j = index_of_geocode(neighbor, geocode_df)
                 connectivity_matrix[i, j] = 1
 
         assert_one_connected_component(connectivity_matrix)
