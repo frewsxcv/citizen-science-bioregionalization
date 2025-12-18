@@ -17,7 +17,6 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
-
     return cache_parquet, folium, mo, np, pl
 
 
@@ -195,9 +194,6 @@ def _(mo):
     ## `DarwinCore`
     """)
     return
-
-
-# POTIJSEPOIJESTG REMOVE CACHE KEY?
 
 
 @app.cell
@@ -416,8 +412,8 @@ def _(
     args,
     cache_parquet,
     geocode_connectivity_matrix,
-    geocode_lf,
     geocode_distance_matrix,
+    geocode_lf,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
@@ -464,7 +460,7 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, geocode_cluster_dataframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_dataframe, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
     cluster_neighbors_lazyframe = cache_parquet(
@@ -509,7 +505,6 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     geocode_cluster_dataframe,
     geocode_taxa_counts_dataframe,
@@ -560,7 +555,6 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     cluster_neighbors_lazyframe,
     cluster_taxa_statistics_dataframe,
@@ -610,7 +604,7 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, geocode_cluster_dataframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_dataframe, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
     cluster_boundary_dataframe = cache_parquet(
@@ -708,7 +702,6 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     cluster_boundary_dataframe,
     cluster_neighbors_lazyframe,
@@ -749,11 +742,10 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     geocode_cluster_dataframe,
-    geocode_lf,
     geocode_distance_matrix,
+    geocode_lf,
 ):
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
@@ -799,13 +791,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    args,
-    cache_parquet,
-    cluster_neighbors_lazyframe,
-    geocode_cluster_dataframe,
-    geocode_distance_matrix,
-):
+def _(cache_parquet, geocode_cluster_dataframe, geocode_distance_matrix):
     from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
     geocode_silhouette_score_dataframe = cache_parquet(
@@ -950,8 +936,8 @@ def _(
     cluster_significant_differences_dataframe,
     cluster_taxa_statistics_dataframe,
     geocode_cluster_dataframe,
-    geocode_lf,
     geocode_distance_matrix,
+    geocode_lf,
     geocode_taxa_counts_dataframe,
     mo,
     taxonomy_dataframe,
@@ -989,7 +975,6 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     cluster_significant_differences_dataframe,
     taxonomy_dataframe,

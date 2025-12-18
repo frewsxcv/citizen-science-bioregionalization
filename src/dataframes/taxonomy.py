@@ -28,13 +28,10 @@ class TaxonomySchema(dy.Schema):
         cls,
         darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
-        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["TaxonomySchema"]:
-        # Collect geocode list - handle both LazyFrame and DataFrame
-        geocode_df = (
-            geocode_dataframe.collect()
-            if isinstance(geocode_dataframe, pl.LazyFrame)
-            else geocode_dataframe
+        geocodes = set(
+            geocode_lazyframe.select("geocode").collect(engine="streaming").to_series()
         )
 
         df = (
@@ -43,7 +40,7 @@ class TaxonomySchema(dy.Schema):
             )
             .filter(
                 # Ensure geocode exists and is not an edge
-                pl.col("geocode").is_in(geocode_df["geocode"])
+                pl.col("geocode").is_in(geocodes)
             )
             .select(
                 "kingdom",
@@ -63,8 +60,6 @@ class TaxonomySchema(dy.Schema):
                     "scientificName",  # Need to confirm this. Will there be different scientific names for the same GBIF taxon ID?
                     "gbifTaxonId",
                 ],
-                keep="any",  # Fastest - doesn't track order
-                maintain_order=False,  # Faster - no order tracking needed
             )
             .collect(engine="streaming")
         )
