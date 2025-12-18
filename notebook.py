@@ -467,14 +467,14 @@ def _(mo):
 def _(args, cache_parquet, geocode_cluster_dataframe, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
-    cluster_neighbors_dataframe = cache_parquet(
+    cluster_neighbors_lazyframe = cache_parquet(
         ClusterNeighborsSchema.build(
             geocode_lf,
             geocode_cluster_dataframe,
         ),
         cache_key="ClusterNeighborsSchema",
-    ).collect(engine="streaming")
-    return (cluster_neighbors_dataframe,)
+    )
+    return (cluster_neighbors_lazyframe,)
 
 
 @app.cell(hide_code=True)
@@ -486,8 +486,8 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_neighbors_dataframe):
-    cluster_neighbors_dataframe
+def _(cluster_neighbors_lazyframe):
+    cluster_neighbors_lazyframe.limit(3).collect()
     return
 
 
@@ -562,7 +562,7 @@ def _(mo):
 def _(
     args,
     cache_parquet,
-    cluster_neighbors_dataframe,
+    cluster_neighbors_lazyframe,
     cluster_taxa_statistics_dataframe,
 ):
     from src.dataframes.cluster_significant_differences import (
@@ -572,7 +572,7 @@ def _(
     cluster_significant_differences_dataframe = cache_parquet(
         ClusterSignificantDifferencesSchema.build(
             cluster_taxa_statistics_dataframe,
-            cluster_neighbors_dataframe,
+            cluster_neighbors_lazyframe,
         ),
         cache_key="ClusterSignificantDifferencesSchema",
     ).collect(engine="streaming")
@@ -711,14 +711,14 @@ def _(
     args,
     cache_parquet,
     cluster_boundary_dataframe,
-    cluster_neighbors_dataframe,
+    cluster_neighbors_lazyframe,
     cluster_taxa_statistics_dataframe,
 ):
     from src.dataframes.cluster_color import ClusterColorSchema
 
     cluster_colors_dataframe = cache_parquet(
         ClusterColorSchema.build(
-            cluster_neighbors_dataframe,
+            cluster_neighbors_lazyframe,
             cluster_boundary_dataframe,
             cluster_taxa_statistics_dataframe,
             color_method="taxonomic",
@@ -802,7 +802,7 @@ def _(mo):
 def _(
     args,
     cache_parquet,
-    cluster_neighbors_dataframe,
+    cluster_neighbors_lazyframe,
     geocode_cluster_dataframe,
     geocode_distance_matrix,
 ):
@@ -810,7 +810,6 @@ def _(
 
     geocode_silhouette_score_dataframe = cache_parquet(
         GeocodeSilhouetteScoreSchema.build(
-            cluster_neighbors_dataframe,
             geocode_distance_matrix,
             geocode_cluster_dataframe,
         ),

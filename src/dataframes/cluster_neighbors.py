@@ -85,10 +85,14 @@ class ClusterNeighborsSchema(dy.Schema):
 
 
 def to_graph(
-    cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
+    cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
 ) -> nx.Graph:
     """Convert the DataFrame back to a NetworkX graph."""
     G: nx.Graph[str] = nx.Graph()
+
+    cluster_neighbors_dataframe = cluster_neighbors_lazyframe.collect(
+        engine="streaming"
+    )
 
     # Add all clusters as nodes
     G.add_nodes_from(cluster_neighbors_dataframe["cluster"])

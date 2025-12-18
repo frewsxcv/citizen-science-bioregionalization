@@ -1,8 +1,6 @@
-import polars as pl
 import dataframely as dy
-import numpy as np
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
-from sklearn.metrics import silhouette_score, silhouette_samples  # type: ignore
+import polars as pl
+from sklearn.metrics import silhouette_samples, silhouette_score  # type: ignore
 
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
@@ -15,7 +13,6 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
         distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["GeocodeSilhouetteScoreSchema"]:

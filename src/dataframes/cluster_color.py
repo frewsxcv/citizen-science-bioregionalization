@@ -1,17 +1,19 @@
 from typing import Dict, List, Literal, Optional
-import polars as pl
+
 import dataframely as dy
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
+import matplotlib.colors as mcolors
+import networkx as nx
+import numpy as np
+import polars as pl
+import seaborn as sns
+import umap  # type: ignore
+from sklearn.manifold import MDS  # type: ignore
+
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
-import seaborn as sns
-import networkx as nx
-import numpy as np
-from sklearn.manifold import MDS  # type: ignore
-import matplotlib.colors as mcolors
-import umap  # type: ignore
 
 
 class ClusterColorSchema(dy.Schema):
@@ -22,7 +24,7 @@ class ClusterColorSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
+        cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_taxa_statistics_dataframe: Optional[
             dy.DataFrame[ClusterTaxaStatisticsSchema]
@@ -35,7 +37,7 @@ class ClusterColorSchema(dy.Schema):
         or taxonomic similarity-based coloring.
 
         Args:
-            cluster_neighbors_dataframe: Dataframe of cluster neighbors
+            cluster_neighbors_lazyframe: Lazyframe of cluster neighbors
             cluster_boundary_dataframe: Dataframe of cluster boundaries
             cluster_taxa_statistics_dataframe: Dataframe of cluster taxa statistics (required for taxonomic coloring)
             color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
@@ -46,12 +48,12 @@ class ClusterColorSchema(dy.Schema):
         """
         if color_method == "geographic":
             df = _build_geographic(
-                cluster_neighbors_dataframe, cluster_boundary_dataframe, ocean_threshold
+                cluster_neighbors_lazyframe, cluster_boundary_dataframe, ocean_threshold
             )
         elif color_method == "taxonomic":
-            assert (
-                cluster_taxa_statistics_dataframe is not None
-            ), "cluster_taxa_statistics_dataframe is required for taxonomic coloring"
+            assert cluster_taxa_statistics_dataframe is not None, (
+                "cluster_taxa_statistics_dataframe is required for taxonomic coloring"
+            )
             df = _build_taxonomic(cluster_taxa_statistics_dataframe)
         else:
             raise ValueError(f"Invalid color_method: {color_method}")
@@ -76,7 +78,7 @@ def to_dict(
 
 
 def _build_geographic(
-    cluster_neighbors_dataframe: dy.DataFrame[ClusterNeighborsSchema],
+    cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
     cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
     ocean_threshold: float = 0.90,
 ) -> pl.DataFrame:
@@ -87,7 +89,7 @@ def _build_geographic(
     # Import here to avoid circular imports
     from src.geojson import find_ocean_clusters
 
-    G = to_graph(cluster_neighbors_dataframe)
+    G = to_graph(cluster_neighbors_lazyframe)
 
     # Find ocean clusters
     ocean_clusters = set(
@@ -102,9 +104,7 @@ def _build_geographic(
     ocean_color_indices = {
         cluster: color_indices[cluster] for cluster in ocean_clusters
     }
-    land_color_indices = {
-        cluster: color_indices[cluster] for cluster in land_clusters
-    }
+    land_color_indices = {cluster: color_indices[cluster] for cluster in land_clusters}
 
     # Determine how many unique colors needed for each group
     num_ocean_colors = len(set(ocean_color_indices.values()))
@@ -118,9 +118,7 @@ def _build_geographic(
     ocean_palette_map = dict(
         zip(sorted(set(ocean_color_indices.values())), ocean_palette)
     )
-    land_palette_map = dict(
-        zip(sorted(set(land_color_indices.values())), land_palette)
-    )
+    land_palette_map = dict(zip(sorted(set(land_color_indices.values())), land_palette))
 
     # Map color indices to actual colors
     rows = []
@@ -160,17 +158,17 @@ def _build_taxonomic(
 
     # Assert that we have enough clusters for UMAP
     # UMAP has known issues with very small datasets when using precomputed metrics
-    assert (
-        len(clusters) >= 10
-    ), f"UMAP requires at least 10 clusters, got {len(clusters)}"
+    assert len(clusters) >= 10, (
+        f"UMAP requires at least 10 clusters, got {len(clusters)}"
+    )
 
     # Set appropriate parameters for UMAP
     n_components = 3  # Always use 3 dimensions for color mapping
 
     # Assert that we have enough samples for the chosen number of components
-    assert (
-        len(clusters) > n_components + 1
-    ), f"Need at least {n_components + 2} clusters for {n_components}D UMAP, got {len(clusters)}"
+    assert len(clusters) > n_components + 1, (
+        f"Need at least {n_components + 2} clusters for {n_components}D UMAP, got {len(clusters)}"
+    )
 
     # Set n_neighbors to be less than number of clusters
     n_neighbors = min(len(clusters) - 1, 5)

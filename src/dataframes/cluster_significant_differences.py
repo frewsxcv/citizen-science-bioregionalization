@@ -33,14 +33,15 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
     def build(
         cls,
         all_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
-        cluster_neighbors: dy.DataFrame[ClusterNeighborsSchema],
+        cluster_neighbors: dy.LazyFrame[ClusterNeighborsSchema],
     ) -> dy.DataFrame["ClusterSignificantDifferencesSchema"]:
         significant_differences = []
 
-        neighbors_map = {
-            row["cluster"]: row["direct_and_indirect_neighbors"]
-            for row in cluster_neighbors.iter_rows(named=True)
-        }
+        neighbors_map = dict(
+            cluster_neighbors.select("cluster", "direct_and_indirect_neighbors")
+            .collect(engine="streaming")
+            .iter_rows()
+        )
 
         for cluster in iter_cluster_ids(all_stats):
             if cluster is None:
