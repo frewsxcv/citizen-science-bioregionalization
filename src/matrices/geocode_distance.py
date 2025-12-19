@@ -12,7 +12,7 @@ from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.logging import log_action, logger
 
 
-def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
+def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
     """
     Create a matrix where each row is a geocode and each column is a taxon ID
 
@@ -45,20 +45,24 @@ def pivot_taxon_counts(taxon_counts: pl.DataFrame) -> pl.DataFrame:
     └─────────┴───────┴───────┴───────┴───┴───────┘
     ```
     """
+    # Get unique taxon IDs for the on_columns parameter (required for LazyFrame.pivot)
+    unique_taxon_ids = (
+        taxon_counts.select("taxonId").unique().collect(engine="streaming").to_series()
+    )
+
     return taxon_counts.pivot(
         on="taxonId",
+        on_columns=unique_taxon_ids,
         index="geocode",
         values="count",
-    )
+    ).sort(by="geocode")
 
 
 def build_X(
-    geocode_taxa_counts_dataframe: dy.DataFrame[
+    geocode_taxa_counts_lazyframe: dy.LazyFrame[
         geocode_taxa_counts.GeocodeTaxaCountsSchema
     ],
-    geocode_dataframe: Union[
-        dy.LazyFrame[GeocodeNoEdgesSchema], dy.DataFrame[GeocodeNoEdgesSchema]
-    ],
+    geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -76,7 +80,9 @@ def build_X(
     # 1. Pivot the table
     feature_matrix = log_action(
         "Pivoting taxon counts",
-        lambda: geocode_taxa_counts_dataframe.pipe(pivot_taxon_counts),
+        lambda: geocode_taxa_counts_lazyframe.pipe(pivot_taxon_counts).collect(
+            engine="streaming"
+        ),
     )
 
     assert feature_matrix.height > 1, "More than one geocode is required to cluster"
@@ -89,14 +95,9 @@ def build_X(
 
     # 3. Ensure the order of geocodes in the matrix matches the input geocode list.
     # This is crucial for later steps that rely on matching indices.
-    geocode_list = (
-        geocode_dataframe.select("geocode").collect()["geocode"]
-        if isinstance(geocode_dataframe, pl.LazyFrame)
-        else geocode_dataframe["geocode"]
-    )
-    assert feature_matrix["geocode"].to_list() == geocode_list.to_list(), (
-        "Geocode order mismatch between pivoted matrix and geocode dataframe."
-    )
+    assert feature_matrix["geocode"].equals(
+        geocode_lazyframe.collect(engine="streaming")["geocode"]
+    ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
 
     # 4. Drop the geocode identifier column
     feature_matrix = log_action(
@@ -172,16 +173,16 @@ class GeocodeDistanceMatrix:
     @classmethod
     def build(
         cls,
-        geocode_taxa_counts_dataframe: dy.DataFrame[
+        geocode_taxa_counts_lazyframe: dy.LazyFrame[
             geocode_taxa_counts.GeocodeTaxaCountsSchema
         ],
-        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
         scaled_feature_matrix = build_X(
-            geocode_taxa_counts_dataframe, geocode_dataframe
+            geocode_taxa_counts_lazyframe, geocode_lazyframe
         )
 
         # Dimensionality Reduction using UMAP

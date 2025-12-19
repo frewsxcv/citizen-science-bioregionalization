@@ -12,6 +12,7 @@ from src.dataframes.cluster_significant_differences import (
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
+from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
@@ -25,7 +26,7 @@ def create_cluster_taxa_heatmap(
         "ClusterSignificantDifferencesSchema"
     ],
     taxonomy_dataframe,
-    geocode_taxa_counts_dataframe,
+    geocode_taxa_counts_lazyframe: dy.LazyFrame[GeocodeTaxaCountsSchema],
     cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
@@ -67,16 +68,16 @@ def create_cluster_taxa_heatmap(
 
         for geocode in ordered_geocodes:
             geocode_counts_species = (
-                geocode_taxa_counts_dataframe.lazy()
-                .filter(pl.col("geocode") == geocode, pl.col("taxonId") == taxonId)
+                geocode_taxa_counts_lazyframe.filter(
+                    pl.col("geocode") == geocode, pl.col("taxonId") == taxonId
+                )
                 .select("count")
                 .sum()
                 .collect()
                 .item()
             )
             geocode_counts_all = (
-                geocode_taxa_counts_dataframe.lazy()
-                .filter(pl.col("geocode") == geocode)
+                geocode_taxa_counts_lazyframe.filter(pl.col("geocode") == geocode)
                 .select("count")
                 .sum()
                 .collect()

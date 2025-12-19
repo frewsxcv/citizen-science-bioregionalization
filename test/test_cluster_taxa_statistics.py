@@ -20,8 +20,8 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         and verifies that the build method correctly processes them.
         """
         taxonomy_lazyframe = mock_taxonomy_lazyframe()
-        geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe()
-        geocode_cluster_dataframe = mock_geocode_cluster_dataframe()
+        geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe().lazy()
+        geocode_cluster_dataframe = mock_geocode_cluster_dataframe().lazy()
 
         result = ClusterTaxaStatisticsSchema.build(
             geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_lazyframe

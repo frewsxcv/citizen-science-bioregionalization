@@ -8,7 +8,6 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    import os
     from pathlib import Path
 
     import folium
@@ -337,7 +336,7 @@ def _(
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
-    geocode_taxa_counts_dataframe = cache_parquet(
+    geocode_taxa_counts_lazyframe = cache_parquet(
         GeocodeTaxaCountsSchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
@@ -345,10 +344,10 @@ def _(
             geocode_lf,
         ),
         cache_key="GeocodeTaxaCountsSchema",
-    ).collect(engine="streaming")
+    )
 
-    geocode_taxa_counts_dataframe
-    return (geocode_taxa_counts_dataframe,)
+    geocode_taxa_counts_lazyframe
+    return (geocode_taxa_counts_lazyframe,)
 
 
 @app.cell(hide_code=True)
@@ -378,11 +377,11 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_dataframe, mo, np):
+def _(geocode_lf, geocode_taxa_counts_lazyframe, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
-        geocode_taxa_counts_dataframe,
+        geocode_taxa_counts_lazyframe,
         geocode_lf,
     )
 
@@ -421,7 +420,7 @@ def _(
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
-    geocode_cluster_dataframe = cache_parquet(
+    geocode_cluster_lazyframe = cache_parquet(
         GeocodeClusterSchema.build(
             geocode_lf,
             geocode_distance_matrix,
@@ -429,8 +428,8 @@ def _(
             args.num_clusters,
         ),
         cache_key="GeocodeClusterSchema",
-    ).collect(engine="streaming")
-    return (geocode_cluster_dataframe,)
+    )
+    return (geocode_cluster_lazyframe,)
 
 
 @app.cell(hide_code=True)
@@ -442,8 +441,8 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_cluster_dataframe):
-    geocode_cluster_dataframe.limit(3)
+def _(geocode_cluster_lazyframe):
+    geocode_cluster_lazyframe.limit(100).collect()
     return
 
 
@@ -464,13 +463,13 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_dataframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
     cluster_neighbors_lazyframe = cache_parquet(
         ClusterNeighborsSchema.build(
             geocode_lf,
-            geocode_cluster_dataframe,
+            geocode_cluster_lazyframe.collect(),
         ),
         cache_key="ClusterNeighborsSchema",
     )
@@ -510,16 +509,16 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    geocode_cluster_dataframe,
-    geocode_taxa_counts_dataframe,
+    geocode_cluster_lazyframe,
+    geocode_taxa_counts_lazyframe,
     taxonomy_lazyframe,
 ):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
     cluster_taxa_statistics_dataframe = cache_parquet(
         ClusterTaxaStatisticsSchema.build(
-            geocode_taxa_counts_dataframe,
-            geocode_cluster_dataframe,
+            geocode_taxa_counts_lazyframe,
+            geocode_cluster_lazyframe,
             taxonomy_lazyframe,
         ),
         cache_key="ClusterTaxaStatisticsSchema",
@@ -608,12 +607,12 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_dataframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
     cluster_boundary_dataframe = cache_parquet(
         ClusterBoundarySchema.build(
-            geocode_cluster_dataframe,
+            geocode_cluster_lazyframe.collect(),
             geocode_lf,
         ),
         cache_key="ClusterBoundarySchema",
@@ -747,7 +746,7 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    geocode_cluster_dataframe,
+    geocode_cluster_lazyframe,
     geocode_distance_matrix,
     geocode_lf,
 ):
@@ -756,7 +755,7 @@ def _(
     permanova_results_dataframe = cache_parquet(
         PermanovaResultsSchema.build(
             geocode_distance_matrix=geocode_distance_matrix,
-            geocode_cluster_dataframe=geocode_cluster_dataframe,
+            geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
             geocode_dataframe=geocode_lf,
         ),
         cache_key="PermanovaResultsSchema",
@@ -795,13 +794,13 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_dataframe, geocode_distance_matrix):
+def _(cache_parquet, geocode_cluster_lazyframe, geocode_distance_matrix):
     from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
     geocode_silhouette_score_dataframe = cache_parquet(
         GeocodeSilhouetteScoreSchema.build(
             geocode_distance_matrix,
-            geocode_cluster_dataframe,
+            geocode_cluster_lazyframe.collect(),
         ),
         cache_key="GeocodeSilhouetteScoreSchema",
     ).collect(engine="streaming")
@@ -825,14 +824,14 @@ def _(geocode_silhouette_score_dataframe):
 @app.cell
 def _(
     cluster_colors_dataframe,
-    geocode_cluster_dataframe,
+    geocode_cluster_lazyframe,
     geocode_distance_matrix,
     geocode_silhouette_score_dataframe,
 ):
     from src.plot.silhouette_score import plot_silhouette_scores
 
     plot_silhouette_scores(
-        geocode_cluster_dataframe,
+        geocode_cluster_lazyframe.collect(),
         geocode_distance_matrix,
         geocode_silhouette_score_dataframe,
         cluster_colors_dataframe,
@@ -912,14 +911,14 @@ def _(mo):
 @app.cell
 def _(
     cluster_colors_dataframe,
-    geocode_cluster_dataframe,
+    geocode_cluster_lazyframe,
     geocode_distance_matrix,
 ):
     from src.plot.dimnesionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
         geocode_distance_matrix,
-        geocode_cluster_dataframe,
+        geocode_cluster_lazyframe.collect(),
         cluster_colors_dataframe,
         method="umap",
     )
@@ -939,10 +938,10 @@ def _(
     cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
     cluster_taxa_statistics_dataframe,
-    geocode_cluster_dataframe,
+    geocode_cluster_lazyframe,
     geocode_distance_matrix,
     geocode_lf,
-    geocode_taxa_counts_dataframe,
+    geocode_taxa_counts_lazyframe,
     mo,
     taxonomy_lazyframe,
 ):
@@ -950,12 +949,12 @@ def _(
 
     heatmap = create_cluster_taxa_heatmap(
         geocode_dataframe=geocode_lf,
-        geocode_cluster_dataframe=geocode_cluster_dataframe,
+        geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
         cluster_colors_dataframe=cluster_colors_dataframe,
         geocode_distance_matrix=geocode_distance_matrix,
         cluster_significant_differences_dataframe=cluster_significant_differences_dataframe,
         taxonomy_dataframe=taxonomy_lazyframe.collect(engine="streaming"),
-        geocode_taxa_counts_dataframe=geocode_taxa_counts_dataframe,
+        geocode_taxa_counts_lazyframe=geocode_taxa_counts_lazyframe,
         cluster_taxa_statistics_dataframe=cluster_taxa_statistics_dataframe,
         limit_species=5,
     )

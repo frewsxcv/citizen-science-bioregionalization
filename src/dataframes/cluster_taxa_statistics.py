@@ -20,18 +20,16 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
-        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+        geocode_taxa_counts_lazyframe: dy.LazyFrame[GeocodeTaxaCountsSchema],
+        geocode_cluster_lazyframe: dy.LazyFrame[GeocodeClusterSchema],
         taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
     ) -> dy.DataFrame["ClusterTaxaStatisticsSchema"]:
         df = pl.DataFrame()
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
-        joined = (
-            geocode_taxa_counts_dataframe.lazy()
-            .join(taxonomy_lazyframe, on="taxonId")
-            .collect(engine="streaming")
-        )
+        joined = geocode_taxa_counts_lazyframe.join(
+            taxonomy_lazyframe, on="taxonId"
+        ).collect(engine="streaming")
 
         # Total count of all observations
         total_count = joined["count"].sum()
@@ -49,10 +47,12 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
         )
 
         # Create a mapping from geocode to cluster
-        geocode_to_cluster = geocode_cluster_dataframe.select(["geocode", "cluster"])
+        geocode_to_cluster = geocode_cluster_lazyframe.select(["geocode", "cluster"])
 
         # Join the cluster information with the data
-        joined_with_cluster = joined.join(geocode_to_cluster, on="geocode", how="inner")
+        joined_with_cluster = joined.lazy().join(
+            geocode_to_cluster, on="geocode", how="inner"
+        )
 
         # Calculate total counts per cluster
         cluster_totals = joined_with_cluster.group_by("cluster").agg(
@@ -71,6 +71,7 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
             )
             .drop("total_count_in_cluster")
             .select(cls.columns().keys())  # Ensure columns are in the right order
+            .collect(engine="streaming")
         )
 
         # Add cluster-specific stats to the dataframe

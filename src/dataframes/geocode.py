@@ -181,6 +181,8 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         # (e.g., if indirect connections went through edge geocodes)
         df = _reduce_connected_components_to_one(df)
 
+        df = df.sort(by="geocode")
+
         logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
 
         return cls.validate(df)
