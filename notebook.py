@@ -943,7 +943,7 @@ def _(
     geocode_lf,
     geocode_taxa_counts_dataframe,
     mo,
-    taxonomy_dataframe,
+    taxonomy_lazyframe,
 ):
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
@@ -953,7 +953,7 @@ def _(
         cluster_colors_dataframe=cluster_colors_dataframe,
         geocode_distance_matrix=geocode_distance_matrix,
         cluster_significant_differences_dataframe=cluster_significant_differences_dataframe,
-        taxonomy_dataframe=taxonomy_dataframe,
+        taxonomy_dataframe=taxonomy_lazyframe.collect(engine="streaming"),
         geocode_taxa_counts_dataframe=geocode_taxa_counts_dataframe,
         cluster_taxa_statistics_dataframe=cluster_taxa_statistics_dataframe,
         limit_species=5,
@@ -980,14 +980,14 @@ def _(mo):
 def _(
     cache_parquet,
     cluster_significant_differences_dataframe,
-    taxonomy_dataframe,
+    taxonomy_lazyframe,
 ):
     from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
 
     significant_taxa_images_dataframe = cache_parquet(
         SignificantTaxaImagesSchema.build(
             cluster_significant_differences_dataframe,
-            taxonomy_dataframe,
+            taxonomy_lazyframe.collect(engine="streaming"),
         ),
         cache_key="SignificantTaxaImagesSchema",
     ).collect(engine="streaming")
