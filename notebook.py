@@ -243,14 +243,14 @@ def _(args, cache_parquet, darwin_core_lazy_frame):
                 args.min_lat, args.max_lat, args.min_lon, args.max_lon
             ),
         ),
-        cache_key="GeocodeSchema",
+        cache_key=GeocodeSchema,
     )
 
     geocode_lf = cache_parquet(
         GeocodeNoEdgesSchema.from_geocode_schema(
             geocode_lf_with_edges,
         ),
-        cache_key="GeocodeNoEdgesSchema",
+        cache_key=GeocodeNoEdgesSchema,
     )
 
     geocode_lf
@@ -305,7 +305,7 @@ def _(args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
             args.geocode_precision,
             geocode_lf,
         ),
-        cache_key="TaxonomySchema",
+        cache_key=TaxonomySchema,
     )
 
     taxonomy_lazyframe
@@ -343,11 +343,15 @@ def _(
             taxonomy_lazyframe,
             geocode_lf,
         ),
-        cache_key="GeocodeTaxaCountsSchema",
+        cache_key=GeocodeTaxaCountsSchema,
     )
-
-    geocode_taxa_counts_lazyframe
     return (geocode_taxa_counts_lazyframe,)
+
+
+@app.cell
+def _(geocode_taxa_counts_lazyframe):
+    geocode_taxa_counts_lazyframe.limit(100).collect(engine="streaming")
+    return
 
 
 @app.cell(hide_code=True)
@@ -427,7 +431,7 @@ def _(
             geocode_connectivity_matrix,
             args.num_clusters,
         ),
-        cache_key="GeocodeClusterSchema",
+        cache_key=GeocodeClusterSchema,
     )
     return (geocode_cluster_lazyframe,)
 
@@ -471,7 +475,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
             geocode_lf,
             geocode_cluster_lazyframe.collect(),
         ),
-        cache_key="ClusterNeighborsSchema",
+        cache_key=ClusterNeighborsSchema,
     )
     return (cluster_neighbors_lazyframe,)
 
@@ -521,7 +525,7 @@ def _(
             geocode_cluster_lazyframe,
             taxonomy_lazyframe,
         ),
-        cache_key="ClusterTaxaStatisticsSchema",
+        cache_key=ClusterTaxaStatisticsSchema,
     ).collect(engine="streaming")
     return (cluster_taxa_statistics_dataframe,)
 
@@ -571,7 +575,7 @@ def _(
             cluster_taxa_statistics_dataframe,
             cluster_neighbors_lazyframe,
         ),
-        cache_key="ClusterSignificantDifferencesSchema",
+        cache_key=ClusterSignificantDifferencesSchema,
     ).collect(engine="streaming")
     return (cluster_significant_differences_dataframe,)
 
@@ -615,7 +619,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
             geocode_cluster_lazyframe.collect(),
             geocode_lf,
         ),
-        cache_key="ClusterBoundarySchema",
+        cache_key=ClusterBoundarySchema,
     ).collect(engine="streaming")
     return (cluster_boundary_dataframe,)
 
@@ -720,7 +724,7 @@ def _(
             color_method="taxonomic",
             # color_method="geographic",
         ),
-        cache_key="ClusterColorSchema",
+        cache_key=ClusterColorSchema,
     ).collect(engine="streaming")
 
     cluster_colors_dataframe
@@ -758,7 +762,7 @@ def _(
             geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
             geocode_dataframe=geocode_lf,
         ),
-        cache_key="PermanovaResultsSchema",
+        cache_key=PermanovaResultsSchema,
     ).collect(engine="streaming")
     return (permanova_results_dataframe,)
 
@@ -802,7 +806,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_distance_matrix):
             geocode_distance_matrix,
             geocode_cluster_lazyframe.collect(),
         ),
-        cache_key="GeocodeSilhouetteScoreSchema",
+        cache_key=GeocodeSilhouetteScoreSchema,
     ).collect(engine="streaming")
     return (geocode_silhouette_score_dataframe,)
 
@@ -989,7 +993,7 @@ def _(
             cluster_significant_differences_dataframe,
             taxonomy_lazyframe.collect(engine="streaming"),
         ),
-        cache_key="SignificantTaxaImagesSchema",
+        cache_key=SignificantTaxaImagesSchema,
     ).collect(engine="streaming")
     return (significant_taxa_images_dataframe,)
 

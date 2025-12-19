@@ -12,7 +12,7 @@ SchemaT = TypeVar("SchemaT", bound=dy.Schema)
 @overload
 def cache_parquet(
     data: dy.LazyFrame[SchemaT],
-    cache_key: str,
+    cache_key: type[dy.Schema],
     cache_dir: str | None = None,
 ) -> dy.LazyFrame[SchemaT]: ...
 
@@ -20,18 +20,18 @@ def cache_parquet(
 @overload
 def cache_parquet(
     data: dy.DataFrame[SchemaT],
-    cache_key: str,
+    cache_key: type[dy.Schema],
     cache_dir: str | None = None,
 ) -> dy.LazyFrame[SchemaT]: ...
 
 
 def cache_parquet(
     data: dy.LazyFrame[SchemaT] | dy.DataFrame[SchemaT],
-    cache_key: str,
+    cache_key: type[dy.Schema],
     cache_dir: str | None = None,
 ) -> dy.LazyFrame[SchemaT]:
     # Hash the cache key to create a consistent filename
-    cache_hash = hashlib.sha256(cache_key.encode()).hexdigest()
+    cache_hash = hashlib.sha256(cache_key.__name__.encode()).hexdigest()
 
     # Set up cache directory
     if cache_dir is None:
