@@ -1,6 +1,7 @@
 from typing import Optional
-import polars as pl
+
 import dataframely as dy
+import polars as pl
 
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
@@ -21,13 +22,15 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
         cls,
         geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
+        taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
     ) -> dy.DataFrame["ClusterTaxaStatisticsSchema"]:
         df = pl.DataFrame()
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
-        joined = geocode_taxa_counts_dataframe.join(
-            taxonomy_dataframe, on="taxonId"
+        joined = (
+            geocode_taxa_counts_dataframe.lazy()
+            .join(taxonomy_lazyframe, on="taxonId")
+            .collect(engine="streaming")
         )
 
         # Total count of all observations

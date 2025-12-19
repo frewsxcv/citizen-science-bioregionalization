@@ -22,7 +22,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
         cls,
         darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
-        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
+        taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
         geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["GeocodeTaxaCountsSchema"]:
         with Timer(output=logger.info, prefix="Reading rows"):
@@ -33,36 +33,42 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 .to_list()
             )
 
-            # First, create the raw aggregation with the old schema
-            raw_aggregated = (
-                darwin_core_csv_lazy_frame.pipe(
-                    with_geocode_lazy_frame, geocode_precision=geocode_precision
+            aggregated = (
+                darwin_core_csv_lazy_frame.select(
+                    "decimalLatitude",
+                    "decimalLongitude",
+                    "scientificName",
+                    pl.col("taxonKey").alias("gbifTaxonId"),
+                )
+                .cast({"gbifTaxonId": pl.UInt32()})
+                .pipe(with_geocode_lazy_frame, geocode_precision=geocode_precision)
+                .select(
+                    "geocode",
+                    "scientificName",
+                    "gbifTaxonId",
                 )
                 .filter(
                     # Ensure geocode exists and is not an edge
                     pl.col("geocode").is_in(geocodes)
                 )
-                .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
-                .agg(pl.len().alias("count"))
-                .select(["geocode", "kingdom", "taxonRank", "scientificName", "count"])
-                .cast(
-                    {"kingdom": pl.Enum(KINGDOM_VALUES), "taxonRank": pl.Categorical()}
+                .join(
+                    taxonomy_lazyframe.select(  # TODO: don't call lazy() here
+                        ["taxonId", "scientificName", "gbifTaxonId"]
+                    ),
+                    on=["scientificName", "gbifTaxonId"],
+                    how="left",
                 )
+                .select(
+                    "geocode",
+                    "taxonId",
+                )
+                .group_by(["geocode", "taxonId"])
+                .agg(pl.len().alias("count"))
                 .sort(by="geocode")
+                # .show_graph(plan_stage="physical", engine="streaming")
                 .collect(engine="streaming")
+                # .collect_batches()
             )
-
-            # Join with taxonomy dataframe to get taxonId
-            joined = raw_aggregated.join(
-                taxonomy_dataframe.select(
-                    ["taxonId", "kingdom", "scientificName", "taxonRank"]
-                ),
-                on=["kingdom", "scientificName", "taxonRank"],
-                how="left",
-            )
-
-            # Select only the columns we need for our new schema
-            aggregated = joined.select(["geocode", "taxonId", "count"])
 
             # Handle any missing taxonId values (this shouldn't happen if taxonomy is comprehensive)
             if aggregated.filter(pl.col("taxonId").is_null()).height > 0:

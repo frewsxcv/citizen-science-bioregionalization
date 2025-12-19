@@ -197,20 +197,17 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, mo, run_button_ui):
+def _(args, mo, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
 
-    darwin_core_lazy_frame = cache_parquet(
-        load_darwin_core_data(
-            source_path=args.parquet_source_path,
-            min_lat=args.min_lat,
-            max_lat=args.max_lat,
-            min_lon=args.min_lon,
-            max_lon=args.max_lon,
-            limit_results=args.limit_results,
-            taxon_filter=args.taxon_filter,
-        ),
-        cache_key="darwin_core",
+    darwin_core_lazy_frame = load_darwin_core_data(
+        source_path=args.parquet_source_path,
+        min_lat=args.min_lat,
+        max_lat=args.max_lat,
+        min_lon=args.min_lon,
+        max_lon=args.max_lon,
+        limit_results=args.limit_results,
+        taxon_filter=args.taxon_filter,
     )
 
     if mo.running_in_notebook() and not args.no_stop:
@@ -302,17 +299,23 @@ def _(mo):
 def _(args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
-    taxonomy_dataframe = cache_parquet(
+    taxonomy_lazyframe = cache_parquet(
         TaxonomySchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
             geocode_lf,
         ),
         cache_key="TaxonomySchema",
-    ).collect(engine="streaming")
+    )
 
-    taxonomy_dataframe
-    return (taxonomy_dataframe,)
+    taxonomy_lazyframe
+    return (taxonomy_lazyframe,)
+
+
+@app.cell
+def _(taxonomy_lazyframe):
+    taxonomy_lazyframe.limit(100).collect(engine="streaming")
+    return
 
 
 @app.cell(hide_code=True)
@@ -329,7 +332,7 @@ def _(
     cache_parquet,
     darwin_core_lazy_frame,
     geocode_lf,
-    taxonomy_dataframe,
+    taxonomy_lazyframe,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
@@ -337,7 +340,7 @@ def _(
         GeocodeTaxaCountsSchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
-            taxonomy_dataframe,
+            taxonomy_lazyframe,
             geocode_lf,
         ),
         cache_key="GeocodeTaxaCountsSchema",
@@ -508,7 +511,7 @@ def _(
     cache_parquet,
     geocode_cluster_dataframe,
     geocode_taxa_counts_dataframe,
-    taxonomy_dataframe,
+    taxonomy_lazyframe,
 ):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
@@ -516,7 +519,7 @@ def _(
         ClusterTaxaStatisticsSchema.build(
             geocode_taxa_counts_dataframe,
             geocode_cluster_dataframe,
-            taxonomy_dataframe,
+            taxonomy_lazyframe,
         ),
         cache_key="ClusterTaxaStatisticsSchema",
     ).collect(engine="streaming")
