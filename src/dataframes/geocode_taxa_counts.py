@@ -30,6 +30,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 geocode_lazyframe.select("geocode")
                 .collect(engine="streaming")
                 .to_series()
+                .to_list()
             )
 
             # First, create the raw aggregation with the old schema
