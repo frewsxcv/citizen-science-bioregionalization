@@ -50,7 +50,7 @@ jobs:
             --no-stop \
             --geocode-precision ${{ matrix.geocode_precision }} \
             --num-clusters ${{ matrix.num_clusters }} \
-            --log-file run.log \
+            --log-file /dev/stdout \
             --min-lat ${{ matrix.min_lat }} \
             --max-lat ${{ matrix.max_lat }} \
             --min-lon ${{ matrix.min_lon }} \
