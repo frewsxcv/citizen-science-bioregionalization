@@ -30,7 +30,7 @@ class TaxonomySchema(dy.Schema):
         geocode_precision: int,
         geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["TaxonomySchema"]:
-        geocodes = set(
+        geocodes = (
             geocode_lazyframe.select("geocode").collect(engine="streaming").to_series()
         )
 

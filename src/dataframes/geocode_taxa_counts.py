@@ -23,14 +23,13 @@ class GeocodeTaxaCountsSchema(dy.Schema):
         darwin_core_csv_lazy_frame: pl.LazyFrame,
         geocode_precision: int,
         taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
-        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["GeocodeTaxaCountsSchema"]:
         with Timer(output=logger.info, prefix="Reading rows"):
-            # Collect geocode list - handle both LazyFrame and DataFrame
-            geocode_df = (
-                geocode_dataframe.collect()
-                if isinstance(geocode_dataframe, pl.LazyFrame)
-                else geocode_dataframe
+            geocodes = (
+                geocode_lazyframe.select("geocode")
+                .collect(engine="streaming")
+                .to_series()
             )
 
             # First, create the raw aggregation with the old schema
@@ -40,7 +39,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 )
                 .filter(
                     # Ensure geocode exists and is not an edge
-                    pl.col("geocode").is_in(geocode_df["geocode"])
+                    pl.col("geocode").is_in(geocodes)
                 )
                 .group_by(["geocode", "kingdom", "scientificName", "taxonRank"])
                 .agg(pl.len().alias("count"))
