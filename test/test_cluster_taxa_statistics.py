@@ -8,7 +8,7 @@ from src.dataframes.cluster_taxa_statistics import (
 )
 from test.fixtures.geocode_cluster import mock_geocode_cluster_dataframe
 from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_dataframe
-from test.fixtures.taxonomy import mock_taxonomy_dataframe
+from test.fixtures.taxonomy import mock_taxonomy_lazyframe
 
 
 class TestClusterTaxaStatistics(unittest.TestCase):
@@ -19,12 +19,12 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         This test creates input dataframes that match the expected schema
         and verifies that the build method correctly processes them.
         """
-        taxonomy_dataframe = mock_taxonomy_dataframe()
+        taxonomy_lazyframe = mock_taxonomy_lazyframe()
         geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe()
         geocode_cluster_dataframe = mock_geocode_cluster_dataframe()
 
         result = ClusterTaxaStatisticsSchema.build(
-            geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_dataframe
+            geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_lazyframe
         )
 
         # 5. Verify the result has the expected structure and values

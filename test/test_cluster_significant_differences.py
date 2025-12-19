@@ -1,10 +1,12 @@
 import unittest
-import polars as pl
+
 import dataframely as dy
+import polars as pl
+
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
 )
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
 
@@ -45,7 +47,7 @@ class TestClusterSignificantDifferences(unittest.TestCase):
 
         # Build significant differences
         significant_differences_df = ClusterSignificantDifferencesSchema.build(
-            cluster_taxa_stats, cluster_neighbors
+            cluster_taxa_stats, cluster_neighbors.lazy()
         )
 
         # Verify the filtering:

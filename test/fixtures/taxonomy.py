@@ -5,9 +5,9 @@ from src.constants import KINGDOM_VALUES
 from src.dataframes.taxonomy import TaxonomySchema
 
 
-def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
+def mock_taxonomy_lazyframe() -> dy.LazyFrame[TaxonomySchema]:
     """
-    Creates a mock TaxonomyDataFrame for testing.
+    Creates a mock TaxonomyLazyFrame for testing.
     """
     taxonomy_data = [
         {
@@ -74,4 +74,4 @@ def mock_taxonomy_dataframe() -> dy.DataFrame[TaxonomySchema]:
         pl.col("taxonRank").cast(pl.Categorical),
         pl.col("gbifTaxonId").cast(pl.UInt32),
     )
-    return TaxonomySchema.validate(taxonomy_df)
+    return TaxonomySchema.validate(taxonomy_df).lazy()

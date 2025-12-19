@@ -17,6 +17,7 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
+
     return cache_parquet, folium, mo, np, pl
 
 
@@ -1022,9 +1023,11 @@ def _(
     cluster_colors_dataframe,
     cluster_significant_differences_dataframe,
     significant_taxa_images_dataframe,
-    taxonomy_dataframe,
+    taxonomy_lazyframe,
 ):
     from src.output import write_json_output
+
+    taxonomy_dataframe = taxonomy_lazyframe.collect(engine="streaming")
 
     # write_json_output(
     #     cluster_significant_differences_dataframe,

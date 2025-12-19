@@ -1,12 +1,14 @@
 import unittest
-import polars as pl
-import networkx as nx
-import shapely
-import numpy as np
+
 import dataframely as dy
+import networkx as nx
+import numpy as np
+import polars as pl
+import shapely
+
+from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorSchema, to_dict
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.geojson import find_ocean_clusters
 from test.fixtures.cluster_taxa_statistics import (
@@ -51,7 +53,9 @@ class TestClusterColorSchema(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorSchema.build(cluster_neighbors, cluster_boundaries)
+        color_df = ClusterColorSchema.build(
+            cluster_neighbors.lazy(), cluster_boundaries
+        )
 
         # Get the colors
         colors_dict = to_dict(color_df)
@@ -115,7 +119,9 @@ class TestClusterColorSchema(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorSchema.build(cluster_neighbors, cluster_boundaries)
+        color_df = ClusterColorSchema.build(
+            cluster_neighbors.lazy(), cluster_boundaries
+        )
 
         # Get the colors
         colors_dict = to_dict(color_df)
@@ -170,7 +176,7 @@ class TestClusterColorSchema(unittest.TestCase):
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
             ClusterColorSchema.build(
-                cluster_neighbors,
+                cluster_neighbors.lazy(),
                 cluster_boundaries,
                 cluster_taxa_stats,
                 color_method="taxonomic",
@@ -267,7 +273,7 @@ class TestClusterColorSchema(unittest.TestCase):
 
         # Generate colors using the UMAP-based approach
         color_df = ClusterColorSchema.build(
-            cluster_neighbors,
+            cluster_neighbors.lazy(),
             cluster_boundaries,
             cluster_taxa_stats,
             color_method="taxonomic",
