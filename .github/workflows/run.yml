@@ -20,11 +20,11 @@ jobs:
             output_dir: output
           - name: gbif-snapshot
             source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
-            min_lat: 27
-            max_lat: 42
+            min_lat: 25
+            max_lat: 47
             min_lon: -87
             max_lon: -66
-            limit_results: 4000000
+            limit_results: 5000000
             geocode_precision: 5
             num_clusters: 10
             output_dir: output-gbif
