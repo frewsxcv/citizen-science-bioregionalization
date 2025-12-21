@@ -16,8 +16,9 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
+    from src.types import Bbox
 
-    return cache_parquet, folium, mo, np, pl
+    return Bbox, cache_parquet, folium, mo, np, pl
 
 
 @app.cell(hide_code=True)
@@ -231,9 +232,8 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, darwin_core_lazy_frame):
+def _(Bbox, args, cache_parquet, darwin_core_lazy_frame):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
-    from src.types import Bbox
 
     geocode_lf_with_edges = cache_parquet(
         GeocodeSchema.build(
@@ -296,9 +296,8 @@ def _(mo):
 
 
 @app.cell
-def _(args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
+def _(Bbox, args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
-    from src.types import Bbox
 
     taxonomy_lazyframe = cache_parquet(
         TaxonomySchema.build(
@@ -332,6 +331,7 @@ def _(mo):
 
 @app.cell
 def _(
+    Bbox,
     args,
     cache_parquet,
     darwin_core_lazy_frame,
@@ -339,7 +339,6 @@ def _(
     taxonomy_lazyframe,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
-    from src.types import Bbox
 
     geocode_taxa_counts_lazyframe = cache_parquet(
         GeocodeTaxaCountsSchema.build(
