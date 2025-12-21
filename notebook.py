@@ -298,12 +298,16 @@ def _(mo):
 @app.cell
 def _(args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
+    from src.types import Bbox
 
     taxonomy_lazyframe = cache_parquet(
         TaxonomySchema.build(
             darwin_core_lazy_frame,
             args.geocode_precision,
             geocode_lf,
+            bounding_box=Bbox.from_coordinates(
+                args.min_lat, args.max_lat, args.min_lon, args.max_lon
+            ),
         ),
         cache_key=TaxonomySchema,
     )
@@ -335,6 +339,7 @@ def _(
     taxonomy_lazyframe,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
+    from src.types import Bbox
 
     geocode_taxa_counts_lazyframe = cache_parquet(
         GeocodeTaxaCountsSchema.build(
@@ -342,6 +347,9 @@ def _(
             args.geocode_precision,
             taxonomy_lazyframe,
             geocode_lf,
+            bounding_box=Bbox.from_coordinates(
+                args.min_lat, args.max_lat, args.min_lon, args.max_lon
+            ),
         ),
         cache_key=GeocodeTaxaCountsSchema,
     )

@@ -6,8 +6,9 @@ import networkx as nx
 import polars as pl
 import polars_h3
 import polars_st as pl_st
+import shapely
 import shapely.ops
-from shapely import MultiPoint
+from shapely import MultiPoint, MultiPolygon
 from shapely.geometry import box
 
 from src.geocode import select_geocode_lazy_frame

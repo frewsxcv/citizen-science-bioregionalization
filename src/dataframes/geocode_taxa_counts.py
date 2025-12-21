@@ -6,7 +6,8 @@ import polars as pl
 from src.constants import KINGDOM_VALUES
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
-from src.geocode import with_geocode_lazy_frame
+from src.geocode import filter_by_bounding_box, with_geocode_lazy_frame
+from src.types import Bbox
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
         geocode_precision: int,
         taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
         geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeTaxaCountsSchema"]:
         geocodes = (
             geocode_lazyframe.select("geocode")
@@ -39,6 +41,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 pl.col("taxonKey").alias("gbifTaxonId"),
             )
             .cast({"gbifTaxonId": pl.UInt32()})
+            .pipe(filter_by_bounding_box, bounding_box=bounding_box)
             .pipe(with_geocode_lazy_frame, geocode_precision=geocode_precision)
             .select(
                 "geocode",
