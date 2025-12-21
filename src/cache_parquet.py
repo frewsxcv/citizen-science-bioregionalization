@@ -35,7 +35,10 @@ def cache_parquet(
 
     # Set up cache directory
     if cache_dir is None:
-        cache_dir = os.path.join(tempfile.gettempdir(), "polars_cache")
+        # Use DATA_DIR environment variable if set (persistent disk on GCP),
+        # otherwise fall back to system temp directory
+        base_dir = os.environ.get("DATA_DIR", tempfile.gettempdir())
+        cache_dir = os.path.join(base_dir, "polars_cache")
     os.makedirs(cache_dir, exist_ok=True)
 
     output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
