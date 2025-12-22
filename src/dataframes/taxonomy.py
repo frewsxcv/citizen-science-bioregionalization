@@ -26,13 +26,13 @@ class TaxonomySchema(dy.Schema):
     gbifTaxonId = dy.UInt32(nullable=True)
 
     @classmethod
-    def build_df(
+    def build_lf(
         cls,
         darwin_core_csv_lf: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
         geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         bounding_box: Bbox,
-    ) -> dy.DataFrame["TaxonomySchema"]:
+    ) -> dy.LazyFrame["TaxonomySchema"]:
         geocodes = (
             geocode_lf.select("geocode")
             .collect(engine="streaming")
@@ -40,7 +40,7 @@ class TaxonomySchema(dy.Schema):
             .to_list()
         )
 
-        df = (
+        lf = (
             darwin_core_csv_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
             .pipe(with_geocode_lf, geocode_precision=geocode_precision)
             .filter(
@@ -66,24 +66,8 @@ class TaxonomySchema(dy.Schema):
                     "gbifTaxonId",
                 ],
             )
-            .collect(engine="streaming")
+            # Add a unique taxonId for each row
+            .with_row_index("taxonId")
         )
 
-        # Add a unique taxonId for each row
-        # TODO: remove casitng
-        df = df.with_row_index("taxonId").cast(
-            {
-                "taxonId": pl.UInt32(),
-                "kingdom": pl.Enum(KINGDOM_VALUES),
-                "phylum": pl.Categorical(),
-                "class": pl.Categorical(),
-                "order": pl.Categorical(),
-                "family": pl.Categorical(),
-                "genus": pl.Categorical(),
-                "species": pl.String(),
-                "taxonRank": pl.Categorical(),
-                "gbifTaxonId": pl.UInt32(),
-            }
-        )
-
-        return cls.validate(df)
+        return cls.validate(lf, eager=False)

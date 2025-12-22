@@ -309,7 +309,7 @@ def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
     taxonomy_lf = cache_parquet(
-        TaxonomySchema.build_df(
+        TaxonomySchema.build_lf(
             darwin_core_lf,
             args.geocode_precision,
             geocode_lf,
