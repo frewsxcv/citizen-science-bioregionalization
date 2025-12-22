@@ -3,7 +3,7 @@ import logging
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
+from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
 from src.geocode import filter_by_bounding_box, with_geocode_lazy_frame
@@ -20,7 +20,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_csv_lazy_frame: pl.LazyFrame,
+        darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
         taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
         geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],

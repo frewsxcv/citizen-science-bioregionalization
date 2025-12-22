@@ -1,7 +1,8 @@
+from typing import Dict, List
+
 import dataframely as dy
 import polars as pl
 import requests
-from typing import List, Dict
 
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
@@ -64,7 +65,9 @@ class SignificantTaxaImagesSchema(dy.Schema):
         ],
         taxonomy_df: dy.DataFrame[TaxonomySchema],
     ) -> dy.DataFrame["SignificantTaxaImagesSchema"]:
-        significant_taxa_df = cluster_significant_differences_df.select("taxonId").unique()
+        significant_taxa_df = cluster_significant_differences_df.select(
+            "taxonId"
+        ).unique()
 
         significant_taxa_with_gbif = significant_taxa_df.join(
             taxonomy_df.select(["taxonId", "gbifTaxonId"]), on="taxonId"

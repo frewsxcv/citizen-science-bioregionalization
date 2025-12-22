@@ -11,6 +11,7 @@ import shapely.ops
 from shapely import MultiPoint, MultiPolygon
 from shapely.geometry import box
 
+from src.dataframes.darwin_core import DarwinCoreSchema
 from src.geocode import select_geocode_lazy_frame
 from src.types import Bbox, LatLng
 
@@ -33,7 +34,7 @@ class GeocodeSchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_lazy_frame: pl.LazyFrame,
+        darwin_core_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
         bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeSchema"]:

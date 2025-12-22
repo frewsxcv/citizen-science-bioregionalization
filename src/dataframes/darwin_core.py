@@ -270,7 +270,7 @@ class DarwinCoreSchema(dy.Schema):
         darwin_core_lazy_frame: pl.LazyFrame,
         bounding_box: Bbox,
         limit: Union[int, None] = None,
-    ) -> dy.DataFrame["DarwinCoreSchema"]:
+    ) -> dy.LazyFrame["DarwinCoreSchema"]:
         """Build a validated Darwin Core dataframe from a lazy frame.
 
         Args:
@@ -313,10 +313,7 @@ class DarwinCoreSchema(dy.Schema):
         if limit is not None:
             lf = lf.limit(limit)
 
-        # Collect and cast to proper types
-        df = lf.collect(engine="streaming")
-
-        df = df.cast(
+        lf = lf.cast(
             {
                 "decimalLatitude": pl.Float64(),
                 "decimalLongitude": pl.Float64(),
@@ -333,7 +330,7 @@ class DarwinCoreSchema(dy.Schema):
             }
         )
 
-        return cls.validate(df)
+        return cls.validate(lf, eager=False)
 
     @classmethod
     def from_archive(

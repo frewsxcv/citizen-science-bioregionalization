@@ -2,6 +2,7 @@ import dataframely as dy
 import polars as pl
 
 from src.constants import KINGDOM_VALUES
+from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lazy_frame
 from src.types import Bbox
@@ -27,7 +28,7 @@ class TaxonomySchema(dy.Schema):
     @classmethod
     def build(
         cls,
-        darwin_core_csv_lazy_frame: pl.LazyFrame,
+        darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
         geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         bounding_box: Bbox,

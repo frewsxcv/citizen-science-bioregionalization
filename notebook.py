@@ -17,7 +17,6 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
-
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -198,10 +197,11 @@ def _(mo):
 
 
 @app.cell
-def _(args, mo, run_button_ui):
+def _(Bbox, args, mo, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
+    from src.dataframes.darwin_core import DarwinCoreSchema
 
-    darwin_core_lazy_frame = load_darwin_core_data(
+    darwin_core_raw_lazy_frame = load_darwin_core_data(
         source_path=args.parquet_source_path,
         min_lat=args.min_lat,
         max_lat=args.max_lat,
@@ -211,15 +211,23 @@ def _(args, mo, run_button_ui):
         taxon_filter=args.taxon_filter,
     )
 
+    darwin_core_lf = DarwinCoreSchema.build(
+        darwin_core_raw_lazy_frame,
+        bounding_box=Bbox.from_coordinates(
+            args.min_lat, args.max_lat, args.min_lon, args.max_lon
+        ),
+        limit=None,  # Already limited by load_darwin_core_data
+    )
+
     if mo.running_in_notebook() and not args.no_stop:
         print("STOPPING")
         mo.stop(not run_button_ui.value)
-    return (darwin_core_lazy_frame,)
+    return (darwin_core_lf,)
 
 
 @app.cell
-def _(darwin_core_lazy_frame):
-    darwin_core_lazy_frame.select("gbifID").count().collect(engine="streaming")
+def _(darwin_core_lf, pl):
+    darwin_core_lf.select(pl.len()).collect(engine="streaming")
     return
 
 
@@ -232,12 +240,12 @@ def _(mo):
 
 
 @app.cell
-def _(Bbox, args, cache_parquet, darwin_core_lazy_frame):
+def _(Bbox, args, cache_parquet, darwin_core_lf):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
 
     geocode_lf_with_edges = cache_parquet(
         GeocodeSchema.build(
-            darwin_core_lazy_frame,
+            darwin_core_lf,
             args.geocode_precision,
             bounding_box=Bbox.from_coordinates(
                 args.min_lat, args.max_lat, args.min_lon, args.max_lon
@@ -296,12 +304,12 @@ def _(mo):
 
 
 @app.cell
-def _(Bbox, args, cache_parquet, darwin_core_lazy_frame, geocode_lf):
+def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
     taxonomy_lazyframe = cache_parquet(
         TaxonomySchema.build(
-            darwin_core_lazy_frame,
+            darwin_core_lf,
             args.geocode_precision,
             geocode_lf,
             bounding_box=Bbox.from_coordinates(
@@ -334,7 +342,7 @@ def _(
     Bbox,
     args,
     cache_parquet,
-    darwin_core_lazy_frame,
+    darwin_core_lf,
     geocode_lf,
     taxonomy_lazyframe,
 ):
@@ -342,7 +350,7 @@ def _(
 
     geocode_taxa_counts_lazyframe = cache_parquet(
         GeocodeTaxaCountsSchema.build(
-            darwin_core_lazy_frame,
+            darwin_core_lf,
             args.geocode_precision,
             taxonomy_lazyframe,
             geocode_lf,
