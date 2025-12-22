@@ -17,6 +17,7 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
+
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -211,7 +212,7 @@ def _(Bbox, args, mo, run_button_ui):
         taxon_filter=args.taxon_filter,
     )
 
-    darwin_core_lf = DarwinCoreSchema.build(
+    darwin_core_lf = DarwinCoreSchema.build_lf(
         darwin_core_raw_lazy_frame,
         bounding_box=Bbox.from_coordinates(
             args.min_lat, args.max_lat, args.min_lon, args.max_lon
@@ -244,7 +245,7 @@ def _(Bbox, args, cache_parquet, darwin_core_lf):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
 
     geocode_lf_with_edges = cache_parquet(
-        GeocodeSchema.build(
+        GeocodeSchema.build_df(
             darwin_core_lf,
             args.geocode_precision,
             bounding_box=Bbox.from_coordinates(
@@ -308,7 +309,7 @@ def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
     taxonomy_lazyframe = cache_parquet(
-        TaxonomySchema.build(
+        TaxonomySchema.build_df(
             darwin_core_lf,
             args.geocode_precision,
             geocode_lf,
@@ -349,7 +350,7 @@ def _(
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
     geocode_taxa_counts_lazyframe = cache_parquet(
-        GeocodeTaxaCountsSchema.build(
+        GeocodeTaxaCountsSchema.build_df(
             darwin_core_lf,
             args.geocode_precision,
             taxonomy_lazyframe,
@@ -440,7 +441,7 @@ def _(
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
     geocode_cluster_lazyframe = cache_parquet(
-        GeocodeClusterSchema.build(
+        GeocodeClusterSchema.build_df(
             geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
@@ -486,7 +487,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
     cluster_neighbors_lazyframe = cache_parquet(
-        ClusterNeighborsSchema.build(
+        ClusterNeighborsSchema.build_df(
             geocode_lf,
             geocode_cluster_lazyframe.collect(),
         ),
@@ -535,7 +536,7 @@ def _(
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
     cluster_taxa_statistics_dataframe = cache_parquet(
-        ClusterTaxaStatisticsSchema.build(
+        ClusterTaxaStatisticsSchema.build_df(
             geocode_taxa_counts_lazyframe,
             geocode_cluster_lazyframe,
             taxonomy_lazyframe,
@@ -586,7 +587,7 @@ def _(
     )
 
     cluster_significant_differences_dataframe = cache_parquet(
-        ClusterSignificantDifferencesSchema.build(
+        ClusterSignificantDifferencesSchema.build_df(
             cluster_taxa_statistics_dataframe,
             cluster_neighbors_lazyframe,
         ),
@@ -630,7 +631,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
     cluster_boundary_dataframe = cache_parquet(
-        ClusterBoundarySchema.build(
+        ClusterBoundarySchema.build_df(
             geocode_cluster_lazyframe.collect(),
             geocode_lf,
         ),
@@ -732,7 +733,7 @@ def _(
     from src.dataframes.cluster_color import ClusterColorSchema
 
     cluster_colors_dataframe = cache_parquet(
-        ClusterColorSchema.build(
+        ClusterColorSchema.build_df(
             cluster_neighbors_lazyframe,
             cluster_boundary_dataframe,
             cluster_taxa_statistics_dataframe,
@@ -772,7 +773,7 @@ def _(
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
     permanova_results_dataframe = cache_parquet(
-        PermanovaResultsSchema.build(
+        PermanovaResultsSchema.build_df(
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
             geocode_dataframe=geocode_lf,
@@ -817,7 +818,7 @@ def _(cache_parquet, geocode_cluster_lazyframe, geocode_distance_matrix):
     from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
     geocode_silhouette_score_dataframe = cache_parquet(
-        GeocodeSilhouetteScoreSchema.build(
+        GeocodeSilhouetteScoreSchema.build_df(
             geocode_distance_matrix,
             geocode_cluster_lazyframe.collect(),
         ),
@@ -1004,7 +1005,7 @@ def _(
     from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
 
     significant_taxa_images_dataframe = cache_parquet(
-        SignificantTaxaImagesSchema.build(
+        SignificantTaxaImagesSchema.build_df(
             cluster_significant_differences_dataframe,
             taxonomy_lazyframe.collect(engine="streaming"),
         ),

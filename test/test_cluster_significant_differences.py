@@ -46,7 +46,7 @@ class TestClusterSignificantDifferences(unittest.TestCase):
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Build significant differences
-        significant_differences_df = ClusterSignificantDifferencesSchema.build(
+        significant_differences_df = ClusterSignificantDifferencesSchema.build_df(
             cluster_taxa_stats, cluster_neighbors.lazy()
         )
 

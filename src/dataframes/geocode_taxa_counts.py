@@ -18,7 +18,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
     count = dy.UInt32(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,

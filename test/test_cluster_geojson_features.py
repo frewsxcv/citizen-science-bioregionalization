@@ -19,7 +19,7 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
 
     def test_build_cluster_geojson_features_dataframe(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build_df(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 
@@ -32,7 +32,7 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
 
     def test_get_feature_for_cluster(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build_df(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 
@@ -52,7 +52,7 @@ class TestClusterGeojsonFeaturesDataFrame(unittest.TestCase):
 
     def test_to_feature_collection(self):
         # Build the dataframe
-        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build(
+        cluster_geojson_features_dataframe = ClusterGeojsonFeaturesSchema.build_df(
             self.cluster_boundary_dataframe, self.cluster_colors_dataframe
         )
 

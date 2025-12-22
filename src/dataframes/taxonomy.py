@@ -26,7 +26,7 @@ class TaxonomySchema(dy.Schema):
     gbifTaxonId = dy.UInt32(nullable=True)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
@@ -72,6 +72,7 @@ class TaxonomySchema(dy.Schema):
         )
 
         # Add a unique taxonId for each row
+        # TODO: remove casitng
         df = df.with_row_index("taxonId").cast(
             {
                 "taxonId": pl.UInt32(),

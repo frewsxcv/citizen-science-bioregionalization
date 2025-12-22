@@ -19,7 +19,7 @@ class GeocodeClusterSchema(dy.Schema):
     cluster = dy.UInt32(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         distance_matrix: GeocodeDistanceMatrix,

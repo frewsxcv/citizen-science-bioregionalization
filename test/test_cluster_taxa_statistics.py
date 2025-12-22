@@ -23,7 +23,7 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe().lazy()
         geocode_cluster_dataframe = mock_geocode_cluster_dataframe().lazy()
 
-        result = ClusterTaxaStatisticsSchema.build(
+        result = ClusterTaxaStatisticsSchema.build_df(
             geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_lazyframe
         )
 

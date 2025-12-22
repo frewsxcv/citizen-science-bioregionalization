@@ -12,7 +12,7 @@ class ClusterNeighborsSchema(dy.Schema):
     direct_and_indirect_neighbors = dy.List(dy.UInt32(), nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],

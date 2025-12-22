@@ -1,11 +1,12 @@
-import polars as pl
-import geojson
 from typing import Optional
-import dataframely as dy
 
-from src.types import ClusterId
+import dataframely as dy
+import polars as pl
+
+import geojson
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorSchema
+from src.types import ClusterId
 
 
 class ClusterGeojsonFeaturesSchema(dy.Schema):
@@ -13,7 +14,7 @@ class ClusterGeojsonFeaturesSchema(dy.Schema):
     feature = dy.String(nullable=False)  # Serialized GeoJSON Feature
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
         cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],

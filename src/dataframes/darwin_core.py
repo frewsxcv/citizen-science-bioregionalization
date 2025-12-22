@@ -265,7 +265,7 @@ class DarwinCoreSchema(dy.Schema):
         )
 
     @classmethod
-    def build(
+    def build_lf(
         cls,
         darwin_core_lazy_frame: pl.LazyFrame,
         bounding_box: Bbox,
@@ -338,8 +338,8 @@ class DarwinCoreSchema(dy.Schema):
         path: Union[str, Path],
         bounding_box: Bbox,
         limit: Union[int, None] = None,
-    ) -> dy.DataFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core dataframe from an archive directory.
+    ) -> dy.LazyFrame["DarwinCoreSchema"]:
+        """Build a validated Darwin Core lazyframe from an archive directory.
 
         Args:
             path: Path to an unpacked Darwin Core archive directory
@@ -348,10 +348,10 @@ class DarwinCoreSchema(dy.Schema):
             limit: Optional maximum number of records to return.
 
         Returns:
-            A validated DataFrame conforming to DarwinCoreSchema.
+            A validated LazyFrame conforming to DarwinCoreSchema.
         """
         darwin_core_lazy_frame = scan_darwin_core_archive(path)
-        return cls.build(darwin_core_lazy_frame, bounding_box, limit)
+        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)
 
     @classmethod
     def from_csv(
@@ -359,8 +359,8 @@ class DarwinCoreSchema(dy.Schema):
         path: Union[str, Path],
         bounding_box: Bbox,
         limit: Union[int, None] = None,
-    ) -> dy.DataFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core dataframe from a CSV file.
+    ) -> dy.LazyFrame["DarwinCoreSchema"]:
+        """Build a validated Darwin Core lazyframe from a CSV file.
 
         Args:
             path: Path to a Darwin Core CSV file.
@@ -368,10 +368,10 @@ class DarwinCoreSchema(dy.Schema):
             limit: Optional maximum number of records to return.
 
         Returns:
-            A validated DataFrame conforming to DarwinCoreSchema.
+            A validated LazyFrame conforming to DarwinCoreSchema.
         """
         darwin_core_lazy_frame = scan_darwin_core_csv(path)
-        return cls.build(darwin_core_lazy_frame, bounding_box, limit)
+        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)
 
     @classmethod
     def from_parquet(
@@ -379,8 +379,8 @@ class DarwinCoreSchema(dy.Schema):
         path: Union[str, Path],
         bounding_box: Bbox,
         limit: Union[int, None] = None,
-    ) -> dy.DataFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core dataframe from a Parquet file.
+    ) -> dy.LazyFrame["DarwinCoreSchema"]:
+        """Build a validated Darwin Core lazyframe from a Parquet file.
 
         Args:
             path: Path to a Darwin Core Parquet file.
@@ -388,7 +388,7 @@ class DarwinCoreSchema(dy.Schema):
             limit: Optional maximum number of records to return.
 
         Returns:
-            A validated DataFrame conforming to DarwinCoreSchema.
+            A validated LazyFrame conforming to DarwinCoreSchema.
         """
         darwin_core_lazy_frame = scan_darwin_core_parquet(path)
-        return cls.build(darwin_core_lazy_frame, bounding_box, limit)
+        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)

@@ -58,7 +58,7 @@ class SignificantTaxaImagesSchema(dy.Schema):
     image_url = dy.String(nullable=True)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         cluster_significant_differences_df: dy.DataFrame[
             ClusterSignificantDifferencesSchema

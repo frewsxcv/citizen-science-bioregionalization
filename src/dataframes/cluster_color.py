@@ -22,7 +22,7 @@ class ClusterColorSchema(dy.Schema):
     darkened_color = dy.String(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
         cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],

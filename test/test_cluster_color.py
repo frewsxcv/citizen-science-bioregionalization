@@ -53,7 +53,7 @@ class TestClusterColorSchema(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorSchema.build(
+        color_df = ClusterColorSchema.build_df(
             cluster_neighbors.lazy(), cluster_boundaries
         )
 
@@ -119,7 +119,7 @@ class TestClusterColorSchema(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors
-        color_df = ClusterColorSchema.build(
+        color_df = ClusterColorSchema.build_df(
             cluster_neighbors.lazy(), cluster_boundaries
         )
 
@@ -175,7 +175,7 @@ class TestClusterColorSchema(unittest.TestCase):
 
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
-            ClusterColorSchema.build(
+            ClusterColorSchema.build_df(
                 cluster_neighbors.lazy(),
                 cluster_boundaries,
                 cluster_taxa_stats,
@@ -272,7 +272,7 @@ class TestClusterColorSchema(unittest.TestCase):
         cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
 
         # Generate colors using the UMAP-based approach
-        color_df = ClusterColorSchema.build(
+        color_df = ClusterColorSchema.build_df(
             cluster_neighbors.lazy(),
             cluster_boundaries,
             cluster_taxa_stats,

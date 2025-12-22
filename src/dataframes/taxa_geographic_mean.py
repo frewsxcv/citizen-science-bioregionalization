@@ -18,7 +18,7 @@ class TaxaGeographicMeanSchema(dy.Schema):
     mean_lon = dy.Float64(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
         geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],

@@ -30,7 +30,7 @@ class ClusterSignificantDifferencesSchema(dy.Schema):
     low_log2_high_count_score = dy.Float64(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         all_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
         cluster_neighbors: dy.LazyFrame[ClusterNeighborsSchema],

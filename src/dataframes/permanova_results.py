@@ -25,7 +25,7 @@ class PermanovaResultsSchema(dy.Schema):
     permutations = dy.UInt64(nullable=False)  # Number of permutations used
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],

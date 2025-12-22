@@ -18,7 +18,7 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
     )  # average of taxa with `taxonId` within `cluster`
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_taxa_counts_lazyframe: dy.LazyFrame[GeocodeTaxaCountsSchema],
         geocode_cluster_lazyframe: dy.LazyFrame[GeocodeClusterSchema],

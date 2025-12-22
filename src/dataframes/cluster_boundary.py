@@ -17,7 +17,7 @@ class ClusterBoundarySchema(dy.Schema):
     geometry = dy.Binary()
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
         geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],

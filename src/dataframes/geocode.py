@@ -32,7 +32,7 @@ class GeocodeSchema(dy.Schema):
     is_edge = dy.Bool(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         darwin_core_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,

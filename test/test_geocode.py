@@ -54,7 +54,7 @@ class TestGeocodeSchema(unittest.TestCase):
 
         darwin_core_lazy_frame = darwin_core_lazy_frame.head()
 
-        geocode_df = GeocodeSchema.build(
+        geocode_df = GeocodeSchema.build_df(
             darwin_core_lazy_frame,
             geocode_precision=8,
             bounding_box=Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0),

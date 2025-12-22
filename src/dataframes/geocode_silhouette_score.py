@@ -11,7 +11,7 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
     silhouette_score = dy.Float64(nullable=False)
 
     @classmethod
-    def build(
+    def build_df(
         cls,
         distance_matrix: GeocodeDistanceMatrix,
         geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
