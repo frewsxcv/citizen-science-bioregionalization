@@ -255,14 +255,12 @@ class DarwinCoreSchema(dy.Schema):
     @dy.rule()
     def valid_latitude(cls) -> pl.Expr:
         """Validate that latitude is within valid range [-90, 90]."""
-        return (pl.col("decimalLatitude") >= -90) & (pl.col("decimalLatitude") <= 90)
+        return pl.col("decimalLatitude").is_between(-90, 90)
 
     @dy.rule()
     def valid_longitude(cls) -> pl.Expr:
         """Validate that longitude is within valid range [-180, 180]."""
-        return (pl.col("decimalLongitude") >= -180) & (
-            pl.col("decimalLongitude") <= 180
-        )
+        return pl.col("decimalLongitude").is_between(-180, 180)
 
     @classmethod
     def build_lf(
@@ -287,10 +285,12 @@ class DarwinCoreSchema(dy.Schema):
         lf = lf.filter(
             pl.col("decimalLatitude").is_not_null()
             & pl.col("decimalLongitude").is_not_null()
-            & (pl.col("decimalLatitude") >= bounding_box.min_lat)
-            & (pl.col("decimalLatitude") <= bounding_box.max_lat)
-            & (pl.col("decimalLongitude") >= bounding_box.min_lng)
-            & (pl.col("decimalLongitude") <= bounding_box.max_lng)
+            & pl.col("decimalLatitude").is_between(
+                bounding_box.min_lat, bounding_box.max_lat
+            )
+            & pl.col("decimalLongitude").is_between(
+                bounding_box.min_lng, bounding_box.max_lng
+            )
         )
 
         # Select only the columns we need

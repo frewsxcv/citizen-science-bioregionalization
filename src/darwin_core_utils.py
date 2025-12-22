@@ -131,10 +131,8 @@ def load_darwin_core_data(
     base_filters = (
         pl.col("decimalLatitude").is_not_null()
         & pl.col("decimalLongitude").is_not_null()
-        & (pl.col("decimalLatitude") >= min_lat)
-        & (pl.col("decimalLatitude") <= max_lat)
-        & (pl.col("decimalLongitude") >= min_lon)
-        & (pl.col("decimalLongitude") <= max_lon)
+        & pl.col("decimalLatitude").is_between(min_lat, max_lat)
+        & pl.col("decimalLongitude").is_between(min_lon, max_lon)
     )
 
     # Add taxon filter if specified
