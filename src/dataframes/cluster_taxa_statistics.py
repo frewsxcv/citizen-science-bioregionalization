@@ -20,16 +20,16 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        geocode_taxa_counts_lazyframe: dy.LazyFrame[GeocodeTaxaCountsSchema],
-        geocode_cluster_lazyframe: dy.LazyFrame[GeocodeClusterSchema],
-        taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
+        geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
+        geocode_cluster_lf: dy.LazyFrame[GeocodeClusterSchema],
+        taxonomy_lf: dy.LazyFrame[TaxonomySchema],
     ) -> dy.DataFrame["ClusterTaxaStatisticsSchema"]:
         df = pl.DataFrame()
 
         # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
-        joined = geocode_taxa_counts_lazyframe.join(
-            taxonomy_lazyframe, on="taxonId"
-        ).collect(engine="streaming")
+        joined = geocode_taxa_counts_lf.join(taxonomy_lf, on="taxonId").collect(
+            engine="streaming"
+        )
 
         # Total count of all observations
         total_count = joined["count"].sum()
@@ -47,7 +47,7 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
         )
 
         # Create a mapping from geocode to cluster
-        geocode_to_cluster = geocode_cluster_lazyframe.select(["geocode", "cluster"])
+        geocode_to_cluster = geocode_cluster_lf.select(["geocode", "cluster"])
 
         # Join the cluster information with the data
         joined_with_cluster = joined.lazy().join(
@@ -81,9 +81,9 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
 
 
 def iter_cluster_ids(
-    cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
 ) -> list[ClusterId]:
-    return cluster_taxa_statistics_dataframe["cluster"].unique().to_list()
+    return cluster_taxa_statistics_df["cluster"].unique().to_list()
 
 
 def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:

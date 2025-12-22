@@ -267,21 +267,21 @@ class DarwinCoreSchema(dy.Schema):
     @classmethod
     def build_lf(
         cls,
-        darwin_core_lazy_frame: pl.LazyFrame,
+        darwin_core_lf: pl.LazyFrame,
         bounding_box: Bbox,
         limit: Union[int, None] = None,
     ) -> dy.LazyFrame["DarwinCoreSchema"]:
         """Build a validated Darwin Core dataframe from a lazy frame.
 
         Args:
-            darwin_core_lazy_frame: A LazyFrame containing occurrence data.
+            darwin_core_lf: A LazyFrame containing occurrence data.
             bounding_box: Geographic bounding box to filter records.
             limit: Optional maximum number of records to return.
 
         Returns:
             A validated DataFrame conforming to DarwinCoreSchema.
         """
-        lf = darwin_core_lazy_frame
+        lf = darwin_core_lf
 
         # Apply geographic bounding box filter
         lf = lf.filter(
@@ -350,8 +350,8 @@ class DarwinCoreSchema(dy.Schema):
         Returns:
             A validated LazyFrame conforming to DarwinCoreSchema.
         """
-        darwin_core_lazy_frame = scan_darwin_core_archive(path)
-        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)
+        darwin_core_lf = scan_darwin_core_archive(path)
+        return cls.build_lf(darwin_core_lf, bounding_box, limit)
 
     @classmethod
     def from_csv(
@@ -370,8 +370,8 @@ class DarwinCoreSchema(dy.Schema):
         Returns:
             A validated LazyFrame conforming to DarwinCoreSchema.
         """
-        darwin_core_lazy_frame = scan_darwin_core_csv(path)
-        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)
+        darwin_core_lf = scan_darwin_core_csv(path)
+        return cls.build_lf(darwin_core_lf, bounding_box, limit)
 
     @classmethod
     def from_parquet(
@@ -390,5 +390,5 @@ class DarwinCoreSchema(dy.Schema):
         Returns:
             A validated LazyFrame conforming to DarwinCoreSchema.
         """
-        darwin_core_lazy_frame = scan_darwin_core_parquet(path)
-        return cls.build_lf(darwin_core_lazy_frame, bounding_box, limit)
+        darwin_core_lf = scan_darwin_core_parquet(path)
+        return cls.build_lf(darwin_core_lf, bounding_box, limit)

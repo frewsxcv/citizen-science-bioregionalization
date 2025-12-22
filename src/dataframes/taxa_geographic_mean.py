@@ -20,21 +20,19 @@ class TaxaGeographicMeanSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        geocode_taxa_counts_dataframe: dy.DataFrame[GeocodeTaxaCountsSchema],
-        geocode_dataframe: dy.DataFrame[GeocodeNoEdgesSchema],
-        taxonomy_dataframe: dy.DataFrame[TaxonomySchema],
+        geocode_taxa_counts_df: dy.DataFrame[GeocodeTaxaCountsSchema],
+        geocode_df: dy.DataFrame[GeocodeNoEdgesSchema],
+        taxonomy_df: dy.DataFrame[TaxonomySchema],
     ) -> dy.DataFrame["TaxaGeographicMeanSchema"]:
-        # Join geocode_taxa_counts with geocode_dataframe to get lat/lon
-        with_lat_lon = geocode_taxa_counts_dataframe.join(
-            geocode_dataframe.select("geocode", "lat", "lon"),
+        # Join geocode_taxa_counts with geocode_df to get lat/lon
+        with_lat_lon = geocode_taxa_counts_df.join(
+            geocode_df.select("geocode", "lat", "lon"),
             on="geocode",
         )
 
-        # Join with taxonomy_dataframe to get taxonomic info
+        # Join with taxonomy_df to get taxonomic info
         with_taxonomy = with_lat_lon.join(
-            taxonomy_dataframe.select(
-                "taxonId", "kingdom", "taxonRank", "scientificName"
-            ),
+            taxonomy_df.select("taxonId", "kingdom", "taxonRank", "scientificName"),
             on="taxonId",
         )
 

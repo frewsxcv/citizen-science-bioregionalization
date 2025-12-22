@@ -202,7 +202,7 @@ def _(Bbox, args, mo, run_button_ui):
     from src.darwin_core_utils import load_darwin_core_data
     from src.dataframes.darwin_core import DarwinCoreSchema
 
-    darwin_core_raw_lazy_frame = load_darwin_core_data(
+    darwin_core_raw_lf = load_darwin_core_data(
         source_path=args.parquet_source_path,
         min_lat=args.min_lat,
         max_lat=args.max_lat,
@@ -213,7 +213,7 @@ def _(Bbox, args, mo, run_button_ui):
     )
 
     darwin_core_lf = DarwinCoreSchema.build_lf(
-        darwin_core_raw_lazy_frame,
+        darwin_core_raw_lf,
         bounding_box=Bbox.from_coordinates(
             args.min_lat, args.max_lat, args.min_lon, args.max_lon
         ),
@@ -308,7 +308,7 @@ def _(mo):
 def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
     from src.dataframes.taxonomy import TaxonomySchema
 
-    taxonomy_lazyframe = cache_parquet(
+    taxonomy_lf = cache_parquet(
         TaxonomySchema.build_df(
             darwin_core_lf,
             args.geocode_precision,
@@ -320,13 +320,13 @@ def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
         cache_key=TaxonomySchema,
     )
 
-    taxonomy_lazyframe
-    return (taxonomy_lazyframe,)
+    taxonomy_lf
+    return (taxonomy_lf,)
 
 
 @app.cell
-def _(taxonomy_lazyframe):
-    taxonomy_lazyframe.limit(100).collect(engine="streaming")
+def _(taxonomy_lf):
+    taxonomy_lf.limit(100).collect(engine="streaming")
     return
 
 
@@ -345,15 +345,15 @@ def _(
     cache_parquet,
     darwin_core_lf,
     geocode_lf,
-    taxonomy_lazyframe,
+    taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
-    geocode_taxa_counts_lazyframe = cache_parquet(
+    geocode_taxa_counts_lf = cache_parquet(
         GeocodeTaxaCountsSchema.build_df(
             darwin_core_lf,
             args.geocode_precision,
-            taxonomy_lazyframe,
+            taxonomy_lf,
             geocode_lf,
             bounding_box=Bbox.from_coordinates(
                 args.min_lat, args.max_lat, args.min_lon, args.max_lon
@@ -361,12 +361,12 @@ def _(
         ),
         cache_key=GeocodeTaxaCountsSchema,
     )
-    return (geocode_taxa_counts_lazyframe,)
+    return (geocode_taxa_counts_lf,)
 
 
 @app.cell
-def _(geocode_taxa_counts_lazyframe):
-    geocode_taxa_counts_lazyframe.limit(100).collect(engine="streaming")
+def _(geocode_taxa_counts_lf):
+    geocode_taxa_counts_lf.limit(100).collect(engine="streaming")
     return
 
 
@@ -397,11 +397,11 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_lazyframe, mo, np):
+def _(geocode_lf, geocode_taxa_counts_lf, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
-        geocode_taxa_counts_lazyframe,
+        geocode_taxa_counts_lf,
         geocode_lf,
     )
 
@@ -440,7 +440,7 @@ def _(
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
-    geocode_cluster_lazyframe = cache_parquet(
+    geocode_cluster_lf = cache_parquet(
         GeocodeClusterSchema.build_df(
             geocode_lf,
             geocode_distance_matrix,
@@ -449,7 +449,7 @@ def _(
         ),
         cache_key=GeocodeClusterSchema,
     )
-    return (geocode_cluster_lazyframe,)
+    return (geocode_cluster_lf,)
 
 
 @app.cell(hide_code=True)
@@ -461,8 +461,8 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_cluster_lazyframe):
-    geocode_cluster_lazyframe.limit(100).collect()
+def _(geocode_cluster_lf):
+    geocode_cluster_lf.limit(100).collect()
     return
 
 
@@ -483,17 +483,17 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_lf, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
-    cluster_neighbors_lazyframe = cache_parquet(
+    cluster_neighbors_lf = cache_parquet(
         ClusterNeighborsSchema.build_df(
             geocode_lf,
-            geocode_cluster_lazyframe.collect(),
+            geocode_cluster_lf.collect(),
         ),
         cache_key=ClusterNeighborsSchema,
     )
-    return (cluster_neighbors_lazyframe,)
+    return (cluster_neighbors_lf,)
 
 
 @app.cell(hide_code=True)
@@ -505,8 +505,8 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_neighbors_lazyframe):
-    cluster_neighbors_lazyframe.limit(3).collect()
+def _(cluster_neighbors_lf):
+    cluster_neighbors_lf.limit(3).collect()
     return
 
 
@@ -529,21 +529,21 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    geocode_cluster_lazyframe,
-    geocode_taxa_counts_lazyframe,
-    taxonomy_lazyframe,
+    geocode_cluster_lf,
+    geocode_taxa_counts_lf,
+    taxonomy_lf,
 ):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
-    cluster_taxa_statistics_dataframe = cache_parquet(
+    cluster_taxa_statistics_df = cache_parquet(
         ClusterTaxaStatisticsSchema.build_df(
-            geocode_taxa_counts_lazyframe,
-            geocode_cluster_lazyframe,
-            taxonomy_lazyframe,
+            geocode_taxa_counts_lf,
+            geocode_cluster_lf,
+            taxonomy_lf,
         ),
         cache_key=ClusterTaxaStatisticsSchema,
     ).collect(engine="streaming")
-    return (cluster_taxa_statistics_dataframe,)
+    return (cluster_taxa_statistics_df,)
 
 
 @app.cell(hide_code=True)
@@ -555,8 +555,8 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_taxa_statistics_dataframe):
-    cluster_taxa_statistics_dataframe
+def _(cluster_taxa_statistics_df):
+    cluster_taxa_statistics_df
     return
 
 
@@ -579,21 +579,21 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    cluster_neighbors_lazyframe,
-    cluster_taxa_statistics_dataframe,
+    cluster_neighbors_lf,
+    cluster_taxa_statistics_df,
 ):
     from src.dataframes.cluster_significant_differences import (
         ClusterSignificantDifferencesSchema,
     )
 
-    cluster_significant_differences_dataframe = cache_parquet(
+    cluster_significant_differences_df = cache_parquet(
         ClusterSignificantDifferencesSchema.build_df(
-            cluster_taxa_statistics_dataframe,
-            cluster_neighbors_lazyframe,
+            cluster_taxa_statistics_df,
+            cluster_neighbors_lf,
         ),
         cache_key=ClusterSignificantDifferencesSchema,
     ).collect(engine="streaming")
-    return (cluster_significant_differences_dataframe,)
+    return (cluster_significant_differences_df,)
 
 
 @app.cell(hide_code=True)
@@ -605,8 +605,8 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_significant_differences_dataframe):
-    cluster_significant_differences_dataframe
+def _(cluster_significant_differences_df):
+    cluster_significant_differences_df
     return
 
 
@@ -627,17 +627,17 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_lazyframe, geocode_lf):
+def _(cache_parquet, geocode_cluster_lf, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
-    cluster_boundary_dataframe = cache_parquet(
+    cluster_boundary_df = cache_parquet(
         ClusterBoundarySchema.build_df(
-            geocode_cluster_lazyframe.collect(),
+            geocode_cluster_lf.collect(),
             geocode_lf,
         ),
         cache_key=ClusterBoundarySchema,
     ).collect(engine="streaming")
-    return (cluster_boundary_dataframe,)
+    return (cluster_boundary_df,)
 
 
 @app.cell(hide_code=True)
@@ -649,14 +649,14 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_boundary_dataframe):
-    cluster_boundary_dataframe
+def _(cluster_boundary_df):
+    cluster_boundary_df
     return
 
 
 @app.cell(hide_code=True)
-def _(cluster_boundary_dataframe, folium):
-    _boundary = cluster_boundary_dataframe.select(["geometry", "cluster"])
+def _(cluster_boundary_df, folium):
+    _boundary = cluster_boundary_df.select(["geometry", "cluster"])
 
     _map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
@@ -692,11 +692,11 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_taxa_statistics_dataframe):
+def _(cluster_taxa_statistics_df):
     from src.matrices.cluster_distance import ClusterDistanceMatrix
 
     cluster_distance_matrix = ClusterDistanceMatrix.build(
-        cluster_taxa_statistics_dataframe,
+        cluster_taxa_statistics_df,
     )
     return (cluster_distance_matrix,)
 
@@ -726,25 +726,25 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    cluster_boundary_dataframe,
-    cluster_neighbors_lazyframe,
-    cluster_taxa_statistics_dataframe,
+    cluster_boundary_df,
+    cluster_neighbors_lf,
+    cluster_taxa_statistics_df,
 ):
     from src.dataframes.cluster_color import ClusterColorSchema
 
-    cluster_colors_dataframe = cache_parquet(
+    cluster_colors_df = cache_parquet(
         ClusterColorSchema.build_df(
-            cluster_neighbors_lazyframe,
-            cluster_boundary_dataframe,
-            cluster_taxa_statistics_dataframe,
+            cluster_neighbors_lf,
+            cluster_boundary_df,
+            cluster_taxa_statistics_df,
             color_method="taxonomic",
             # color_method="geographic",
         ),
         cache_key=ClusterColorSchema,
     ).collect(engine="streaming")
 
-    cluster_colors_dataframe
-    return (cluster_colors_dataframe,)
+    cluster_colors_df
+    return (cluster_colors_df,)
 
 
 @app.cell(hide_code=True)
@@ -766,21 +766,21 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    geocode_cluster_lazyframe,
+    geocode_cluster_lf,
     geocode_distance_matrix,
     geocode_lf,
 ):
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
-    permanova_results_dataframe = cache_parquet(
+    permanova_results_df = cache_parquet(
         PermanovaResultsSchema.build_df(
             geocode_distance_matrix=geocode_distance_matrix,
-            geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
-            geocode_dataframe=geocode_lf,
+            geocode_cluster_df=geocode_cluster_lf.collect(),
+            geocode_lf=geocode_lf,
         ),
         cache_key=PermanovaResultsSchema,
     ).collect(engine="streaming")
-    return (permanova_results_dataframe,)
+    return (permanova_results_df,)
 
 
 @app.cell(hide_code=True)
@@ -792,8 +792,8 @@ def _(mo):
 
 
 @app.cell
-def _(permanova_results_dataframe):
-    permanova_results_dataframe
+def _(permanova_results_df):
+    permanova_results_df
     return
 
 
@@ -814,17 +814,17 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_lazyframe, geocode_distance_matrix):
+def _(cache_parquet, geocode_cluster_lf, geocode_distance_matrix):
     from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
-    geocode_silhouette_score_dataframe = cache_parquet(
+    geocode_silhouette_score_df = cache_parquet(
         GeocodeSilhouetteScoreSchema.build_df(
             geocode_distance_matrix,
-            geocode_cluster_lazyframe.collect(),
+            geocode_cluster_lf.collect(),
         ),
         cache_key=GeocodeSilhouetteScoreSchema,
     ).collect(engine="streaming")
-    return (geocode_silhouette_score_dataframe,)
+    return (geocode_silhouette_score_df,)
 
 
 @app.cell(hide_code=True)
@@ -836,25 +836,25 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_silhouette_score_dataframe):
-    geocode_silhouette_score_dataframe.sort(by="silhouette_score")
+def _(geocode_silhouette_score_df):
+    geocode_silhouette_score_df.sort(by="silhouette_score")
     return
 
 
 @app.cell
 def _(
-    cluster_colors_dataframe,
-    geocode_cluster_lazyframe,
+    cluster_colors_df,
+    geocode_cluster_lf,
     geocode_distance_matrix,
-    geocode_silhouette_score_dataframe,
+    geocode_silhouette_score_df,
 ):
     from src.plot.silhouette_score import plot_silhouette_scores
 
     plot_silhouette_scores(
-        geocode_cluster_lazyframe.collect(),
+        geocode_cluster_lf.collect(),
         geocode_distance_matrix,
-        geocode_silhouette_score_dataframe,
-        cluster_colors_dataframe,
+        geocode_silhouette_score_df,
+        cluster_colors_df,
     )
     return
 
@@ -868,12 +868,12 @@ def _(mo):
 
 
 @app.cell
-def _(cluster_boundary_dataframe, cluster_colors_dataframe):
+def _(cluster_boundary_df, cluster_colors_df):
     from src.geojson import build_geojson_feature_collection
 
     feature_collection = build_geojson_feature_collection(
-        cluster_boundary_dataframe,
-        cluster_colors_dataframe,
+        cluster_boundary_df,
+        cluster_colors_df,
     )
     return (feature_collection,)
 
@@ -930,16 +930,16 @@ def _(mo):
 
 @app.cell
 def _(
-    cluster_colors_dataframe,
-    geocode_cluster_lazyframe,
+    cluster_colors_df,
+    geocode_cluster_lf,
     geocode_distance_matrix,
 ):
     from src.plot.dimnesionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
         geocode_distance_matrix,
-        geocode_cluster_lazyframe.collect(),
-        cluster_colors_dataframe,
+        geocode_cluster_lf.collect(),
+        cluster_colors_df,
         method="umap",
     )
     return
@@ -955,27 +955,27 @@ def _(mo):
 
 @app.cell
 def _(
-    cluster_colors_dataframe,
-    cluster_significant_differences_dataframe,
-    cluster_taxa_statistics_dataframe,
-    geocode_cluster_lazyframe,
+    cluster_colors_df,
+    cluster_significant_differences_df,
+    cluster_taxa_statistics_df,
+    geocode_cluster_lf,
     geocode_distance_matrix,
     geocode_lf,
-    geocode_taxa_counts_lazyframe,
+    geocode_taxa_counts_lf,
     mo,
-    taxonomy_lazyframe,
+    taxonomy_lf,
 ):
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
     heatmap = create_cluster_taxa_heatmap(
-        geocode_dataframe=geocode_lf,
-        geocode_cluster_dataframe=geocode_cluster_lazyframe.collect(),
-        cluster_colors_dataframe=cluster_colors_dataframe,
+        geocode_lf=geocode_lf,
+        geocode_cluster_df=geocode_cluster_lf.collect(),
+        cluster_colors_df=cluster_colors_df,
         geocode_distance_matrix=geocode_distance_matrix,
-        cluster_significant_differences_dataframe=cluster_significant_differences_dataframe,
-        taxonomy_dataframe=taxonomy_lazyframe.collect(engine="streaming"),
-        geocode_taxa_counts_lazyframe=geocode_taxa_counts_lazyframe,
-        cluster_taxa_statistics_dataframe=cluster_taxa_statistics_dataframe,
+        cluster_significant_differences_df=cluster_significant_differences_df,
+        taxonomy_df=taxonomy_lf.collect(engine="streaming"),
+        geocode_taxa_counts_lf=geocode_taxa_counts_lf,
+        cluster_taxa_statistics_df=cluster_taxa_statistics_df,
         limit_species=5,
     )
 
@@ -999,19 +999,19 @@ def _(mo):
 @app.cell
 def _(
     cache_parquet,
-    cluster_significant_differences_dataframe,
-    taxonomy_lazyframe,
+    cluster_significant_differences_df,
+    taxonomy_lf,
 ):
     from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
 
-    significant_taxa_images_dataframe = cache_parquet(
+    significant_taxa_images_df = cache_parquet(
         SignificantTaxaImagesSchema.build_df(
-            cluster_significant_differences_dataframe,
-            taxonomy_lazyframe.collect(engine="streaming"),
+            cluster_significant_differences_df,
+            taxonomy_lf.collect(engine="streaming"),
         ),
         cache_key=SignificantTaxaImagesSchema,
     ).collect(engine="streaming")
-    return (significant_taxa_images_dataframe,)
+    return (significant_taxa_images_df,)
 
 
 @app.cell(hide_code=True)
@@ -1023,8 +1023,8 @@ def _(mo):
 
 
 @app.cell
-def _(significant_taxa_images_dataframe):
-    significant_taxa_images_dataframe
+def _(significant_taxa_images_df):
+    significant_taxa_images_df
     return
 
 
@@ -1038,31 +1038,31 @@ def _(mo):
 
 @app.cell
 def _(
-    cluster_boundary_dataframe,
-    cluster_colors_dataframe,
-    cluster_significant_differences_dataframe,
-    significant_taxa_images_dataframe,
-    taxonomy_lazyframe,
+    cluster_boundary_df,
+    cluster_colors_df,
+    cluster_significant_differences_df,
+    significant_taxa_images_df,
+    taxonomy_lf,
 ):
     from src.output import write_json_output
 
-    taxonomy_dataframe = taxonomy_lazyframe.collect(engine="streaming")
+    taxonomy_df = taxonomy_lf.collect(engine="streaming")
 
     # write_json_output(
-    #     cluster_significant_differences_dataframe,
-    #     cluster_boundary_dataframe,
-    #     taxonomy_dataframe,
-    #     cluster_colors_dataframe,
-    #     significant_taxa_images_dataframe,
+    #     cluster_significant_differences_df,
+    #     cluster_boundary_df,
+    #     taxonomy_df,
+    #     cluster_colors_df,
+    #     significant_taxa_images_df,
     #     "/dev/stdout",
     # )
 
     write_json_output(
-        cluster_significant_differences_dataframe,
-        cluster_boundary_dataframe,
-        taxonomy_dataframe,
-        cluster_colors_dataframe,
-        significant_taxa_images_dataframe,
+        cluster_significant_differences_df,
+        cluster_boundary_df,
+        taxonomy_df,
+        cluster_colors_df,
+        significant_taxa_images_df,
         "frontend/aggregations.json",
     )
     return

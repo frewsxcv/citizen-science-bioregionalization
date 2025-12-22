@@ -16,15 +16,15 @@ class ClusterGeojsonFeaturesSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
-        cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
+        cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
+        cluster_colors_df: dy.DataFrame[ClusterColorSchema],
     ) -> dy.DataFrame["ClusterGeojsonFeaturesSchema"]:
         """
         Build a ClusterGeojsonFeaturesDataFrame from cluster boundaries and colors.
 
         Args:
-            cluster_boundary_dataframe: Dataframe containing cluster boundary data
-            cluster_colors_dataframe: Dataframe containing cluster color data
+            cluster_boundary_df: Dataframe containing cluster boundary data
+            cluster_colors_df: Dataframe containing cluster color data
 
         Returns:
             A ClusterGeojsonFeaturesDataFrame with clusters and their GeoJSON features
@@ -35,9 +35,7 @@ class ClusterGeojsonFeaturesSchema(dy.Schema):
         features = []
 
         # Join the two dataframes to get all information needed for each cluster
-        joined_df = cluster_boundary_dataframe.join(
-            cluster_colors_dataframe, on="cluster"
-        )
+        joined_df = cluster_boundary_df.join(cluster_colors_df, on="cluster")
 
         # Process each cluster to create its GeoJSON feature
         for row in joined_df.iter_rows(named=True):
@@ -73,14 +71,12 @@ class ClusterGeojsonFeaturesSchema(dy.Schema):
 
 
 def get_feature_for_cluster(
-    cluster_geojson_features_dataframe: dy.DataFrame[ClusterGeojsonFeaturesSchema],
+    cluster_geojson_features_df: dy.DataFrame[ClusterGeojsonFeaturesSchema],
     cluster_id: ClusterId,
 ) -> Optional[geojson.Feature]:
     """Get the GeoJSON feature for a specific cluster."""
     # Filter for the specific cluster
-    filtered_df = cluster_geojson_features_dataframe.filter(
-        pl.col("cluster") == cluster_id
-    )
+    filtered_df = cluster_geojson_features_df.filter(pl.col("cluster") == cluster_id)
 
     if filtered_df.height == 0:
         return None
@@ -90,12 +86,12 @@ def get_feature_for_cluster(
 
 
 def to_feature_collection(
-    cluster_geojson_features_dataframe: dy.DataFrame[ClusterGeojsonFeaturesSchema],
+    cluster_geojson_features_df: dy.DataFrame[ClusterGeojsonFeaturesSchema],
 ) -> geojson.FeatureCollection:
     """Convert all features in the dataframe to a GeoJSON FeatureCollection."""
     features = []
 
-    for feature_str in cluster_geojson_features_dataframe["feature"]:
+    for feature_str in cluster_geojson_features_df["feature"]:
         feature = geojson.loads(feature_str)
         features.append(feature)
 

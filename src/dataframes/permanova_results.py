@@ -28,8 +28,8 @@ class PermanovaResultsSchema(dy.Schema):
     def build_df(
         cls,
         geocode_distance_matrix: GeocodeDistanceMatrix,
-        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         permutations: int = 999,  # Default permutations
     ) -> dy.DataFrame["PermanovaResultsSchema"]:
         """
@@ -39,9 +39,9 @@ class PermanovaResultsSchema(dy.Schema):
 
         Args:
             geocode_distance_matrix: Wrapper containing the condensed distance matrix.
-            geocode_cluster_dataframe: DataFrame mapping geocodes to clusters.
-            geocode_dataframe: DataFrame containing the ordered list of geocodes corresponding
-                               to the distance matrix.
+            geocode_cluster_df: DataFrame mapping geocodes to clusters.
+            geocode_lf: LazyFrame containing the ordered list of geocodes corresponding
+                        to the distance matrix.
             permutations: Number of permutations for the test.
 
         Returns:
@@ -50,29 +50,27 @@ class PermanovaResultsSchema(dy.Schema):
         # Create the skbio DistanceMatrix object. Let ValueError propagate if IDs mismatch.
         # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
         geocode_df = (
-            geocode_dataframe.collect()
-            if isinstance(geocode_dataframe, pl.LazyFrame)
-            else geocode_dataframe
+            geocode_lf.collect() if isinstance(geocode_lf, pl.LazyFrame) else geocode_lf
         )
         geocode_ids = geocode_df["geocode"].to_list()
         dm_skbio = DistanceMatrix(geocode_distance_matrix.condensed(), ids=geocode_ids)
 
         # Assert that all geocodes in the distance matrix have cluster assignments.
-        cluster_geocodes = set(geocode_cluster_dataframe["geocode"].to_list())
+        cluster_geocodes = set(geocode_cluster_df["geocode"].to_list())
         missing_geocodes = set(geocode_ids) - cluster_geocodes
         assert not missing_geocodes, (
             f"Missing cluster assignments for {len(missing_geocodes)} geocodes required by the distance matrix: {missing_geocodes}"
         )
 
         # Get cluster assignments in the correct order matching the distance matrix.
-        # Join geocode_dataframe (which defines the order) with cluster assignments.
+        # Join geocode_lf (which defines the order) with cluster assignments.
         # Inner join is safe because the assertion passed.
         grouping_df = geocode_df.join(
-            geocode_cluster_dataframe.select(["geocode", "cluster"]),
+            geocode_cluster_df.select(["geocode", "cluster"]),
             on="geocode",
             how="inner",  # Should match all rows due to assertion
         )
-        # The join preserves the order of the left dataframe (geocode_dataframe)
+        # The join preserves the order of the left dataframe (geocode_lf)
         grouping = grouping_df["cluster"].to_list()
 
         # Verify lengths match (should always pass due to assertion and join logic)

@@ -44,13 +44,13 @@ class TestDarwinCoreUtils(unittest.TestCase):
             }
         )
 
-        lazy_frame = df.lazy()
+        lf = df.lazy()
 
         # Apply the renaming function
-        renamed_lazy_frame = rename_parquet_columns_to_darwin_core(lazy_frame)
+        renamed_lf = rename_parquet_columns_to_darwin_core(lf)
 
         # Collect to check the results
-        result_df = renamed_lazy_frame.collect()
+        result_df = renamed_lf.collect()
 
         # Check that mapped columns were renamed
         self.assertIn("decimalLatitude", result_df.columns)
@@ -85,13 +85,13 @@ class TestDarwinCoreUtils(unittest.TestCase):
             }
         )
 
-        lazy_frame = df.lazy()
+        lf = df.lazy()
 
         # Apply the renaming function
-        renamed_lazy_frame = rename_parquet_columns_to_darwin_core(lazy_frame)
+        renamed_lf = rename_parquet_columns_to_darwin_core(lf)
 
         # Collect to check the results
-        result_df = renamed_lazy_frame.collect()
+        result_df = renamed_lf.collect()
 
         # Check that only existing mapped columns were renamed
         self.assertIn("decimalLatitude", result_df.columns)
@@ -107,8 +107,8 @@ class TestDarwinCoreUtils(unittest.TestCase):
         # Should only have 3 columns total
         self.assertEqual(len(result_df.columns), 3)
 
-    def test_rename_parquet_columns_empty_dataframe(self):
-        """Test renaming an empty dataframe"""
+    def test_rename_parquet_columns_empty_df(self):
+        """Test renaming an empty df"""
         # Create an empty LazyFrame with lowercase column names
         df = pl.DataFrame(
             {
@@ -117,13 +117,13 @@ class TestDarwinCoreUtils(unittest.TestCase):
             }
         )
 
-        lazy_frame = df.lazy()
+        lf = df.lazy()
 
         # Apply the renaming function
-        renamed_lazy_frame = rename_parquet_columns_to_darwin_core(lazy_frame)
+        renamed_lf = rename_parquet_columns_to_darwin_core(lf)
 
         # Collect to check the results
-        result_df = renamed_lazy_frame.collect()
+        result_df = renamed_lf.collect()
 
         # Check that columns were renamed even though dataframe is empty
         self.assertIn("decimalLatitude", result_df.columns)

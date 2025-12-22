@@ -5,7 +5,7 @@ from src.constants import KINGDOM_VALUES
 from src.dataframes.taxonomy import TaxonomySchema
 
 
-def mock_taxonomy_lazyframe() -> dy.LazyFrame[TaxonomySchema]:
+def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
     """
     Creates a mock TaxonomyLazyFrame for testing.
     """

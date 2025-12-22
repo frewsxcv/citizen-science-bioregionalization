@@ -4,7 +4,7 @@ import polars as pl
 from src.constants import KINGDOM_VALUES
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.geocode import filter_by_bounding_box, with_geocode_lazy_frame
+from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.types import Bbox
 
 
@@ -28,23 +28,21 @@ class TaxonomySchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
+        darwin_core_csv_lf: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
-        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         bounding_box: Bbox,
     ) -> dy.DataFrame["TaxonomySchema"]:
         geocodes = (
-            geocode_lazyframe.select("geocode")
+            geocode_lf.select("geocode")
             .collect(engine="streaming")
             .to_series()
             .to_list()
         )
 
         df = (
-            darwin_core_csv_lazy_frame.pipe(
-                filter_by_bounding_box, bounding_box=bounding_box
-            )
-            .pipe(with_geocode_lazy_frame, geocode_precision=geocode_precision)
+            darwin_core_csv_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
+            .pipe(with_geocode_lf, geocode_precision=geocode_precision)
             .filter(
                 # Ensure geocode exists and is not an edge
                 pl.col("geocode").is_in(geocodes)

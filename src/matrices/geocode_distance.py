@@ -59,10 +59,8 @@ def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
 
 
 def build_X(
-    geocode_taxa_counts_lazyframe: dy.LazyFrame[
-        geocode_taxa_counts.GeocodeTaxaCountsSchema
-    ],
-    geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_taxa_counts_lf: dy.LazyFrame[geocode_taxa_counts.GeocodeTaxaCountsSchema],
+    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -70,7 +68,7 @@ def build_X(
     Steps:
     1. Pivot the taxon counts dataframe so rows are geocodes and columns are taxa.
     2. Fill any missing taxon counts (nulls) with 0.
-    3. Assert that the order of geocodes matches the input geocode_dataframe.
+    3. Assert that the order of geocodes matches the input geocode_df.
     4. Drop the 'geocode' column to keep only numerical features.
     5. Scale the features using RobustScaler.
 
@@ -80,7 +78,7 @@ def build_X(
     # 1. Pivot the table
     feature_matrix = log_action(
         "Pivoting taxon counts",
-        lambda: geocode_taxa_counts_lazyframe.pipe(pivot_taxon_counts).collect(
+        lambda: geocode_taxa_counts_lf.pipe(pivot_taxon_counts).collect(
             engine="streaming"
         ),
     )
@@ -96,7 +94,7 @@ def build_X(
     # 3. Ensure the order of geocodes in the matrix matches the input geocode list.
     # This is crucial for later steps that rely on matching indices.
     assert feature_matrix["geocode"].equals(
-        geocode_lazyframe.collect(engine="streaming")["geocode"]
+        geocode_lf.collect(engine="streaming")["geocode"]
     ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
 
     # 4. Drop the geocode identifier column
@@ -173,17 +171,15 @@ class GeocodeDistanceMatrix:
     @classmethod
     def build(
         cls,
-        geocode_taxa_counts_lazyframe: dy.LazyFrame[
+        geocode_taxa_counts_lf: dy.LazyFrame[
             geocode_taxa_counts.GeocodeTaxaCountsSchema
         ],
-        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
-        scaled_feature_matrix = build_X(
-            geocode_taxa_counts_lazyframe, geocode_lazyframe
-        )
+        scaled_feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
 
         # Dimensionality Reduction using UMAP
         # UMAP is often effective for visualizing high-dimensional biological data.

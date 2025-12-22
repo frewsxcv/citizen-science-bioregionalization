@@ -19,9 +19,9 @@ from src.types import Bbox
 
 
 class TestGeocodeSchema(unittest.TestCase):
-    def test_geocode_dataframe_schema(self):
+    def test_geocode_df_schema(self):
         """Test that the GeocodeSchema validates its schema correctly"""
-        # Create a simple dataframe that matches the expected schema
+        # Create a simple df that matches the expected schema
         df = pl.DataFrame(
             {
                 "geocode": pl.Series(
@@ -48,14 +48,14 @@ class TestGeocodeSchema(unittest.TestCase):
     def test_build_from_darwin_core_csv(self):
         """Test building a GeocodeDataFrame from a LazyFrame"""
         # Build the LazyFrame from Darwin Core archive
-        darwin_core_lazy_frame = scan_darwin_core_archive(
+        darwin_core_lf = scan_darwin_core_archive(
             os.path.join("test", "sample-archive")
         )
 
-        darwin_core_lazy_frame = darwin_core_lazy_frame.head()
+        darwin_core_lf = darwin_core_lf.head()
 
         geocode_df = GeocodeSchema.build_df(
-            darwin_core_lazy_frame,
+            darwin_core_lf,
             geocode_precision=8,
             bounding_box=Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0),
         )

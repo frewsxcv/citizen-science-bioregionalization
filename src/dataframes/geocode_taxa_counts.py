@@ -6,7 +6,7 @@ import polars as pl
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
-from src.geocode import filter_by_bounding_box, with_geocode_lazy_frame
+from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.types import Bbox
 
 logger = logging.getLogger(__name__)
@@ -20,21 +20,21 @@ class GeocodeTaxaCountsSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        darwin_core_csv_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
+        darwin_core_csv_lf: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
-        taxonomy_lazyframe: dy.LazyFrame[TaxonomySchema],
-        geocode_lazyframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        taxonomy_lf: dy.LazyFrame[TaxonomySchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeTaxaCountsSchema"]:
         geocodes = (
-            geocode_lazyframe.select("geocode")
+            geocode_lf.select("geocode")
             .collect(engine="streaming")
             .to_series()
             .to_list()
         )
 
         aggregated = (
-            darwin_core_csv_lazy_frame.select(
+            darwin_core_csv_lf.select(
                 "decimalLatitude",
                 "decimalLongitude",
                 "scientificName",
@@ -42,7 +42,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
             )
             .cast({"gbifTaxonId": pl.UInt32()})
             .pipe(filter_by_bounding_box, bounding_box=bounding_box)
-            .pipe(with_geocode_lazy_frame, geocode_precision=geocode_precision)
+            .pipe(with_geocode_lf, geocode_precision=geocode_precision)
             .select(
                 "geocode",
                 "scientificName",
@@ -53,7 +53,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 pl.col("geocode").is_in(geocodes)
             )
             .join(
-                taxonomy_lazyframe.select(  # TODO: don't call lazy() here
+                taxonomy_lf.select(  # TODO: don't call lazy() here
                     ["taxonId", "scientificName", "gbifTaxonId"]
                 ),
                 on=["scientificName", "gbifTaxonId"],

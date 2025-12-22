@@ -24,9 +24,9 @@ class ClusterColorSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
-        cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
-        cluster_taxa_statistics_dataframe: Optional[
+        cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
+        cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
+        cluster_taxa_statistics_df: Optional[
             dy.DataFrame[ClusterTaxaStatisticsSchema]
         ] = None,
         color_method: Literal["geographic", "taxonomic"] = "geographic",
@@ -37,9 +37,9 @@ class ClusterColorSchema(dy.Schema):
         or taxonomic similarity-based coloring.
 
         Args:
-            cluster_neighbors_lazyframe: Lazyframe of cluster neighbors
-            cluster_boundary_dataframe: Dataframe of cluster boundaries
-            cluster_taxa_statistics_dataframe: Dataframe of cluster taxa statistics (required for taxonomic coloring)
+            cluster_neighbors_lf: Lazyframe of cluster neighbors
+            cluster_boundary_df: Dataframe of cluster boundaries
+            cluster_taxa_statistics_df: Dataframe of cluster taxa statistics (required for taxonomic coloring)
             color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
             ocean_threshold: Threshold for determining ocean clusters (only used with geographic method)
 
@@ -48,38 +48,36 @@ class ClusterColorSchema(dy.Schema):
         """
         if color_method == "geographic":
             df = _build_geographic(
-                cluster_neighbors_lazyframe, cluster_boundary_dataframe, ocean_threshold
+                cluster_neighbors_lf, cluster_boundary_df, ocean_threshold
             )
         elif color_method == "taxonomic":
-            assert cluster_taxa_statistics_dataframe is not None, (
-                "cluster_taxa_statistics_dataframe is required for taxonomic coloring"
+            assert cluster_taxa_statistics_df is not None, (
+                "cluster_taxa_statistics_df is required for taxonomic coloring"
             )
-            df = _build_taxonomic(cluster_taxa_statistics_dataframe)
+            df = _build_taxonomic(cluster_taxa_statistics_df)
         else:
             raise ValueError(f"Invalid color_method: {color_method}")
         return cls.validate(df)
 
 
 def get_color_for_cluster(
-    cluster_color_dataframe: dy.DataFrame[ClusterColorSchema], cluster: ClusterId
+    cluster_color_df: dy.DataFrame[ClusterColorSchema], cluster: ClusterId
 ) -> str:
-    return cluster_color_dataframe.filter(pl.col("cluster") == cluster)[
-        "color"
-    ].to_list()[0]
+    return cluster_color_df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
 
 def to_dict(
-    cluster_color_dataframe: dy.DataFrame[ClusterColorSchema],
+    cluster_color_df: dy.DataFrame[ClusterColorSchema],
 ) -> Dict[ClusterId, str]:
     return {
-        x: get_color_for_cluster(cluster_color_dataframe, x)
-        for x in cluster_color_dataframe["cluster"]
+        x: get_color_for_cluster(cluster_color_df, x)
+        for x in cluster_color_df["cluster"]
     }
 
 
 def _build_geographic(
-    cluster_neighbors_lazyframe: dy.LazyFrame[ClusterNeighborsSchema],
-    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
+    cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
     ocean_threshold: float = 0.90,
 ) -> pl.DataFrame:
     """
@@ -89,11 +87,11 @@ def _build_geographic(
     # Import here to avoid circular imports
     from src.geojson import find_ocean_clusters
 
-    G = to_graph(cluster_neighbors_lazyframe)
+    G = to_graph(cluster_neighbors_lf)
 
     # Find ocean clusters
     ocean_clusters = set(
-        find_ocean_clusters(cluster_boundary_dataframe, threshold=ocean_threshold)
+        find_ocean_clusters(cluster_boundary_df, threshold=ocean_threshold)
     )
 
     # Find land clusters
@@ -140,7 +138,7 @@ def _build_geographic(
 
 
 def _build_taxonomic(
-    cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
 ) -> pl.DataFrame:
     """
     Creates a coloring where clusters with similar taxonomic composition
@@ -149,7 +147,7 @@ def _build_taxonomic(
     Requires at least 10 clusters to work properly with the UMAP algorithm.
     """
     # Build the distance matrix based on taxonomic composition
-    distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_statistics_dataframe)
+    distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_statistics_df)
 
     clusters = distance_matrix.cluster_ids()
 

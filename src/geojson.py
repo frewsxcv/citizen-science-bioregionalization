@@ -1,17 +1,18 @@
-import geojson
-import polars as pl
-import shapely
 import os
-import dataframely as dy
-from shapely.geometry import shape, Polygon, MultiPolygon
-from shapely.ops import unary_union
 from typing import Union
 
+import dataframely as dy
+import polars as pl
+import shapely
+from shapely.geometry import MultiPolygon, Polygon, shape
+from shapely.ops import unary_union
+
+import geojson
+from src import output
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.types import Geocode, ClusterId
 from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src import output
+from src.types import ClusterId, Geocode
 
 
 def build_geojson_feature(
@@ -33,13 +34,13 @@ def build_geojson_feature(
 
 
 def build_geojson_feature_collection(
-    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
-    cluster_colors_dataframe: dy.DataFrame[ClusterColorSchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
+    cluster_colors_df: dy.DataFrame[ClusterColorSchema],
 ) -> geojson.FeatureCollection:
     features: list[geojson.Feature] = []
 
-    for cluster, boundary, color, darkened_color in cluster_boundary_dataframe.join(
-        cluster_colors_dataframe, on="cluster"
+    for cluster, boundary, color, darkened_color in cluster_boundary_df.join(
+        cluster_colors_df, on="cluster"
     ).iter_rows():
         features.append(
             build_geojson_feature(
@@ -107,7 +108,7 @@ def _calculate_ocean_coverage(
 
 
 def is_cluster_mostly_ocean(
-    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
     cluster_id: ClusterId,
     threshold: float = 0.90,
 ) -> bool:
@@ -115,7 +116,7 @@ def is_cluster_mostly_ocean(
     Determines if a cluster's boundary is almost entirely within the ocean.
 
     Args:
-        cluster_boundary_dataframe: DataFrame containing cluster boundaries
+        cluster_boundary_df: DataFrame containing cluster boundaries
         cluster_id: ID of the cluster to check
         threshold: Fraction of area required to be within ocean (default: 0.90 or 90%)
 
@@ -132,7 +133,7 @@ def is_cluster_mostly_ocean(
 
     # Get the cluster boundary
     boundary_bytes = (
-        cluster_boundary_dataframe.filter(pl.col("cluster") == cluster_id)
+        cluster_boundary_df.filter(pl.col("cluster") == cluster_id)
         .select("geometry")
         .item()
     )
@@ -149,7 +150,7 @@ def is_cluster_mostly_ocean(
 
 
 def find_ocean_clusters(
-    cluster_boundary_dataframe: dy.DataFrame[ClusterBoundarySchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
     threshold: float = 0.90,
 ) -> list[ClusterId]:
     """
@@ -159,7 +160,7 @@ def find_ocean_clusters(
     since it loads the ocean data only once.
 
     Args:
-        cluster_boundary_dataframe: DataFrame containing cluster boundaries
+        cluster_boundary_df: DataFrame containing cluster boundaries
         threshold: Fraction of area required to be within ocean (default: 0.90 or 90%)
 
     Returns:
@@ -175,7 +176,7 @@ def find_ocean_clusters(
     ocean_clusters = []
 
     # Process each cluster
-    for cluster_id, boundary_bytes in cluster_boundary_dataframe.select(
+    for cluster_id, boundary_bytes in cluster_boundary_df.select(
         ["cluster", "geometry"]
     ).iter_rows():
         cluster_boundary = shapely.from_wkb(boundary_bytes)

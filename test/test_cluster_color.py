@@ -12,7 +12,7 @@ from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.geojson import find_ocean_clusters
 from test.fixtures.cluster_taxa_statistics import (
-    mock_cluster_taxa_statistics_dataframe,
+    mock_cluster_taxa_statistics_df,
 )
 
 
@@ -144,7 +144,7 @@ class TestClusterColorSchema(unittest.TestCase):
 
         # Create a mock ClusterTaxaStatisticsDataFrame with 4 clusters
         # This is below the minimum required for UMAP
-        cluster_taxa_stats = mock_cluster_taxa_statistics_dataframe()
+        cluster_taxa_stats = mock_cluster_taxa_statistics_df()
 
         # Create dummy neighbor and boundary data (not used for taxonomic coloring)
         neighbors_df = pl.DataFrame(

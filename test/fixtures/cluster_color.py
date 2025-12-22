@@ -1,9 +1,10 @@
-import polars as pl
-from src.dataframes.cluster_color import ClusterColorSchema
 import dataframely as dy
+import polars as pl
+
+from src.dataframes.cluster_color import ClusterColorSchema
 
 
-def mock_cluster_color_dataframe() -> dy.DataFrame[ClusterColorSchema]:
+def mock_cluster_color_df() -> dy.DataFrame[ClusterColorSchema]:
     """
     Creates a mock ClusterColorDataFrame for testing.
     """

@@ -12,7 +12,7 @@ from shapely import MultiPoint, MultiPolygon
 from shapely.geometry import box
 
 from src.dataframes.darwin_core import DarwinCoreSchema
-from src.geocode import select_geocode_lazy_frame
+from src.geocode import select_geocode_lf
 from src.types import Bbox, LatLng
 
 logger = logging.getLogger(__name__)
@@ -34,14 +34,12 @@ class GeocodeSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        darwin_core_lazy_frame: dy.LazyFrame["DarwinCoreSchema"],
+        darwin_core_lf: dy.LazyFrame["DarwinCoreSchema"],
         geocode_precision: int,
         bounding_box: Bbox,
     ) -> dy.DataFrame["GeocodeSchema"]:
         df = (
-            darwin_core_lazy_frame.pipe(
-                select_geocode_lazy_frame, geocode_precision=geocode_precision
-            )
+            darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
             .filter(pl.col("geocode").is_not_null())
             .unique()
             .sort(by="geocode")
@@ -141,12 +139,12 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
     @classmethod
     def from_geocode_schema(
         cls,
-        geocode_dataframe: dy.LazyFrame[GeocodeSchema],
+        geocode_df: dy.LazyFrame[GeocodeSchema],
     ) -> dy.DataFrame["GeocodeNoEdgesSchema"]:
         """Create a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
         Args:
-            geocode_dataframe: A validated GeocodeSchema lazy dataframe
+            geocode_df: A validated GeocodeSchema lazy dataframe
 
         Returns:
             A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
@@ -154,7 +152,7 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         """
         # Get the set of edge geocodes to remove by collecting just those rows
         edge_geocodes = set(
-            geocode_dataframe.filter(pl.col("is_edge"))
+            geocode_df.filter(pl.col("is_edge"))
             .select("geocode")
             .collect(engine="streaming")["geocode"]
             .to_list()
@@ -163,7 +161,7 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
 
         # Filter out edge hexagons and collect to get valid geocodes
-        df = geocode_dataframe.filter(~pl.col("is_edge")).collect(engine="streaming")
+        df = geocode_df.filter(~pl.col("is_edge")).collect(engine="streaming")
 
         # Update neighbor lists to remove references to edge geocodes
         # Get the set of remaining valid geocodes
@@ -191,12 +189,12 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
 
 
 def graph(
-    geocode_dataframe: Union[
+    geocode_df: Union[
         dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
     ],
     include_indirect_neighbors: bool = False,
 ) -> nx.Graph:
-    return _df_to_graph(geocode_dataframe, include_indirect_neighbors)
+    return _df_to_graph(geocode_df, include_indirect_neighbors)
 
 
 def _df_to_graph(
@@ -282,11 +280,11 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
 
 def index_of_geocode(
     geocode: int,
-    geocode_dataframe: Union[
+    geocode_df: Union[
         dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
     ],
 ) -> int:
-    index = geocode_dataframe["geocode"].index_of(geocode)
+    index = geocode_df["geocode"].index_of(geocode)
     if index is None:
         raise ValueError(f"Geocode {geocode} not found in GeocodeDataFrame")
     return index

@@ -1,9 +1,10 @@
-import polars as pl
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
 import dataframely as dy
+import polars as pl
+
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
 
-def mock_geocode_cluster_dataframe() -> dy.DataFrame[GeocodeClusterSchema]:
+def mock_geocode_cluster_df() -> dy.DataFrame[GeocodeClusterSchema]:
     """
     Creates a mock GeocodeClusterDataFrame for testing.
     """

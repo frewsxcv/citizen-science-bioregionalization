@@ -19,7 +19,7 @@ class ClusterBoundarySchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+        geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
         geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
     ) -> dy.DataFrame["ClusterBoundarySchema"]:
         clusters: List[int] = []
@@ -38,7 +38,7 @@ class ClusterBoundarySchema(dy.Schema):
         for (
             cluster_id,
             geocodes,
-        ) in iter_clusters_and_geocodes(geocode_cluster_dataframe):
+        ) in iter_clusters_and_geocodes(geocode_cluster_df):
             # Get all geocode boundaries for this cluster
             cluster_geocode_boundaries = []
             for geocode in geocodes:

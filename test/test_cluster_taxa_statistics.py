@@ -6,9 +6,9 @@ import polars as pl
 from src.dataframes.cluster_taxa_statistics import (
     ClusterTaxaStatisticsSchema,
 )
-from test.fixtures.geocode_cluster import mock_geocode_cluster_dataframe
-from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_dataframe
-from test.fixtures.taxonomy import mock_taxonomy_lazyframe
+from test.fixtures.geocode_cluster import mock_geocode_cluster_df
+from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_df
+from test.fixtures.taxonomy import mock_taxonomy_lf
 
 
 class TestClusterTaxaStatistics(unittest.TestCase):
@@ -19,12 +19,12 @@ class TestClusterTaxaStatistics(unittest.TestCase):
         This test creates input dataframes that match the expected schema
         and verifies that the build method correctly processes them.
         """
-        taxonomy_lazyframe = mock_taxonomy_lazyframe()
-        geocode_taxa_counts_dataframe = mock_geocode_taxa_counts_dataframe().lazy()
-        geocode_cluster_dataframe = mock_geocode_cluster_dataframe().lazy()
+        taxonomy_lf = mock_taxonomy_lf()
+        geocode_taxa_counts_df = mock_geocode_taxa_counts_df().lazy()
+        geocode_cluster_df = mock_geocode_cluster_df().lazy()
 
         result = ClusterTaxaStatisticsSchema.build_df(
-            geocode_taxa_counts_dataframe, geocode_cluster_dataframe, taxonomy_lazyframe
+            geocode_taxa_counts_df, geocode_cluster_df, taxonomy_lf
         )
 
         # 5. Verify the result has the expected structure and values

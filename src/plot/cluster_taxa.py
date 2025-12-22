@@ -18,37 +18,34 @@ NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
 
 def create_cluster_taxa_heatmap(
-    geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
-    cluster_colors_dataframe: dy.DataFrame["ClusterColorSchema"],
+    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    cluster_colors_df: dy.DataFrame["ClusterColorSchema"],
     geocode_distance_matrix,
-    cluster_significant_differences_dataframe: dy.DataFrame[
+    cluster_significant_differences_df: dy.DataFrame[
         "ClusterSignificantDifferencesSchema"
     ],
-    taxonomy_dataframe,
-    geocode_taxa_counts_lazyframe: dy.LazyFrame[GeocodeTaxaCountsSchema],
-    cluster_taxa_statistics_dataframe: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    taxonomy_df,
+    geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
+    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
     ordered_geocodes = (
-        geocode_dataframe.select("geocode")
-        .unique()
-        .collect(engine="streaming")
-        .to_series()
+        geocode_lf.select("geocode").unique().collect(engine="streaming").to_series()
     )
 
     # Create color mapping for geocodes by cluster
     col_colors = []
     for geocode in ordered_geocodes:
-        cluster = cluster_for_geocode(geocode_cluster_dataframe, geocode)
-        col_colors.append(get_color_for_cluster(cluster_colors_dataframe, cluster))
+        cluster = cluster_for_geocode(geocode_cluster_df, geocode)
+        col_colors.append(get_color_for_cluster(cluster_colors_df, cluster))
 
     # Compute linkage for clustering
     linkage_array = linkage(geocode_distance_matrix.condensed(), "ward")
 
     # Join taxonomic information
-    joined = cluster_significant_differences_dataframe.join(
-        taxonomy_dataframe, on=["taxonId"], how="left"
+    joined = cluster_significant_differences_df.join(
+        taxonomy_df, on=["taxonId"], how="left"
     )
 
     # Process data for each species/taxon
@@ -68,7 +65,7 @@ def create_cluster_taxa_heatmap(
 
         for geocode in ordered_geocodes:
             geocode_counts_species = (
-                geocode_taxa_counts_lazyframe.filter(
+                geocode_taxa_counts_lf.filter(
                     pl.col("geocode") == geocode, pl.col("taxonId") == taxonId
                 )
                 .select("count")
@@ -77,7 +74,7 @@ def create_cluster_taxa_heatmap(
                 .item()
             )
             geocode_counts_all = (
-                geocode_taxa_counts_lazyframe.filter(pl.col("geocode") == geocode)
+                geocode_taxa_counts_lf.filter(pl.col("geocode") == geocode)
                 .select("count")
                 .sum()
                 .collect()
@@ -85,7 +82,7 @@ def create_cluster_taxa_heatmap(
             )
             geocode_average = geocode_counts_species / geocode_counts_all
             all_average = (
-                cluster_taxa_statistics_dataframe.filter(
+                cluster_taxa_statistics_df.filter(
                     pl.col("taxonId") == taxonId,
                     pl.col("cluster").is_null(),
                 )

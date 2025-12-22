@@ -1,11 +1,10 @@
-import polars as pl
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 import dataframely as dy
+import polars as pl
+
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
 
-def mock_cluster_taxa_statistics_dataframe() -> dy.DataFrame[
-    ClusterTaxaStatisticsSchema
-]:
+def mock_cluster_taxa_statistics_df() -> dy.DataFrame[ClusterTaxaStatisticsSchema]:
     """
     Creates a mock ClusterTaxaStatisticsDataFrame for testing.
     """

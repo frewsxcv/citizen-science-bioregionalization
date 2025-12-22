@@ -14,7 +14,7 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
     def build_df(
         cls,
         distance_matrix: GeocodeDistanceMatrix,
-        geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+        geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["GeocodeSilhouetteScoreSchema"]:
         geocodes: list[int | None] = []
         silhouette_scores: list[float] = []
@@ -25,17 +25,17 @@ class GeocodeSilhouetteScoreSchema(dy.Schema):
             float(
                 silhouette_score(
                     X=distance_matrix.squareform(),
-                    labels=geocode_cluster_dataframe["cluster"],
+                    labels=geocode_cluster_df["cluster"],
                     metric="precomputed",
                 )
             )
         )
 
         # Add the clusters and their scores
-        geocodes.extend(geocode_cluster_dataframe["geocode"])
+        geocodes.extend(geocode_cluster_df["geocode"])
         samples = silhouette_samples(
             X=distance_matrix.squareform(),
-            labels=geocode_cluster_dataframe["cluster"],
+            labels=geocode_cluster_df["cluster"],
             metric="precomputed",
         )
         silhouette_scores.extend(list(samples))  # type: ignore

@@ -1,15 +1,17 @@
 import unittest
-import polars as pl
+
+import dataframely as dy
 import numpy as np
+import polars as pl
+
+from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import (
     ClusterDistanceMatrix,
-    pivot_taxon_counts_for_clusters,
     build_X,
+    pivot_taxon_counts_for_clusters,
 )
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-import dataframely as dy
 from test.fixtures.cluster_taxa_statistics import (
-    mock_cluster_taxa_statistics_dataframe,
+    mock_cluster_taxa_statistics_df,
 )
 
 
@@ -162,7 +164,7 @@ class TestClusterDistanceMatrix(unittest.TestCase):
         # Cluster 2: All taxon 102
         # Cluster 3: Mix of 101 and 102, leaning toward 101 (closer to 1)
         # Cluster 4: Mix of 101 and 102, leaning toward 102 (closer to 2)
-        cluster_taxa_stats = mock_cluster_taxa_statistics_dataframe()
+        cluster_taxa_stats = mock_cluster_taxa_statistics_df()
         distance_matrix = ClusterDistanceMatrix.build(cluster_taxa_stats)
 
         # Test for cluster 1

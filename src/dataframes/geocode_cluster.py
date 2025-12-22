@@ -21,16 +21,14 @@ class GeocodeClusterSchema(dy.Schema):
     @classmethod
     def build_df(
         cls,
-        geocode_dataframe: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
         distance_matrix: GeocodeDistanceMatrix,
         connectivity_matrix: GeocodeConnectivityMatrix,
         num_clusters: int,
     ) -> dy.DataFrame["GeocodeClusterSchema"]:
         # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
         geocode_df = (
-            geocode_dataframe.collect()
-            if isinstance(geocode_dataframe, pl.LazyFrame)
-            else geocode_dataframe
+            geocode_lf.collect() if isinstance(geocode_lf, pl.LazyFrame) else geocode_lf
         )
         geocodes = geocode_df["geocode"]
         clusters = AgglomerativeClustering(
@@ -49,39 +47,37 @@ class GeocodeClusterSchema(dy.Schema):
 
 
 def cluster_ids(
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
 ) -> List[ClusterId]:
-    return geocode_cluster_dataframe["cluster"].unique().to_list()
+    return geocode_cluster_df["cluster"].unique().to_list()
 
 
 def iter_clusters_and_geocodes(
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
 ) -> Iterator[Tuple[ClusterId, List[str]]]:
-    for row in (
-        geocode_cluster_dataframe.group_by("cluster").all().sort("cluster")
-    ).iter_rows(named=True):
+    for row in (geocode_cluster_df.group_by("cluster").all().sort("cluster")).iter_rows(
+        named=True
+    ):
         yield row["cluster"], row["geocode"]
 
 
 def cluster_for_geocode(
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema], geocode: Geocode
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema], geocode: Geocode
 ) -> ClusterId:
-    return geocode_cluster_dataframe.filter(pl.col("geocode") == geocode)[
-        "cluster"
-    ].to_list()[0]
+    return geocode_cluster_df.filter(pl.col("geocode") == geocode)["cluster"].to_list()[
+        0
+    ]
 
 
 def geocodes_for_cluster(
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema], cluster: ClusterId
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema], cluster: ClusterId
 ) -> List[Geocode]:
-    return geocode_cluster_dataframe.filter(pl.col("cluster") == cluster)[
-        "geocode"
-    ].to_list()
+    return geocode_cluster_df.filter(pl.col("cluster") == cluster)["geocode"].to_list()
 
 
 def num_clusters(
-    geocode_cluster_dataframe: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
 ) -> int:
-    num = geocode_cluster_dataframe["cluster"].max()
+    num = geocode_cluster_df["cluster"].max()
     assert isinstance(num, int)
     return num
