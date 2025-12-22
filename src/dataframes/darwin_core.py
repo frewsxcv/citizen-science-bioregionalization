@@ -282,9 +282,6 @@ class DarwinCoreSchema(dy.Schema):
         """
         lf = darwin_core_lf
 
-        # Apply geographic bounding box filter
-        lf = lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
-
         # Select only the columns we need
         lf = lf.select(
             "decimalLatitude",
@@ -300,6 +297,9 @@ class DarwinCoreSchema(dy.Schema):
             "scientificName",
             "taxonKey",
         )
+
+        # Apply geographic bounding box filter
+        lf = lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
 
         # Apply limit if specified
         if limit is not None:
