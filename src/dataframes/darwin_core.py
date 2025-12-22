@@ -14,6 +14,7 @@ import dataframely as dy
 import polars as pl
 
 from src.constants import KINGDOM_DATA_TYPE, KINGDOM_VALUES
+from src.geocode import filter_by_bounding_box
 from src.types import Bbox
 
 
@@ -282,16 +283,7 @@ class DarwinCoreSchema(dy.Schema):
         lf = darwin_core_lf
 
         # Apply geographic bounding box filter
-        lf = lf.filter(
-            pl.col("decimalLatitude").is_not_null()
-            & pl.col("decimalLongitude").is_not_null()
-            & pl.col("decimalLatitude").is_between(
-                bounding_box.min_lat, bounding_box.max_lat
-            )
-            & pl.col("decimalLongitude").is_between(
-                bounding_box.min_lng, bounding_box.max_lng
-            )
-        )
+        lf = lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
 
         # Select only the columns we need
         lf = lf.select(

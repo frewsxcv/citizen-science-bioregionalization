@@ -22,11 +22,22 @@ def filter_by_bounding_box(
     lat_col: str = "decimalLatitude",
     lng_col: str = "decimalLongitude",
 ) -> pl.LazyFrame:
+    """Filter a LazyFrame to rows within a geographic bounding box.
+
+    Args:
+        lf: The LazyFrame to filter.
+        bounding_box: Geographic bounding box to filter records.
+        lat_col: Name of the latitude column.
+        lng_col: Name of the longitude column.
+
+    Returns:
+        A LazyFrame filtered to rows with valid coordinates within the bounding box.
+    """
     return lf.filter(
-        (pl.col(lat_col) >= bounding_box.min_lat)
-        & (pl.col(lat_col) <= bounding_box.max_lat)
-        & (pl.col(lng_col) >= bounding_box.min_lng)
-        & (pl.col(lng_col) <= bounding_box.max_lng)
+        pl.col(lat_col).is_not_null()
+        & pl.col(lng_col).is_not_null()
+        & pl.col(lat_col).is_between(bounding_box.min_lat, bounding_box.max_lat)
+        & pl.col(lng_col).is_between(bounding_box.min_lng, bounding_box.max_lng)
     )
 
 

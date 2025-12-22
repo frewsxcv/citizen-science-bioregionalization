@@ -5,6 +5,8 @@ from pathlib import Path
 import polars as pl
 
 from src.dataframes.darwin_core import scan_darwin_core_archive
+from src.geocode import filter_by_bounding_box
+from src.types import Bbox
 
 
 def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
@@ -125,21 +127,6 @@ def load_darwin_core_data(
     path = Path(source_path)
     is_darwin_core_archive = path.is_dir() and (path / "meta.xml").exists()
 
-    # Build base filters for geographic bounds
-    # Use camelCase column names (Darwin Core standard)
-    # First filter out null coordinates, then apply bounds
-    base_filters = (
-        pl.col("decimalLatitude").is_not_null()
-        & pl.col("decimalLongitude").is_not_null()
-        & pl.col("decimalLatitude").is_between(min_lat, max_lat)
-        & pl.col("decimalLongitude").is_between(min_lon, max_lon)
-    )
-
-    # Add taxon filter if specified
-    if taxon_filter:
-        taxon_filter_expr = build_taxon_filter(taxon_filter)
-        base_filters = base_filters & taxon_filter_expr
-
     if is_darwin_core_archive:
         # Load from Darwin Core archive (already uses camelCase)
         inner_lf = scan_darwin_core_archive(source_path)
@@ -149,8 +136,14 @@ def load_darwin_core_data(
         inner_lf = pl.scan_parquet(source_path)
         inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
 
-    # Apply filters and limit to the lazy frame
-    inner_lf = inner_lf.filter(base_filters)
+    # Apply geographic bounding box filter
+    bounding_box = Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon)
+    inner_lf = inner_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
+
+    # Add taxon filter if specified
+    if taxon_filter:
+        taxon_filter_expr = build_taxon_filter(taxon_filter)
+        inner_lf = inner_lf.filter(taxon_filter_expr)
     if limit_results is not None:
         inner_lf = inner_lf.limit(limit_results)
 
