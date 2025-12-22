@@ -15,7 +15,6 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
-
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -39,7 +38,7 @@ def _(mo):
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
     log_file_ui
-    return
+    return (log_file_ui,)
 
 
 @app.cell(hide_code=True)
@@ -133,11 +132,26 @@ def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui):
     return
 
 
+@app.cell
+def _(mo):
+    run_button_ui = mo.ui.run_button()
+    return (run_button_ui,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Set up CLI
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
     limit_results_enabled_ui,
     limit_results_value_ui,
+    log_file_ui,
     max_lat_ui,
     max_lon_ui,
     min_lat_ui,
@@ -160,15 +174,73 @@ def _(
         if limit_results_enabled_ui.value
         else None,
         parquet_source_path=parquet_source_path_ui.value,
+        log_file=log_file_ui.value,
     )
     return (args,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    run_button_ui = mo.ui.run_button()
-    run_button_ui
-    return (run_button_ui,)
+    mo.md(r"""
+    # Start notebook
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(args, mo, run_button_ui):
+    limit_results = args.limit_results
+    no_stop = args.no_stop
+    log_file = args.log_file
+    parquet_source_path = args.parquet_source_path
+    min_lat = args.min_lat
+    max_lat = args.max_lat
+    min_lon = args.min_lon
+    max_lon = args.max_lon
+    taxon_filter = args.taxon_filter
+    geocode_precision = args.geocode_precision
+    num_clusters = args.num_clusters
+
+    inputs_table = mo.ui.table(
+        label="Inputs",
+        selection=None,
+        data=[
+            {"variable": "limit_results", "value": limit_results},
+            {"variable": "log_file", "value": log_file},
+            {"variable": "parquet_source_path", "value": parquet_source_path},
+            {"variable": "min_lat", "value": min_lat},
+            {"variable": "max_lat", "value": max_lat},
+            {"variable": "min_lon", "value": min_lon},
+            {"variable": "max_lon", "value": max_lon},
+            {"variable": "taxon_filter", "value": taxon_filter},
+            {"variable": "geocode_precision", "value": geocode_precision},
+            {"variable": "num_clusters", "value": num_clusters},
+        ],
+    )
+
+    output2 = mo.vstack(
+        [
+            inputs_table,
+            run_button_ui,
+        ]
+    )
+
+    if mo.running_in_notebook() and not no_stop:
+        mo.stop(not run_button_ui.value, output2)
+
+    mo.md("Notebook started")
+    return (
+        geocode_precision,
+        limit_results,
+        log_file,
+        max_lat,
+        max_lon,
+        min_lat,
+        min_lon,
+        num_clusters,
+        parquet_source_path,
+        taxon_filter,
+    )
 
 
 @app.cell(hide_code=True)
@@ -179,11 +251,11 @@ def _(mo):
     return
 
 
-@app.cell
-def _(args):
+@app.cell(hide_code=True)
+def _(log_file):
     import logging
 
-    logging.basicConfig(filename=args.log_file, encoding="utf-8", level=logging.INFO)
+    logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
     return
 
 
@@ -196,31 +268,34 @@ def _(mo):
 
 
 @app.cell
-def _(Bbox, args, mo, run_button_ui):
+def _(
+    Bbox,
+    limit_results,
+    max_lat,
+    max_lon,
+    min_lat,
+    min_lon,
+    parquet_source_path,
+    taxon_filter,
+):
     from src.darwin_core_utils import load_darwin_core_data
     from src.dataframes.darwin_core import DarwinCoreSchema
 
     darwin_core_raw_lf = load_darwin_core_data(
-        source_path=args.parquet_source_path,
-        min_lat=args.min_lat,
-        max_lat=args.max_lat,
-        min_lon=args.min_lon,
-        max_lon=args.max_lon,
-        limit_results=args.limit_results,
-        taxon_filter=args.taxon_filter,
+        source_path=parquet_source_path,
+        min_lat=min_lat,
+        max_lat=max_lat,
+        min_lon=min_lon,
+        max_lon=max_lon,
+        limit_results=limit_results,
+        taxon_filter=taxon_filter,
     )
 
     darwin_core_lf = DarwinCoreSchema.build_lf(
         darwin_core_raw_lf,
-        bounding_box=Bbox.from_coordinates(
-            args.min_lat, args.max_lat, args.min_lon, args.max_lon
-        ),
+        bounding_box=Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon),
         limit=None,  # Already limited by load_darwin_core_data
     )
-
-    if mo.running_in_notebook() and not args.no_stop:
-        print("STOPPING")
-        mo.stop(not run_button_ui.value)
     return (darwin_core_lf,)
 
 
@@ -239,16 +314,23 @@ def _(mo):
 
 
 @app.cell
-def _(Bbox, args, cache_parquet, darwin_core_lf):
+def _(
+    Bbox,
+    cache_parquet,
+    darwin_core_lf,
+    geocode_precision,
+    max_lat,
+    max_lon,
+    min_lat,
+    min_lon,
+):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
 
     geocode_lf_with_edges = cache_parquet(
         GeocodeSchema.build_df(
             darwin_core_lf,
-            args.geocode_precision,
-            bounding_box=Bbox.from_coordinates(
-                args.min_lat, args.max_lat, args.min_lon, args.max_lon
-            ),
+            geocode_precision,
+            bounding_box=Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon),
         ),
         cache_key=GeocodeSchema,
     )
@@ -259,8 +341,6 @@ def _(Bbox, args, cache_parquet, darwin_core_lf):
         ),
         cache_key=GeocodeNoEdgesSchema,
     )
-
-    geocode_lf
     return geocode_lf, geocode_lf_with_edges
 
 
@@ -303,22 +383,28 @@ def _(mo):
 
 
 @app.cell
-def _(Bbox, args, cache_parquet, darwin_core_lf, geocode_lf):
+def _(
+    Bbox,
+    cache_parquet,
+    darwin_core_lf,
+    geocode_lf,
+    geocode_precision,
+    max_lat,
+    max_lon,
+    min_lat,
+    min_lon,
+):
     from src.dataframes.taxonomy import TaxonomySchema
 
     taxonomy_lf = cache_parquet(
         TaxonomySchema.build_lf(
             darwin_core_lf,
-            args.geocode_precision,
+            geocode_precision,
             geocode_lf,
-            bounding_box=Bbox.from_coordinates(
-                args.min_lat, args.max_lat, args.min_lon, args.max_lon
-            ),
+            bounding_box=Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon),
         ),
         cache_key=TaxonomySchema,
     )
-
-    taxonomy_lf
     return (taxonomy_lf,)
 
 
@@ -339,10 +425,14 @@ def _(mo):
 @app.cell
 def _(
     Bbox,
-    args,
     cache_parquet,
     darwin_core_lf,
     geocode_lf,
+    geocode_precision,
+    max_lat,
+    max_lon,
+    min_lat,
+    min_lon,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
@@ -350,12 +440,10 @@ def _(
     geocode_taxa_counts_lf = cache_parquet(
         GeocodeTaxaCountsSchema.build_df(
             darwin_core_lf,
-            args.geocode_precision,
+            geocode_precision,
             taxonomy_lf,
             geocode_lf,
-            bounding_box=Bbox.from_coordinates(
-                args.min_lat, args.max_lat, args.min_lon, args.max_lon
-            ),
+            bounding_box=Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon),
         ),
         cache_key=GeocodeTaxaCountsSchema,
     )
@@ -430,11 +518,11 @@ def _(mo):
 
 @app.cell
 def _(
-    args,
     cache_parquet,
     geocode_connectivity_matrix,
     geocode_distance_matrix,
     geocode_lf,
+    num_clusters,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
@@ -443,7 +531,7 @@ def _(
             geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
-            args.num_clusters,
+            num_clusters,
         ),
         cache_key=GeocodeClusterSchema,
     )
@@ -525,12 +613,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cache_parquet,
-    geocode_cluster_lf,
-    geocode_taxa_counts_lf,
-    taxonomy_lf,
-):
+def _(cache_parquet, geocode_cluster_lf, geocode_taxa_counts_lf, taxonomy_lf):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
     cluster_taxa_statistics_df = cache_parquet(
@@ -575,11 +658,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cache_parquet,
-    cluster_neighbors_lf,
-    cluster_taxa_statistics_df,
-):
+def _(cache_parquet, cluster_neighbors_lf, cluster_taxa_statistics_df):
     from src.dataframes.cluster_significant_differences import (
         ClusterSignificantDifferencesSchema,
     )
@@ -762,12 +841,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cache_parquet,
-    geocode_cluster_lf,
-    geocode_distance_matrix,
-    geocode_lf,
-):
+def _(cache_parquet, geocode_cluster_lf, geocode_distance_matrix, geocode_lf):
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
     permanova_results_df = cache_parquet(
@@ -927,11 +1001,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cluster_colors_df,
-    geocode_cluster_lf,
-    geocode_distance_matrix,
-):
+def _(cluster_colors_df, geocode_cluster_lf, geocode_distance_matrix):
     from src.plot.dimnesionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
@@ -995,11 +1065,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cache_parquet,
-    cluster_significant_differences_df,
-    taxonomy_lf,
-):
+def _(cache_parquet, cluster_significant_differences_df, taxonomy_lf):
     from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
 
     significant_taxa_images_df = cache_parquet(

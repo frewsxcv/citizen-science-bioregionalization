@@ -14,6 +14,7 @@ def create_argument_parser(
     max_lon: float,
     limit_results: None | int,
     parquet_source_path: str,
+    log_file: str | None,
 ) -> argparse.ArgumentParser:
     """
     Create and configure the CLI argument parser.
@@ -28,6 +29,7 @@ def create_argument_parser(
         max_lon: Default maximum longitude for bounding box
         limit_results: Default limit for number of results fetched
         parquet_source_path: Default path to the parquet data source
+        log_file: Default path to the log file
 
     Returns:
         Configured ArgumentParser instance
@@ -49,7 +51,9 @@ def create_argument_parser(
         help="Number of clusters to generate",
         default=num_clusters,
     )
-    parser.add_argument("--log-file", type=str, help="Path to the log file")
+    parser.add_argument(
+        "--log-file", type=str, help="Path to the log file", default=log_file
+    )
     parser.add_argument(
         "--no-stop",
         action="store_true",
@@ -117,6 +121,7 @@ def parse_args_with_defaults(
     max_lon: float,
     limit_results: None | int,
     parquet_source_path: str,
+    log_file: str | None,
 ) -> Any:
     """
     Create argument parser and parse command-line arguments.
@@ -131,6 +136,7 @@ def parse_args_with_defaults(
         max_lon: Default maximum longitude for bounding box
         limit_results: Default limit for number of results fetched
         parquet_source_path: Default path to the parquet data source
+        log_file: Default path to the log file
 
     Returns:
         Parsed command-line arguments
@@ -145,5 +151,6 @@ def parse_args_with_defaults(
         max_lon=max_lon,
         limit_results=limit_results,
         parquet_source_path=parquet_source_path,
+        log_file=log_file,
     )
     return parser.parse_args()
