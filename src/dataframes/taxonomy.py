@@ -68,7 +68,7 @@ class TaxonomySchema(dy.Schema):
             )
             # Add a unique taxonId for each row
             .with_row_index("taxonId")
-            .cast({"taxonId": pl.UInt64})
+            .cast({"taxonId": pl.UInt32})
         )
 
         return cls.validate(lf, eager=False)
