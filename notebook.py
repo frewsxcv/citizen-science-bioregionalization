@@ -8,8 +8,6 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    from pathlib import Path
-
     import folium
     import marimo as mo
     import numpy as np
