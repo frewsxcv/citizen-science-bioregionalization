@@ -419,7 +419,7 @@ def _(taxonomy_lf):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `GeocodeSpeciesCounts`
+    ## `GeocodeTaxaCounts`
     """)
     return
 
@@ -780,7 +780,7 @@ def _(cluster_taxa_statistics_df):
     return (cluster_distance_matrix,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Preview
@@ -798,6 +798,14 @@ def _(cluster_distance_matrix):
 def _(mo):
     mo.md(r"""
     ## `ClusterColor`
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Build
     """)
     return
 
@@ -821,9 +829,21 @@ def _(
         ),
         cache_key=ClusterColorSchema,
     ).collect(engine="streaming")
-
-    cluster_colors_df
     return (cluster_colors_df,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Preview
+    """)
+    return
+
+
+@app.cell
+def _(cluster_colors_df):
+    cluster_colors_df
+    return
 
 
 @app.cell(hide_code=True)
@@ -979,18 +999,18 @@ def _(mo):
 
 @app.cell
 def _(feature_collection, folium):
-    map = folium.Map(
+    _map = folium.Map(
         tiles="Esri.WorldGrayCanvas",
     )
 
     folium.GeoJson(
         feature_collection,
         style_function=lambda feature: feature["properties"],
-    ).add_to(map)
+    ).add_to(_map)
 
-    map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
+    _map.fit_bounds(folium.utilities.get_bounds(feature_collection, lonlat=True))
 
-    map
+    _map
     return
 
 
@@ -1004,7 +1024,7 @@ def _(mo):
 
 @app.cell
 def _(cluster_colors_df, geocode_cluster_lf, geocode_distance_matrix):
-    from src.plot.dimnesionality_reduction import create_dimensionality_reduction_plot
+    from src.plot.dimensionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
         geocode_distance_matrix,
