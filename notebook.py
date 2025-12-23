@@ -15,6 +15,7 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
+
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -37,53 +38,64 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
-    log_file_ui
-    return (log_file_ui,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
     parquet_source_path_ui = mo.ui.text(
         "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
         label="Input GCS directory",
     )
-    parquet_source_path_ui
-    return (parquet_source_path_ui,)
+    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
+    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+    limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
+    limit_results_value_ui = mo.ui.number(value=1000, label="Limit results")
+    min_lon_ui = mo.ui.number(value=-87.0, label="Min Longitude")
+    min_lat_ui = mo.ui.number(value=25.0, label="Min Latitude")
+    max_lon_ui = mo.ui.number(value=-66.0, label="Max Longitude")
+    max_lat_ui = mo.ui.number(value=47.0, label="Max Latitude")
+    run_button_ui = mo.ui.run_button()
+    return (
+        geocode_precision_ui,
+        limit_results_enabled_ui,
+        limit_results_value_ui,
+        log_file_ui,
+        max_lat_ui,
+        max_lon_ui,
+        min_lat_ui,
+        min_lon_ui,
+        num_clusters_ui,
+        parquet_source_path_ui,
+        run_button_ui,
+        taxon_filter_ui,
+    )
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
+def _(log_file_ui):
+    log_file_ui
+    return
+
+
+@app.cell(hide_code=True)
+def _(parquet_source_path_ui):
+    parquet_source_path_ui
+    return
+
+
+@app.cell(hide_code=True)
+def _(geocode_precision_ui):
     geocode_precision_ui
-    return (geocode_precision_ui,)
+    return
 
 
 @app.cell
-def _(mo):
-    num_clusters_ui = mo.ui.number(value=10, label="Number of clusters")
+def _(num_clusters_ui):
     num_clusters_ui
-    return (num_clusters_ui,)
+    return
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
+def _(taxon_filter_ui):
     taxon_filter_ui
-    return (taxon_filter_ui,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
-    return (limit_results_enabled_ui,)
-
-
-@app.cell(hide_code=True)
-def _(limit_results_enabled_ui, mo):
-    limit_results_value_ui = mo.ui.number(
-        value=1000, label="Limit results", disabled=not limit_results_enabled_ui.value
-    )
-    return (limit_results_value_ui,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -98,19 +110,15 @@ def _(limit_results_enabled_ui, limit_results_value_ui, mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    min_lon_ui = mo.ui.number(value=-87.0, label="Min Longitude")
-    min_lat_ui = mo.ui.number(value=25.0, label="Min Latitude")
+def _(min_lat_ui, min_lon_ui, mo):
     mo.vstack([min_lon_ui, min_lat_ui])
-    return min_lat_ui, min_lon_ui
+    return
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    max_lat_ui = mo.ui.number(value=47.0, label="Max Latitude")
-    max_lon_ui = mo.ui.number(value=-66.0, label="Max Longitude")
+def _(max_lat_ui, max_lon_ui, mo):
     mo.vstack([max_lon_ui, max_lat_ui])
-    return max_lat_ui, max_lon_ui
+    return
 
 
 @app.cell(hide_code=True)
@@ -130,12 +138,6 @@ def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui):
 
     _map
     return
-
-
-@app.cell
-def _(mo):
-    run_button_ui = mo.ui.run_button()
-    return (run_button_ui,)
 
 
 @app.cell(hide_code=True)
