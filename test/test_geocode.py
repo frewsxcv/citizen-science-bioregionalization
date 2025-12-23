@@ -7,7 +7,8 @@ import networkx as nx
 import polars as pl
 import polars_st as pl_st
 
-from src.dataframes.darwin_core import DarwinCoreSchema, scan_darwin_core_archive
+from src.darwin_core_utils import scan_darwin_core_archive
+from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import (
     GeocodeSchema,
     _df_to_graph,

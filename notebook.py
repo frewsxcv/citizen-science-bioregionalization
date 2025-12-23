@@ -280,23 +280,13 @@ def _(
     parquet_source_path,
     taxon_filter,
 ):
-    from src.darwin_core_utils import load_darwin_core_data
     from src.dataframes.darwin_core import DarwinCoreSchema
 
-    darwin_core_raw_lf = load_darwin_core_data(
-        source_path=parquet_source_path,
-        min_lat=min_lat,
-        max_lat=max_lat,
-        min_lon=min_lon,
-        max_lon=max_lon,
-        limit_results=limit_results,
-        taxon_filter=taxon_filter,
-    )
-
     darwin_core_lf = DarwinCoreSchema.build_lf(
-        darwin_core_raw_lf,
+        source_path=parquet_source_path,
         bounding_box=Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon),
-        limit=None,  # Already limited by load_darwin_core_data
+        limit=limit_results,
+        taxon_filter=taxon_filter,
     )
     return (darwin_core_lf,)
 
