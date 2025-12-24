@@ -193,23 +193,6 @@ def scan_darwin_core_archive(
     return inner
 
 
-def scan_darwin_core_csv(path: Union[str, Path]) -> pl.LazyFrame:
-    """Scan a Darwin Core CSV file lazily.
-
-    Args:
-        path: Path to the CSV file.
-
-    Returns:
-        A Polars LazyFrame containing the Darwin Core data.
-    """
-    return pl.scan_csv(
-        path,
-        schema_overrides=SCHEMA_OVERRIDES,
-        quote_char=None,
-        separator="\t",
-    )
-
-
 def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
     """
     Get the mapping from lowercase column names (used in parquet snapshots)
