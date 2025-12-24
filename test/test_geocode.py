@@ -7,7 +7,6 @@ import networkx as nx
 import polars as pl
 import polars_st as pl_st
 
-from src.darwin_core_utils import scan_darwin_core_archive
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import (
     GeocodeSchema,
@@ -49,15 +48,13 @@ class TestGeocodeSchema(unittest.TestCase):
 
     def test_build_from_darwin_core_csv(self):
         """Test building a GeocodeDataFrame from a LazyFrame"""
-        # Build the LazyFrame from Darwin Core archive
-        raw_lf = scan_darwin_core_archive(os.path.join("test", "sample-archive"))
-
         bounding_box = Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0)
 
-        # Validate and type the LazyFrame using DarwinCoreSchema
+        # Build the LazyFrame from Darwin Core archive path
         darwin_core_lf = DarwinCoreSchema.build_lf(
-            raw_lf.head(),
+            source_path=os.path.join("test", "sample-archive"),
             bounding_box=bounding_box,
+            limit=10,
         )
 
         geocode_df = GeocodeSchema.build_df(
