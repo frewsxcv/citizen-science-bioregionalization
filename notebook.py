@@ -38,7 +38,7 @@ def _(mo):
 def _(mo):
     log_file_ui = mo.ui.text("run.log", label="Log file")
     parquet_source_path_ui = mo.ui.text(
-        "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/",
+        "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*",
         label="Input GCS directory",
     )
     geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
