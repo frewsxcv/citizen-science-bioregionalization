@@ -234,28 +234,6 @@ def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
     }
 
 
-def rename_parquet_columns_to_darwin_core(
-    lazy_frame: pl.LazyFrame,
-) -> pl.LazyFrame:
-    """
-    Rename columns from lowercase (parquet snapshots) to camelCase (Darwin Core standard).
-
-    Only renames columns that actually exist in the LazyFrame schema.
-
-    Args:
-        lazy_frame: The Polars LazyFrame with lowercase column names
-
-    Returns:
-        LazyFrame with columns renamed to Darwin Core camelCase standard
-    """
-    parquet_to_darwin_core_columns = get_parquet_to_darwin_core_column_mapping()
-    existing_columns = set(lazy_frame.collect_schema().names())
-    columns_to_rename = {
-        k: v for k, v in parquet_to_darwin_core_columns.items() if k in existing_columns
-    }
-    return lazy_frame.rename(columns_to_rename)
-
-
 def build_taxon_filter(taxon_name: str) -> pl.Expr:
     """
     Build a Polars expression to filter observations by taxon name.
@@ -311,8 +289,11 @@ def load_darwin_core_data(
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
-        inner_lf = pl.scan_parquet(source_path, low_memory=True)
-        inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
+        inner_lf = pl.scan_parquet(source_path, low_memory=True, cache=False)
+        inner_lf = inner_lf.rename(
+            get_parquet_to_darwin_core_column_mapping(),
+            strict=False,
+        )
 
     # Apply geographic bounding box filter
     inner_lf = inner_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
