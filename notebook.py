@@ -291,8 +291,8 @@ def _(
 
 
 @app.cell
-def _(darwin_core_lf, mo):
-    mo.ui.dataframe(darwin_core_lf.limit(100).collect(), limit=100)
+def _():
+    # mo.ui.dataframe(darwin_core_lf.limit(100).collect(), limit=100)
     return
 
 

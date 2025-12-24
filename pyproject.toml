@@ -29,7 +29,6 @@ dependencies = [
     "types-seaborn>=0.13.2.20250516",
     "types-shapely>=2.1.0.20250710",
     "umap-learn>=0.5.7",
-    "vl-convert-python>=1.7.0",
 ]
 
 [tool.pyright]

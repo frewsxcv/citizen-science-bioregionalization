@@ -1,13 +1,12 @@
 import unittest
-import io
-import geojson
+
 import polars as pl
+
+import geojson
 from src.render import (
-    plot_single_cluster,
-    plot_entire_region,
-    features_to_polars_df,
     darken_hex_color,
     darken_hex_colors_polars,
+    features_to_polars_df,
 )
 
 
@@ -81,13 +80,6 @@ class TestRender(unittest.TestCase):
         self.assertEqual(darken_hex_color("#ffffff", 0.0), "#000000")
         self.assertEqual(darken_hex_color("#ffffff", 1.0), "#ffffff")
 
-    def test_plot_single_cluster(self):
-        """Test if plot_single_cluster function runs without errors."""
-        buffer = io.BytesIO()
-        plot_single_cluster(self.feature_collection, cluster_id=1, file_obj=buffer)
-        buffer.seek(0)
-        self.assertGreater(len(buffer.read()), 0)
-
     def test_darken_hex_colors_polars(self):
         """Test if darken_hex_colors_polars correctly darkens all colors in a Series."""
         colors = pl.Series(["#ff0000", "#00ff00", "#0000ff"])
@@ -95,13 +87,6 @@ class TestRender(unittest.TestCase):
         self.assertEqual(darkened[0], "#7f0000")
         self.assertEqual(darkened[1], "#007f00")
         self.assertEqual(darkened[2], "#00007f")
-
-    def test_plot_entire_region(self):
-        """Test if plot_entire_region function runs without errors."""
-        buffer = io.BytesIO()
-        plot_entire_region(self.feature_collection, file_obj=buffer)
-        buffer.seek(0)
-        self.assertGreater(len(buffer.read()), 0)
 
 
 if __name__ == "__main__":
