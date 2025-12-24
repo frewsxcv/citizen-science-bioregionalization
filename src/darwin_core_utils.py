@@ -183,6 +183,7 @@ def scan_darwin_core_archive(
         quote_char=meta.quote_char,
         low_memory=True,
         encoding="utf8",
+        cache=False,
         **scan_csv_kwargs,
     )
 
