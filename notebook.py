@@ -291,12 +291,6 @@ def _(
 
 
 @app.cell
-def _():
-    # mo.ui.dataframe(darwin_core_lf.limit(100).collect(), limit=100)
-    return
-
-
-@app.cell
 def _(darwin_core_lf, pl):
     darwin_core_lf.select(pl.len()).collect(engine="streaming")
     return

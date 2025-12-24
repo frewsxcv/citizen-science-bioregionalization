@@ -181,6 +181,7 @@ def scan_darwin_core_archive(
         has_header=meta.has_header,
         new_columns=meta.columns if not meta.has_header else None,
         quote_char=meta.quote_char,
+        low_memory=True,
         encoding="utf8",
         **scan_csv_kwargs,
     )
@@ -339,7 +340,7 @@ def load_darwin_core_data(
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
-        inner_lf = pl.scan_parquet(source_path)
+        inner_lf = pl.scan_parquet(source_path, low_memory=True)
         inner_lf = rename_parquet_columns_to_darwin_core(inner_lf)
 
     # Apply geographic bounding box filter
