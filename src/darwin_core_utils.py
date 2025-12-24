@@ -210,18 +210,6 @@ def scan_darwin_core_csv(path: Union[str, Path]) -> pl.LazyFrame:
     )
 
 
-def scan_darwin_core_parquet(path: Union[str, Path]) -> pl.LazyFrame:
-    """Scan a Darwin Core Parquet file lazily.
-
-    Args:
-        path: Path to the Parquet file.
-
-    Returns:
-        A Polars LazyFrame containing the Darwin Core data.
-    """
-    return pl.scan_parquet(path)
-
-
 def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
     """
     Get the mapping from lowercase column names (used in parquet snapshots)
