@@ -290,7 +290,12 @@ def load_darwin_core_data(
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
-        inner_lf = pl.scan_parquet(source_path, low_memory=True, cache=False)
+        inner_lf = pl.scan_parquet(
+            source_path,
+            low_memory=True,
+            cache=False,
+            parallel="prefiltered",
+        )
         inner_lf = inner_lf.rename(
             get_parquet_to_darwin_core_column_mapping(),
             strict=False,
