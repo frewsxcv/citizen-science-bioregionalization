@@ -46,7 +46,15 @@ const TaxaItem: React.FC<TaxaItemProps> = ({ taxa }) => {
       <div className="media-content">
         <div className="content">
           <p>
-            <strong>{taxa.scientific_name}</strong>
+            <strong>
+              <a
+                href={`https://www.gbif.org/species/${taxa.gbif_taxon_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {taxa.scientific_name}
+              </a>
+            </strong>
             <br />
             <small className="has-text-grey">
               log2fc={taxa.log2_fold_change.toFixed(2)}, in-cluster=
