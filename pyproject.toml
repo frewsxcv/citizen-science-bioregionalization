@@ -34,3 +34,6 @@ dependencies = [
 
 [tool.pyright]
 typeCheckingMode = "standard"
+
+[dependency-groups]
+dev = []

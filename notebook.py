@@ -15,7 +15,6 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
-
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -289,6 +288,12 @@ def _(
         taxon_filter=taxon_filter,
     )
     return (darwin_core_lf,)
+
+
+@app.cell
+def _(darwin_core_lf, mo):
+    mo.ui.dataframe(darwin_core_lf.limit(100).collect(), limit=100)
+    return
 
 
 @app.cell

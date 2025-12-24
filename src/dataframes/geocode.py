@@ -223,11 +223,18 @@ def _add_indirect_neighbor_edge(
     """Add a bidirectional indirect neighbor connection between two geocodes."""
     return df.with_columns(
         pl.when(pl.col("geocode") == geocode1)
-        .then(pl.col("direct_and_indirect_neighbors").list.concat([geocode2]))
+        .then(
+            pl.col("direct_and_indirect_neighbors").list.concat(
+                pl.lit([geocode2], dtype=pl.List(pl.UInt64))
+            )
+        )
         .when(pl.col("geocode") == geocode2)
-        .then(pl.col("direct_and_indirect_neighbors").list.concat([geocode1]))
+        .then(
+            pl.col("direct_and_indirect_neighbors").list.concat(
+                pl.lit([geocode1], dtype=pl.List(pl.UInt64))
+            )
+        )
         .otherwise(pl.col("direct_and_indirect_neighbors"))
-        .cast(pl.List(pl.UInt64))
         .alias("direct_and_indirect_neighbors")
     )
 

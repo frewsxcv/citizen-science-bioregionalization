@@ -11,6 +11,7 @@ from src.darwin_core_utils import scan_darwin_core_archive
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import (
     GeocodeSchema,
+    _add_indirect_neighbor_edge,
     _df_to_graph,
     _reduce_connected_components_to_one,
     graph,
@@ -219,6 +220,71 @@ class TestGeocodeSchema(unittest.TestCase):
         # Test with non-existent geocode
         with self.assertRaises(ValueError):
             index_of_geocode(8514355555555559, geocode_df)
+
+    def test_add_indirect_neighbor_edge_preserves_uint64_precision(self):
+        """Regression test: ensure large H3 geocodes don't lose precision when adding indirect neighbors.
+
+        This test verifies the fix for a bug where `list.concat([python_int])` caused Polars
+        to infer float64 type, losing precision for large 64-bit integers. H3 cell IDs like
+        595148721944002559 would be rounded to 595148721944002560 (off by 1).
+        """
+        # These are real H3 cell IDs that exhibited the bug
+        geocode1 = 595148721944002559
+        geocode2 = 595148996821909504
+
+        df = pl.DataFrame(
+            {
+                "geocode": pl.Series([geocode1, geocode2], dtype=pl.UInt64),
+                "center": points_series(2),
+                "boundary": polygon_series(2),
+                "direct_neighbors": pl.Series(
+                    [[595685549906329599], [595685549906329599]],
+                    dtype=pl.List(pl.UInt64),
+                ),
+                "direct_and_indirect_neighbors": pl.Series(
+                    [[595685549906329599], [595685549906329599]],
+                    dtype=pl.List(pl.UInt64),
+                ),
+                "is_edge": pl.Series([False, False], dtype=pl.Boolean),
+            }
+        )
+
+        # Add an indirect neighbor edge between the two geocodes
+        result_df = _add_indirect_neighbor_edge(df, geocode1, geocode2)
+
+        # Verify geocode1's neighbors now include geocode2 (exact value, not off by 1)
+        geocode1_neighbors = result_df.filter(pl.col("geocode") == geocode1)[
+            "direct_and_indirect_neighbors"
+        ][0]
+        self.assertIn(
+            geocode2,
+            geocode1_neighbors,
+            f"Expected exact geocode {geocode2} in neighbors, got {geocode1_neighbors}. "
+            f"If {geocode2 + 1} is present instead, there's a float64 precision loss bug.",
+        )
+
+        # Verify geocode2's neighbors now include geocode1 (exact value, not off by 1)
+        geocode2_neighbors = result_df.filter(pl.col("geocode") == geocode2)[
+            "direct_and_indirect_neighbors"
+        ][0]
+        self.assertIn(
+            geocode1,
+            geocode2_neighbors,
+            f"Expected exact geocode {geocode1} in neighbors, got {geocode2_neighbors}. "
+            f"If {geocode1 + 1} is present instead, there's a float64 precision loss bug.",
+        )
+
+        # Also verify the wrong values are NOT present (the off-by-one values)
+        self.assertNotIn(
+            geocode2 + 1,
+            geocode1_neighbors,
+            "Found off-by-one geocode value, indicating float64 precision loss",
+        )
+        self.assertNotIn(
+            geocode1 + 1,
+            geocode2_neighbors,
+            "Found off-by-one geocode value, indicating float64 precision loss",
+        )
 
 
 def points_series(count: int):
