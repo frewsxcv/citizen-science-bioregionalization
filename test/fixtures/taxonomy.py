@@ -1,7 +1,7 @@
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
+from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.dataframes.taxonomy import TaxonomySchema
 
 
@@ -19,7 +19,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "family": "Felidae",
             "genus": "Panthera",
             "species": "leo",
-            "taxonRank": "species",
+            "taxonRank": "SPECIES",
             "scientificName": "Panthera leo",
             "gbifTaxonId": 5219404,
         },
@@ -32,7 +32,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "family": "Canidae",
             "genus": "Canis",
             "species": "lupus",
-            "taxonRank": "species",
+            "taxonRank": "SPECIES",
             "scientificName": "Canis lupus",
             "gbifTaxonId": 5219243,
         },
@@ -45,7 +45,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "family": "Fagaceae",
             "genus": "Quercus",
             "species": "robur",
-            "taxonRank": "species",
+            "taxonRank": "SPECIES",
             "scientificName": "Quercus robur",
             "gbifTaxonId": 2878688,
         },
@@ -58,7 +58,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "family": "",
             "genus": "",
             "species": "",
-            "taxonRank": "order",
+            "taxonRank": "ORDER",
             "scientificName": "Anseriformes",
             "gbifTaxonId": 711,
         },
@@ -71,7 +71,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         pl.col("order").cast(pl.Categorical),
         pl.col("family").cast(pl.Categorical),
         pl.col("genus").cast(pl.Categorical),
-        pl.col("taxonRank").cast(pl.Categorical),
+        pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
         pl.col("gbifTaxonId").cast(pl.UInt32),
     )
     return TaxonomySchema.validate(taxonomy_df).lazy()

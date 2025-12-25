@@ -1,7 +1,7 @@
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
+from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lf
@@ -21,7 +21,7 @@ class TaxonomySchema(dy.Schema):
     family = dy.Categorical(nullable=True)
     genus = dy.Categorical(nullable=True)
     species = dy.String(nullable=True)
-    taxonRank = dy.Categorical(nullable=True)
+    taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
     gbifTaxonId = dy.UInt32(nullable=True)
 

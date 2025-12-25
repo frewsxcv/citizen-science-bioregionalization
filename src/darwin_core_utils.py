@@ -7,7 +7,7 @@ from typing import Any, Union
 
 import polars as pl
 
-from src.constants import KINGDOM_DATA_TYPE, KINGDOM_VALUES
+from src.constants import KINGDOM_DATA_TYPE, KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.geocode import filter_by_bounding_box
 from src.types import Bbox
 
@@ -311,7 +311,7 @@ def load_darwin_core_data(
                 "order": pl.Categorical(),
                 "family": pl.Categorical(),
                 "genus": pl.Categorical(),
-                "taxonRank": pl.Categorical(),
+                "taxonRank": pl.Enum(TAXON_RANK_VALUES),
                 "taxonKey": pl.UInt32(),
             },
             strict=False,

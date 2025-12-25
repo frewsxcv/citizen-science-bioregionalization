@@ -3,6 +3,7 @@ import logging
 import dataframely as dy
 import polars as pl
 
+from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 from src.dataframes.taxonomy import TaxonomySchema
@@ -11,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class TaxaGeographicMeanSchema(dy.Schema):
-    kingdom = dy.Categorical(nullable=True)
-    taxonRank = dy.Categorical(nullable=True)
+    kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
+    taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
     mean_lat = dy.Float64(nullable=False)
     mean_lon = dy.Float64(nullable=False)

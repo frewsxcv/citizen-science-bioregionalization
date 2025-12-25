@@ -11,7 +11,7 @@ from typing import Union
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
+from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.darwin_core_utils import load_darwin_core_data
 from src.types import Bbox
 
@@ -38,7 +38,7 @@ class DarwinCoreSchema(dy.Schema):
     species = dy.String(nullable=True)
 
     # Taxonomic metadata
-    taxonRank = dy.Categorical(nullable=True)
+    taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
     taxonKey = dy.UInt32(nullable=True)
 
@@ -105,7 +105,7 @@ class DarwinCoreSchema(dy.Schema):
                 "family": pl.Categorical(),
                 "genus": pl.Categorical(),
                 "species": pl.String(),
-                "taxonRank": pl.Categorical(),
+                "taxonRank": pl.Enum(TAXON_RANK_VALUES),
                 "scientificName": pl.String(),
                 "taxonKey": pl.UInt32(),
             }
