@@ -7,7 +7,7 @@ from typing import Any, Union
 
 import polars as pl
 
-from src.constants import KINGDOM_DATA_TYPE
+from src.constants import KINGDOM_DATA_TYPE, KINGDOM_VALUES
 from src.geocode import filter_by_bounding_box
 from src.types import Bbox
 
@@ -298,6 +298,22 @@ def load_darwin_core_data(
         )
         inner_lf = inner_lf.rename(
             get_parquet_to_darwin_core_column_mapping(),
+            strict=False,
+        )
+
+        # Cast columns to correct types immediately after loading from parquet
+        # This ensures types are correct before any query optimization can interfere
+        inner_lf = inner_lf.cast(
+            {
+                "kingdom": pl.Enum(KINGDOM_VALUES),
+                "phylum": pl.Categorical(),
+                "class": pl.Categorical(),
+                "order": pl.Categorical(),
+                "family": pl.Categorical(),
+                "genus": pl.Categorical(),
+                "taxonRank": pl.Categorical(),
+                "taxonKey": pl.UInt32(),
+            },
             strict=False,
         )
 
