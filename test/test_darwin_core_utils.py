@@ -5,8 +5,17 @@ import polars as pl
 from src.darwin_core_utils import (
     build_taxon_filter,
     get_parquet_to_darwin_core_column_mapping,
-    rename_parquet_columns_to_darwin_core,
 )
+
+
+def rename_parquet_columns_to_darwin_core(lf: pl.LazyFrame) -> pl.LazyFrame:
+    """
+    Helper function for tests: rename columns from lowercase to camelCase.
+    """
+    return lf.rename(
+        get_parquet_to_darwin_core_column_mapping(),
+        strict=False,
+    )
 
 
 class TestDarwinCoreUtils(unittest.TestCase):
