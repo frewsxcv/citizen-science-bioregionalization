@@ -37,4 +37,4 @@ RUN useradd -m app_user && \
     chown -R app_user:app_user /home/app_user/.config
 USER app_user
 
-CMD [ "marimo", "edit", "notebook.py", "--host", "0.0.0.0", "-p", "8080" ]
+CMD [ "marimo", "edit", "notebook.py", "--host", "0.0.0.0", "-p", "8080", "--token", "--token-password", "morusalba" ]
