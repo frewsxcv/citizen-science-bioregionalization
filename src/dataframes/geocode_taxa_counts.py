@@ -38,37 +38,35 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 "decimalLatitude",
                 "decimalLongitude",
                 "scientificName",
-                pl.col("taxonKey").alias("gbifTaxonId"),
+                pl.col("taxonKey").cast(pl.UInt32()).alias("gbifTaxonId"),
+                "individualCount",
             )
-            .cast({"gbifTaxonId": pl.UInt32()})
             .pipe(filter_by_bounding_box, bounding_box=bounding_box)
             .pipe(with_geocode_lf, geocode_precision=geocode_precision)
             .select(
                 "geocode",
                 "scientificName",
                 "gbifTaxonId",
+                "individualCount",
             )
             .filter(
                 # Ensure geocode exists and is not an edge
                 pl.col("geocode").is_in(geocodes)
             )
             .join(
-                taxonomy_lf.select(  # TODO: don't call lazy() here
-                    ["taxonId", "scientificName", "gbifTaxonId"]
-                ),
+                taxonomy_lf.select("taxonId", "scientificName", "gbifTaxonId"),
                 on=["scientificName", "gbifTaxonId"],
                 how="left",
             )
             .select(
                 "geocode",
                 "taxonId",
+                "individualCount",
             )
-            .group_by(["geocode", "taxonId"])
-            .agg(pl.len().alias("count"))
-            .sort(by="geocode")
-            # .show_graph(plan_stage="physical", engine="streaming")
+            .group_by("geocode", "taxonId")
+            .agg(pl.col("individualCount").fill_null(1).sum().alias("count"))
             .collect(engine="streaming")
-            # .collect_batches()
+            .sort(by="geocode")
         )
 
         # Handle any missing taxonId values (this shouldn't happen if taxonomy is comprehensive)

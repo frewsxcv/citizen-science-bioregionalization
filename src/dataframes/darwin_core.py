@@ -42,6 +42,8 @@ class DarwinCoreSchema(dy.Schema):
     scientificName = dy.String(nullable=True)
     taxonKey = dy.UInt32(nullable=True)
 
+    individualCount = dy.Int32(nullable=True)
+
     @dy.rule()
     def valid_latitude(cls) -> pl.Expr:
         """Validate that latitude is within valid range [-90, 90]."""
@@ -92,6 +94,7 @@ class DarwinCoreSchema(dy.Schema):
             "taxonRank",
             "scientificName",
             "taxonKey",
+            "individualCount",
         )
 
         lf = lf.cast(
