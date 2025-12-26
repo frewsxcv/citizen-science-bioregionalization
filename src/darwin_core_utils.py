@@ -7,7 +7,7 @@ from typing import Any, Union
 
 import polars as pl
 
-from src.constants import KINGDOM_DATA_TYPE, KINGDOM_VALUES, TAXON_RANK_VALUES
+from src.constants import KINGDOM_DATA_TYPE, TAXON_RANK_DATA_TYPE
 from src.geocode import filter_by_bounding_box
 from src.types import Bbox
 
@@ -25,15 +25,109 @@ class _Meta:
     default_fields: dict[str, str]
 
 
-# Schema overrides for Darwin Core CSV files
-# Polars can infer most types, but some need to be specified
-SCHEMA_OVERRIDES: dict[str, type[pl.DataType] | pl.DataType] = {
+# Columns that should be cast to Categorical types after loading
+# Maps column name (lowercase) to target data type
+_CATEGORICAL_CASTS: dict[str, pl.DataType] = {
     "kingdom": KINGDOM_DATA_TYPE,
-    "catalogNumber": pl.Utf8,
-    "hasCoordinate": pl.Boolean,
-    "hasGeospatialIssues": pl.Boolean,
-    "repatriated": pl.Boolean,
+    "phylum": pl.Categorical(),
+    "class": pl.Categorical(),
+    "order": pl.Categorical(),
+    "family": pl.Categorical(),
+    "genus": pl.Categorical(),
+    "taxonrank": TAXON_RANK_DATA_TYPE,
 }
+
+# Base schema for columns - uses String for taxonomic columns (for CSV compatibility)
+# Actual categorical casting is done via cast_taxonomic_columns()
+_BASE_SCHEMA: dict[str, pl.DataType] = {
+    # Geographic fields
+    "decimallatitude": pl.Float64(),
+    "decimallongitude": pl.Float64(),
+    # Taxonomic hierarchy (read as String, cast to Categorical later)
+    "kingdom": pl.String(),
+    "phylum": pl.String(),
+    "class": pl.String(),
+    "order": pl.String(),
+    "family": pl.String(),
+    "genus": pl.String(),
+    "species": pl.String(),
+    # Taxonomic metadata
+    "taxonrank": pl.String(),
+    "scientificname": pl.String(),
+    "taxonkey": pl.String(),
+    # Observation metadata
+    "individualcount": pl.Int32(),
+}
+
+# Lowercase to camelCase mapping for Darwin Core standard column names
+_LOWER_TO_CAMEL: dict[str, str] = {
+    "decimallatitude": "decimalLatitude",
+    "decimallongitude": "decimalLongitude",
+    "taxonkey": "taxonKey",
+    "taxonrank": "taxonRank",
+    "scientificname": "scientificName",
+    "individualcount": "individualCount",
+    "catalognumber": "catalogNumber",
+    "hasgeospatialissues": "hasGeospatialIssues",
+    "specieskey": "speciesKey",
+    "acceptedtaxonkey": "acceptedTaxonKey",
+    "kingdomkey": "kingdomKey",
+    "phylumkey": "phylumKey",
+    "classkey": "classKey",
+    "orderkey": "orderKey",
+    "familykey": "familyKey",
+    "genuskey": "genusKey",
+    "subgenuskey": "subgenusKey",
+    "verbatimscientificname": "verbatimScientificName",
+    "countrycode": "countryCode",
+    "gbifid": "gbifID",
+    "datasetkey": "datasetKey",
+    "occurrenceid": "occurrenceID",
+    "eventdate": "eventDate",
+    "basisofrecord": "basisOfRecord",
+    "publishingorgkey": "publishingOrgKey",
+    "coordinateuncertaintyinmeters": "coordinateUncertaintyInMeters",
+    "coordinateprecision": "coordinatePrecision",
+    "stateprovince": "stateProvince",
+    "iucnredlistcategory": "iucnRedListCategory",
+}
+
+# Derived schemas for external use
+SCHEMA_LOWER: dict[str, pl.DataType] = _BASE_SCHEMA
+SCHEMA_CAMEL: dict[str, pl.DataType] = {
+    _LOWER_TO_CAMEL.get(k, k): v for k, v in _BASE_SCHEMA.items()
+}
+
+
+def cast_taxonomic_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
+    """
+    Cast taxonomic columns to their appropriate Categorical types.
+
+    This function applies consistent casting for taxonomic hierarchy columns
+    (kingdom, phylum, class, order, family, genus) and taxonRank to optimize
+    memory usage and query performance.
+
+    Args:
+        lf: Input LazyFrame with taxonomic columns
+
+    Returns:
+        LazyFrame with taxonomic columns cast to Categorical types
+    """
+    # Build a mapping from lowercase column name to actual column name
+    actual_cols = lf.collect_schema().names()
+    lower_to_actual: dict[str, str] = {col.lower(): col for col in actual_cols}
+
+    cast_exprs = []
+    for col_lower, target_type in _CATEGORICAL_CASTS.items():
+        # Look up the actual column name (handles both lowercase and camelCase)
+        actual_col = lower_to_actual.get(col_lower)
+        if actual_col is not None:
+            cast_exprs.append(pl.col(actual_col).cast(target_type))
+
+    if cast_exprs:
+        lf = lf.with_columns(cast_exprs)
+
+    return lf
 
 
 def _parse_meta(meta_path: Path) -> _Meta:
@@ -166,7 +260,7 @@ def scan_darwin_core_archive(
     data_path = base_dir / meta.core_file
 
     schema_from_meta = {
-        col: SCHEMA_OVERRIDES[col] for col in meta.columns if col in SCHEMA_OVERRIDES
+        col: SCHEMA_CAMEL[col] for col in meta.columns if col in SCHEMA_CAMEL
     }
     scan_csv_kwargs.setdefault("schema_overrides", {}).update(schema_from_meta)
 
@@ -184,6 +278,7 @@ def scan_darwin_core_archive(
         low_memory=True,
         encoding="utf8",
         cache=False,
+        schema=SCHEMA_LOWER,
         **scan_csv_kwargs,
     )
 
@@ -202,37 +297,7 @@ def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
     Returns:
         Dictionary mapping lowercase column names to camelCase column names
     """
-    return {
-        "decimallatitude": "decimalLatitude",
-        "decimallongitude": "decimalLongitude",
-        "taxonkey": "taxonKey",
-        "specieskey": "speciesKey",
-        "acceptedtaxonkey": "acceptedTaxonKey",
-        "kingdomkey": "kingdomKey",
-        "phylumkey": "phylumKey",
-        "classkey": "classKey",
-        "orderkey": "orderKey",
-        "familykey": "familyKey",
-        "genuskey": "genusKey",
-        "subgenuskey": "subgenusKey",
-        "taxonrank": "taxonRank",
-        "scientificname": "scientificName",
-        "verbatimscientificname": "verbatimScientificName",
-        "countrycode": "countryCode",
-        "gbifid": "gbifID",
-        "datasetkey": "datasetKey",
-        "occurrenceid": "occurrenceID",
-        "eventdate": "eventDate",
-        "basisofrecord": "basisOfRecord",
-        "individualcount": "individualCount",
-        "publishingorgkey": "publishingOrgKey",
-        "coordinateuncertaintyinmeters": "coordinateUncertaintyInMeters",
-        "coordinateprecision": "coordinatePrecision",
-        "hascoordinate": "hasCoordinate",
-        "hasgeospatialissues": "hasGeospatialIssues",
-        "stateprovince": "stateProvince",
-        "iucnredlistcategory": "iucnRedListCategory",
-    }
+    return _LOWER_TO_CAMEL
 
 
 def build_taxon_filter(taxon_name: str) -> pl.Expr:
@@ -295,27 +360,15 @@ def load_darwin_core_data(
             low_memory=True,
             cache=False,
             parallel="prefiltered",
-        )
-        inner_lf = inner_lf.rename(
+            schema=SCHEMA_LOWER,
+            extra_columns="ignore",
+        ).rename(
             get_parquet_to_darwin_core_column_mapping(),
             strict=False,
         )
 
-        # Cast columns to correct types immediately after loading from parquet
-        # This ensures types are correct before any query optimization can interfere
-        inner_lf = inner_lf.cast(
-            {
-                "kingdom": pl.Enum(KINGDOM_VALUES),
-                "phylum": pl.Categorical(),
-                "class": pl.Categorical(),
-                "order": pl.Categorical(),
-                "family": pl.Categorical(),
-                "genus": pl.Categorical(),
-                "taxonRank": pl.Enum(TAXON_RANK_VALUES),
-                "taxonKey": pl.UInt32(),
-            },
-            strict=False,
-        )
+    # Apply categorical casting (handles both lowercase and camelCase columns)
+    inner_lf = cast_taxonomic_columns(inner_lf)
 
     # Apply geographic bounding box filter
     inner_lf = inner_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)

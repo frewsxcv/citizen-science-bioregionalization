@@ -23,7 +23,7 @@ class TaxonomySchema(dy.Schema):
     species = dy.String(nullable=True)
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
-    gbifTaxonId = dy.UInt32(nullable=True)
+    gbifTaxonId = dy.String(nullable=True)
 
     @classmethod
     def build_lf(

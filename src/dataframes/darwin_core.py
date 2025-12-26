@@ -40,7 +40,7 @@ class DarwinCoreSchema(dy.Schema):
     # Taxonomic metadata
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
-    taxonKey = dy.UInt32(nullable=True)
+    taxonKey = dy.String(nullable=True)
 
     individualCount = dy.Int32(nullable=True)
 
@@ -95,23 +95,6 @@ class DarwinCoreSchema(dy.Schema):
             "scientificName",
             "taxonKey",
             "individualCount",
-        )
-
-        lf = lf.cast(
-            {
-                "decimalLatitude": pl.Float64(),
-                "decimalLongitude": pl.Float64(),
-                "kingdom": pl.Enum(KINGDOM_VALUES),
-                "phylum": pl.Categorical(),
-                "class": pl.Categorical(),
-                "order": pl.Categorical(),
-                "family": pl.Categorical(),
-                "genus": pl.Categorical(),
-                "species": pl.String(),
-                "taxonRank": pl.Enum(TAXON_RANK_VALUES),
-                "scientificName": pl.String(),
-                "taxonKey": pl.UInt32(),
-            }
         )
 
         return cls.validate(lf, eager=False)

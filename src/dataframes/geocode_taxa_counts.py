@@ -38,7 +38,7 @@ class GeocodeTaxaCountsSchema(dy.Schema):
                 "decimalLatitude",
                 "decimalLongitude",
                 "scientificName",
-                pl.col("taxonKey").cast(pl.UInt32()).alias("gbifTaxonId"),
+                pl.col("taxonKey").cast(pl.String()).alias("gbifTaxonId"),
                 "individualCount",
             )
             .pipe(filter_by_bounding_box, bounding_box=bounding_box)

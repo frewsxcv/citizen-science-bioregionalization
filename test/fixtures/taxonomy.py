@@ -21,7 +21,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "species": "leo",
             "taxonRank": "SPECIES",
             "scientificName": "Panthera leo",
-            "gbifTaxonId": 5219404,
+            "gbifTaxonId": "5219404",
         },
         {
             "taxonId": 1,
@@ -34,7 +34,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "species": "lupus",
             "taxonRank": "SPECIES",
             "scientificName": "Canis lupus",
-            "gbifTaxonId": 5219243,
+            "gbifTaxonId": "5219243",
         },
         {
             "taxonId": 2,
@@ -47,7 +47,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "species": "robur",
             "taxonRank": "SPECIES",
             "scientificName": "Quercus robur",
-            "gbifTaxonId": 2878688,
+            "gbifTaxonId": "2878688",
         },
         {
             "taxonId": 3,
@@ -60,7 +60,7 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
             "species": "",
             "taxonRank": "ORDER",
             "scientificName": "Anseriformes",
-            "gbifTaxonId": 711,
+            "gbifTaxonId": "711",
         },
     ]
     taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
@@ -72,6 +72,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         pl.col("family").cast(pl.Categorical),
         pl.col("genus").cast(pl.Categorical),
         pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
-        pl.col("gbifTaxonId").cast(pl.UInt32),
+        pl.col("gbifTaxonId").cast(pl.String),
     )
     return TaxonomySchema.validate(taxonomy_df).lazy()
