@@ -57,6 +57,12 @@ echo "Pulling container image..."
 docker pull $${IMAGE_NAME}:latest
 
 # Run the container with the data volume mounted
+#
+# Configure jemalloc to aggressively release memory back to the OS
+# This helps reduce memory usage with Polars join operations
+# See: https://github.com/pola-rs/polars/issues/25768
+RJEM_MALLOC_ENV="_RJEM_MALLOC_CONF=background_thread:true,dirty_decay_ms:0,muzzy_decay_ms:0"
+
 echo "Starting container..."
 docker run \
   --name=$CONTAINER_NAME \
@@ -65,6 +71,7 @@ docker run \
   --publish 8080:8080 \
   --volume $MOUNT_POINT:/data \
   --env DATA_DIR=/data \
+  --env $RJEM_MALLOC_ENV \
   --log-driver=gcplogs \
   $${IMAGE_NAME}:latest
 
