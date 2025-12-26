@@ -278,7 +278,7 @@ def scan_darwin_core_archive(
         low_memory=True,
         encoding="utf8",
         cache=False,
-        schema=SCHEMA_LOWER,
+        schema=SCHEMA_CAMEL,
         **scan_csv_kwargs,
     )
 
