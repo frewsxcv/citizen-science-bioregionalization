@@ -10,7 +10,7 @@ from src.dataframes.cluster_significant_differences import (
 from src.dataframes.taxonomy import TaxonomySchema
 
 
-def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
+def _fetch_wikidata_images(gbif_taxon_ids: List[str]) -> Dict[str, str]:
     """
     Fetches image URLs from Wikidata for a list of GBIF taxon IDs.
     """
@@ -45,7 +45,7 @@ def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
         image_map = {}
         for binding in results["results"]["bindings"]:
             if "image" in binding:
-                gbif_id = int(binding["gbif_taxon_id"]["value"])
+                gbif_id = binding["gbif_taxon_id"]["value"]
                 image_map[gbif_id] = binding["image"]["value"]
         return image_map
     except requests.exceptions.RequestException as e:
@@ -94,7 +94,7 @@ class SignificantTaxaImagesSchema(dy.Schema):
                 "gbifTaxonId": list(image_map.keys()),
                 "image_url": list(image_map.values()),
             }
-        ).with_columns(pl.col("gbifTaxonId").cast(pl.UInt32))
+        )
 
         # Join images back to the significant taxa with gbifTaxonId
         result_df = significant_taxa_with_gbif.join(
