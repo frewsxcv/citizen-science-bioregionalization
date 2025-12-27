@@ -15,12 +15,6 @@ class TaxonomySchema(dy.Schema):
 
     taxonId = dy.UInt32(nullable=False)  # Unique identifier for each taxon
     kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
-    phylum = dy.Categorical(nullable=True)
-    class_ = dy.Categorical(nullable=True, alias="class")
-    order = dy.Categorical(nullable=True)
-    family = dy.Categorical(nullable=True)
-    genus = dy.Categorical(nullable=True)
-    species = dy.String(nullable=True)
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
     gbifTaxonId = dy.String(nullable=True)
@@ -49,12 +43,6 @@ class TaxonomySchema(dy.Schema):
             )
             .select(
                 "kingdom",
-                "phylum",
-                "class",
-                "order",
-                "family",
-                "genus",
-                "species",
                 "taxonRank",
                 "scientificName",
                 # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),

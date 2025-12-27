@@ -25,19 +25,14 @@ class _Meta:
     default_fields: dict[str, str]
 
 
-# Columns that should be cast to Categorical types after loading
+# Columns that should be cast to Categorical/Enum types after loading
 # Maps column name (lowercase) to target data type
 _CATEGORICAL_CASTS: dict[str, pl.DataType] = {
     "kingdom": KINGDOM_DATA_TYPE,
-    "phylum": pl.Categorical(),
-    "class": pl.Categorical(),
-    "order": pl.Categorical(),
-    "family": pl.Categorical(),
-    "genus": pl.Categorical(),
     "taxonrank": TAXON_RANK_DATA_TYPE,
 }
 
-# Base schema for columns - uses String for taxonomic columns (for CSV compatibility)
+
 # Actual categorical casting is done via cast_taxonomic_columns()
 _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Geographic fields
@@ -45,12 +40,6 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     "decimallongitude": pl.Float64(),
     # Taxonomic hierarchy (read as String, cast to Categorical later)
     "kingdom": pl.String(),
-    "phylum": pl.String(),
-    "class": pl.String(),
-    "order": pl.String(),
-    "family": pl.String(),
-    "genus": pl.String(),
-    "species": pl.String(),
     # Taxonomic metadata
     "taxonrank": pl.String(),
     "scientificname": pl.String(),
@@ -313,15 +302,16 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
         A Polars expression that matches observations where any taxonomic
         rank column equals the given taxon name
     """
-    return (
-        (pl.col("kingdom") == taxon_name)
-        | (pl.col("phylum") == taxon_name)
-        | (pl.col("class") == taxon_name)
-        | (pl.col("order") == taxon_name)
-        | (pl.col("family") == taxon_name)
-        | (pl.col("genus") == taxon_name)
-        | (pl.col("species") == taxon_name)
-    )
+    raise NotImplementedError("Not currently implemented")
+    # return (
+    #     (pl.col("kingdom") == taxon_name)
+    #     | (pl.col("phylum") == taxon_name)
+    #     | (pl.col("class") == taxon_name)
+    #     | (pl.col("order") == taxon_name)
+    #     | (pl.col("family") == taxon_name)
+    #     | (pl.col("genus") == taxon_name)
+    #     | (pl.col("species") == taxon_name)
+    # )
 
 
 def load_darwin_core_data(
@@ -373,9 +363,9 @@ def load_darwin_core_data(
     inner_lf = inner_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
 
     # Add taxon filter if specified
-    if taxon_filter:
-        taxon_filter_expr = build_taxon_filter(taxon_filter)
-        inner_lf = inner_lf.filter(taxon_filter_expr)
+    # if taxon_filter:
+    #     taxon_filter_expr = build_taxon_filter(taxon_filter)
+    #     inner_lf = inner_lf.filter(taxon_filter_expr)
     if limit_results is not None:
         inner_lf = inner_lf.limit(limit_results)
 

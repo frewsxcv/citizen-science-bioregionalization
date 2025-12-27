@@ -30,12 +30,6 @@ class DarwinCoreSchema(dy.Schema):
 
     # Taxonomic hierarchy
     kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
-    phylum = dy.Categorical(nullable=True)
-    class_ = dy.Categorical(nullable=True, alias="class")
-    order = dy.Categorical(nullable=True)
-    family = dy.Categorical(nullable=True)
-    genus = dy.Categorical(nullable=True)
-    species = dy.String(nullable=True)
 
     # Taxonomic metadata
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
@@ -85,12 +79,6 @@ class DarwinCoreSchema(dy.Schema):
             "decimalLatitude",
             "decimalLongitude",
             "kingdom",
-            "phylum",
-            "class",
-            "order",
-            "family",
-            "genus",
-            "species",
             "taxonRank",
             "scientificName",
             "taxonKey",
