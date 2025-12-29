@@ -11,6 +11,7 @@ from typing import Tuple
 import dataframely as dy
 import polars as pl
 
+from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
     connectivity_matrix: GeocodeConnectivityMatrix,
-    geocode_lf: pl.LazyFrame,  # type: ignore[type-arg]
+    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
     min_k: int = 2,
     max_k: int = 20,
 ) -> Tuple[int, dy.DataFrame[GeocodeSilhouetteScoreSchema]]:
@@ -93,7 +94,7 @@ def optimize_num_clusters(
 
             # Perform clustering with k clusters
             geocode_cluster_df = GeocodeClusterSchema.build_df(
-                geocode_lf,  # type: ignore[arg-type]
+                geocode_lf,
                 distance_matrix,
                 connectivity_matrix,
                 num_clusters=k,
