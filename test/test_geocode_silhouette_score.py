@@ -18,13 +18,12 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         condensed_distances = np.array([0.5, 0.9, 0.8])
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
 
-        geocode_cluster_df = mock_geocode_cluster_df()
         num_clusters = 2
+        geocode_cluster_df = mock_geocode_cluster_df(num_clusters=num_clusters)
 
         result = GeocodeSilhouetteScoreSchema.build_df(
             distance_matrix,
             geocode_cluster_df,
-            num_clusters,
         )
 
         # Verify schema
@@ -51,14 +50,13 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
-        geocode_cluster_df = mock_geocode_cluster_df()
 
         # Test with different num_clusters values
         for num_k in [2, 5, 10]:
+            geocode_cluster_df = mock_geocode_cluster_df(num_clusters=num_k)
             result = GeocodeSilhouetteScoreSchema.build_df(
                 distance_matrix,
                 geocode_cluster_df,
-                num_k,
             )
 
             self.assertTrue((result["num_clusters"] == num_k).all())
@@ -70,14 +68,15 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
-        geocode_cluster_df = mock_geocode_cluster_df()
 
         # Build two dataframes with different num_clusters
+        geocode_cluster_df_2 = mock_geocode_cluster_df(num_clusters=2)
         result_2 = GeocodeSilhouetteScoreSchema.build_df(
-            distance_matrix, geocode_cluster_df, 2
+            distance_matrix, geocode_cluster_df_2
         )
+        geocode_cluster_df_5 = mock_geocode_cluster_df(num_clusters=5)
         result_5 = GeocodeSilhouetteScoreSchema.build_df(
-            distance_matrix, geocode_cluster_df, 5
+            distance_matrix, geocode_cluster_df_5
         )
 
         # Combine them
@@ -99,12 +98,11 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
-        geocode_cluster_df = mock_geocode_cluster_df()
+        geocode_cluster_df = mock_geocode_cluster_df(num_clusters=3)
 
         result = GeocodeSilhouetteScoreSchema.build_df(
             distance_matrix,
             geocode_cluster_df,
-            3,
         )
 
         # Verify data types

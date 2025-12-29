@@ -656,7 +656,8 @@ def _(
             geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
-            num_clusters_to_use,
+            min_k=num_clusters_to_use,
+            max_k=num_clusters_to_use,
         ),
         cache_key=GeocodeClusterSchema,
     )
@@ -1046,7 +1047,6 @@ def _(
         GeocodeSilhouetteScoreSchema.build_df(
             geocode_distance_matrix,
             geocode_cluster_lf.collect(),
-            num_clusters_to_use,
         ),
         cache_key=GeocodeSilhouetteScoreSchema,
     ).collect(engine="streaming")

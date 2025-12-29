@@ -30,9 +30,9 @@ def optimize_num_clusters(
     """
     Test clustering with k from min_k to max_k and find optimal number of clusters.
 
-    This function iterates through different values of k (number of clusters),
-    performs hierarchical clustering for each k, computes silhouette scores,
-    and returns the k with the highest overall silhouette score.
+    This function performs hierarchical clustering for multiple k values,
+    computes silhouette scores, and returns the k with the highest overall
+    silhouette score.
 
     Args:
         distance_matrix: Precomputed distance matrix between geocodes
@@ -44,7 +44,7 @@ def optimize_num_clusters(
     Returns:
         A tuple containing:
         - optimal_k: The number of clusters with the highest silhouette score
-        - combined_silhouette_scores_df: DataFrame with silhouette scores for all tested k values
+        - silhouette_scores_df: DataFrame with silhouette scores for all tested k values
 
     Raises:
         ValueError: If min_k < 2 or max_k < min_k
@@ -59,62 +59,29 @@ def optimize_num_clusters(
         ... )
         >>> print(f"Optimal number of clusters: {optimal_k}")
     """
-    if min_k < 2:
-        raise ValueError(f"min_k must be at least 2, got {min_k}")
-    if max_k < min_k:
-        raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
-
-    # Get number of geocodes to validate k range
-    num_geocodes = geocode_lf.select(pl.len()).collect().item()
-    if max_k >= num_geocodes:
-        logger.warning(
-            f"max_k ({max_k}) is >= number of geocodes ({num_geocodes}). "
-            f"Reducing max_k to {num_geocodes - 1}"
-        )
-        max_k = num_geocodes - 1
-
-    logger.info(
-        f"Testing {max_k - min_k + 1} cluster configurations (k={min_k} to k={max_k})"
+    # Perform clustering for all k values
+    geocode_cluster_df = GeocodeClusterSchema.build_df(
+        geocode_lf,
+        distance_matrix,
+        connectivity_matrix,
+        min_k=min_k,
+        max_k=max_k,
     )
 
-    all_silhouette_dfs = []
-
-    for k in range(min_k, max_k + 1):
-        logger.info(f"Testing k={k}...")
-
-        # Perform clustering with k clusters
-        geocode_cluster_df = GeocodeClusterSchema.build_df(
-            geocode_lf,
-            distance_matrix,
-            connectivity_matrix,
-            num_clusters=k,
-        )
-
-        # Compute silhouette scores
-        silhouette_df = GeocodeSilhouetteScoreSchema.build_df(
-            distance_matrix,
-            geocode_cluster_df,
-            num_clusters=k,
-        )
-
-        all_silhouette_dfs.append(silhouette_df)
-
-        overall_score = silhouette_df.filter(pl.col("geocode").is_null())[
-            "silhouette_score"
-        ][0]
-        logger.info(f"Completed k={k} - Silhouette score: {overall_score:.4f}")
-
-    # Combine all silhouette scores into a single dataframe
-    combined_silhouette_scores = pl.concat(all_silhouette_dfs)
+    # Compute silhouette scores for all clustering results
+    silhouette_scores_df = GeocodeSilhouetteScoreSchema.build_df(
+        distance_matrix,
+        geocode_cluster_df,
+    )
 
     # Find optimal k based on highest overall silhouette score
-    optimal_k = select_optimal_k(combined_silhouette_scores)
+    optimal_k = select_optimal_k(silhouette_scores_df)
 
     if optimal_k is None:
         logger.warning(
             "No k value met minimum threshold. Selecting k with highest score."
         )
-        optimal_k = select_optimal_k(combined_silhouette_scores, min_threshold=None)
+        optimal_k = select_optimal_k(silhouette_scores_df, min_threshold=None)
         if optimal_k is None:
             raise RuntimeError(
                 "Could not determine optimal k - all silhouette scores may be invalid"
@@ -122,7 +89,7 @@ def optimize_num_clusters(
 
     logger.info(f"Optimal number of clusters: k={optimal_k}")
 
-    return optimal_k, combined_silhouette_scores
+    return optimal_k, silhouette_scores_df
 
 
 def get_overall_silhouette_scores(
