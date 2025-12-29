@@ -10,6 +10,7 @@ import logging
 from typing import Optional
 
 import dataframely as dy
+import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
@@ -27,7 +28,7 @@ def plot_silhouette_vs_k(
     min_threshold: float = 0.25,
     figsize: tuple[float, float] = (10, 6),
     save_path: Optional[str] = None,
-) -> plt.Figure:
+) -> matplotlib.figure.Figure:
     """
     Create a line plot showing silhouette score vs number of clusters.
 
@@ -155,7 +156,7 @@ def plot_silhouette_distributions(
     top_n: int = 5,
     figsize: tuple[float, float] = (12, 6),
     save_path: Optional[str] = None,
-) -> plt.Figure:
+) -> matplotlib.figure.Figure:
     """
     Create box plots showing per-geocode silhouette score distributions.
 
@@ -286,7 +287,7 @@ def plot_optimization_summary(
     top_n: int = 5,
     figsize: tuple[float, float] = (16, 6),
     save_path: Optional[str] = None,
-) -> plt.Figure:
+) -> matplotlib.figure.Figure:
     """
     Create a comprehensive summary plot with both silhouette vs k and distributions.
 

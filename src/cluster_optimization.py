@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
     connectivity_matrix: GeocodeConnectivityMatrix,
-    geocode_lf: pl.LazyFrame,
+    geocode_lf: pl.LazyFrame,  # type: ignore[type-arg]
     min_k: int = 2,
     max_k: int = 20,
 ) -> Tuple[int, dy.DataFrame[GeocodeSilhouetteScoreSchema]]:
@@ -65,7 +65,11 @@ def optimize_num_clusters(
         raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
 
     # Get number of geocodes to validate k range
-    num_geocodes = geocode_lf.select(pl.len()).collect().item()
+    # Handle both LazyFrame and DataFrame
+    if isinstance(geocode_lf, pl.DataFrame):
+        num_geocodes = len(geocode_lf)
+    else:
+        num_geocodes = geocode_lf.select(pl.len()).collect().item()
     if max_k >= num_geocodes:
         logger.warning(
             f"max_k ({max_k}) is >= number of geocodes ({num_geocodes}). "
@@ -89,7 +93,7 @@ def optimize_num_clusters(
 
             # Perform clustering with k clusters
             geocode_cluster_df = GeocodeClusterSchema.build_df(
-                geocode_lf,
+                geocode_lf,  # type: ignore[arg-type]
                 distance_matrix,
                 connectivity_matrix,
                 num_clusters=k,
@@ -133,6 +137,10 @@ def optimize_num_clusters(
             "No k value met minimum threshold. Selecting k with highest score."
         )
         optimal_k = select_optimal_k(combined_silhouette_scores, min_threshold=None)
+        if optimal_k is None:
+            raise RuntimeError(
+                "Could not determine optimal k - all silhouette scores may be invalid"
+            )
 
     logger.info(f"Optimal number of clusters: k={optimal_k}")
 
