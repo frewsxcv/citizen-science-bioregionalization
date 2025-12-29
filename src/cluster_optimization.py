@@ -48,7 +48,6 @@ def optimize_num_clusters(
 
     Raises:
         ValueError: If min_k < 2 or max_k < min_k
-        RuntimeError: If clustering fails for all k values
 
     Example:
         >>> optimal_k, scores_df = optimize_num_clusters(
@@ -66,11 +65,7 @@ def optimize_num_clusters(
         raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
 
     # Get number of geocodes to validate k range
-    # Handle both LazyFrame and DataFrame
-    if isinstance(geocode_lf, pl.DataFrame):
-        num_geocodes = len(geocode_lf)
-    else:
-        num_geocodes = geocode_lf.select(pl.len()).collect().item()
+    num_geocodes = geocode_lf.select(pl.len()).collect().item()
     if max_k >= num_geocodes:
         logger.warning(
             f"max_k ({max_k}) is >= number of geocodes ({num_geocodes}). "
@@ -83,49 +78,31 @@ def optimize_num_clusters(
     )
 
     all_silhouette_dfs = []
-    successful_k_values = []
 
     for k in range(min_k, max_k + 1):
-        try:
-            logger.info(f"Testing k={k}...")
-            import time
+        logger.info(f"Testing k={k}...")
 
-            start_time = time.time()
-
-            # Perform clustering with k clusters
-            geocode_cluster_df = GeocodeClusterSchema.build_df(
-                geocode_lf,
-                distance_matrix,
-                connectivity_matrix,
-                num_clusters=k,
-            )
-
-            # Compute silhouette scores
-            silhouette_df = GeocodeSilhouetteScoreSchema.build_df(
-                distance_matrix,
-                geocode_cluster_df,
-                num_clusters=k,
-            )
-
-            all_silhouette_dfs.append(silhouette_df)
-            successful_k_values.append(k)
-
-            elapsed = time.time() - start_time
-            overall_score = silhouette_df.filter(pl.col("geocode").is_null())[
-                "silhouette_score"
-            ][0]
-            logger.info(
-                f"Completed k={k} in {elapsed:.1f}s - Silhouette score: {overall_score:.4f}"
-            )
-
-        except Exception as e:
-            logger.warning(f"Failed to cluster with k={k}: {e}")
-            continue
-
-    if not all_silhouette_dfs:
-        raise RuntimeError(
-            f"Clustering failed for all k values in range [{min_k}, {max_k}]"
+        # Perform clustering with k clusters
+        geocode_cluster_df = GeocodeClusterSchema.build_df(
+            geocode_lf,
+            distance_matrix,
+            connectivity_matrix,
+            num_clusters=k,
         )
+
+        # Compute silhouette scores
+        silhouette_df = GeocodeSilhouetteScoreSchema.build_df(
+            distance_matrix,
+            geocode_cluster_df,
+            num_clusters=k,
+        )
+
+        all_silhouette_dfs.append(silhouette_df)
+
+        overall_score = silhouette_df.filter(pl.col("geocode").is_null())[
+            "silhouette_score"
+        ][0]
+        logger.info(f"Completed k={k} - Silhouette score: {overall_score:.4f}")
 
     # Combine all silhouette scores into a single dataframe
     combined_silhouette_scores = pl.concat(all_silhouette_dfs)
