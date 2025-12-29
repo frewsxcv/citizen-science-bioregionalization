@@ -46,9 +46,7 @@ class GeocodeClusterSchema(dy.Schema):
             raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
 
         # Collect the LazyFrame once at the start
-        geocode_df = (
-            geocode_lf.collect() if isinstance(geocode_lf, pl.LazyFrame) else geocode_lf
-        )
+        geocode_df = geocode_lf.collect()
         geocodes = geocode_df["geocode"]
         num_geocodes = len(geocodes)
 

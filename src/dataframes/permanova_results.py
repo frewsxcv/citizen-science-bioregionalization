@@ -48,10 +48,8 @@ class PermanovaResultsSchema(dy.Schema):
             An instance of PermanovaResultsDataFrame.
         """
         # Create the skbio DistanceMatrix object. Let ValueError propagate if IDs mismatch.
-        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
-        geocode_df = (
-            geocode_lf.collect() if isinstance(geocode_lf, pl.LazyFrame) else geocode_lf
-        )
+        # Collect the LazyFrame once at the start
+        geocode_df = geocode_lf.collect()
         geocode_ids = geocode_df["geocode"].to_list()
         dm_skbio = DistanceMatrix(geocode_distance_matrix.condensed(), ids=geocode_ids)
 
