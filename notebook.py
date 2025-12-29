@@ -525,7 +525,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Run Optimization
+    ### Build Clustering for All K Values
     """)
     return
 
@@ -540,15 +540,43 @@ def _(
     min_clusters_to_test,
     mo,
 ):
+    from src.dataframes.geocode_cluster import GeocodeClusterSchema
+
+    mo.status.spinner(title="Clustering for all k values...")
+    all_clusters_df = cache_parquet(
+        GeocodeClusterSchema.build_df(
+            geocode_lf,
+            geocode_distance_matrix,
+            geocode_connectivity_matrix,
+            min_k=min_clusters_to_test,
+            max_k=max_clusters_to_test,
+        ),
+        cache_key=GeocodeClusterSchema,
+    ).collect(engine="streaming")
+    return GeocodeClusterSchema, all_clusters_df
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Find Optimal K
+    """)
+    return
+
+
+@app.cell
+def _(
+    all_clusters_df,
+    cache_parquet,
+    geocode_distance_matrix,
+    mo,
+):
     from src.cluster_optimization import optimize_num_clusters
 
-    mo.status.spinner(title="Optimizing number of clusters...")
+    mo.status.spinner(title="Computing silhouette scores...")
     optimal_num_clusters, all_silhouette_scores = optimize_num_clusters(
         geocode_distance_matrix,
-        geocode_connectivity_matrix,
-        geocode_lf,
-        min_k=min_clusters_to_test,
-        max_k=max_clusters_to_test,
+        all_clusters_df,
     )
 
     # Cache the results
@@ -641,26 +669,16 @@ def _(mo):
 
 @app.cell
 def _(
-    cache_parquet,
-    geocode_connectivity_matrix,
-    geocode_distance_matrix,
-    geocode_lf,
+    all_clusters_df,
     optimal_num_clusters,
+    pl,
 ):
-    from src.dataframes.geocode_cluster import GeocodeClusterSchema
-
     num_clusters_to_use = optimal_num_clusters
 
-    geocode_cluster_lf = cache_parquet(
-        GeocodeClusterSchema.build_df(
-            geocode_lf,
-            geocode_distance_matrix,
-            geocode_connectivity_matrix,
-            min_k=num_clusters_to_use,
-            max_k=num_clusters_to_use,
-        ),
-        cache_key=GeocodeClusterSchema,
-    )
+    # Filter to just the optimal k value for downstream use
+    geocode_cluster_lf = all_clusters_df.filter(
+        pl.col("num_clusters") == num_clusters_to_use
+    ).lazy()
     return geocode_cluster_lf, num_clusters_to_use
 
 

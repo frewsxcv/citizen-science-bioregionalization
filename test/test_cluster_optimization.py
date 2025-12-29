@@ -100,13 +100,21 @@ class TestClusterOptimization(unittest.TestCase):
         # Create connectivity matrix
         connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
 
-        # Test with small range to keep test fast
-        optimal_k, combined_scores = optimize_num_clusters(
+        # Build clustering for k=2 to k=3
+        from src.dataframes.geocode_cluster import GeocodeClusterSchema
+
+        cluster_df = GeocodeClusterSchema.build_df(
+            geocode_lf,
             distance_matrix,
             connectivity_matrix,
-            geocode_lf,
             min_k=2,
             max_k=3,
+        )
+
+        # Find optimal k
+        optimal_k, combined_scores = optimize_num_clusters(
+            distance_matrix,
+            cluster_df,
         )
 
         # Check that we got a valid result
@@ -125,7 +133,9 @@ class TestClusterOptimization(unittest.TestCase):
         self.assertTrue(3 in overall_scores["num_clusters"].to_list())
 
     def test_optimize_num_clusters_invalid_range(self):
-        """Test optimize_num_clusters with invalid k range."""
+        """Test that GeocodeClusterSchema.build_df validates k range."""
+        from src.dataframes.geocode_cluster import GeocodeClusterSchema
+
         geocode_lf = mock_geocode_no_edges_df().lazy()
 
         # Create condensed distance matrix for 5 geocodes = 10 distances
@@ -137,20 +147,20 @@ class TestClusterOptimization(unittest.TestCase):
 
         # Test min_k < 2
         with self.assertRaises(ValueError):
-            optimize_num_clusters(
+            GeocodeClusterSchema.build_df(
+                geocode_lf,
                 distance_matrix,
                 connectivity_matrix,
-                geocode_lf,
                 min_k=1,
                 max_k=5,
             )
 
         # Test max_k < min_k
         with self.assertRaises(ValueError):
-            optimize_num_clusters(
+            GeocodeClusterSchema.build_df(
+                geocode_lf,
                 distance_matrix,
                 connectivity_matrix,
-                geocode_lf,
                 min_k=5,
                 max_k=3,
             )

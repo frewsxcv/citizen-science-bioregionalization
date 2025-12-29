@@ -11,10 +11,8 @@ from typing import Tuple
 import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
-from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 logger = logging.getLogger(__name__)
@@ -22,52 +20,40 @@ logger = logging.getLogger(__name__)
 
 def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
-    connectivity_matrix: GeocodeConnectivityMatrix,
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
-    min_k: int = 2,
-    max_k: int = 20,
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
 ) -> Tuple[int, dy.DataFrame[GeocodeSilhouetteScoreSchema]]:
     """
-    Test clustering with k from min_k to max_k and find optimal number of clusters.
+    Find optimal number of clusters from pre-computed clustering results.
 
-    This function performs hierarchical clustering for multiple k values,
+    This function analyzes clustering results for multiple k values,
     computes silhouette scores, and returns the k with the highest overall
     silhouette score.
 
     Args:
         distance_matrix: Precomputed distance matrix between geocodes
-        connectivity_matrix: Spatial connectivity constraints for clustering
-        geocode_lf: LazyFrame containing geocode information
-        min_k: Minimum number of clusters to test (default: 2)
-        max_k: Maximum number of clusters to test (default: 20)
+        geocode_cluster_df: DataFrame with clustering results for all k values to test
 
     Returns:
         A tuple containing:
         - optimal_k: The number of clusters with the highest silhouette score
         - silhouette_scores_df: DataFrame with silhouette scores for all tested k values
 
-    Raises:
-        ValueError: If min_k < 2 or max_k < min_k
-
     Example:
-        >>> optimal_k, scores_df = optimize_num_clusters(
+        >>> # Build clustering for k=2 to k=15
+        >>> cluster_df = GeocodeClusterSchema.build_df(
+        ...     geocode_lf,
         ...     distance_matrix,
         ...     connectivity_matrix,
-        ...     geocode_lf,
         ...     min_k=2,
         ...     max_k=15
         ... )
+        >>> # Find optimal k
+        >>> optimal_k, scores_df = optimize_num_clusters(
+        ...     distance_matrix,
+        ...     cluster_df,
+        ... )
         >>> print(f"Optimal number of clusters: {optimal_k}")
     """
-    # Perform clustering for all k values
-    geocode_cluster_df = GeocodeClusterSchema.build_df(
-        geocode_lf,
-        distance_matrix,
-        connectivity_matrix,
-        min_k=min_k,
-        max_k=max_k,
-    )
-
     # Compute silhouette scores for all clustering results
     silhouette_scores_df = GeocodeSilhouetteScoreSchema.build_df(
         distance_matrix,
