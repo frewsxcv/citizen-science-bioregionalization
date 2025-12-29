@@ -15,6 +15,7 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
+
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -183,7 +184,6 @@ def _(
 
     args = parse_args_with_defaults(
         geocode_precision=geocode_precision_ui.value,
-        num_clusters=10,  # Placeholder, will be auto-optimized
         taxon_filter=taxon_filter_ui.value,
         min_lat=min_lat_ui.value,
         max_lat=max_lat_ui.value,

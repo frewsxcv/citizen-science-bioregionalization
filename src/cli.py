@@ -6,7 +6,6 @@ from typing import Any
 
 def create_argument_parser(
     geocode_precision: int,
-    num_clusters: int,
     taxon_filter: str,
     min_lat: float,
     max_lat: float,
@@ -23,7 +22,6 @@ def create_argument_parser(
 
     Args:
         geocode_precision: Default precision of the geocode
-        num_clusters: Default number of clusters to generate (placeholder, will be auto-optimized)
         taxon_filter: Default taxon filter (e.g., 'Aves')
         min_lat: Default minimum latitude for bounding box
         max_lat: Default maximum latitude for bounding box
@@ -49,12 +47,7 @@ def create_argument_parser(
         help="Precision of the geocode",
         default=geocode_precision,
     )
-    parser.add_argument(
-        "--num-clusters",
-        type=int,
-        help="Number of clusters to generate (placeholder, will be auto-optimized)",
-        default=num_clusters,
-    )
+
     parser.add_argument(
         "--min-clusters",
         type=int,
@@ -129,7 +122,6 @@ def create_argument_parser(
 
 def parse_args_with_defaults(
     geocode_precision: int,
-    num_clusters: int,
     taxon_filter: str,
     min_lat: float,
     max_lat: float,
@@ -146,7 +138,6 @@ def parse_args_with_defaults(
 
     Args:
         geocode_precision: Default precision of the geocode
-        num_clusters: Default number of clusters to generate (placeholder, will be auto-optimized)
         taxon_filter: Default taxon filter (e.g., 'Aves')
         min_lat: Default minimum latitude for bounding box
         max_lat: Default maximum latitude for bounding box
@@ -163,7 +154,6 @@ def parse_args_with_defaults(
     """
     parser = create_argument_parser(
         geocode_precision=geocode_precision,
-        num_clusters=num_clusters,
         taxon_filter=taxon_filter,
         min_lat=min_lat,
         max_lat=max_lat,
