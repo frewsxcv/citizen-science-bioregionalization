@@ -15,7 +15,6 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
-
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -1072,14 +1071,6 @@ def _(cache_parquet, cluster_significant_differences_df, taxonomy_lf):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
-
-
-@app.cell
 def _(significant_taxa_images_df):
     significant_taxa_images_df
     return
