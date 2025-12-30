@@ -15,7 +15,6 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
-
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -98,7 +97,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(max_clusters_to_test_ui, min_clusters_to_test_ui, mo):
     mo.vstack(
         [
@@ -538,7 +537,6 @@ def _(
     geocode_lf,
     max_clusters_to_test,
     min_clusters_to_test,
-    mo,
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 
@@ -564,13 +562,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    all_clusters_df,
-    cache_parquet,
-    geocode_distance_matrix,
-    mo,
-    pl,
-):
+def _(all_clusters_df, cache_parquet, geocode_distance_matrix, mo):
     from src.cluster_optimization import optimize_num_clusters
 
     optimal_num_clusters, all_silhouette_scores = optimize_num_clusters(
@@ -664,31 +656,7 @@ def _(all_silhouette_scores_df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `GeocodeCluster`
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
     ## `ClusterNeighbors`
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
     """)
     return
 
@@ -707,14 +675,6 @@ def _(cache_parquet, geocode_cluster_df, geocode_lf):
     return (cluster_neighbors_lf,)
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
-
-
 @app.cell
 def _(cluster_neighbors_lf):
     cluster_neighbors_lf.limit(3).collect()
@@ -729,21 +689,8 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
-    """)
-    return
-
-
 @app.cell
-def _(
-    cache_parquet,
-    geocode_cluster_df,
-    geocode_taxa_counts_lf,
-    taxonomy_lf,
-):
+def _(cache_parquet, geocode_cluster_df, geocode_taxa_counts_lf, taxonomy_lf):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
     cluster_taxa_statistics_df = cache_parquet(
@@ -757,14 +704,6 @@ def _(
     return (cluster_taxa_statistics_df,)
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
-
-
 @app.cell
 def _(cluster_taxa_statistics_df):
     cluster_taxa_statistics_df
@@ -775,14 +714,6 @@ def _(cluster_taxa_statistics_df):
 def _(mo):
     mo.md(r"""
     ## `ClusterSignificantDifferences`
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
     """)
     return
 
@@ -803,14 +734,6 @@ def _(cache_parquet, cluster_neighbors_lf, cluster_taxa_statistics_df):
     return (cluster_significant_differences_df,)
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
-
-
 @app.cell
 def _(cluster_significant_differences_df):
     cluster_significant_differences_df
@@ -821,14 +744,6 @@ def _(cluster_significant_differences_df):
 def _(mo):
     mo.md(r"""
     ## `ClusterBoundary`
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
     """)
     return
 
@@ -845,14 +760,6 @@ def _(cache_parquet, geocode_cluster_df, geocode_lf):
         cache_key=ClusterBoundarySchema,
     ).collect(engine="streaming")
     return (cluster_boundary_df,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
 
 
 @app.cell
@@ -890,14 +797,6 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
-    """)
-    return
-
-
 @app.cell
 def _(cluster_taxa_statistics_df):
     from src.matrices.cluster_distance import ClusterDistanceMatrix
@@ -906,14 +805,6 @@ def _(cluster_taxa_statistics_df):
         cluster_taxa_statistics_df,
     )
     return (cluster_distance_matrix,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
 
 
 @app.cell
@@ -926,14 +817,6 @@ def _(cluster_distance_matrix):
 def _(mo):
     mo.md(r"""
     ## `ClusterColor`
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
     """)
     return
 
@@ -963,14 +846,6 @@ def _(
     return (cluster_colors_df,)
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
-
-
 @app.cell
 def _(cluster_colors_df):
     cluster_colors_df
@@ -985,21 +860,8 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
-    """)
-    return
-
-
 @app.cell
-def _(
-    cache_parquet,
-    geocode_cluster_df,
-    geocode_distance_matrix,
-    geocode_lf,
-):
+def _(cache_parquet, geocode_cluster_df, geocode_distance_matrix, geocode_lf):
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
     permanova_results_df = cache_parquet(
@@ -1011,14 +873,6 @@ def _(
         cache_key=PermanovaResultsSchema,
     ).collect(engine="streaming")
     return (permanova_results_df,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
 
 
 @app.cell
@@ -1035,33 +889,13 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Build
-    """)
-    return
-
-
 @app.cell
-def _(
-    all_silhouette_scores_df,
-    optimal_num_clusters,
-    pl,
-):
+def _(all_silhouette_scores_df, optimal_num_clusters, pl):
     # Filter the already-computed silhouette scores to just the optimal k
     geocode_silhouette_score_df = all_silhouette_scores_df.filter(
         pl.col("num_clusters") == optimal_num_clusters
     )
     return (geocode_silhouette_score_df,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Preview
-    """)
-    return
 
 
 @app.cell
@@ -1158,11 +992,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cluster_colors_df,
-    geocode_cluster_df,
-    geocode_distance_matrix,
-):
+def _(cluster_colors_df, geocode_cluster_df, geocode_distance_matrix):
     from src.plot.dimensionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
