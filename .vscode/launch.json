@@ -6,7 +6,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/notebook.py",
-            "args": ["--geocode-precision", "8", "--num-clusters", "10", "--log-file", "run.log", "test/sample-archive/"]
+            "args": ["--geocode-precision", "8", "--min-clusters", "2", "--max-clusters", "10", "--log-file", "run.log", "test/sample-archive/"]
         }
     ]
 }

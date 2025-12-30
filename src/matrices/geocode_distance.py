@@ -1,5 +1,3 @@
-from typing import Union
-
 import dataframely as dy
 import numpy as np
 import polars as pl

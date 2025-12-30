@@ -23,11 +23,8 @@ class GeocodeConnectivityMatrix:
     def build(
         cls, geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema]
     ) -> "GeocodeConnectivityMatrix":
-        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
-        if isinstance(geocode_lf, pl.LazyFrame):
-            geocode_df: dy.DataFrame[GeocodeNoEdgesSchema] = geocode_lf.collect()
-        else:
-            geocode_df = geocode_lf
+        # Collect the LazyFrame once at the start
+        geocode_df: dy.DataFrame[GeocodeNoEdgesSchema] = geocode_lf.collect()
 
         num_geocodes = len(geocode_df)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)

@@ -17,10 +17,8 @@ class ClusterNeighborsSchema(dy.Schema):
         geocode_df: dy.LazyFrame[GeocodeNoEdgesSchema],
         geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
     ) -> dy.DataFrame["ClusterNeighborsSchema"]:
-        # Collect the LazyFrame once at the start (handle both LazyFrame and DataFrame)
-        geocode_collected = (
-            geocode_df.collect() if isinstance(geocode_df, pl.LazyFrame) else geocode_df
-        )
+        # Collect the LazyFrame once at the start
+        geocode_collected = geocode_df.collect()
 
         # Get unique clusters
         unique_clusters = geocode_cluster_df["cluster"].unique()
