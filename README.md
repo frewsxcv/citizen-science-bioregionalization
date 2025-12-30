@@ -26,15 +26,18 @@ python run.py [OPTIONS] INPUT_FILE
 
 ### Options:
 
-- `--geohash-precision`: Precision level for geocoding (required).
-- `--num-clusters`: Number of clusters to generate (required).
+- `--geocode-precision`: Precision level for H3 geocoding (required).
+- `--min-clusters`: Minimum number of clusters to test (required).
+- `--max-clusters`: Maximum number of clusters to test (required).
 - `--log-file`: Path to save the log file (required).
-- `--plot`: Flag to plot the clusters visually (optional).
+- `--taxon-filter`: Optional filter for specific taxon.
+- `--min-lat`, `--max-lat`, `--min-lon`, `--max-lon`: Bounding box coordinates.
+- `--limit-results`: Limit number of results for testing.
 
 ### Example:
 
 ```bash
-python run.py --geohash-precision 5 --num-clusters 10 data/input.csv --plot
+python notebook.py --geocode-precision 5 --min-clusters 2 --max-clusters 15 --log-file run.log gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*
 ```
 
 ### Outputs:

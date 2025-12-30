@@ -16,7 +16,8 @@ jobs:
             max_lon: 10
             limit_results: 5000
             geocode_precision: 8
-            num_clusters: 10
+            min_clusters: 2
+            max_clusters: 10
             output_dir: output
           - name: gbif-snapshot
             source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
@@ -26,7 +27,8 @@ jobs:
             max_lon: -66
             limit_results: 1000000
             geocode_precision: 5
-            num_clusters: 10
+            min_clusters: 2
+            max_clusters: 15
             output_dir: output-gbif
     permissions:
       contents: "read"
@@ -49,7 +51,8 @@ jobs:
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
             --no-stop \
             --geocode-precision ${{ matrix.geocode_precision }} \
-            --num-clusters ${{ matrix.num_clusters }} \
+            --min-clusters ${{ matrix.min_clusters }} \
+            --max-clusters ${{ matrix.max_clusters }} \
             --log-file /dev/stdout \
             --min-lat ${{ matrix.min_lat }} \
             --max-lat ${{ matrix.max_lat }} \
