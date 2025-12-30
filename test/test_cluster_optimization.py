@@ -101,9 +101,9 @@ class TestClusterOptimization(unittest.TestCase):
         connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
 
         # Build clustering for k=2 to k=3
-        from src.dataframes.geocode_cluster import GeocodeClusterSchema
+        from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 
-        cluster_df = GeocodeClusterSchema.build_df(
+        cluster_df = GeocodeClusterMultiKSchema.build_df(
             geocode_lf,
             distance_matrix,
             connectivity_matrix,
@@ -133,8 +133,8 @@ class TestClusterOptimization(unittest.TestCase):
         self.assertTrue(3 in overall_scores["num_clusters"].to_list())
 
     def test_optimize_num_clusters_invalid_range(self):
-        """Test that GeocodeClusterSchema.build_df validates k range."""
-        from src.dataframes.geocode_cluster import GeocodeClusterSchema
+        """Test that GeocodeClusterMultiKSchema.build_df validates k range."""
+        from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 
         geocode_lf = mock_geocode_no_edges_df().lazy()
 
@@ -147,7 +147,7 @@ class TestClusterOptimization(unittest.TestCase):
 
         # Test min_k < 2
         with self.assertRaises(ValueError):
-            GeocodeClusterSchema.build_df(
+            GeocodeClusterMultiKSchema.build_df(
                 geocode_lf,
                 distance_matrix,
                 connectivity_matrix,
@@ -157,7 +157,7 @@ class TestClusterOptimization(unittest.TestCase):
 
         # Test max_k < min_k
         with self.assertRaises(ValueError):
-            GeocodeClusterSchema.build_df(
+            GeocodeClusterMultiKSchema.build_df(
                 geocode_lf,
                 distance_matrix,
                 connectivity_matrix,

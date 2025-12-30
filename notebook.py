@@ -540,19 +540,19 @@ def _(
     min_clusters_to_test,
     mo,
 ):
-    from src.dataframes.geocode_cluster import GeocodeClusterSchema
+    from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 
     all_clusters_df = cache_parquet(
-        GeocodeClusterSchema.build_df(
+        GeocodeClusterMultiKSchema.build_df(
             geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
             min_k=min_clusters_to_test,
             max_k=max_clusters_to_test,
         ),
-        cache_key=GeocodeClusterSchema,
+        cache_key=GeocodeClusterMultiKSchema,
     ).collect(engine="streaming")
-    return GeocodeClusterSchema, all_clusters_df
+    return (all_clusters_df,)
 
 
 @app.cell(hide_code=True)
@@ -569,6 +569,7 @@ def _(
     cache_parquet,
     geocode_distance_matrix,
     mo,
+    pl,
 ):
     from src.cluster_optimization import optimize_num_clusters
 
@@ -585,8 +586,18 @@ def _(
         cache_key=optimization_cache_key,
     ).collect(engine="streaming")
 
+    # Create base GeocodeClusterSchema (single k) for downstream use
+    from src.dataframes.geocode_cluster import GeocodeClusterSchema
+
+    geocode_cluster_df = cache_parquet(
+        all_clusters_df.filter(pl.col("num_clusters") == optimal_num_clusters).select(
+            ["geocode", "cluster"]
+        ),
+        cache_key=GeocodeClusterSchema,
+    ).collect(engine="streaming")
+
     mo.md(f"**Optimal number of clusters: k={optimal_num_clusters}**")
-    return all_silhouette_scores_df, optimal_num_clusters
+    return all_silhouette_scores_df, geocode_cluster_df, optimal_num_clusters
 
 
 @app.cell
@@ -682,15 +693,13 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, cache_parquet, geocode_lf, optimal_num_clusters, pl):
+def _(cache_parquet, geocode_cluster_df, geocode_lf):
     from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 
     cluster_neighbors_lf = cache_parquet(
         ClusterNeighborsSchema.build_df(
             geocode_lf,
-            all_clusters_df.filter(
-                pl.col("num_clusters") == optimal_num_clusters
-            ),
+            geocode_cluster_df,
         ),
         cache_key=ClusterNeighborsSchema,
     )
@@ -729,11 +738,9 @@ def _(mo):
 
 @app.cell
 def _(
-    all_clusters_df,
     cache_parquet,
+    geocode_cluster_df,
     geocode_taxa_counts_lf,
-    optimal_num_clusters,
-    pl,
     taxonomy_lf,
 ):
     from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
@@ -741,9 +748,7 @@ def _(
     cluster_taxa_statistics_df = cache_parquet(
         ClusterTaxaStatisticsSchema.build_df(
             geocode_taxa_counts_lf,
-            all_clusters_df.filter(
-                pl.col("num_clusters") == optimal_num_clusters
-            ).lazy(),
+            geocode_cluster_df.lazy(),
             taxonomy_lf,
         ),
         cache_key=ClusterTaxaStatisticsSchema,
@@ -828,14 +833,12 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, cache_parquet, geocode_lf, optimal_num_clusters, pl):
+def _(cache_parquet, geocode_cluster_df, geocode_lf):
     from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
     cluster_boundary_df = cache_parquet(
         ClusterBoundarySchema.build_df(
-            all_clusters_df.filter(
-                pl.col("num_clusters") == optimal_num_clusters
-            ),
+            geocode_cluster_df,
             geocode_lf,
         ),
         cache_key=ClusterBoundarySchema,
@@ -991,21 +994,17 @@ def _(mo):
 
 @app.cell
 def _(
-    all_clusters_df,
     cache_parquet,
+    geocode_cluster_df,
     geocode_distance_matrix,
     geocode_lf,
-    optimal_num_clusters,
-    pl,
 ):
     from src.dataframes.permanova_results import PermanovaResultsSchema
 
     permanova_results_df = cache_parquet(
         PermanovaResultsSchema.build_df(
             geocode_distance_matrix=geocode_distance_matrix,
-            geocode_cluster_df=all_clusters_df.filter(
-                pl.col("num_clusters") == optimal_num_clusters
-            ),
+            geocode_cluster_df=geocode_cluster_df,
             geocode_lf=geocode_lf,
         ),
         cache_key=PermanovaResultsSchema,
@@ -1045,23 +1044,14 @@ def _(mo):
 
 @app.cell
 def _(
-    all_clusters_df,
-    cache_parquet,
-    geocode_distance_matrix,
+    all_silhouette_scores_df,
     optimal_num_clusters,
     pl,
 ):
-    from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
-
-    geocode_silhouette_score_df = cache_parquet(
-        GeocodeSilhouetteScoreSchema.build_df(
-            geocode_distance_matrix,
-            all_clusters_df.filter(
-                pl.col("num_clusters") == optimal_num_clusters
-            ),
-        ),
-        cache_key=GeocodeSilhouetteScoreSchema,
-    ).collect(engine="streaming")
+    # Filter the already-computed silhouette scores to just the optimal k
+    geocode_silhouette_score_df = all_silhouette_scores_df.filter(
+        pl.col("num_clusters") == optimal_num_clusters
+    )
     return (geocode_silhouette_score_df,)
 
 
@@ -1081,19 +1071,15 @@ def _(geocode_silhouette_score_df):
 
 @app.cell
 def _(
-    all_clusters_df,
     cluster_colors_df,
+    geocode_cluster_df,
     geocode_distance_matrix,
     geocode_silhouette_score_df,
-    optimal_num_clusters,
-    pl,
 ):
     from src.plot.silhouette_score import plot_silhouette_scores
 
     plot_silhouette_scores(
-        all_clusters_df.filter(
-            pl.col("num_clusters") == optimal_num_clusters
-        ),
+        geocode_cluster_df,
         geocode_distance_matrix,
         geocode_silhouette_score_df,
         cluster_colors_df,
@@ -1172,19 +1158,15 @@ def _(mo):
 
 @app.cell
 def _(
-    all_clusters_df,
     cluster_colors_df,
+    geocode_cluster_df,
     geocode_distance_matrix,
-    optimal_num_clusters,
-    pl,
 ):
     from src.plot.dimensionality_reduction import create_dimensionality_reduction_plot
 
     create_dimensionality_reduction_plot(
         geocode_distance_matrix,
-        all_clusters_df.filter(
-            pl.col("num_clusters") == optimal_num_clusters
-        ),
+        geocode_cluster_df,
         cluster_colors_df,
         method="umap",
     )
@@ -1201,25 +1183,21 @@ def _(mo):
 
 @app.cell
 def _(
-    all_clusters_df,
     cluster_colors_df,
     cluster_significant_differences_df,
     cluster_taxa_statistics_df,
+    geocode_cluster_df,
     geocode_distance_matrix,
     geocode_lf,
     geocode_taxa_counts_lf,
     mo,
-    optimal_num_clusters,
-    pl,
     taxonomy_lf,
 ):
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
     heatmap = create_cluster_taxa_heatmap(
         geocode_lf=geocode_lf,
-        geocode_cluster_df=all_clusters_df.filter(
-            pl.col("num_clusters") == optimal_num_clusters
-        ),
+        geocode_cluster_df=geocode_cluster_df,
         cluster_colors_df=cluster_colors_df,
         geocode_distance_matrix=geocode_distance_matrix,
         cluster_significant_differences_df=cluster_significant_differences_df,

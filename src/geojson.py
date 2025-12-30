@@ -11,7 +11,6 @@ import geojson
 from src import output
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import ClusterColorSchema
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.types import ClusterId, Geocode
 
 

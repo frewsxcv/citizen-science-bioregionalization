@@ -11,7 +11,7 @@ from typing import Tuple
 import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
+from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterMultiKSchema],
 ) -> Tuple[int, dy.DataFrame[GeocodeSilhouetteScoreSchema]]:
     """
     Find optimal number of clusters from pre-computed clustering results.

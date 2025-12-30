@@ -15,9 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 class GeocodeClusterSchema(dy.Schema):
+    """Schema for clustering results for a single k value."""
+
     geocode = dy.UInt64(nullable=False)
-    num_clusters = dy.UInt32(nullable=False)
     cluster = dy.UInt32(nullable=False)
+
+
+class GeocodeClusterMultiKSchema(GeocodeClusterSchema):
+    """Schema for clustering results across multiple k values."""
+
+    num_clusters = dy.UInt32(nullable=False)
 
     @classmethod
     def build_df(
@@ -27,7 +34,7 @@ class GeocodeClusterSchema(dy.Schema):
         connectivity_matrix: GeocodeConnectivityMatrix,
         min_k: int,
         max_k: int,
-    ) -> dy.DataFrame["GeocodeClusterSchema"]:
+    ) -> dy.DataFrame["GeocodeClusterMultiKSchema"]:
         """Build clustering results for all k values from min_k to max_k.
 
         Args:
