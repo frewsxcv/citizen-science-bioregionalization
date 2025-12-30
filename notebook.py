@@ -542,7 +542,6 @@ def _(
 ):
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
-    mo.status.spinner(title="Clustering for all k values...")
     all_clusters_df = cache_parquet(
         GeocodeClusterSchema.build_df(
             geocode_lf,
