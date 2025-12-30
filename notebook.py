@@ -590,8 +590,9 @@ def _(
     from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
     geocode_cluster_df = cache_parquet(
-        all_clusters_df.filter(pl.col("num_clusters") == optimal_num_clusters).select(
-            ["geocode", "cluster"]
+        GeocodeClusterSchema.from_multi_k(
+            all_clusters_df,
+            optimal_num_clusters,
         ),
         cache_key=GeocodeClusterSchema,
     ).collect(engine="streaming")

@@ -20,6 +20,26 @@ class GeocodeClusterSchema(dy.Schema):
     geocode = dy.UInt64(nullable=False)
     cluster = dy.UInt32(nullable=False)
 
+    @classmethod
+    def from_multi_k(
+        cls,
+        multi_k_df: dy.DataFrame["GeocodeClusterMultiKSchema"],
+        num_clusters: int,
+    ) -> dy.DataFrame["GeocodeClusterSchema"]:
+        """Extract clustering results for a single k value from multi-k results.
+
+        Args:
+            multi_k_df: DataFrame containing clustering results for multiple k values
+            num_clusters: The specific k value to extract
+
+        Returns:
+            DataFrame with clustering results for the specified k value only
+        """
+        df = multi_k_df.filter(pl.col("num_clusters") == num_clusters).select(
+            ["geocode", "cluster"]
+        )
+        return cls.validate(df)
+
 
 class GeocodeClusterMultiKSchema(GeocodeClusterSchema):
     """Schema for clustering results across multiple k values."""
