@@ -1,8 +1,9 @@
 from typing import Literal
 
+import altair as alt
 import dataframely as dy
 import numpy as np
-import seaborn as sns
+import polars as pl
 import umap
 from sklearn.manifold import TSNE
 
@@ -17,18 +18,18 @@ def create_dimensionality_reduction_plot(
     cluster_color_df: dy.DataFrame[ClusterColorSchema],
     method: Literal["umap", "tsne"] = "umap",
     n_neighbors: int = 3000,
-):
+) -> alt.Chart:
     """
     Create a dimensionality reduction plot using either UMAP or t-SNE.
 
     Parameters:
     -----------
-    geocode_distance_matrix : object
+    geocode_distance_matrix : ClusterDistanceMatrix
         Distance matrix with squareform method
-    geocode_cluster_df : object
+    geocode_cluster_df : dy.DataFrame[GeocodeClusterSchema]
         DataFrame containing cluster information
-    cluster_colors_df : object
-        Object with color mapping for clusters
+    cluster_color_df : dy.DataFrame[ClusterColorSchema]
+        DataFrame with color mapping for clusters
     method : str, optional
         Dimensionality reduction method to use ('umap' or 'tsne'), default 'umap'
     n_neighbors : int, optional
@@ -36,8 +37,8 @@ def create_dimensionality_reduction_plot(
 
     Returns:
     --------
-    matplotlib.axes.Axes
-        The plot axes
+    alt.Chart
+        The Altair chart object
     """
     if method == "tsne":
         tsne = TSNE(
@@ -56,15 +57,43 @@ def create_dimensionality_reduction_plot(
             metric="precomputed",
             random_state=42,
             n_neighbors=n_neighbors,
-            # min_dist=1,
-            # init="random",
         )
         X_reduced = umap_reducer.fit_transform(geocode_distance_matrix.squareform())  # type: ignore
 
-    return sns.scatterplot(
-        x=X_reduced[:, 0],
-        y=X_reduced[:, 1],
-        hue=geocode_cluster_df["cluster"],
-        palette=to_dict(cluster_color_df),
-        alpha=1,
+    # Build a Polars DataFrame for Altair
+    plot_df = pl.DataFrame(
+        {
+            "x": X_reduced[:, 0],
+            "y": X_reduced[:, 1],
+            "cluster": geocode_cluster_df["cluster"].cast(pl.Utf8),
+        }
     )
+
+    # Get color mapping from cluster_color_df
+    color_map = to_dict(cluster_color_df)
+    # Convert keys to strings to match the cluster column
+    color_domain = [str(k) for k in sorted(color_map.keys())]
+    color_range = [color_map[k] for k in sorted(color_map.keys())]
+
+    chart = (
+        alt.Chart(plot_df)
+        .mark_circle(size=60, opacity=0.8)
+        .encode(
+            x=alt.X("x:Q", title=f"{method.upper()} 1", axis=alt.Axis(grid=True)),
+            y=alt.Y("y:Q", title=f"{method.upper()} 2", axis=alt.Axis(grid=True)),
+            color=alt.Color(
+                "cluster:N",
+                scale=alt.Scale(domain=color_domain, range=color_range),
+                legend=alt.Legend(title="Cluster"),
+            ),
+            tooltip=["cluster:N", "x:Q", "y:Q"],
+        )
+        .properties(
+            width=500,
+            height=400,
+            title=f"{method.upper()} Dimensionality Reduction",
+        )
+        .interactive()
+    )
+
+    return chart

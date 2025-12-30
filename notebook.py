@@ -15,6 +15,7 @@ def _():
 
     from src.cache_parquet import cache_parquet
     from src.types import Bbox
+
     return Bbox, cache_parquet, folium, mo, np, pl
 
 
@@ -995,12 +996,13 @@ def _(mo):
 def _(cluster_colors_df, geocode_cluster_df, geocode_distance_matrix):
     from src.plot.dimensionality_reduction import create_dimensionality_reduction_plot
 
-    create_dimensionality_reduction_plot(
+    _chart = create_dimensionality_reduction_plot(
         geocode_distance_matrix,
         geocode_cluster_df,
         cluster_colors_df,
         method="umap",
     )
+    _chart
     return
 
 
