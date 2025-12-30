@@ -572,7 +572,6 @@ def _(
 ):
     from src.cluster_optimization import optimize_num_clusters
 
-    mo.status.spinner(title="Computing silhouette scores...")
     optimal_num_clusters, all_silhouette_scores = optimize_num_clusters(
         geocode_distance_matrix,
         all_clusters_df,
