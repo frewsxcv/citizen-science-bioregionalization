@@ -14,9 +14,7 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
-    from src.types import Bbox
-
-    return Bbox, cache_parquet, folium, mo, np, pl
+    return cache_parquet, folium, mo, np, pl
 
 
 @app.cell(hide_code=True)
@@ -37,6 +35,8 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
+    # Define Marimo input UI elements
+
     log_file_ui = mo.ui.text("run.log", label="Log file")
     parquet_source_path_ui = mo.ui.text(
         "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*",
@@ -89,19 +89,14 @@ def _(geocode_precision_ui):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Cluster Configuration
-
-    Number of clusters will be automatically optimized based on silhouette scores.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
 def _(max_clusters_to_test_ui, min_clusters_to_test_ui, mo):
+    _description = mo.md(
+        "**Cluster Configuration:** Number of clusters will be automatically optimized based on silhouette scores."
+    )
+
     mo.vstack(
         [
+            _description,
             min_clusters_to_test_ui,
             max_clusters_to_test_ui,
         ]
@@ -209,7 +204,9 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(Bbox, args, mo, run_button_ui):
+def _(args, mo, run_button_ui):
+    from src.types import Bbox
+
     limit_results = args.limit_results
     no_stop = args.no_stop
     log_file = args.log_file
@@ -290,12 +287,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    bounding_box,
-    limit_results,
-    parquet_source_path,
-    taxon_filter,
-):
+def _(bounding_box, limit_results, parquet_source_path, taxon_filter):
     from src.dataframes.darwin_core import DarwinCoreSchema
 
     darwin_core_lf = DarwinCoreSchema.build_lf(
@@ -322,12 +314,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    bounding_box,
-    cache_parquet,
-    darwin_core_lf,
-    geocode_precision,
-):
+def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
     from src.dataframes.geocode import GeocodeNoEdgesSchema, GeocodeSchema
 
     geocode_lf_with_edges = cache_parquet(
