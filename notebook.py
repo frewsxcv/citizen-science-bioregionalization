@@ -14,7 +14,6 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
-
     return cache_parquet, folium, mo, np, pl
 
 
@@ -49,10 +48,10 @@ def _(mo):
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
     limit_results_value_ui = mo.ui.number(value=1000, label="Limit results")
-    min_lon_ui = mo.ui.number(value=-87.0, label="Min Longitude")
-    min_lat_ui = mo.ui.number(value=25.0, label="Min Latitude")
-    max_lon_ui = mo.ui.number(value=-66.0, label="Max Longitude")
-    max_lat_ui = mo.ui.number(value=47.0, label="Max Latitude")
+    min_lon_ui = mo.ui.number(value=-87.0, label="Longitude")
+    min_lat_ui = mo.ui.number(value=25.0, label="Latitude")
+    max_lon_ui = mo.ui.number(value=-66.0, label="Longitude")
+    max_lat_ui = mo.ui.number(value=47.0, label="Latitude")
     run_button_ui = mo.ui.run_button()
     return (
         geocode_precision_ui,
@@ -113,6 +112,7 @@ def _(taxon_filter_ui):
 
 @app.cell(hide_code=True)
 def _(limit_results_enabled_ui, limit_results_value_ui, mo):
+
     mo.vstack(
         [
             limit_results_enabled_ui,
@@ -123,33 +123,40 @@ def _(limit_results_enabled_ui, limit_results_value_ui, mo):
 
 
 @app.cell(hide_code=True)
-def _(min_lat_ui, min_lon_ui, mo):
-    mo.vstack([min_lon_ui, min_lat_ui])
-    return
+def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
+    def build_map() -> folium.Map:
+        map = folium.Map(
+            tiles="Esri.WorldGrayCanvas",
+        )
+
+        bounds = [
+            [min_lat_ui.value, min_lon_ui.value],
+            [max_lat_ui.value, max_lon_ui.value],
+        ]
+
+        folium.Rectangle(bounds=bounds).add_to(map)
+
+        map.fit_bounds(bounds, padding=[20, 20])
+
+        return map
 
 
-@app.cell(hide_code=True)
-def _(max_lat_ui, max_lon_ui, mo):
-    mo.vstack([max_lon_ui, max_lat_ui])
-    return
-
-
-@app.cell(hide_code=True)
-def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui):
-    _map = folium.Map(
-        tiles="Esri.WorldGrayCanvas",
+    mo.hstack(
+        [
+            mo.vstack(
+                [
+                    mo.md("**Minimum**"),
+                    min_lat_ui,
+                    min_lon_ui,
+                    mo.md("**Maximum**"),
+                    max_lat_ui,
+                    max_lon_ui,
+                ]
+            ),
+            build_map(),
+        ],
+        widths="equal",
     )
-
-    _bounds = [
-        [min_lat_ui.value, min_lon_ui.value],
-        [max_lat_ui.value, max_lon_ui.value],
-    ]
-
-    folium.Rectangle(bounds=_bounds).add_to(_map)
-
-    _map.fit_bounds(_bounds, padding=[20, 20])
-
-    _map
     return
 
 
