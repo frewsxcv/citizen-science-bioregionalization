@@ -3,11 +3,8 @@ import unittest
 import polars as pl
 
 import geojson
-from src.render import (
-    darken_hex_color,
-    darken_hex_colors_polars,
-    features_to_polars_df,
-)
+from src.colors import darken_hex_color, darken_hex_colors_polars
+from src.render import features_to_polars_df
 
 
 class TestRender(unittest.TestCase):

@@ -9,6 +9,7 @@ import seaborn as sns
 import umap  # type: ignore
 from sklearn.manifold import MDS  # type: ignore
 
+from src.colors import darken_hex_color
 from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
@@ -213,35 +214,3 @@ def _build_taxonomic(
         )
 
     return pl.DataFrame(rows).with_columns(pl.col("cluster").cast(pl.UInt32))
-
-
-def darken_hex_color(hex_color: str, factor: float = 0.5) -> str:
-    """
-    Darkens a hex color by multiplying RGB components by the given factor.
-
-    Args:
-        hex_color: A hex color string like '#ff0000' or '#f00'
-        factor: A float between 0 and 1 (0 = black, 1 = original color)
-
-    Returns:
-        A darkened hex color string
-    """
-    # Remove the # if present
-    hex_color = hex_color.lstrip("#")
-
-    # Handle shorthand hex format (#rgb)
-    if len(hex_color) == 3:
-        hex_color = "".join([c * 2 for c in hex_color])
-
-    # Convert hex to RGB
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-
-    # Darken each component
-    r = int(r * factor)
-    g = int(g * factor)
-    b = int(b * factor)
-
-    # Convert back to hex
-    return f"#{r:02x}{g:02x}{b:02x}"
