@@ -19,44 +19,51 @@ class TaxonomySchema(dy.Schema):
     scientificName = dy.String(nullable=True)
     gbifTaxonId = dy.String(nullable=True)
 
-    @classmethod
-    def build_lf(
-        cls,
-        darwin_core_csv_lf: dy.LazyFrame["DarwinCoreSchema"],
-        geocode_precision: int,
-        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
-        bounding_box: Bbox,
-    ) -> dy.LazyFrame["TaxonomySchema"]:
-        geocodes = (
-            geocode_lf.select("geocode")
-            .collect(engine="streaming")
-            .to_series()
-            .to_list()
-        )
 
-        lf = (
-            darwin_core_csv_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
-            .pipe(with_geocode_lf, geocode_precision=geocode_precision)
-            .filter(
-                # Ensure geocode exists and is not an edge
-                pl.col("geocode").is_in(geocodes)
-            )
-            .select(
-                "kingdom",
-                "taxonRank",
-                "scientificName",
-                # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
-                pl.col("taxonKey").alias("gbifTaxonId"),
-            )
-            .unique(
-                subset=[
-                    "scientificName",  # Need to confirm this. Will there be different scientific names for the same GBIF taxon ID?
-                    "gbifTaxonId",
-                ],
-            )
-            # Add a unique taxonId for each row
-            .with_row_index("taxonId")
-            .cast({"taxonId": pl.UInt32})
-        )
+def build_taxonomy_lf(
+    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    geocode_precision: int,
+    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    bounding_box: Bbox,
+) -> dy.LazyFrame[TaxonomySchema]:
+    """Build a validated TaxonomySchema LazyFrame from Darwin Core data.
 
-        return cls.validate(lf, eager=False)
+    Args:
+        darwin_core_lf: LazyFrame of Darwin Core occurrence records
+        geocode_precision: H3 resolution (0-15). Higher = smaller hexagons.
+        geocode_lf: LazyFrame of geocodes (used to filter taxa to valid geocodes)
+        bounding_box: Geographic bounding box to filter records
+
+    Returns:
+        A validated LazyFrame conforming to TaxonomySchema
+    """
+    geocodes = (
+        geocode_lf.select("geocode").collect(engine="streaming").to_series().to_list()
+    )
+
+    lf = (
+        darwin_core_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
+        .pipe(with_geocode_lf, geocode_precision=geocode_precision)
+        .filter(
+            # Ensure geocode exists and is not an edge
+            pl.col("geocode").is_in(geocodes)
+        )
+        .select(
+            "kingdom",
+            "taxonRank",
+            "scientificName",
+            # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
+            pl.col("taxonKey").alias("gbifTaxonId"),
+        )
+        .unique(
+            subset=[
+                "scientificName",  # Need to confirm this. Will there be different scientific names for the same GBIF taxon ID?
+                "gbifTaxonId",
+            ],
+        )
+        # Add a unique taxonId for each row
+        .with_row_index("taxonId")
+        .cast({"taxonId": pl.UInt32})
+    )
+
+    return TaxonomySchema.validate(lf, eager=False)

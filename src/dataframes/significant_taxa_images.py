@@ -57,48 +57,57 @@ class SignificantTaxaImagesSchema(dy.Schema):
     taxonId = dy.UInt32(nullable=False)
     image_url = dy.String(nullable=True)
 
-    @classmethod
-    def build_df(
-        cls,
-        cluster_significant_differences_df: dy.DataFrame[
-            ClusterSignificantDifferencesSchema
-        ],
-        taxonomy_df: dy.DataFrame[TaxonomySchema],
-    ) -> dy.DataFrame["SignificantTaxaImagesSchema"]:
-        significant_taxa_df = cluster_significant_differences_df.select(
-            "taxonId"
-        ).unique()
 
-        significant_taxa_with_gbif = significant_taxa_df.join(
-            taxonomy_df.select(["taxonId", "gbifTaxonId"]), on="taxonId"
+def build_significant_taxa_images_df(
+    cluster_significant_differences_df: dy.DataFrame[
+        ClusterSignificantDifferencesSchema
+    ],
+    taxonomy_df: dy.DataFrame[TaxonomySchema],
+) -> dy.DataFrame[SignificantTaxaImagesSchema]:
+    """Build a SignificantTaxaImagesSchema DataFrame with image URLs from Wikidata.
+
+    Fetches image URLs from Wikidata for taxa that have significant differences
+    between clusters.
+
+    Args:
+        cluster_significant_differences_df: DataFrame of significant taxa differences
+        taxonomy_df: DataFrame of taxonomy information with GBIF taxon IDs
+
+    Returns:
+        A validated DataFrame conforming to SignificantTaxaImagesSchema
+    """
+    significant_taxa_df = cluster_significant_differences_df.select("taxonId").unique()
+
+    significant_taxa_with_gbif = significant_taxa_df.join(
+        taxonomy_df.select(["taxonId", "gbifTaxonId"]), on="taxonId"
+    )
+
+    gbif_ids = (
+        significant_taxa_with_gbif.filter(pl.col("gbifTaxonId").is_not_null())
+        .get_column("gbifTaxonId")
+        .unique()
+        .to_list()
+    )
+
+    image_map = _fetch_wikidata_images(gbif_ids)
+
+    if not image_map:
+        return SignificantTaxaImagesSchema.validate(
+            significant_taxa_df.with_columns(
+                image_url=pl.lit(None, dtype=pl.String)
+            ).select(["taxonId", "image_url"])
         )
 
-        gbif_ids = (
-            significant_taxa_with_gbif.filter(pl.col("gbifTaxonId").is_not_null())
-            .get_column("gbifTaxonId")
-            .unique()
-            .to_list()
-        )
+    images_df = pl.DataFrame(
+        {
+            "gbifTaxonId": list(image_map.keys()),
+            "image_url": list(image_map.values()),
+        }
+    )
 
-        image_map = _fetch_wikidata_images(gbif_ids)
+    # Join images back to the significant taxa with gbifTaxonId
+    result_df = significant_taxa_with_gbif.join(
+        images_df, on="gbifTaxonId", how="left"
+    ).select(["taxonId", "image_url"])
 
-        if not image_map:
-            return cls.validate(
-                significant_taxa_df.with_columns(
-                    image_url=pl.lit(None, dtype=pl.String)
-                ).select(["taxonId", "image_url"])
-            )
-
-        images_df = pl.DataFrame(
-            {
-                "gbifTaxonId": list(image_map.keys()),
-                "image_url": list(image_map.values()),
-            }
-        )
-
-        # Join images back to the significant taxa with gbifTaxonId
-        result_df = significant_taxa_with_gbif.join(
-            images_df, on="gbifTaxonId", how="left"
-        ).select(["taxonId", "image_url"])
-
-        return cls.validate(result_df)
+    return SignificantTaxaImagesSchema.validate(result_df)

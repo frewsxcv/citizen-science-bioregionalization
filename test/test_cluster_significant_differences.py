@@ -6,6 +6,7 @@ import polars as pl
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
+    build_cluster_significant_differences_df,
 )
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 
@@ -46,7 +47,7 @@ class TestClusterSignificantDifferences(unittest.TestCase):
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
         # Build significant differences
-        significant_differences_df = ClusterSignificantDifferencesSchema.build_df(
+        significant_differences_df = build_cluster_significant_differences_df(
             cluster_taxa_stats, cluster_neighbors.lazy()
         )
 

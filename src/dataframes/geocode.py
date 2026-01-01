@@ -31,97 +31,6 @@ class GeocodeSchema(dy.Schema):
     # Whether this hexagon is on the edge (intersects bounding box boundary)
     is_edge = dy.Bool(nullable=False)
 
-    @classmethod
-    def build_df(
-        cls,
-        darwin_core_lf: dy.LazyFrame["DarwinCoreSchema"],
-        geocode_precision: int,
-        bounding_box: Bbox,
-    ) -> dy.DataFrame["GeocodeSchema"]:
-        df = (
-            darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
-            .filter(pl.col("geocode").is_not_null())
-            .unique()
-            .sort(by="geocode")
-            .with_columns(
-                center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
-            )
-            .with_columns(
-                center=pl_st.point("center_xy"),
-            )
-            .collect(engine="streaming")
-        )
-
-        # Calculate direct neighbors
-        df = (
-            df.with_columns(
-                direct_neighbors_including_unknown=polars_h3.grid_ring(
-                    pl.col("geocode"), 1
-                ),
-                known_geocodes=pl.lit(
-                    df["geocode"].unique().to_list(), dtype=pl.List(pl.UInt64)
-                ),
-            )
-            .with_columns(
-                direct_neighbors=pl.col("direct_neighbors_including_unknown")
-                .list.set_intersection(pl.col("known_geocodes"))
-                .cast(pl.List(pl.UInt64)),
-            )
-            .with_columns(
-                direct_and_indirect_neighbors=pl.col("direct_neighbors"),
-            )
-        )
-
-        # Create boundaries for all hexagons
-        boundaries: list[shapely.Polygon] = []
-
-        for geocode, geometry in df.select(
-            "geocode",
-            polars_h3.cell_to_boundary("geocode").alias("geometry"),
-        ).iter_rows():
-            boundary = shapely.Polygon(latlng_list_to_lnglat_list(geometry))
-            boundaries.append(boundary)
-
-        # Use provided bounding box to determine edge hexagons
-        logger.info(
-            f"Using provided bounding box: lat=[{bounding_box.min_lat:.4f}, {bounding_box.max_lat:.4f}], "
-            f"lng=[{bounding_box.min_lng:.4f}, {bounding_box.max_lng:.4f}]"
-        )
-
-        # Create bounding box boundary (the edges, not the filled box)
-        bbox_boundary = box(
-            bounding_box.min_lng,
-            bounding_box.min_lat,
-            bounding_box.max_lng,
-            bounding_box.max_lat,
-        ).boundary
-
-        # Check which hexagons intersect the bounding box edges
-        is_edge_list: list[bool] = []
-        for boundary in boundaries:
-            intersects_edge = boundary.intersects(bbox_boundary)
-            if intersects_edge is None:
-                raise ValueError(
-                    f"boundary.intersects() returned None for boundary: {boundary}"
-                )
-            is_edge_list.append(intersects_edge)
-
-        df = df.with_columns(
-            boundary=pl_st.from_shapely(pl.Series(boundaries)),
-            is_edge=pl.Series(is_edge_list),
-        )
-
-        initial_count = len(df)
-        edge_count = df.filter(pl.col("is_edge")).shape[0]
-        logger.info(
-            f"Identified {edge_count} edge hexagons ({edge_count / initial_count * 100:.1f}%)"
-        )
-
-        df = _reduce_connected_components_to_one(df)
-
-        df = df.select(list(GeocodeSchema.columns().keys()))
-        return GeocodeSchema.validate(df)
-
 
 class GeocodeNoEdgesSchema(GeocodeSchema):
     """Schema that validates there are no edge hexagons in the dataset.
@@ -136,62 +45,159 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         """Validate that no hexagons are on the edge of the bounding box."""
         return ~pl.col("is_edge")
 
-    @classmethod
-    def from_geocode_schema(
-        cls,
-        geocode_df: dy.LazyFrame[GeocodeSchema],
-    ) -> dy.DataFrame["GeocodeNoEdgesSchema"]:
-        """Create a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
-        Args:
-            geocode_df: A validated GeocodeSchema lazy dataframe
+def build_geocode_df(
+    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    geocode_precision: int,
+    bounding_box: Bbox,
+) -> dy.DataFrame[GeocodeSchema]:
+    """Build a GeocodeSchema DataFrame from Darwin Core occurrence data.
 
-        Returns:
-            A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
-            and neighbor lists updated to exclude the removed edges.
-        """
-        # Get the set of edge geocodes to remove by collecting just those rows
-        edge_geocodes = set(
-            geocode_df.filter(pl.col("is_edge"))
-            .select("geocode")
-            .collect(engine="streaming")["geocode"]
-            .to_list()
+    Args:
+        darwin_core_lf: LazyFrame of Darwin Core occurrence records
+        geocode_precision: H3 resolution (0-15). Higher = smaller hexagons.
+        bounding_box: Geographic bounding box to determine edge hexagons
+
+    Returns:
+        A validated DataFrame conforming to GeocodeSchema
+    """
+    df = (
+        darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
+        .filter(pl.col("geocode").is_not_null())
+        .unique()
+        .sort(by="geocode")
+        .with_columns(
+            center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
         )
+        .with_columns(
+            center=pl_st.point("center_xy"),
+        )
+        .collect(engine="streaming")
+    )
 
-        logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
-
-        # Filter out edge hexagons and collect to get valid geocodes
-        df = geocode_df.filter(~pl.col("is_edge")).collect(engine="streaming")
-
-        # Update neighbor lists to remove references to edge geocodes
-        # Get the set of remaining valid geocodes
-        valid_geocodes = set(df["geocode"].to_list())
-        valid_geocodes_lit = pl.lit(list(valid_geocodes), dtype=pl.List(pl.UInt64))
-
-        df = df.with_columns(
-            direct_neighbors=pl.col("direct_neighbors").list.set_intersection(
-                valid_geocodes_lit
+    # Calculate direct neighbors
+    df = (
+        df.with_columns(
+            direct_neighbors_including_unknown=polars_h3.grid_ring(
+                pl.col("geocode"), 1
             ),
-            direct_and_indirect_neighbors=pl.col(
-                "direct_and_indirect_neighbors"
-            ).list.set_intersection(valid_geocodes_lit),
+            known_geocodes=pl.lit(
+                df["geocode"].unique().to_list(), dtype=pl.List(pl.UInt64)
+            ),
         )
+        .with_columns(
+            direct_neighbors=pl.col("direct_neighbors_including_unknown")
+            .list.set_intersection(pl.col("known_geocodes"))
+            .cast(pl.List(pl.UInt64)),
+        )
+        .with_columns(
+            direct_and_indirect_neighbors=pl.col("direct_neighbors"),
+        )
+    )
 
-        # After removing edge geocodes, we may have disconnected components again
-        # (e.g., if indirect connections went through edge geocodes)
-        df = _reduce_connected_components_to_one(df)
+    # Create boundaries for all hexagons
+    boundaries: list[shapely.Polygon] = []
 
-        df = df.sort(by="geocode")
+    for geocode, geometry in df.select(
+        "geocode",
+        polars_h3.cell_to_boundary("geocode").alias("geometry"),
+    ).iter_rows():
+        boundary = shapely.Polygon(latlng_list_to_lnglat_list(geometry))
+        boundaries.append(boundary)
 
-        logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
+    # Use provided bounding box to determine edge hexagons
+    logger.info(
+        f"Using provided bounding box: lat=[{bounding_box.min_lat:.4f}, {bounding_box.max_lat:.4f}], "
+        f"lng=[{bounding_box.min_lng:.4f}, {bounding_box.max_lng:.4f}]"
+    )
 
-        return cls.validate(df)
+    # Create bounding box boundary (the edges, not the filled box)
+    bbox_boundary = box(
+        bounding_box.min_lng,
+        bounding_box.min_lat,
+        bounding_box.max_lng,
+        bounding_box.max_lat,
+    ).boundary
+
+    # Check which hexagons intersect the bounding box edges
+    is_edge_list: list[bool] = []
+    for boundary in boundaries:
+        intersects_edge = boundary.intersects(bbox_boundary)
+        if intersects_edge is None:
+            raise ValueError(
+                f"boundary.intersects() returned None for boundary: {boundary}"
+            )
+        is_edge_list.append(intersects_edge)
+
+    df = df.with_columns(
+        boundary=pl_st.from_shapely(pl.Series(boundaries)),
+        is_edge=pl.Series(is_edge_list),
+    )
+
+    initial_count = len(df)
+    edge_count = df.filter(pl.col("is_edge")).shape[0]
+    logger.info(
+        f"Identified {edge_count} edge hexagons ({edge_count / initial_count * 100:.1f}%)"
+    )
+
+    df = _reduce_connected_components_to_one(df)
+
+    df = df.select(list(GeocodeSchema.columns().keys()))
+    return GeocodeSchema.validate(df)
+
+
+def build_geocode_no_edges_df(
+    geocode_lf: dy.LazyFrame[GeocodeSchema],
+) -> dy.DataFrame[GeocodeNoEdgesSchema]:
+    """Build a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
+
+    Args:
+        geocode_lf: A validated GeocodeSchema lazy dataframe
+
+    Returns:
+        A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
+        and neighbor lists updated to exclude the removed edges.
+    """
+    # Get the set of edge geocodes to remove by collecting just those rows
+    edge_geocodes = set(
+        geocode_lf.filter(pl.col("is_edge"))
+        .select("geocode")
+        .collect(engine="streaming")["geocode"]
+        .to_list()
+    )
+
+    logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
+
+    # Filter out edge hexagons and collect to get valid geocodes
+    df = geocode_lf.filter(~pl.col("is_edge")).collect(engine="streaming")
+
+    # Update neighbor lists to remove references to edge geocodes
+    # Get the set of remaining valid geocodes
+    valid_geocodes = set(df["geocode"].to_list())
+    valid_geocodes_lit = pl.lit(list(valid_geocodes), dtype=pl.List(pl.UInt64))
+
+    df = df.with_columns(
+        direct_neighbors=pl.col("direct_neighbors").list.set_intersection(
+            valid_geocodes_lit
+        ),
+        direct_and_indirect_neighbors=pl.col(
+            "direct_and_indirect_neighbors"
+        ).list.set_intersection(valid_geocodes_lit),
+    )
+
+    # After removing edge geocodes, we may have disconnected components again
+    # (e.g., if indirect connections went through edge geocodes)
+    df = _reduce_connected_components_to_one(df)
+
+    df = df.sort(by="geocode")
+
+    logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
+
+    return GeocodeNoEdgesSchema.validate(df)
 
 
 def graph(
-    geocode_df: Union[
-        dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
-    ],
+    geocode_df: Union[dy.DataFrame[GeocodeSchema], dy.DataFrame[GeocodeNoEdgesSchema]],
     include_indirect_neighbors: bool = False,
 ) -> nx.Graph:
     return _df_to_graph(geocode_df, include_indirect_neighbors)
@@ -287,9 +293,7 @@ def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
 
 def index_of_geocode(
     geocode: int,
-    geocode_df: Union[
-        dy.DataFrame[GeocodeSchema], dy.DataFrame["GeocodeNoEdgesSchema"]
-    ],
+    geocode_df: Union[dy.DataFrame[GeocodeSchema], dy.DataFrame[GeocodeNoEdgesSchema]],
 ) -> int:
     index = geocode_df["geocode"].index_of(geocode)
     if index is None:

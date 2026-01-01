@@ -22,43 +22,42 @@ class ClusterColorSchema(dy.Schema):
     color = dy.String(nullable=False)
     darkened_color = dy.String(nullable=False)
 
-    @classmethod
-    def build_df(
-        cls,
-        cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
-        cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
-        cluster_taxa_statistics_df: Optional[
-            dy.DataFrame[ClusterTaxaStatisticsSchema]
-        ] = None,
-        color_method: Literal["geographic", "taxonomic"] = "geographic",
-        ocean_threshold: float = 0.90,
-    ) -> dy.DataFrame["ClusterColorSchema"]:
-        """
-        Build a ClusterColorDataFrame using either geographic neighbor-based coloring
-        or taxonomic similarity-based coloring.
 
-        Args:
-            cluster_neighbors_lf: Lazyframe of cluster neighbors
-            cluster_boundary_df: Dataframe of cluster boundaries
-            cluster_taxa_statistics_df: Dataframe of cluster taxa statistics (required for taxonomic coloring)
-            color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
-            ocean_threshold: Threshold for determining ocean clusters (only used with geographic method)
+def build_cluster_color_df(
+    cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
+    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
+    cluster_taxa_statistics_df: Optional[
+        dy.DataFrame[ClusterTaxaStatisticsSchema]
+    ] = None,
+    color_method: Literal["geographic", "taxonomic"] = "geographic",
+    ocean_threshold: float = 0.90,
+) -> dy.DataFrame[ClusterColorSchema]:
+    """
+    Build a ClusterColorSchema DataFrame using either geographic neighbor-based coloring
+    or taxonomic similarity-based coloring.
 
-        Returns:
-            A ClusterColorDataFrame with colors assigned to clusters
-        """
-        if color_method == "geographic":
-            df = _build_geographic(
-                cluster_neighbors_lf, cluster_boundary_df, ocean_threshold
-            )
-        elif color_method == "taxonomic":
-            assert cluster_taxa_statistics_df is not None, (
-                "cluster_taxa_statistics_df is required for taxonomic coloring"
-            )
-            df = _build_taxonomic(cluster_taxa_statistics_df)
-        else:
-            raise ValueError(f"Invalid color_method: {color_method}")
-        return cls.validate(df)
+    Args:
+        cluster_neighbors_lf: Lazyframe of cluster neighbors
+        cluster_boundary_df: Dataframe of cluster boundaries
+        cluster_taxa_statistics_df: Dataframe of cluster taxa statistics (required for taxonomic coloring)
+        color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
+        ocean_threshold: Threshold for determining ocean clusters (only used with geographic method)
+
+    Returns:
+        A ClusterColorSchema DataFrame with colors assigned to clusters
+    """
+    if color_method == "geographic":
+        df = _build_geographic(
+            cluster_neighbors_lf, cluster_boundary_df, ocean_threshold
+        )
+    elif color_method == "taxonomic":
+        assert cluster_taxa_statistics_df is not None, (
+            "cluster_taxa_statistics_df is required for taxonomic coloring"
+        )
+        df = _build_taxonomic(cluster_taxa_statistics_df)
+    else:
+        raise ValueError(f"Invalid color_method: {color_method}")
+    return ClusterColorSchema.validate(df)
 
 
 def get_color_for_cluster(

@@ -11,69 +11,80 @@ class ClusterNeighborsSchema(dy.Schema):
     direct_neighbors = dy.List(dy.UInt32(), nullable=False)
     direct_and_indirect_neighbors = dy.List(dy.UInt32(), nullable=False)
 
-    @classmethod
-    def build_df(
-        cls,
-        geocode_df: dy.LazyFrame[GeocodeNoEdgesSchema],
-        geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-    ) -> dy.DataFrame["ClusterNeighborsSchema"]:
-        # Collect the LazyFrame once at the start
-        geocode_collected = geocode_df.collect()
 
-        # Get unique clusters
-        unique_clusters = geocode_cluster_df["cluster"].unique()
+def build_cluster_neighbors_df(
+    geocode_df: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+) -> dy.DataFrame[ClusterNeighborsSchema]:
+    """Build cluster neighbor relationships from geocode data.
 
-        # Initialize a dictionary to store the direct and indirect neighbors
-        direct_neighbors_map: dict[int, set[int]] = {
-            cluster: set() for cluster in unique_clusters
-        }
-        all_neighbors_map: dict[int, set[int]] = {
-            cluster: set() for cluster in unique_clusters
-        }
+    Determines which clusters are neighbors based on the geocode neighbor
+    relationships within each cluster.
 
-        # For each geocode, find neighbors in different clusters
-        for (
-            geocode,
-            direct_neighbors,
-            direct_and_indirect_neighbors,
-        ) in geocode_collected.select(
-            "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
-        ).iter_rows(named=False):
-            # Get the cluster of the current geocode
-            current_cluster = cluster_for_geocode(geocode_cluster_df, geocode)
+    Args:
+        geocode_df: LazyFrame containing geocode and neighbor information
+        geocode_cluster_df: DataFrame mapping geocodes to clusters
 
-            # For each direct neighbor, check if it's in a different cluster
-            for neighbor in direct_neighbors:
-                neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
+    Returns:
+        A validated DataFrame conforming to ClusterNeighborsSchema
+    """
+    # Collect the LazyFrame once at the start
+    geocode_collected = geocode_df.collect()
 
-                # If clusters are different, add to direct neighbors
-                if current_cluster != neighbor_cluster:
-                    direct_neighbors_map[current_cluster].add(neighbor_cluster)
-                    all_neighbors_map[current_cluster].add(neighbor_cluster)
+    # Get unique clusters
+    unique_clusters = geocode_cluster_df["cluster"].unique()
 
-            # For each indirect neighbor, check if it's in a different cluster
-            for neighbor in direct_and_indirect_neighbors:
-                neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
+    # Initialize a dictionary to store the direct and indirect neighbors
+    direct_neighbors_map: dict[int, set[int]] = {
+        cluster: set() for cluster in unique_clusters
+    }
+    all_neighbors_map: dict[int, set[int]] = {
+        cluster: set() for cluster in unique_clusters
+    }
 
-                # If clusters are different, add to all neighbors
-                if current_cluster != neighbor_cluster:
-                    all_neighbors_map[current_cluster].add(neighbor_cluster)
+    # For each geocode, find neighbors in different clusters
+    for (
+        geocode,
+        direct_neighbors,
+        direct_and_indirect_neighbors,
+    ) in geocode_collected.select(
+        "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
+    ).iter_rows(named=False):
+        # Get the cluster of the current geocode
+        current_cluster = cluster_for_geocode(geocode_cluster_df, geocode)
 
-        df = pl.DataFrame(
-            [
-                {
-                    "cluster": cluster,
-                    "direct_neighbors": list(direct_neighbors_map[cluster]),
-                    "direct_and_indirect_neighbors": list(all_neighbors_map[cluster]),
-                }
-                for cluster in unique_clusters
-            ]
-        ).with_columns(
-            pl.col("cluster").cast(pl.UInt32),
-            pl.col("direct_neighbors").cast(pl.List(pl.UInt32)),
-            pl.col("direct_and_indirect_neighbors").cast(pl.List(pl.UInt32)),
-        )
-        return cls.validate(df)
+        # For each direct neighbor, check if it's in a different cluster
+        for neighbor in direct_neighbors:
+            neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
+
+            # If clusters are different, add to direct neighbors
+            if current_cluster != neighbor_cluster:
+                direct_neighbors_map[current_cluster].add(neighbor_cluster)
+                all_neighbors_map[current_cluster].add(neighbor_cluster)
+
+        # For each indirect neighbor, check if it's in a different cluster
+        for neighbor in direct_and_indirect_neighbors:
+            neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
+
+            # If clusters are different, add to all neighbors
+            if current_cluster != neighbor_cluster:
+                all_neighbors_map[current_cluster].add(neighbor_cluster)
+
+    df = pl.DataFrame(
+        [
+            {
+                "cluster": cluster,
+                "direct_neighbors": list(direct_neighbors_map[cluster]),
+                "direct_and_indirect_neighbors": list(all_neighbors_map[cluster]),
+            }
+            for cluster in unique_clusters
+        ]
+    ).with_columns(
+        pl.col("cluster").cast(pl.UInt32),
+        pl.col("direct_neighbors").cast(pl.List(pl.UInt32)),
+        pl.col("direct_and_indirect_neighbors").cast(pl.List(pl.UInt32)),
+    )
+    return ClusterNeighborsSchema.validate(df)
 
 
 def to_graph(

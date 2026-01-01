@@ -12,7 +12,10 @@ import dataframely as dy
 import polars as pl
 
 from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
-from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
+from src.dataframes.geocode_silhouette_score import (
+    GeocodeSilhouetteScoreSchema,
+    build_geocode_silhouette_score_df,
+)
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 logger = logging.getLogger(__name__)
@@ -55,7 +58,7 @@ def optimize_num_clusters(
         >>> print(f"Optimal number of clusters: {optimal_k}")
     """
     # Compute silhouette scores for all clustering results
-    silhouette_scores_df = GeocodeSilhouetteScoreSchema.build_df(
+    silhouette_scores_df = build_geocode_silhouette_score_df(
         distance_matrix,
         geocode_cluster_df,
     )

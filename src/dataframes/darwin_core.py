@@ -48,99 +48,40 @@ class DarwinCoreSchema(dy.Schema):
         """Validate that longitude is within valid range [-180, 180]."""
         return pl.col("decimalLongitude").is_between(-180, 180)
 
-    @classmethod
-    def build_lf(
-        cls,
-        source_path: str,
-        bounding_box: Bbox,
-        limit: Union[int, None] = None,
-        taxon_filter: str = "",
-    ) -> dy.LazyFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core dataframe from a source file.
 
-        Args:
-            source_path: Path to either a Darwin Core archive directory or Parquet file/directory.
-            bounding_box: Geographic bounding box to filter records.
-            limit: Optional maximum number of records to return.
-            taxon_filter: Optional taxon name to filter by (e.g., 'Aves').
+def build_darwin_core_lf(
+    source_path: Union[str, Path],
+    bounding_box: Bbox,
+    limit: Union[int, None] = None,
+    taxon_filter: str = "",
+) -> dy.LazyFrame[DarwinCoreSchema]:
+    """Build a validated Darwin Core lazyframe from a source file.
 
-        Returns:
-            A validated DataFrame conforming to DarwinCoreSchema.
-        """
-        lf = load_darwin_core_data(
-            source_path=source_path,
-            bounding_box=bounding_box,
-            limit_results=limit,
-            taxon_filter=taxon_filter,
-        )
+    Args:
+        source_path: Path to either a Darwin Core archive directory or Parquet file/directory.
+        bounding_box: Geographic bounding box to filter records.
+        limit: Optional maximum number of records to return.
+        taxon_filter: Optional taxon name to filter by (e.g., 'Aves').
 
-        # Select only the columns we need
-        lf = lf.select(
-            "decimalLatitude",
-            "decimalLongitude",
-            "kingdom",
-            "taxonRank",
-            "scientificName",
-            "taxonKey",
-            "individualCount",
-        )
+    Returns:
+        A validated LazyFrame conforming to DarwinCoreSchema.
+    """
+    lf = load_darwin_core_data(
+        source_path=str(source_path),
+        bounding_box=bounding_box,
+        limit_results=limit,
+        taxon_filter=taxon_filter,
+    )
 
-        return cls.validate(lf, eager=False)
+    # Select only the columns we need
+    lf = lf.select(
+        "decimalLatitude",
+        "decimalLongitude",
+        "kingdom",
+        "taxonRank",
+        "scientificName",
+        "taxonKey",
+        "individualCount",
+    )
 
-    @classmethod
-    def from_archive(
-        cls,
-        path: Union[str, Path],
-        bounding_box: Bbox,
-        limit: Union[int, None] = None,
-    ) -> dy.LazyFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core lazyframe from an archive directory.
-
-        Args:
-            path: Path to an unpacked Darwin Core archive directory
-                containing meta.xml and the core data file.
-            bounding_box: Geographic bounding box to filter records.
-            limit: Optional maximum number of records to return.
-
-        Returns:
-            A validated LazyFrame conforming to DarwinCoreSchema.
-        """
-        return cls.build_lf(str(path), bounding_box, limit)
-
-    @classmethod
-    def from_csv(
-        cls,
-        path: Union[str, Path],
-        bounding_box: Bbox,
-        limit: Union[int, None] = None,
-    ) -> dy.LazyFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core lazyframe from a CSV file.
-
-        Args:
-            path: Path to a Darwin Core CSV file.
-            bounding_box: Geographic bounding box to filter records.
-            limit: Optional maximum number of records to return.
-
-        Returns:
-            A validated LazyFrame conforming to DarwinCoreSchema.
-        """
-        return cls.build_lf(str(path), bounding_box, limit)
-
-    @classmethod
-    def from_parquet(
-        cls,
-        path: Union[str, Path],
-        bounding_box: Bbox,
-        limit: Union[int, None] = None,
-    ) -> dy.LazyFrame["DarwinCoreSchema"]:
-        """Build a validated Darwin Core lazyframe from a Parquet file.
-
-        Args:
-            path: Path to a Darwin Core Parquet file.
-            bounding_box: Geographic bounding box to filter records.
-            limit: Optional maximum number of records to return.
-
-        Returns:
-            A validated LazyFrame conforming to DarwinCoreSchema.
-        """
-        return cls.build_lf(str(path), bounding_box, limit)
+    return DarwinCoreSchema.validate(lf, eager=False)

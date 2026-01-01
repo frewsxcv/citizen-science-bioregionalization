@@ -20,103 +20,101 @@ class GeocodeClusterSchema(dy.Schema):
     geocode = dy.UInt64(nullable=False)
     cluster = dy.UInt32(nullable=False)
 
-    @classmethod
-    def from_multi_k(
-        cls,
-        multi_k_df: dy.DataFrame["GeocodeClusterMultiKSchema"],
-        num_clusters: int,
-    ) -> dy.DataFrame["GeocodeClusterSchema"]:
-        """Extract clustering results for a single k value from multi-k results.
-
-        Args:
-            multi_k_df: DataFrame containing clustering results for multiple k values
-            num_clusters: The specific k value to extract
-
-        Returns:
-            DataFrame with clustering results for the specified k value only
-        """
-        df = multi_k_df.filter(pl.col("num_clusters") == num_clusters).select(
-            ["geocode", "cluster"]
-        )
-        return cls.validate(df)
-
 
 class GeocodeClusterMultiKSchema(GeocodeClusterSchema):
     """Schema for clustering results across multiple k values."""
 
     num_clusters = dy.UInt32(nullable=False)
 
-    @classmethod
-    def build_df(
-        cls,
-        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
-        distance_matrix: GeocodeDistanceMatrix,
-        connectivity_matrix: GeocodeConnectivityMatrix,
-        min_k: int,
-        max_k: int,
-    ) -> dy.DataFrame["GeocodeClusterMultiKSchema"]:
-        """Build clustering results for all k values from min_k to max_k.
 
-        Args:
-            geocode_lf: LazyFrame containing geocode information
-            distance_matrix: Precomputed distance matrix between geocodes
-            connectivity_matrix: Spatial connectivity constraints for clustering
-            min_k: Minimum number of clusters to test
-            max_k: Maximum number of clusters to test
+def build_geocode_cluster_df(
+    multi_k_df: dy.DataFrame[GeocodeClusterMultiKSchema],
+    num_clusters: int,
+) -> dy.DataFrame[GeocodeClusterSchema]:
+    """Extract clustering results for a single k value from multi-k results.
 
-        Returns:
-            DataFrame with clustering results for all k values tested
-        """
-        if min_k < 2:
-            raise ValueError(f"min_k must be at least 2, got {min_k}")
-        if max_k < min_k:
-            raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
+    Args:
+        multi_k_df: DataFrame containing clustering results for multiple k values
+        num_clusters: The specific k value to extract
 
-        # Collect the LazyFrame once at the start
-        geocode_df = geocode_lf.collect()
-        geocodes = geocode_df["geocode"]
-        num_geocodes = len(geocodes)
+    Returns:
+        DataFrame with clustering results for the specified k value only
+    """
+    df = multi_k_df.filter(pl.col("num_clusters") == num_clusters).select(
+        ["geocode", "cluster"]
+    )
+    return GeocodeClusterSchema.validate(df)
 
-        # Validate k range
-        if max_k >= num_geocodes:
-            logger.warning(
-                f"max_k ({max_k}) is >= number of geocodes ({num_geocodes}). "
-                f"Reducing max_k to {num_geocodes - 1}"
-            )
-            max_k = num_geocodes - 1
 
-        logger.info(
-            f"Testing {max_k - min_k + 1} cluster configurations (k={min_k} to k={max_k})"
+def build_geocode_cluster_multi_k_df(
+    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    distance_matrix: GeocodeDistanceMatrix,
+    connectivity_matrix: GeocodeConnectivityMatrix,
+    min_k: int,
+    max_k: int,
+) -> dy.DataFrame[GeocodeClusterMultiKSchema]:
+    """Build clustering results for all k values from min_k to max_k.
+
+    Args:
+        geocode_lf: LazyFrame containing geocode information
+        distance_matrix: Precomputed distance matrix between geocodes
+        connectivity_matrix: Spatial connectivity constraints for clustering
+        min_k: Minimum number of clusters to test
+        max_k: Maximum number of clusters to test
+
+    Returns:
+        DataFrame with clustering results for all k values tested
+    """
+    if min_k < 2:
+        raise ValueError(f"min_k must be at least 2, got {min_k}")
+    if max_k < min_k:
+        raise ValueError(f"max_k ({max_k}) must be >= min_k ({min_k})")
+
+    # Collect the LazyFrame once at the start
+    geocode_df = geocode_lf.collect()
+    geocodes = geocode_df["geocode"]
+    num_geocodes = len(geocodes)
+
+    # Validate k range
+    if max_k >= num_geocodes:
+        logger.warning(
+            f"max_k ({max_k}) is >= number of geocodes ({num_geocodes}). "
+            f"Reducing max_k to {num_geocodes - 1}"
+        )
+        max_k = num_geocodes - 1
+
+    logger.info(
+        f"Testing {max_k - min_k + 1} cluster configurations (k={min_k} to k={max_k})"
+    )
+
+    all_results = []
+
+    for k in range(min_k, max_k + 1):
+        logger.info(f"Testing k={k}...")
+
+        clusters = AgglomerativeClustering(
+            n_clusters=k,
+            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),  # type: ignore
+            linkage="ward",
+        ).fit_predict(distance_matrix.squareform())
+
+        assert len(geocodes) == len(clusters)
+
+        k_df = pl.DataFrame(
+            data={
+                "geocode": geocodes,
+                "num_clusters": [k] * len(geocodes),
+                "cluster": clusters,
+            }
+        ).with_columns(
+            pl.col("num_clusters").cast(pl.UInt32),
+            pl.col("cluster").cast(pl.UInt32),
         )
 
-        all_results = []
+        all_results.append(k_df)
 
-        for k in range(min_k, max_k + 1):
-            logger.info(f"Testing k={k}...")
-
-            clusters = AgglomerativeClustering(
-                n_clusters=k,
-                connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),  # type: ignore
-                linkage="ward",
-            ).fit_predict(distance_matrix.squareform())
-
-            assert len(geocodes) == len(clusters)
-
-            k_df = pl.DataFrame(
-                data={
-                    "geocode": geocodes,
-                    "num_clusters": [k] * len(geocodes),
-                    "cluster": clusters,
-                }
-            ).with_columns(
-                pl.col("num_clusters").cast(pl.UInt32),
-                pl.col("cluster").cast(pl.UInt32),
-            )
-
-            all_results.append(k_df)
-
-        df = pl.concat(all_results)
-        return cls.validate(df)
+    df = pl.concat(all_results)
+    return GeocodeClusterMultiKSchema.validate(df)
 
 
 def cluster_ids(

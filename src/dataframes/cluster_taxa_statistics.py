@@ -17,67 +17,81 @@ class ClusterTaxaStatisticsSchema(dy.Schema):
         nullable=False
     )  # average of taxa with `taxonId` within `cluster`
 
-    @classmethod
-    def build_df(
-        cls,
-        geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
-        geocode_cluster_lf: dy.LazyFrame[GeocodeClusterSchema],
-        taxonomy_lf: dy.LazyFrame[TaxonomySchema],
-    ) -> dy.DataFrame["ClusterTaxaStatisticsSchema"]:
-        df = pl.DataFrame()
 
-        # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
-        joined = geocode_taxa_counts_lf.join(taxonomy_lf, on="taxonId").collect(
-            engine="streaming"
+def build_cluster_taxa_statistics_df(
+    geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
+    geocode_cluster_lf: dy.LazyFrame[GeocodeClusterSchema],
+    taxonomy_lf: dy.LazyFrame[TaxonomySchema],
+) -> dy.DataFrame[ClusterTaxaStatisticsSchema]:
+    """Build cluster taxa statistics from geocode taxa counts.
+
+    Computes aggregated statistics (count, average) for each taxon within each cluster,
+    as well as overall statistics across all clusters (cluster=null).
+
+    Args:
+        geocode_taxa_counts_lf: LazyFrame of taxa counts per geocode
+        geocode_cluster_lf: LazyFrame mapping geocodes to clusters
+        taxonomy_lf: LazyFrame of taxonomy information
+
+    Returns:
+        A validated DataFrame conforming to ClusterTaxaStatisticsSchema
+    """
+    df = pl.DataFrame()
+
+    # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
+    joined = geocode_taxa_counts_lf.join(taxonomy_lf, on="taxonId").collect(
+        engine="streaming"
+    )
+
+    # Total count of all observations
+    total_count = joined["count"].sum()
+
+    # Calculate stats for all clusters
+    df.vstack(
+        joined.group_by(["taxonId"])
+        .agg(
+            pl.col("count").sum().alias("count"),
+            (pl.col("count").sum() / total_count).alias("average"),
         )
+        .pipe(add_cluster_column, value=None)
+        .select(ClusterTaxaStatisticsSchema.columns().keys()),  # Reorder columns
+        in_place=True,
+    )
 
-        # Total count of all observations
-        total_count = joined["count"].sum()
+    # Create a mapping from geocode to cluster
+    geocode_to_cluster = geocode_cluster_lf.select(["geocode", "cluster"])
 
-        # Calculate stats for all clusters
-        df.vstack(
-            joined.group_by(["taxonId"])
-            .agg(
-                pl.col("count").sum().alias("count"),
-                (pl.col("count").sum() / total_count).alias("average"),
-            )
-            .pipe(add_cluster_column, value=None)
-            .select(cls.columns().keys()),  # Reorder columns
-            in_place=True,
+    # Join the cluster information with the data
+    joined_with_cluster = joined.lazy().join(
+        geocode_to_cluster, on="geocode", how="inner"
+    )
+
+    # Calculate total counts per cluster
+    cluster_totals = joined_with_cluster.group_by("cluster").agg(
+        pl.col("count").sum().alias("total_count_in_cluster")
+    )
+
+    # Calculate stats for each cluster in one operation
+    cluster_stats = (
+        joined_with_cluster.group_by(["cluster", "taxonId"])
+        .agg(
+            pl.col("count").sum().alias("count"),
         )
-
-        # Create a mapping from geocode to cluster
-        geocode_to_cluster = geocode_cluster_lf.select(["geocode", "cluster"])
-
-        # Join the cluster information with the data
-        joined_with_cluster = joined.lazy().join(
-            geocode_to_cluster, on="geocode", how="inner"
+        .join(cluster_totals, on="cluster")
+        .with_columns(
+            [(pl.col("count") / pl.col("total_count_in_cluster")).alias("average")]
         )
+        .drop("total_count_in_cluster")
+        .select(
+            ClusterTaxaStatisticsSchema.columns().keys()
+        )  # Ensure columns are in the right order
+        .collect(engine="streaming")
+    )
 
-        # Calculate total counts per cluster
-        cluster_totals = joined_with_cluster.group_by("cluster").agg(
-            pl.col("count").sum().alias("total_count_in_cluster")
-        )
+    # Add cluster-specific stats to the dataframe
+    df.vstack(cluster_stats, in_place=True)
 
-        # Calculate stats for each cluster in one operation
-        cluster_stats = (
-            joined_with_cluster.group_by(["cluster", "taxonId"])
-            .agg(
-                pl.col("count").sum().alias("count"),
-            )
-            .join(cluster_totals, on="cluster")
-            .with_columns(
-                [(pl.col("count") / pl.col("total_count_in_cluster")).alias("average")]
-            )
-            .drop("total_count_in_cluster")
-            .select(cls.columns().keys())  # Ensure columns are in the right order
-            .collect(engine="streaming")
-        )
-
-        # Add cluster-specific stats to the dataframe
-        df.vstack(cluster_stats, in_place=True)
-
-        return cls.validate(df)
+    return ClusterTaxaStatisticsSchema.validate(df)
 
 
 def iter_cluster_ids(
