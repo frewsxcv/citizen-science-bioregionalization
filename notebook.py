@@ -14,6 +14,7 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
+
     return cache_parquet, folium, mo, np, pl
 
 
@@ -112,7 +113,6 @@ def _(taxon_filter_ui):
 
 @app.cell(hide_code=True)
 def _(limit_results_enabled_ui, limit_results_value_ui, mo):
-
     mo.vstack(
         [
             limit_results_enabled_ui,
@@ -124,7 +124,7 @@ def _(limit_results_enabled_ui, limit_results_value_ui, mo):
 
 @app.cell(hide_code=True)
 def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
-    def build_map() -> folium.Map:
+    def build_map():
         map = folium.Map(
             tiles="Esri.WorldGrayCanvas",
         )
@@ -139,7 +139,6 @@ def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
         map.fit_bounds(bounds, padding=[20, 20])
 
         return map
-
 
     mo.hstack(
         [
