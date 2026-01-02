@@ -49,6 +49,16 @@ def _(mo):
     taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
     limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
     limit_results_value_ui = mo.ui.number(value=1000, label="Limit results")
+    max_taxa_enabled_ui = mo.ui.checkbox(value=False, label="Limit to top N taxa")
+    max_taxa_value_ui = mo.ui.number(
+        value=5000, label="Keep top N taxa by occurrence count"
+    )
+    min_geocode_presence_enabled_ui = mo.ui.checkbox(
+        value=False, label="Filter rare taxa"
+    )
+    min_geocode_presence_value_ui = mo.ui.number(
+        value=0.05, label="Min fraction of hexagons a taxon must appear in", step=0.01
+    )
     min_lon_ui = mo.ui.number(value=-87.0, label="Longitude")
     min_lat_ui = mo.ui.number(value=25.0, label="Latitude")
     max_lon_ui = mo.ui.number(value=-66.0, label="Longitude")
@@ -62,7 +72,11 @@ def _(mo):
         max_clusters_to_test_ui,
         max_lat_ui,
         max_lon_ui,
+        max_taxa_enabled_ui,
+        max_taxa_value_ui,
         min_clusters_to_test_ui,
+        min_geocode_presence_enabled_ui,
+        min_geocode_presence_value_ui,
         min_lat_ui,
         min_lon_ui,
         parquet_source_path_ui,
@@ -123,6 +137,43 @@ def _(limit_results_enabled_ui, limit_results_value_ui, mo):
 
 
 @app.cell(hide_code=True)
+def _(
+    max_taxa_enabled_ui,
+    max_taxa_value_ui,
+    min_geocode_presence_enabled_ui,
+    min_geocode_presence_value_ui,
+    mo,
+):
+    _description = mo.md(
+        "**Taxa Filtering:** Reduce dimensionality before pivoting by filtering to most informative taxa. "
+        "This significantly speeds up distance matrix computation for large datasets."
+    )
+
+    _max_taxa_description = mo.md(
+        "_Keep only the N most abundant taxa (by total occurrence count). "
+        "Recommended: 5,000–10,000 for large datasets._"
+    )
+
+    _min_presence_description = mo.md(
+        "_Remove rare taxa that appear in too few hexagons. "
+        "Taxa seen in very few locations add noise but don't help distinguish bioregions. "
+        "For example, 0.05 means a taxon must appear in at least 5% of hexagons to be included. "
+        "Recommended: 0.02–0.05 (2–5%)._"
+    )
+
+    mo.vstack(
+        [
+            _description,
+            mo.hstack([max_taxa_enabled_ui, max_taxa_value_ui]),
+            _max_taxa_description,
+            mo.hstack([min_geocode_presence_enabled_ui, min_geocode_presence_value_ui]),
+            _min_presence_description,
+        ]
+    )
+    return
+
+
+@app.cell(hide_code=True)
 def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
     def build_map():
         map = folium.Map(
@@ -162,9 +213,25 @@ def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Set up CLI
+    ## Resolved Inputs
     """)
     return
+
+
+@app.cell
+def _(max_taxa_enabled_ui, max_taxa_value_ui):
+    max_taxa = max_taxa_value_ui.value if max_taxa_enabled_ui.value else None
+    return (max_taxa,)
+
+
+@app.cell
+def _(min_geocode_presence_enabled_ui, min_geocode_presence_value_ui):
+    min_geocode_presence = (
+        min_geocode_presence_value_ui.value
+        if min_geocode_presence_enabled_ui.value
+        else None
+    )
+    return (min_geocode_presence,)
 
 
 @app.cell(hide_code=True)
@@ -428,14 +495,17 @@ def _(
     darwin_core_lf,
     geocode_lf,
     geocode_precision,
+    max_taxa,
+    min_geocode_presence,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import (
         GeocodeTaxaCountsSchema,
         build_geocode_taxa_counts_lf,
+        filter_top_taxa_lf,
     )
 
-    geocode_taxa_counts_lf = cache_parquet(
+    _geocode_taxa_counts_lf = cache_parquet(
         build_geocode_taxa_counts_lf(
             darwin_core_lf,
             geocode_precision,
@@ -444,6 +514,13 @@ def _(
             bounding_box=bounding_box,
         ),
         cache_key=GeocodeTaxaCountsSchema,
+    )
+
+    # Apply taxa filtering if configured
+    geocode_taxa_counts_lf = filter_top_taxa_lf(
+        _geocode_taxa_counts_lf,
+        max_taxa=max_taxa,
+        min_geocode_presence=min_geocode_presence,
     )
     return (geocode_taxa_counts_lf,)
 
