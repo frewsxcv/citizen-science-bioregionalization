@@ -18,13 +18,13 @@ class GeocodeTaxaCountsSchema(dy.Schema):
     count = dy.UInt32(nullable=False)
 
 
-def build_geocode_taxa_counts_df(
+def build_geocode_taxa_counts_lf(
     darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
     geocode_precision: int,
     taxonomy_lf: dy.LazyFrame[TaxonomySchema],
     geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
     bounding_box: Bbox,
-) -> dy.DataFrame[GeocodeTaxaCountsSchema]:
+) -> dy.LazyFrame[GeocodeTaxaCountsSchema]:
     """Build a GeocodeTaxaCountsSchema DataFrame from Darwin Core data.
 
     Aggregates occurrence counts per geocode and taxon.
@@ -39,10 +39,6 @@ def build_geocode_taxa_counts_df(
     Returns:
         A validated DataFrame conforming to GeocodeTaxaCountsSchema
     """
-    geocodes = (
-        geocode_lf.select("geocode").collect(engine="streaming").to_series().to_list()
-    )
-
     aggregated = (
         darwin_core_lf.select(
             "decimalLatitude",
@@ -59,14 +55,15 @@ def build_geocode_taxa_counts_df(
             "gbifTaxonId",
             "individualCount",
         )
-        .filter(
+        .join(
             # Ensure geocode exists and is not an edge
-            pl.col("geocode").is_in(geocodes)
+            geocode_lf.select("geocode"),
+            on="geocode",
+            how="semi",
         )
         .join(
             taxonomy_lf.select("taxonId", "scientificName", "gbifTaxonId"),
             on=["scientificName", "gbifTaxonId"],
-            how="left",
         )
         .select(
             "geocode",
@@ -75,20 +72,12 @@ def build_geocode_taxa_counts_df(
         )
         .group_by("geocode", "taxonId")
         .agg(pl.col("individualCount").fill_null(1).sum().alias("count"))
-        .collect(engine="streaming")
         .sort(by="geocode")
     )
-
-    # Handle any missing taxonId values (this shouldn't happen if taxonomy is comprehensive)
-    if aggregated.filter(pl.col("taxonId").is_null()).height > 0:
-        logger.warning(
-            f"Found {aggregated.filter(pl.col('taxonId').is_null()).height} records with no matching taxonomy entry"
-        )
-        # Drop records with no matching taxonomy as they can't be handled in the new schema
-        aggregated = aggregated.filter(pl.col("taxonId").is_not_null())
 
     return GeocodeTaxaCountsSchema.validate(
         aggregated.with_columns(
             pl.col("taxonId").cast(pl.UInt32), pl.col("count").cast(pl.UInt32)
-        )
+        ),
+        eager=False,
     )

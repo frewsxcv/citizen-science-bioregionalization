@@ -432,11 +432,11 @@ def _(
 ):
     from src.dataframes.geocode_taxa_counts import (
         GeocodeTaxaCountsSchema,
-        build_geocode_taxa_counts_df,
+        build_geocode_taxa_counts_lf,
     )
 
     geocode_taxa_counts_lf = cache_parquet(
-        build_geocode_taxa_counts_df(
+        build_geocode_taxa_counts_lf(
             darwin_core_lf,
             geocode_precision,
             taxonomy_lf,
