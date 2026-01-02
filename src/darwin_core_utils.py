@@ -342,8 +342,6 @@ def build_darwin_core_raw_lf(
             low_memory=True,
             cache=False,
             parallel="prefiltered",
-            schema=SCHEMA_LOWER,
-            extra_columns="ignore",
         ).rename(
             get_parquet_to_darwin_core_column_mapping(),
             strict=False,
