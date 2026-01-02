@@ -314,15 +314,16 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
     # )
 
 
-def load_darwin_core_data(
+def build_darwin_core_raw_lf(
     source_path: str,
     bounding_box: Bbox,
     limit_results: int | None,
     taxon_filter: str = "",
 ) -> pl.LazyFrame:
     """
-    Load Darwin Core data from either a Darwin Core archive or Parquet file.
+    Build a raw Darwin Core LazyFrame from either a Darwin Core archive or Parquet file.
 
+    This returns unvalidated data before schema validation is applied.
     Automatically detects the source type and applies geographic and taxonomic filters.
 
     Args:

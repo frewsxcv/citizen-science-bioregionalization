@@ -12,7 +12,7 @@ import dataframely as dy
 import polars as pl
 
 from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
-from src.darwin_core_utils import load_darwin_core_data
+from src.darwin_core_utils import build_darwin_core_raw_lf
 from src.types import Bbox
 
 
@@ -66,7 +66,7 @@ def build_darwin_core_lf(
     Returns:
         A validated LazyFrame conforming to DarwinCoreSchema.
     """
-    lf = load_darwin_core_data(
+    lf = build_darwin_core_raw_lf(
         source_path=str(source_path),
         bounding_box=bounding_box,
         limit_results=limit,
