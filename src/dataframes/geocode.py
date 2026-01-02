@@ -8,12 +8,12 @@ import polars_h3
 import polars_st as pl_st
 import shapely
 import shapely.ops
-from shapely import MultiPoint, MultiPolygon
+from shapely import MultiPoint
 from shapely.geometry import box
 
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.geocode import select_geocode_lf
-from src.types import Bbox, LatLng
+from src.types import Bbox
 
 logger = logging.getLogger(__name__)
 
