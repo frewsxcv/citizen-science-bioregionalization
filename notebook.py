@@ -203,14 +203,6 @@ def _(
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    # Start notebook
-    """)
-    return
-
-
-@app.cell(hide_code=True)
 def _(args, mo, run_button_ui):
     from src.types import Bbox
 
@@ -282,6 +274,14 @@ def _(log_file):
     import logging
 
     logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Step 1. Fetch data
+    """)
     return
 
 
@@ -451,6 +451,14 @@ def _(
 @app.cell
 def _(geocode_taxa_counts_lf):
     geocode_taxa_counts_lf.limit(100).collect(engine="streaming")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Step 2. Cluster
+    """)
     return
 
 
@@ -856,6 +864,14 @@ def _(cluster_colors_df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    # Step 3. Analyze
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## `PermanovaResults`
     """)
     return
@@ -923,6 +939,14 @@ def _(
         geocode_silhouette_score_df,
         cluster_colors_df,
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Step 4. Export
+    """)
     return
 
 
