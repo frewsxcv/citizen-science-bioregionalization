@@ -8,8 +8,6 @@ from typing import Any, Union
 import polars as pl
 
 from src.constants import KINGDOM_DATA_TYPE, TAXON_RANK_DATA_TYPE
-from src.geocode import filter_by_bounding_box
-from src.types import Bbox
 
 
 @dataclass
@@ -316,24 +314,18 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
 
 def build_darwin_core_raw_lf(
     source_path: str,
-    bounding_box: Bbox,
-    limit_results: int | None,
-    taxon_filter: str = "",
 ) -> pl.LazyFrame:
     """
     Build a raw Darwin Core LazyFrame from either a Darwin Core archive or Parquet file.
 
-    This returns unvalidated data before schema validation is applied.
-    Automatically detects the source type and applies geographic and taxonomic filters.
+    This returns unvalidated, unfiltered data before schema validation is applied.
+    Automatically detects the source type based on the path.
 
     Args:
         source_path: Path to either a Darwin Core archive directory or Parquet file/directory
-        bounding_box: Geographic bounding box to filter records
-        limit_results: Maximum number of results to return
-        taxon_filter: Optional taxon name to filter by (e.g., 'Aves')
 
     Returns:
-        A LazyFrame with filtered Darwin Core data
+        A LazyFrame with raw Darwin Core data
     """
     # Detect if source is a Darwin Core archive (directory with meta.xml) or parquet
     path = Path(source_path)
@@ -359,15 +351,5 @@ def build_darwin_core_raw_lf(
 
     # Apply categorical casting (handles both lowercase and camelCase columns)
     inner_lf = cast_taxonomic_columns(inner_lf)
-
-    # Apply geographic bounding box filter
-    inner_lf = inner_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
-
-    # Add taxon filter if specified
-    # if taxon_filter:
-    #     taxon_filter_expr = build_taxon_filter(taxon_filter)
-    #     inner_lf = inner_lf.filter(taxon_filter_expr)
-    if limit_results is not None:
-        inner_lf = inner_lf.limit(limit_results)
 
     return inner_lf
