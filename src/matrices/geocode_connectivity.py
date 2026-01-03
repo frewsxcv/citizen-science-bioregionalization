@@ -3,12 +3,8 @@ import logging
 import dataframely as dy
 import networkx as nx
 import numpy as np
-import polars as pl
 
-from src.dataframes.geocode import (
-    GeocodeNoEdgesSchema,
-    index_of_geocode,
-)
+from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 logger = logging.getLogger(__name__)
 
@@ -21,18 +17,31 @@ class GeocodeConnectivityMatrix:
 
     @classmethod
     def build(
-        cls, geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema]
+        cls, geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema]
     ) -> "GeocodeConnectivityMatrix":
-        # Collect the LazyFrame once at the start
-        geocode_df: dy.DataFrame[GeocodeNoEdgesSchema] = geocode_lf.collect()
+        """Build a connectivity matrix from geocode neighbor relationships.
 
-        num_geocodes = len(geocode_df)
+        Args:
+            geocode_neighbors_df: DataFrame containing geocode neighbor information
+
+        Returns:
+            GeocodeConnectivityMatrix with spatial adjacency constraints
+        """
+        num_geocodes = len(geocode_neighbors_df)
         connectivity_matrix = np.zeros((num_geocodes, num_geocodes), dtype=int)
 
-        for i, neighbors in enumerate(geocode_df["direct_and_indirect_neighbors"]):
+        # Build geocode to index mapping
+        geocode_to_index = {
+            geocode: i for i, geocode in enumerate(geocode_neighbors_df["geocode"])
+        }
+
+        for i, neighbors in enumerate(
+            geocode_neighbors_df["direct_and_indirect_neighbors"]
+        ):
             for neighbor in neighbors:
-                j = index_of_geocode(neighbor, geocode_df)
-                connectivity_matrix[i, j] = 1
+                j = geocode_to_index.get(neighbor)
+                if j is not None:
+                    connectivity_matrix[i, j] = 1
 
         assert_one_connected_component(connectivity_matrix)
 

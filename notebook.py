@@ -413,6 +413,30 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
     return geocode_lf, geocode_lf_with_edges
 
 
+@app.cell
+def _(cache_parquet, geocode_lf, geocode_lf_with_edges):
+    from src.dataframes.geocode_neighbors import (
+        GeocodeNeighborsSchema,
+        build_geocode_neighbors_df,
+        build_geocode_neighbors_no_edges_df,
+    )
+
+    # Build neighbors for all geocodes (including edges)
+    _geocode_neighbors_with_edges_df = build_geocode_neighbors_df(
+        geocode_lf_with_edges.collect(),
+    )
+
+    # Build neighbors for non-edge geocodes only
+    geocode_neighbors_df = cache_parquet(
+        build_geocode_neighbors_no_edges_df(
+            _geocode_neighbors_with_edges_df,
+            geocode_lf.collect(),
+        ),
+        cache_key=GeocodeNeighborsSchema,
+    ).collect()
+    return (geocode_neighbors_df,)
+
+
 @app.cell(hide_code=True)
 def _(folium, geocode_lf, geocode_lf_with_edges, pl):
     _center = geocode_lf.select(
@@ -547,10 +571,10 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf):
+def _(geocode_neighbors_df):
     from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 
-    geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
+    geocode_connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_neighbors_df)
 
     geocode_connectivity_matrix._connectivity_matrix
     return (geocode_connectivity_matrix,)
@@ -737,7 +761,7 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_df, geocode_lf):
+def _(cache_parquet, geocode_cluster_df, geocode_neighbors_df):
     from src.dataframes.cluster_neighbors import (
         ClusterNeighborsSchema,
         build_cluster_neighbors_df,
@@ -745,7 +769,7 @@ def _(cache_parquet, geocode_cluster_df, geocode_lf):
 
     cluster_neighbors_lf = cache_parquet(
         build_cluster_neighbors_df(
-            geocode_lf,
+            geocode_neighbors_df,
             geocode_cluster_df,
         ),
         cache_key=ClusterNeighborsSchema,

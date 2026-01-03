@@ -13,6 +13,7 @@ from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from test.fixtures.geocode import mock_geocode_no_edges_df
+from test.fixtures.geocode_neighbors import mock_geocode_neighbors_df
 
 
 class TestClusterOptimization(unittest.TestCase):
@@ -97,8 +98,9 @@ class TestClusterOptimization(unittest.TestCase):
         )
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
 
-        # Create connectivity matrix
-        connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
+        # Create connectivity matrix from neighbors
+        geocode_neighbors_df = mock_geocode_neighbors_df()
+        connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_neighbors_df)
 
         # Build clustering for k=2 to k=3
         from src.dataframes.geocode_cluster import build_geocode_cluster_multi_k_df
@@ -143,7 +145,8 @@ class TestClusterOptimization(unittest.TestCase):
             [0.2, 0.8, 0.9, 0.85, 0.15, 0.7, 0.75, 0.8, 0.85, 0.3]
         )
         distance_matrix = GeocodeDistanceMatrix(condensed_distances)
-        connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_lf)
+        geocode_neighbors_df = mock_geocode_neighbors_df()
+        connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_neighbors_df)
 
         # Test min_k < 2
         with self.assertRaises(ValueError):

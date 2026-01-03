@@ -1,14 +1,10 @@
 import logging
-from typing import Union
 
 import dataframely as dy
-import networkx as nx
 import polars as pl
 import polars_h3
 import polars_st as pl_st
 import shapely
-import shapely.ops
-from shapely import MultiPoint
 from shapely.geometry import box
 
 from src.dataframes.darwin_core import DarwinCoreSchema
@@ -17,17 +13,17 @@ from src.types import Bbox
 
 logger = logging.getLogger(__name__)
 
-MAX_NUM_NEIGHBORS = 6
-
 
 class GeocodeSchema(dy.Schema):
+    """Schema for geocode spatial information.
+
+    Contains H3 hexagon identifiers with their center points, boundaries,
+    and edge status relative to the bounding box.
+    """
+
     geocode = dy.UInt64(nullable=False)
-    center = dy.Any()  # Binary
-    boundary = dy.Any()  # Binary
-    # Direct neighbors from H3 grid adjacency
-    direct_neighbors = dy.List(dy.UInt64(), nullable=False)
-    # Direct and indirect neighbors (includes both H3 adjacency and added connections)
-    direct_and_indirect_neighbors = dy.List(dy.UInt64(), nullable=False)
+    center = dy.Any()  # Binary (geometry)
+    boundary = dy.Any()  # Binary (geometry)
     # Whether this hexagon is on the edge (intersects bounding box boundary)
     is_edge = dy.Bool(nullable=False)
 
@@ -75,26 +71,6 @@ def build_geocode_df(
         .collect(engine="streaming")
     )
 
-    # Calculate direct neighbors
-    df = (
-        df.with_columns(
-            direct_neighbors_including_unknown=polars_h3.grid_ring(
-                pl.col("geocode"), 1
-            ),
-            known_geocodes=pl.lit(
-                df["geocode"].unique().to_list(), dtype=pl.List(pl.UInt64)
-            ),
-        )
-        .with_columns(
-            direct_neighbors=pl.col("direct_neighbors_including_unknown")
-            .list.set_intersection(pl.col("known_geocodes"))
-            .cast(pl.List(pl.UInt64)),
-        )
-        .with_columns(
-            direct_and_indirect_neighbors=pl.col("direct_neighbors"),
-        )
-    )
-
     # Create boundaries for all hexagons
     boundaries: list[shapely.Polygon] = []
 
@@ -140,8 +116,6 @@ def build_geocode_df(
         f"Identified {edge_count} edge hexagons ({edge_count / initial_count * 100:.1f}%)"
     )
 
-    df = _reduce_connected_components_to_one(df)
-
     df = df.select(list(GeocodeSchema.columns().keys()))
     return GeocodeSchema.validate(df)
 
@@ -156,7 +130,6 @@ def build_geocode_no_edges_df(
 
     Returns:
         A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
-        and neighbor lists updated to exclude the removed edges.
     """
     # Get the set of edge geocodes to remove by collecting just those rows
     edge_geocodes = set(
@@ -168,26 +141,8 @@ def build_geocode_no_edges_df(
 
     logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
 
-    # Filter out edge hexagons and collect to get valid geocodes
+    # Filter out edge hexagons and collect
     df = geocode_lf.filter(~pl.col("is_edge")).collect(engine="streaming")
-
-    # Update neighbor lists to remove references to edge geocodes
-    # Get the set of remaining valid geocodes
-    valid_geocodes = set(df["geocode"].to_list())
-    valid_geocodes_lit = pl.lit(list(valid_geocodes), dtype=pl.List(pl.UInt64))
-
-    df = df.with_columns(
-        direct_neighbors=pl.col("direct_neighbors").list.set_intersection(
-            valid_geocodes_lit
-        ),
-        direct_and_indirect_neighbors=pl.col(
-            "direct_and_indirect_neighbors"
-        ).list.set_intersection(valid_geocodes_lit),
-    )
-
-    # After removing edge geocodes, we may have disconnected components again
-    # (e.g., if indirect connections went through edge geocodes)
-    df = _reduce_connected_components_to_one(df)
 
     df = df.sort(by="geocode")
 
@@ -196,105 +151,22 @@ def build_geocode_no_edges_df(
     return GeocodeNoEdgesSchema.validate(df)
 
 
-def graph(
-    geocode_df: Union[dy.DataFrame[GeocodeSchema], dy.DataFrame[GeocodeNoEdgesSchema]],
-    include_indirect_neighbors: bool = False,
-) -> nx.Graph:
-    return _df_to_graph(geocode_df, include_indirect_neighbors)
-
-
-def _df_to_graph(
-    df: pl.DataFrame, include_indirect_neighbors: bool = False
-) -> nx.Graph:
-    graph: nx.Graph[str] = nx.Graph()
-    for geocode in df["geocode"]:
-        graph.add_node(geocode)
-    column = (
-        "direct_and_indirect_neighbors"
-        if include_indirect_neighbors
-        else "direct_neighbors"
-    )
-    for geocode, neighbors in df.select(
-        "geocode",
-        column,
-    ).iter_rows():
-        for neighbor in neighbors:
-            graph.add_edge(geocode, neighbor)
-    return graph
-
-
-def _add_indirect_neighbor_edge(
-    df: pl.DataFrame, geocode1: int, geocode2: int
-) -> pl.DataFrame:
-    """Add a bidirectional indirect neighbor connection between two geocodes."""
-    return df.with_columns(
-        pl.when(pl.col("geocode") == geocode1)
-        .then(
-            pl.col("direct_and_indirect_neighbors").list.concat(
-                pl.lit([geocode2], dtype=pl.List(pl.UInt64))
-            )
-        )
-        .when(pl.col("geocode") == geocode2)
-        .then(
-            pl.col("direct_and_indirect_neighbors").list.concat(
-                pl.lit([geocode1], dtype=pl.List(pl.UInt64))
-            )
-        )
-        .otherwise(pl.col("direct_and_indirect_neighbors"))
-        .alias("direct_and_indirect_neighbors")
-    )
-
-
-def _reduce_connected_components_to_one(df: pl.DataFrame) -> pl.DataFrame:
-    graph = _df_to_graph(df)
-
-    while nx.number_connected_components(graph) > 1:
-        num_components = nx.number_connected_components(graph)
-        logger.info(
-            f"More than one connected component (n={num_components}), connecting the first with the closest node not in that component"
-        )
-
-        first_component: set[int] = next(nx.connected_components(graph))
-
-        # Build point-to-geocode mapping for efficient lookup
-        all_nodes = list(
-            df.select(
-                pl_st.geom("center").st.to_shapely().alias("center"),
-                "geocode",
-                pl.col("direct_neighbors").list.len().alias("num_neighbors"),
-            ).iter_rows()
-        )
-        point_to_geocode = {point.wkb: geocode for point, geocode, _ in all_nodes}
-
-        first_component_points = [p for p, g, _ in all_nodes if g in first_component]
-        other_component_points = [
-            p
-            for p, g, n in all_nodes
-            if g not in first_component and n != MAX_NUM_NEIGHBORS
-        ]
-
-        p1, p2 = shapely.ops.nearest_points(
-            MultiPoint(first_component_points),
-            MultiPoint(other_component_points),
-        )
-
-        geocode1 = point_to_geocode.get(p1.wkb)
-        geocode2 = point_to_geocode.get(p2.wkb)
-
-        if geocode1 is None or geocode2 is None:
-            raise ValueError("No closest pair found")
-
-        logger.info(f"Adding edge between {geocode1} and {geocode2}")
-        graph.add_edge(geocode1, geocode2)
-        df = _add_indirect_neighbor_edge(df, geocode1, geocode2)
-
-    return df
-
-
 def index_of_geocode(
     geocode: int,
-    geocode_df: Union[dy.DataFrame[GeocodeSchema], dy.DataFrame[GeocodeNoEdgesSchema]],
+    geocode_df: dy.DataFrame[GeocodeSchema] | dy.DataFrame[GeocodeNoEdgesSchema],
 ) -> int:
+    """Find the index of a geocode in the dataframe.
+
+    Args:
+        geocode: The geocode to find
+        geocode_df: DataFrame to search in
+
+    Returns:
+        The 0-based index of the geocode
+
+    Raises:
+        ValueError: If the geocode is not found
+    """
     index = geocode_df["geocode"].index_of(geocode)
     if index is None:
         raise ValueError(f"Geocode {geocode} not found in GeocodeDataFrame")
@@ -304,4 +176,9 @@ def index_of_geocode(
 def latlng_list_to_lnglat_list(
     latlng_list: list[tuple[float, float]],
 ) -> list[tuple[float, float]]:
+    """Convert a list of (lat, lng) tuples to (lng, lat) tuples.
+
+    H3 returns coordinates in (lat, lng) order, but most GIS tools
+    expect (lng, lat) order.
+    """
     return [(lng, lat) for (lat, lng) in latlng_list]

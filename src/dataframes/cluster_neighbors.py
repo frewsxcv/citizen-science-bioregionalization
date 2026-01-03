@@ -2,8 +2,8 @@ import dataframely as dy
 import networkx as nx
 import polars as pl
 
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
+from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 
 class ClusterNeighborsSchema(dy.Schema):
@@ -13,24 +13,21 @@ class ClusterNeighborsSchema(dy.Schema):
 
 
 def build_cluster_neighbors_df(
-    geocode_df: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema],
     geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
 ) -> dy.DataFrame[ClusterNeighborsSchema]:
-    """Build cluster neighbor relationships from geocode data.
+    """Build cluster neighbor relationships from geocode neighbor data.
 
     Determines which clusters are neighbors based on the geocode neighbor
     relationships within each cluster.
 
     Args:
-        geocode_df: LazyFrame containing geocode and neighbor information
+        geocode_neighbors_df: DataFrame containing geocode neighbor information
         geocode_cluster_df: DataFrame mapping geocodes to clusters
 
     Returns:
         A validated DataFrame conforming to ClusterNeighborsSchema
     """
-    # Collect the LazyFrame once at the start
-    geocode_collected = geocode_df.collect()
-
     # Get unique clusters
     unique_clusters = geocode_cluster_df["cluster"].unique()
 
@@ -47,7 +44,7 @@ def build_cluster_neighbors_df(
         geocode,
         direct_neighbors,
         direct_and_indirect_neighbors,
-    ) in geocode_collected.select(
+    ) in geocode_neighbors_df.select(
         "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
     ).iter_rows(named=False):
         # Get the cluster of the current geocode
