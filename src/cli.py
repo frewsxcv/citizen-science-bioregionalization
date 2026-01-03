@@ -16,6 +16,8 @@ def create_argument_parser(
     log_file: str | None,
     min_clusters_to_test: int,
     max_clusters_to_test: int,
+    max_taxa: int | None,
+    min_geocode_presence: float | None,
 ) -> argparse.ArgumentParser:
     """
     Create and configure the CLI argument parser.
@@ -32,6 +34,8 @@ def create_argument_parser(
         log_file: Default path to the log file
         min_clusters_to_test: Minimum number of clusters to test during optimization
         max_clusters_to_test: Maximum number of clusters to test during optimization
+        max_taxa: Keep only top N taxa by total occurrence count
+        min_geocode_presence: Keep only taxa present in at least this fraction of geocodes
 
     Returns:
         Configured ArgumentParser instance
@@ -68,6 +72,20 @@ def create_argument_parser(
         action="store_true",
         default=False,
         help="Bypass mo.stop when running from the command line",
+    )
+
+    # Taxa filtering arguments
+    parser.add_argument(
+        "--max-taxa",
+        type=int,
+        default=max_taxa,
+        help="Keep only top N taxa by total occurrence count. Recommended: 5000-10000 for large datasets.",
+    )
+    parser.add_argument(
+        "--min-geocode-presence",
+        type=float,
+        default=min_geocode_presence,
+        help="Keep only taxa present in at least this fraction of geocodes (0.0-1.0). Recommended: 0.02-0.05.",
     )
 
     # Add optional arguments
@@ -132,6 +150,8 @@ def parse_args_with_defaults(
     log_file: str | None,
     min_clusters_to_test: int = 2,
     max_clusters_to_test: int = 20,
+    max_taxa: int | None = None,
+    min_geocode_presence: float | None = None,
 ) -> Any:
     """
     Create argument parser and parse command-line arguments.
@@ -148,6 +168,8 @@ def parse_args_with_defaults(
         log_file: Default path to the log file
         min_clusters_to_test: Minimum number of clusters to test during optimization
         max_clusters_to_test: Maximum number of clusters to test during optimization
+        max_taxa: Keep only top N taxa by total occurrence count
+        min_geocode_presence: Keep only taxa present in at least this fraction of geocodes
 
     Returns:
         Parsed command-line arguments
@@ -164,5 +186,7 @@ def parse_args_with_defaults(
         log_file=log_file,
         min_clusters_to_test=min_clusters_to_test,
         max_clusters_to_test=max_clusters_to_test,
+        max_taxa=max_taxa,
+        min_geocode_presence=min_geocode_presence,
     )
     return parser.parse_args()

@@ -218,22 +218,6 @@ def _(mo):
     return
 
 
-@app.cell
-def _(max_taxa_enabled_ui, max_taxa_value_ui):
-    max_taxa = max_taxa_value_ui.value if max_taxa_enabled_ui.value else None
-    return (max_taxa,)
-
-
-@app.cell
-def _(min_geocode_presence_enabled_ui, min_geocode_presence_value_ui):
-    min_geocode_presence = (
-        min_geocode_presence_value_ui.value
-        if min_geocode_presence_enabled_ui.value
-        else None
-    )
-    return (min_geocode_presence,)
-
-
 @app.cell(hide_code=True)
 def _(
     geocode_precision_ui,
@@ -243,7 +227,11 @@ def _(
     max_clusters_to_test_ui,
     max_lat_ui,
     max_lon_ui,
+    max_taxa_enabled_ui,
+    max_taxa_value_ui,
     min_clusters_to_test_ui,
+    min_geocode_presence_enabled_ui,
+    min_geocode_presence_value_ui,
     min_lat_ui,
     min_lon_ui,
     parquet_source_path_ui,
@@ -265,6 +253,10 @@ def _(
         log_file=log_file_ui.value,
         min_clusters_to_test=min_clusters_to_test_ui.value,
         max_clusters_to_test=max_clusters_to_test_ui.value,
+        max_taxa=max_taxa_value_ui.value if max_taxa_enabled_ui.value else None,
+        min_geocode_presence=min_geocode_presence_value_ui.value
+        if min_geocode_presence_enabled_ui.value
+        else None,
     )
     return (args,)
 
@@ -285,11 +277,14 @@ def _(args, mo, run_button_ui):
     geocode_precision = args.geocode_precision
     min_clusters_to_test = args.min_clusters
     max_clusters_to_test = args.max_clusters
+    max_taxa = args.max_taxa
+    min_geocode_presence = args.min_geocode_presence
     bounding_box = Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon)
 
     inputs_table = mo.ui.table(
         label="Inputs",
         selection=None,
+        pagination=False,
         data=[
             {"variable": "limit_results", "value": limit_results},
             {"variable": "log_file", "value": log_file},
@@ -302,6 +297,8 @@ def _(args, mo, run_button_ui):
             {"variable": "geocode_precision", "value": geocode_precision},
             {"variable": "min_clusters_to_test", "value": min_clusters_to_test},
             {"variable": "max_clusters_to_test", "value": max_clusters_to_test},
+            {"variable": "max_taxa", "value": max_taxa},
+            {"variable": "min_geocode_presence", "value": min_geocode_presence},
         ],
     )
 
@@ -322,7 +319,9 @@ def _(args, mo, run_button_ui):
         limit_results,
         log_file,
         max_clusters_to_test,
+        max_taxa,
         min_clusters_to_test,
+        min_geocode_presence,
         parquet_source_path,
         taxon_filter,
     )
