@@ -25,10 +25,12 @@ jobs:
             max_lat: 47
             min_lon: -87
             max_lon: -66
-            limit_results: 2000000
+            limit_results: 10000000
             geocode_precision: 5
             min_clusters: 2
             max_clusters: 15
+            max_taxa: 10000
+            min_geocode_presence: 0.02
             output_dir: output-gbif
     permissions:
       contents: "read"
@@ -59,6 +61,8 @@ jobs:
             --min-lon ${{ matrix.min_lon }} \
             --max-lon ${{ matrix.max_lon }} \
             --limit-results ${{ matrix.limit_results }} \
+            ${{ matrix.max_taxa && format('--max-taxa {0}', matrix.max_taxa) || '' }} \
+            ${{ matrix.min_geocode_presence && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }} \
             "${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
