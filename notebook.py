@@ -389,10 +389,8 @@ def _(mo):
 @app.cell
 def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
     from src.dataframes.geocode import (
-        GeocodeNoEdgesSchema,
         GeocodeSchema,
         build_geocode_df,
-        build_geocode_no_edges_lf,
     )
 
     geocode_lf_with_edges = cache_parquet(
@@ -403,6 +401,15 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
         ),
         cache_key=GeocodeSchema,
     )
+    return (geocode_lf_with_edges,)
+
+
+@app.cell
+def _(cache_parquet, geocode_lf_with_edges):
+    from src.dataframes.geocode import (
+        GeocodeNoEdgesSchema,
+        build_geocode_no_edges_lf,
+    )
 
     geocode_lf = cache_parquet(
         build_geocode_no_edges_lf(
@@ -410,26 +417,33 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
         ),
         cache_key=GeocodeNoEdgesSchema,
     )
-    return geocode_lf, geocode_lf_with_edges
+    return (geocode_lf,)
 
 
 @app.cell
-def _(cache_parquet, geocode_lf, geocode_lf_with_edges):
+def _(geocode_lf_with_edges):
     from src.dataframes.geocode_neighbors import (
-        GeocodeNeighborsSchema,
         build_geocode_neighbors_df,
-        build_geocode_neighbors_no_edges_df,
     )
 
     # Build neighbors for all geocodes (including edges)
-    _geocode_neighbors_with_edges_df = build_geocode_neighbors_df(
+    geocode_neighbors_with_edges_df = build_geocode_neighbors_df(
         geocode_lf_with_edges.collect(),
+    )
+    return (geocode_neighbors_with_edges_df,)
+
+
+@app.cell
+def _(cache_parquet, geocode_lf, geocode_neighbors_with_edges_df):
+    from src.dataframes.geocode_neighbors import (
+        GeocodeNeighborsSchema,
+        build_geocode_neighbors_no_edges_df,
     )
 
     # Build neighbors for non-edge geocodes only
     geocode_neighbors_df = cache_parquet(
         build_geocode_neighbors_no_edges_df(
-            _geocode_neighbors_with_edges_df,
+            geocode_neighbors_with_edges_df,
             geocode_lf.collect(),
         ),
         cache_key=GeocodeNeighborsSchema,
@@ -518,17 +532,14 @@ def _(
     darwin_core_lf,
     geocode_lf,
     geocode_precision,
-    max_taxa,
-    min_geocode_presence,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import (
         GeocodeTaxaCountsSchema,
         build_geocode_taxa_counts_lf,
-        filter_top_taxa_lf,
     )
 
-    _geocode_taxa_counts_lf = cache_parquet(
+    geocode_taxa_counts_unfiltered_lf = cache_parquet(
         build_geocode_taxa_counts_lf(
             darwin_core_lf,
             geocode_precision,
@@ -538,10 +549,22 @@ def _(
         ),
         cache_key=GeocodeTaxaCountsSchema,
     )
+    return (geocode_taxa_counts_unfiltered_lf,)
+
+
+@app.cell
+def _(
+    geocode_taxa_counts_unfiltered_lf,
+    max_taxa,
+    min_geocode_presence,
+):
+    from src.dataframes.geocode_taxa_counts import (
+        filter_top_taxa_lf,
+    )
 
     # Apply taxa filtering if configured
     geocode_taxa_counts_lf = filter_top_taxa_lf(
-        _geocode_taxa_counts_lf,
+        geocode_taxa_counts_unfiltered_lf,
         max_taxa=max_taxa,
         min_geocode_presence=min_geocode_presence,
     )
@@ -658,14 +681,18 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, cache_parquet, geocode_distance_matrix, mo):
+def _(all_clusters_df, geocode_distance_matrix):
     from src.cluster_optimization import optimize_num_clusters
 
     optimal_num_clusters, all_silhouette_scores = optimize_num_clusters(
         geocode_distance_matrix,
         all_clusters_df,
     )
+    return all_silhouette_scores, optimal_num_clusters
 
+
+@app.cell
+def _(all_silhouette_scores, cache_parquet):
     # Cache the results
     from src.cluster_optimization import optimize_num_clusters as optimization_cache_key
 
@@ -673,7 +700,11 @@ def _(all_clusters_df, cache_parquet, geocode_distance_matrix, mo):
         all_silhouette_scores,
         cache_key=optimization_cache_key,
     ).collect(engine="streaming")
+    return (all_silhouette_scores_df,)
 
+
+@app.cell
+def _(all_clusters_df, cache_parquet, optimal_num_clusters):
     # Create base GeocodeClusterSchema (single k) for downstream use
     from src.dataframes.geocode_cluster import (
         GeocodeClusterSchema,
@@ -687,9 +718,13 @@ def _(all_clusters_df, cache_parquet, geocode_distance_matrix, mo):
         ),
         cache_key=GeocodeClusterSchema,
     ).collect(engine="streaming")
+    return (geocode_cluster_df,)
 
+
+@app.cell
+def _(mo, optimal_num_clusters):
     mo.md(f"**Optimal number of clusters: k={optimal_num_clusters}**")
-    return all_silhouette_scores_df, geocode_cluster_df, optimal_num_clusters
+    return
 
 
 @app.cell
@@ -931,17 +966,21 @@ def _(mo):
 
 
 @app.cell
+def _(optimal_num_clusters):
+    # Use taxonomic coloring if we have at least 10 clusters, otherwise use geographic
+    color_method = "taxonomic" if optimal_num_clusters >= 10 else "geographic"
+    return (color_method,)
+
+
+@app.cell
 def _(
     cache_parquet,
     cluster_boundary_df,
     cluster_neighbors_lf,
     cluster_taxa_statistics_df,
-    optimal_num_clusters,
+    color_method,
 ):
     from src.dataframes.cluster_color import ClusterColorSchema, build_cluster_color_df
-
-    # Use taxonomic coloring if we have at least 10 clusters, otherwise use geographic
-    color_method = "taxonomic" if optimal_num_clusters >= 10 else "geographic"
 
     cluster_colors_df = cache_parquet(
         build_cluster_color_df(
