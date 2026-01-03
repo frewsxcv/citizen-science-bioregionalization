@@ -120,35 +120,24 @@ def build_geocode_df(
     return GeocodeSchema.validate(df)
 
 
-def build_geocode_no_edges_df(
+def build_geocode_no_edges_lf(
     geocode_lf: dy.LazyFrame[GeocodeSchema],
-) -> dy.DataFrame[GeocodeNoEdgesSchema]:
+) -> dy.LazyFrame[GeocodeNoEdgesSchema]:
     """Build a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
     Args:
         geocode_lf: A validated GeocodeSchema lazy dataframe
 
     Returns:
-        A validated GeocodeNoEdgesSchema dataframe with edge hexagons removed
+        A validated GeocodeNoEdgesSchema lazyframe with edge hexagons removed
     """
-    # Get the set of edge geocodes to remove by collecting just those rows
-    edge_geocodes = set(
-        geocode_lf.filter(pl.col("is_edge"))
-        .select("geocode")
-        .collect(engine="streaming")["geocode"]
-        .to_list()
-    )
-
-    logger.info(f"Removing {len(edge_geocodes)} edge hexagons from dataset")
-
     # Filter out edge hexagons and collect
-    df = geocode_lf.filter(~pl.col("is_edge")).collect(engine="streaming")
-
-    df = df.sort(by="geocode")
-
-    logger.info(f"GeocodeNoEdgesSchema contains {len(df)} hexagons (all non-edge)")
-
-    return GeocodeNoEdgesSchema.validate(df)
+    return GeocodeNoEdgesSchema.validate(
+        geocode_lf.filter(~pl.col("is_edge"))
+        .collect(engine="streaming")
+        .sort(by="geocode"),
+        eager=False,
+    )
 
 
 def index_of_geocode(

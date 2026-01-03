@@ -392,7 +392,7 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
         GeocodeNoEdgesSchema,
         GeocodeSchema,
         build_geocode_df,
-        build_geocode_no_edges_df,
+        build_geocode_no_edges_lf,
     )
 
     geocode_lf_with_edges = cache_parquet(
@@ -405,7 +405,7 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
     )
 
     geocode_lf = cache_parquet(
-        build_geocode_no_edges_df(
+        build_geocode_no_edges_lf(
             geocode_lf_with_edges,
         ),
         cache_key=GeocodeNoEdgesSchema,
