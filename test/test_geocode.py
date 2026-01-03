@@ -11,7 +11,7 @@ from src.dataframes.geocode import (
     GeocodeNoEdgesSchema,
     GeocodeSchema,
     build_geocode_df,
-    build_geocode_no_edges_df,
+    build_geocode_no_edges_lf,
     index_of_geocode,
 )
 from src.types import Bbox
@@ -115,7 +115,7 @@ class TestGeocodeSchema(unittest.TestCase):
         geocode_lf: dy.LazyFrame[GeocodeSchema] = geocode_df.lazy()
 
         # Build no-edges df
-        no_edges_df = build_geocode_no_edges_df(geocode_lf)
+        no_edges_df = build_geocode_no_edges_lf(geocode_lf).collect()
 
         # Should only have non-edge geocodes
         self.assertEqual(len(no_edges_df), 2)
