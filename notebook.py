@@ -14,6 +14,7 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
+
     return cache_parquet, folium, mo, np, pl
 
 
@@ -350,14 +351,6 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## `DarwinCore`
-    """)
-    return
-
-
 @app.cell
 def _(bounding_box, limit_results, parquet_source_path, taxon_filter):
     from src.dataframes.darwin_core import build_darwin_core_lf
@@ -374,14 +367,6 @@ def _(bounding_box, limit_results, parquet_source_path, taxon_filter):
 @app.cell
 def _(darwin_core_lf, pl):
     darwin_core_lf.select(pl.len()).collect(engine="streaming")
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## `Geocode`
-    """)
     return
 
 
@@ -410,13 +395,13 @@ def _(cache_parquet, geocode_lf_with_edges):
         build_geocode_no_edges_lf,
     )
 
-    geocode_lf = cache_parquet(
+    geocode_unfiltered_lf = cache_parquet(
         build_geocode_no_edges_lf(
             geocode_lf_with_edges,
         ),
         cache_key=GeocodeNoEdgesSchema,
     )
-    return (geocode_lf,)
+    return GeocodeNoEdgesSchema, geocode_unfiltered_lf
 
 
 @app.cell
@@ -439,7 +424,7 @@ def _(cache_parquet, geocode_lf, geocode_neighbors_with_edges_df):
         build_geocode_neighbors_no_edges_df,
     )
 
-    # Build neighbors for non-edge geocodes only
+    # Build neighbors for filtered geocodes only
     geocode_neighbors_df = cache_parquet(
         build_geocode_neighbors_no_edges_df(
             geocode_neighbors_with_edges_df,
@@ -451,8 +436,8 @@ def _(cache_parquet, geocode_lf, geocode_neighbors_with_edges_df):
 
 
 @app.cell(hide_code=True)
-def _(folium, geocode_lf, geocode_lf_with_edges, pl):
-    _center = geocode_lf.select(
+def _(folium, geocode_lf_with_edges, geocode_unfiltered_lf, pl):
+    _center = geocode_unfiltered_lf.select(
         pl.col("center").alias("geometry"),
     ).collect()
     _boundary = geocode_lf_with_edges.select(
@@ -480,21 +465,13 @@ def _(folium, geocode_lf, geocode_lf_with_edges, pl):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## `Taxonomy`
-    """)
-    return
-
-
 @app.cell
 def _(
     bounding_box,
     cache_parquet,
     darwin_core_lf,
-    geocode_lf,
     geocode_precision,
+    geocode_unfiltered_lf,
 ):
     from src.dataframes.taxonomy import TaxonomySchema, build_taxonomy_lf
 
@@ -502,7 +479,7 @@ def _(
         build_taxonomy_lf(
             darwin_core_lf,
             geocode_precision,
-            geocode_lf,
+            geocode_unfiltered_lf,
             bounding_box=bounding_box,
         ),
         cache_key=TaxonomySchema,
@@ -516,21 +493,13 @@ def _(taxonomy_lf):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## `GeocodeTaxaCounts`
-    """)
-    return
-
-
 @app.cell
 def _(
     bounding_box,
     cache_parquet,
     darwin_core_lf,
-    geocode_lf,
     geocode_precision,
+    geocode_unfiltered_lf,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import (
@@ -543,7 +512,7 @@ def _(
             darwin_core_lf,
             geocode_precision,
             taxonomy_lf,
-            geocode_lf,
+            geocode_unfiltered_lf,
             bounding_box=bounding_box,
         ),
         cache_key=GeocodeTaxaCountsSchema,
@@ -570,6 +539,20 @@ def _(geocode_taxa_counts_unfiltered_lf, max_taxa, min_geocode_presence):
 def _(geocode_taxa_counts_lf):
     geocode_taxa_counts_lf.limit(100).collect(engine="streaming")
     return
+
+
+@app.cell
+def _(GeocodeNoEdgesSchema, geocode_taxa_counts_lf, geocode_unfiltered_lf, pl):
+    # Filter geocode_unfiltered_lf to only include geocodes present in geocode_taxa_counts_lf
+    geocode_lf = GeocodeNoEdgesSchema.validate(
+        geocode_unfiltered_lf.join(
+            geocode_taxa_counts_lf.select(pl.col("geocode").unique()),
+            on="geocode",
+            how="semi",
+        ),
+        eager=False,
+    )
+    return (geocode_lf,)
 
 
 @app.cell(hide_code=True)
