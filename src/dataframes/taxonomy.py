@@ -43,17 +43,14 @@ def build_taxonomy_lf(
     """
     logger.info("build_taxonomy_lf: Starting")
 
-    geocodes = (
-        geocode_lf.select("geocode").collect(engine="streaming").to_series().to_list()
-    )
+    # Use semi-join to filter without materializing geocodes to Python list
+    geocode_filter_lf = geocode_lf.select("geocode")
 
     lf = (
         darwin_core_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
         .pipe(with_geocode_lf, geocode_precision=geocode_precision)
-        .filter(
-            # Ensure geocode exists and is not an edge
-            pl.col("geocode").is_in(geocodes)
-        )
+        # Semi-join: keeps rows where geocode exists, without loading list to memory
+        .join(geocode_filter_lf, on="geocode", how="semi")
         .select(
             "kingdom",
             "taxonRank",
