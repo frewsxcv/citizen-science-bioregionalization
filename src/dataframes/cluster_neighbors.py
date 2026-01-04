@@ -1,9 +1,13 @@
+import logging
+
 import dataframely as dy
 import networkx as nx
 import polars as pl
 
 from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
 from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
+
+logger = logging.getLogger(__name__)
 
 
 class ClusterNeighborsSchema(dy.Schema):
@@ -28,6 +32,8 @@ def build_cluster_neighbors_df(
     Returns:
         A validated DataFrame conforming to ClusterNeighborsSchema
     """
+    logger.info("build_cluster_neighbors_df: Starting")
+
     # Get unique clusters
     unique_clusters = geocode_cluster_df["cluster"].unique()
 

@@ -5,11 +5,14 @@ ensuring that data loaded from Darwin Core archives or Parquet files
 meets the requirements for downstream analysis.
 """
 
+import logging
 from pathlib import Path
 from typing import Union
 
 import dataframely as dy
 import polars as pl
+
+logger = logging.getLogger(__name__)
 
 from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
 from src.darwin_core_utils import build_darwin_core_raw_lf
@@ -67,6 +70,10 @@ def build_darwin_core_lf(
     Returns:
         A validated LazyFrame conforming to DarwinCoreSchema.
     """
+    logger.info(
+        f"build_darwin_core_lf: Loading from {source_path}, "
+        f"bounding_box={bounding_box}, limit={limit}, taxon_filter={taxon_filter!r}"
+    )
     lf = build_darwin_core_raw_lf(source_path=str(source_path))
 
     # Apply geographic bounding box filter

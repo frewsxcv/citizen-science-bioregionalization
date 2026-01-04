@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Literal, Optional
 
 import dataframely as dy
@@ -15,6 +16,8 @@ from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
+
+logger = logging.getLogger(__name__)
 
 
 class ClusterColorSchema(dy.Schema):
@@ -46,6 +49,8 @@ def build_cluster_color_df(
     Returns:
         A ClusterColorSchema DataFrame with colors assigned to clusters
     """
+    logger.info(f"build_cluster_color_df: Starting with color_method={color_method}")
+
     if color_method == "geographic":
         df = _build_geographic(
             cluster_neighbors_lf, cluster_boundary_df, ocean_threshold

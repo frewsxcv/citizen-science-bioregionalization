@@ -1,8 +1,11 @@
+import logging
 from typing import Dict, List
 
 import dataframely as dy
 import polars as pl
 import requests
+
+logger = logging.getLogger(__name__)
 
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
@@ -76,6 +79,8 @@ def build_significant_taxa_images_df(
     Returns:
         A validated DataFrame conforming to SignificantTaxaImagesSchema
     """
+    logger.info("build_significant_taxa_images_df: Starting")
+
     significant_taxa_df = cluster_significant_differences_df.select("taxonId").unique()
 
     significant_taxa_with_gbif = significant_taxa_df.join(

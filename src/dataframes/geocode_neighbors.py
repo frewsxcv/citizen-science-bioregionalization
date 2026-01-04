@@ -43,6 +43,9 @@ def build_geocode_neighbors_df(
     Returns:
         A validated DataFrame conforming to GeocodeNeighborsSchema
     """
+    logger.info(
+        f"build_geocode_neighbors_df: Building neighbors for {geocode_df.height} geocodes"
+    )
     known_geocodes = geocode_df["geocode"].unique().to_list()
 
     # Calculate direct neighbors using H3 grid_ring

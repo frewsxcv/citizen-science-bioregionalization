@@ -1,9 +1,12 @@
+import logging
 from typing import Dict, List
 
 import dataframely as dy
 import polars as pl
 import polars_st
 import shapely
+
+logger = logging.getLogger(__name__)
 
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.geocode_cluster import (
@@ -33,6 +36,8 @@ def build_cluster_boundary_df(
     Returns:
         A validated DataFrame conforming to ClusterBoundarySchema
     """
+    logger.info("build_cluster_boundary_df: Starting")
+
     clusters: List[int] = []
     boundaries: List[shapely.Polygon] = []
 
@@ -77,5 +82,7 @@ def build_cluster_boundary_df(
             "geometry": pl.select(polars_st.from_shapely(pl.Series(boundaries))),
         },
     )
+
+    logger.info(f"build_cluster_boundary_df: Output has {df.height} cluster boundaries")
 
     return ClusterBoundarySchema.validate(df)

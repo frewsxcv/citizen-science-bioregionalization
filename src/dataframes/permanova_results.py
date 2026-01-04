@@ -47,6 +47,10 @@ def build_permanova_results_df(
     Returns:
         A validated DataFrame conforming to PermanovaResultsSchema.
     """
+    logger.info(
+        f"build_permanova_results_df: Starting with {permutations} permutations"
+    )
+
     # Create the skbio DistanceMatrix object. Let ValueError propagate if IDs mismatch.
     # Collect the LazyFrame once at the start
     geocode_df = geocode_lf.collect()

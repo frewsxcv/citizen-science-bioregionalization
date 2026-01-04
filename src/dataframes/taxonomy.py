@@ -1,3 +1,5 @@
+import logging
+
 import dataframely as dy
 import polars as pl
 
@@ -6,6 +8,8 @@ from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.types import Bbox
+
+logger = logging.getLogger(__name__)
 
 
 class TaxonomySchema(dy.Schema):
@@ -37,6 +41,8 @@ def build_taxonomy_lf(
     Returns:
         A validated LazyFrame conforming to TaxonomySchema
     """
+    logger.info("build_taxonomy_lf: Starting")
+
     geocodes = (
         geocode_lf.select("geocode").collect(engine="streaming").to_series().to_list()
     )
