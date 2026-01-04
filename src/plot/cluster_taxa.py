@@ -133,20 +133,20 @@ def create_cluster_taxa_heatmap(
         logger.info(f"  Processing species: {species} (taxonId={taxonId})")
 
         for geocode in ordered_geocodes:
+            # Use collected DataFrame instead of LazyFrame to avoid re-evaluation
+            # issues and improve performance (no repeated collection per iteration)
             geocode_counts_species = (
-                geocode_taxa_counts_lf.filter(
+                geocode_taxa_counts_collected.filter(
                     pl.col("geocode") == geocode, pl.col("taxonId") == taxonId
                 )
                 .select("count")
                 .sum()
-                .collect()
                 .item()
             )
             geocode_counts_all = (
-                geocode_taxa_counts_lf.filter(pl.col("geocode") == geocode)
+                geocode_taxa_counts_collected.filter(pl.col("geocode") == geocode)
                 .select("count")
                 .sum()
-                .collect()
                 .item()
             )
 
