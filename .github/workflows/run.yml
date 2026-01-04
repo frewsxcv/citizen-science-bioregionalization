@@ -20,7 +20,7 @@ jobs:
             max_clusters: 10
             output_dir: output
           - name: gbif-snapshot
-            source_path: gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/
+            source_path: gs://public-datasets-gbif/occurrence/2026-01-01/occurrence.parquet/
             min_lat: 25
             max_lat: 47
             min_lon: -87
