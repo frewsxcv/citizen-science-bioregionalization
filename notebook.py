@@ -1172,26 +1172,26 @@ def _(
     mo,
     taxonomy_lf,
 ):
-    from src.plot.cluster_taxa import create_cluster_taxa_heatmap
+    # from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
-    heatmap = create_cluster_taxa_heatmap(
-        geocode_lf=geocode_lf,
-        geocode_cluster_df=geocode_cluster_df,
-        cluster_colors_df=cluster_colors_df,
-        geocode_distance_matrix=geocode_distance_matrix,
-        cluster_significant_differences_df=cluster_significant_differences_df,
-        taxonomy_df=taxonomy_lf.collect(engine="streaming"),
-        geocode_taxa_counts_lf=geocode_taxa_counts_lf,
-        cluster_taxa_statistics_df=cluster_taxa_statistics_df,
-        limit_species=5,
-    )
+    # heatmap = create_cluster_taxa_heatmap(
+    #     geocode_lf=geocode_lf,
+    #     geocode_cluster_df=geocode_cluster_df,
+    #     cluster_colors_df=cluster_colors_df,
+    #     geocode_distance_matrix=geocode_distance_matrix,
+    #     cluster_significant_differences_df=cluster_significant_differences_df,
+    #     taxonomy_df=taxonomy_lf.collect(engine="streaming"),
+    #     geocode_taxa_counts_lf=geocode_taxa_counts_lf,
+    #     cluster_taxa_statistics_df=cluster_taxa_statistics_df,
+    #     limit_species=5,
+    # )
 
-    if heatmap is None:
-        result = mo.md("No significant differences found between clusters.")
-    else:
-        result = heatmap.figure
+    # if heatmap is None:
+    #     result = mo.md("No significant differences found between clusters.")
+    # else:
+    #     result = heatmap.figure
 
-    result
+    # result
     return
 
 
