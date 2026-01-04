@@ -18,26 +18,57 @@ pip install -r pyproject.toml
 
 ## Usage
 
-Run the script with the following command:
+### Interactive Mode
+
+Open the notebook in your browser for interactive exploration:
 
 ```bash
-python run.py [OPTIONS] INPUT_FILE
+uv run marimo edit notebook.py
+```
+
+### Command Line Mode
+
+Run the notebook with CLI arguments (using `--key=value` format after `--`):
+
+```bash
+uv run marimo run notebook.py -- [OPTIONS]
 ```
 
 ### Options:
 
-- `--geocode-precision`: Precision level for H3 geocoding (required).
-- `--min-clusters`: Minimum number of clusters to test (required).
-- `--max-clusters`: Maximum number of clusters to test (required).
-- `--log-file`: Path to save the log file (required).
-- `--taxon-filter`: Optional filter for specific taxon.
-- `--min-lat`, `--max-lat`, `--min-lon`, `--max-lon`: Bounding box coordinates.
-- `--limit-results`: Limit number of results for testing.
+- `--geocode-precision=N`: Precision level for H3 geocoding (default: 4).
+- `--min-clusters=N`: Minimum number of clusters to test (default: 2).
+- `--max-clusters=N`: Maximum number of clusters to test (default: 20).
+- `--log-file=PATH`: Path to save the log file (default: run.log).
+- `--parquet-source-path=PATH`: Path to the parquet data source.
+- `--taxon-filter=NAME`: Optional filter for specific taxon.
+- `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
+- `--limit-results=N`: Limit number of results for testing.
+- `--max-taxa=N`: Keep only top N taxa by occurrence count.
+- `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
+- `--no-stop`: Bypass the run button when running from command line.
 
 ### Example:
 
 ```bash
-python notebook.py --geocode-precision 5 --min-clusters 2 --max-clusters 15 --log-file run.log gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*
+uv run marimo run notebook.py -- \
+  --geocode-precision=5 \
+  --min-clusters=2 \
+  --max-clusters=15 \
+  --log-file=run.log \
+  --parquet-source-path="gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*" \
+  --no-stop
+```
+
+### Export to HTML:
+
+```bash
+uv run marimo export html notebook.py -o output/index.html -- \
+  --geocode-precision=5 \
+  --min-clusters=2 \
+  --max-clusters=15 \
+  --parquet-source-path="gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*" \
+  --no-stop
 ```
 
 ### Outputs:

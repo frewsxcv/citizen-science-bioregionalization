@@ -52,18 +52,18 @@ jobs:
         run: |
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
             --no-stop \
-            --geocode-precision ${{ matrix.geocode_precision }} \
-            --min-clusters ${{ matrix.min_clusters }} \
-            --max-clusters ${{ matrix.max_clusters }} \
-            --log-file /dev/stdout \
-            --min-lat ${{ matrix.min_lat }} \
-            --max-lat ${{ matrix.max_lat }} \
-            --min-lon ${{ matrix.min_lon }} \
-            --max-lon ${{ matrix.max_lon }} \
-            ${{ matrix.limit_results != null && format('--limit-results {0}', matrix.limit_results) || '' }} \
-            ${{ matrix.max_taxa != null && format('--max-taxa {0}', matrix.max_taxa) || '' }} \
-            ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }} \
-            "${{ matrix.source_path }}"
+            --geocode-precision=${{ matrix.geocode_precision }} \
+            --min-clusters=${{ matrix.min_clusters }} \
+            --max-clusters=${{ matrix.max_clusters }} \
+            --log-file=/dev/stdout \
+            --min-lat=${{ matrix.min_lat }} \
+            --max-lat=${{ matrix.max_lat }} \
+            --min-lon=${{ matrix.min_lon }} \
+            --max-lon=${{ matrix.max_lon }} \
+            ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
+            ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
+            ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
+            --parquet-source-path="${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
