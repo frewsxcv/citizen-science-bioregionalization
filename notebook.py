@@ -372,7 +372,13 @@ def _(mo):
 def _(log_file):
     import logging
 
-    logging.basicConfig(filename=log_file, encoding="utf-8", level=logging.INFO)
+    logging.basicConfig(
+        filename=log_file,
+        format="%(asctime)s %(levelname)-8s %(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        encoding="utf-8",
+    )
     return
 
 
