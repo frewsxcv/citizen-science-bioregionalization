@@ -110,7 +110,8 @@ def _(cli_args, defaults, mo):
     max_lat_ui = mo.ui.number(
         value=cli_args.get("max-lat", defaults.MAX_LAT), label="Latitude"
     )
-    no_stop = cli_args.get("no-stop", False)
+    # For boolean flags, presence of the key means True (--no-stop becomes {'no-stop': ''})
+    no_stop = "no-stop" in cli_args
     run_button_ui = mo.ui.run_button()
     return (
         geocode_precision_ui,
