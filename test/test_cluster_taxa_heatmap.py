@@ -167,7 +167,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "species": ["leo", "corax"],
                 "taxonRank": ["SPECIES", "SPECIES"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
-                "gbifTaxonId": ["5219404", "2482468"],
+                "gbifTaxonId": [5219404, 2482468],
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
@@ -178,7 +178,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
             pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
-            pl.col("gbifTaxonId").cast(pl.String),
+            pl.col("gbifTaxonId").cast(pl.Int64),
         )
         taxonomy_df = TaxonomySchema.validate(taxonomy_df)
 
@@ -339,7 +339,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "species": ["leo", "corax"],
                 "taxonRank": ["SPECIES", "SPECIES"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
-                "gbifTaxonId": ["5219404", "2482468"],
+                "gbifTaxonId": [5219404, 2482468],
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
@@ -350,7 +350,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
             pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
-            pl.col("gbifTaxonId").cast(pl.String),
+            pl.col("gbifTaxonId").cast(pl.Int64),
         )
         taxonomy_df = TaxonomySchema.validate(taxonomy_df)
 

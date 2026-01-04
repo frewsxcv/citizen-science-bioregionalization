@@ -51,7 +51,7 @@ def build_geocode_taxa_counts_lf(
             "decimalLatitude",
             "decimalLongitude",
             "scientificName",
-            pl.col("taxonKey").cast(pl.String()).alias("gbifTaxonId"),
+            pl.col("taxonKey").alias("gbifTaxonId"),
             "individualCount",
         )
         .pipe(filter_by_bounding_box, bounding_box=bounding_box)

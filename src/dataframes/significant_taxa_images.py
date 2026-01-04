@@ -13,18 +13,20 @@ from src.dataframes.cluster_significant_differences import (
 from src.dataframes.taxonomy import TaxonomySchema
 
 
-def _fetch_wikidata_images(gbif_taxon_ids: List[str]) -> Dict[str, str]:
+def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
     """
     Fetches image URLs from Wikidata for a list of GBIF taxon IDs.
+
+    Args:
+        gbif_taxon_ids: List of GBIF taxon IDs as integers
+
+    Returns:
+        Dictionary mapping GBIF taxon ID (int) to image URL (str)
     """
     if not gbif_taxon_ids:
         return {}
 
-    # Filter out any None values from the list
-    gbif_taxon_ids = [id for id in gbif_taxon_ids if id is not None]
-    if not gbif_taxon_ids:
-        return {}
-
+    # Convert integers to strings for SPARQL query
     gbif_ids_str = " ".join([f'"{id}"' for id in gbif_taxon_ids])
     sparql_query = f"""
         SELECT ?gbif_taxon_id (SAMPLE(?image) AS ?image) WHERE {{
@@ -45,10 +47,11 @@ def _fetch_wikidata_images(gbif_taxon_ids: List[str]) -> Dict[str, str]:
         response = requests.post(endpoint, data=data, headers=headers)
         response.raise_for_status()
         results = response.json()
-        image_map = {}
+        image_map: Dict[int, str] = {}
         for binding in results["results"]["bindings"]:
             if "image" in binding:
-                gbif_id = binding["gbif_taxon_id"]["value"]
+                # Convert string response back to int
+                gbif_id = int(binding["gbif_taxon_id"]["value"])
                 image_map[gbif_id] = binding["image"]["value"]
         return image_map
     except requests.exceptions.RequestException as e:
@@ -87,12 +90,7 @@ def build_significant_taxa_images_df(
         taxonomy_df.select(["taxonId", "gbifTaxonId"]), on="taxonId"
     )
 
-    gbif_ids = (
-        significant_taxa_with_gbif.filter(pl.col("gbifTaxonId").is_not_null())
-        .get_column("gbifTaxonId")
-        .unique()
-        .to_list()
-    )
+    gbif_ids = significant_taxa_with_gbif.get_column("gbifTaxonId").unique().to_list()
 
     image_map = _fetch_wikidata_images(gbif_ids)
 

@@ -41,7 +41,7 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Taxonomic metadata
     "taxonrank": pl.String(),
     "scientificname": pl.String(),
-    "taxonkey": pl.String(),
+    "taxonkey": pl.Int64(),
     # Observation metadata
     "individualcount": pl.Int32(),
 }
