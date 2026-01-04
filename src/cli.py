@@ -1,7 +1,10 @@
 """Command-line argument parser for citizen science bioregionalization."""
 
 import argparse
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def create_argument_parser(
@@ -189,4 +192,18 @@ def parse_args_with_defaults(
         max_taxa=max_taxa,
         min_geocode_presence=min_geocode_presence,
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Debug logging for parsed arguments
+    logger.info(
+        f"CLI args parsed: max_taxa={args.max_taxa}, min_geocode_presence={args.min_geocode_presence}"
+    )
+    logger.info(
+        f"CLI args parsed: min_clusters={args.min_clusters}, max_clusters={args.max_clusters}"
+    )
+    logger.info(
+        f"CLI args parsed: geocode_precision={args.geocode_precision}, limit_results={args.limit_results}"
+    )
+    logger.info(f"CLI args parsed: parquet_source_path={args.parquet_source_path}")
+
+    return args

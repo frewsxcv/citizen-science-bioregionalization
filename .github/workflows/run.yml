@@ -49,6 +49,9 @@ jobs:
         if: matrix.name == 'local-archive'
         run: uv run marimo check notebook.py
       - name: Run and export notebook (${{ matrix.name }})
+        env:
+          MAX_TAXA_ARG: ${{ matrix.max_taxa && format('--max-taxa {0}', matrix.max_taxa) || '' }}
+          MIN_GEOCODE_PRESENCE_ARG: ${{ matrix.min_geocode_presence && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }}
         run: |
           uv run marimo export html notebook.py -o ${{ matrix.output_dir }}/index.html --force -- \
             --no-stop \
@@ -61,8 +64,8 @@ jobs:
             --min-lon ${{ matrix.min_lon }} \
             --max-lon ${{ matrix.max_lon }} \
             --limit-results ${{ matrix.limit_results }} \
-            ${{ matrix.max_taxa != null && format('--max-taxa {0}', matrix.max_taxa) || '' }} \
-            ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }} \
+            $MAX_TAXA_ARG \
+            $MIN_GEOCODE_PRESENCE_ARG \
             "${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
