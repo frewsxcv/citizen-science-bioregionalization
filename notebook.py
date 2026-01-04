@@ -14,7 +14,6 @@ def _():
     import polars as pl
 
     from src.cache_parquet import cache_parquet
-
     return cache_parquet, folium, mo, np, pl
 
 
@@ -553,11 +552,7 @@ def _(
 
 
 @app.cell
-def _(
-    geocode_taxa_counts_unfiltered_lf,
-    max_taxa,
-    min_geocode_presence,
-):
+def _(geocode_taxa_counts_unfiltered_lf, max_taxa, min_geocode_presence):
     from src.dataframes.geocode_taxa_counts import (
         filter_top_taxa_lf,
     )
@@ -723,7 +718,9 @@ def _(all_clusters_df, cache_parquet, optimal_num_clusters):
 
 @app.cell
 def _(mo, optimal_num_clusters):
-    mo.md(f"**Optimal number of clusters: k={optimal_num_clusters}**")
+    mo.md(f"""
+    **Optimal number of clusters: k={optimal_num_clusters}**
+    """)
     return
 
 

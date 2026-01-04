@@ -200,9 +200,11 @@ def plot_silhouette_distributions(
         data=plot_data,
         x="num_clusters",
         y="silhouette_score",
+        hue="num_clusters",
         palette="Set2",
         ax=ax,
         width=0.6,
+        legend=False,
     )
 
     # Overlay violin plot for density
@@ -210,10 +212,12 @@ def plot_silhouette_distributions(
         data=plot_data,
         x="num_clusters",
         y="silhouette_score",
+        hue="num_clusters",
         palette="Set2",
         ax=ax,
         alpha=0.3,
         inner=None,
+        legend=False,
     )
 
     # Add overall scores as scatter points
