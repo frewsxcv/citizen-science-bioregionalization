@@ -13,9 +13,17 @@ def _():
     import numpy as np
     import polars as pl
 
+    from src import defaults
     from src.cache_parquet import cache_parquet
 
-    return cache_parquet, folium, mo, np, pl
+    return cache_parquet, defaults, folium, mo, np, pl
+
+
+@app.cell
+def _(mo):
+    # Get CLI args (available when running with: marimo run notebook.py -- --arg=value)
+    cli_args = mo.cli_args()
+    return (cli_args,)
 
 
 @app.cell(hide_code=True)
@@ -35,34 +43,74 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _(cli_args, defaults, mo):
     # Define Marimo input UI elements
+    # CLI args override defaults when provided (e.g., marimo run notebook.py -- --geocode-precision=5)
 
-    log_file_ui = mo.ui.text("run.log", label="Log file")
+    log_file_ui = mo.ui.text(
+        cli_args.get("log-file", defaults.LOG_FILE), label="Log file"
+    )
     parquet_source_path_ui = mo.ui.text(
-        "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*",
+        cli_args.get("parquet-source-path", defaults.PARQUET_SOURCE_PATH),
         label="Input GCS directory",
     )
-    geocode_precision_ui = mo.ui.number(value=4, label="Geocode precision")
-    min_clusters_to_test_ui = mo.ui.number(value=2, label="Min clusters to test")
-    max_clusters_to_test_ui = mo.ui.number(value=20, label="Max clusters to test")
-    taxon_filter_ui = mo.ui.text("", label="Taxon filter (optional)")
-    limit_results_enabled_ui = mo.ui.checkbox(value=True, label="Enable limit")
-    limit_results_value_ui = mo.ui.number(value=1000, label="Limit results")
-    max_taxa_enabled_ui = mo.ui.checkbox(value=False, label="Limit to top N taxa")
+    geocode_precision_ui = mo.ui.number(
+        value=cli_args.get("geocode-precision", defaults.GEOCODE_PRECISION),
+        label="Geocode precision",
+    )
+    min_clusters_to_test_ui = mo.ui.number(
+        value=cli_args.get("min-clusters", defaults.MIN_CLUSTERS),
+        label="Min clusters to test",
+    )
+    max_clusters_to_test_ui = mo.ui.number(
+        value=cli_args.get("max-clusters", defaults.MAX_CLUSTERS),
+        label="Max clusters to test",
+    )
+    taxon_filter_ui = mo.ui.text(
+        cli_args.get("taxon-filter", defaults.TAXON_FILTER),
+        label="Taxon filter (optional)",
+    )
+    limit_results_enabled_ui = mo.ui.checkbox(
+        value="limit-results" in cli_args or defaults.LIMIT_RESULTS_ENABLED,
+        label="Enable limit",
+    )
+    limit_results_value_ui = mo.ui.number(
+        value=cli_args.get("limit-results", defaults.LIMIT_RESULTS or 1000),
+        label="Limit results",
+    )
+    max_taxa_enabled_ui = mo.ui.checkbox(
+        value="max-taxa" in cli_args or defaults.MAX_TAXA_ENABLED,
+        label="Limit to top N taxa",
+    )
     max_taxa_value_ui = mo.ui.number(
-        value=5000, label="Keep top N taxa by occurrence count"
+        value=cli_args.get("max-taxa", defaults.MAX_TAXA or 5000),
+        label="Keep top N taxa by occurrence count",
     )
     min_geocode_presence_enabled_ui = mo.ui.checkbox(
-        value=False, label="Filter rare taxa"
+        value="min-geocode-presence" in cli_args
+        or defaults.MIN_GEOCODE_PRESENCE_ENABLED,
+        label="Filter rare taxa",
     )
     min_geocode_presence_value_ui = mo.ui.number(
-        value=0.05, label="Min fraction of hexagons a taxon must appear in", step=0.01
+        value=cli_args.get(
+            "min-geocode-presence", defaults.MIN_GEOCODE_PRESENCE or 0.05
+        ),
+        label="Min fraction of hexagons a taxon must appear in",
+        step=0.01,
     )
-    min_lon_ui = mo.ui.number(value=-87.0, label="Longitude")
-    min_lat_ui = mo.ui.number(value=25.0, label="Latitude")
-    max_lon_ui = mo.ui.number(value=-66.0, label="Longitude")
-    max_lat_ui = mo.ui.number(value=47.0, label="Latitude")
+    min_lon_ui = mo.ui.number(
+        value=cli_args.get("min-lon", defaults.MIN_LON), label="Longitude"
+    )
+    min_lat_ui = mo.ui.number(
+        value=cli_args.get("min-lat", defaults.MIN_LAT), label="Latitude"
+    )
+    max_lon_ui = mo.ui.number(
+        value=cli_args.get("max-lon", defaults.MAX_LON), label="Longitude"
+    )
+    max_lat_ui = mo.ui.number(
+        value=cli_args.get("max-lat", defaults.MAX_LAT), label="Latitude"
+    )
+    no_stop = cli_args.get("no-stop", False)
     run_button_ui = mo.ui.run_button()
     return (
         geocode_precision_ui,
@@ -79,6 +127,7 @@ def _(mo):
         min_geocode_presence_value_ui,
         min_lat_ui,
         min_lon_ui,
+        no_stop,
         parquet_source_path_ui,
         run_button_ui,
         taxon_filter_ui,
@@ -234,51 +283,34 @@ def _(
     min_geocode_presence_value_ui,
     min_lat_ui,
     min_lon_ui,
+    mo,
+    no_stop,
     parquet_source_path_ui,
+    run_button_ui,
     taxon_filter_ui,
 ):
-    from src.cli import parse_args_with_defaults
-
-    args = parse_args_with_defaults(
-        geocode_precision=geocode_precision_ui.value,
-        taxon_filter=taxon_filter_ui.value,
-        min_lat=min_lat_ui.value,
-        max_lat=max_lat_ui.value,
-        min_lon=min_lon_ui.value,
-        max_lon=max_lon_ui.value,
-        limit_results=limit_results_value_ui.value
-        if limit_results_enabled_ui.value
-        else None,
-        parquet_source_path=parquet_source_path_ui.value,
-        log_file=log_file_ui.value,
-        min_clusters_to_test=min_clusters_to_test_ui.value,
-        max_clusters_to_test=max_clusters_to_test_ui.value,
-        max_taxa=max_taxa_value_ui.value if max_taxa_enabled_ui.value else None,
-        min_geocode_presence=min_geocode_presence_value_ui.value
-        if min_geocode_presence_enabled_ui.value
-        else None,
-    )
-    return (args,)
-
-
-@app.cell(hide_code=True)
-def _(args, mo, run_button_ui):
     from src.types import Bbox
 
-    limit_results = args.limit_results
-    no_stop = args.no_stop
-    log_file = args.log_file
-    parquet_source_path = args.parquet_source_path
-    min_lat = args.min_lat
-    max_lat = args.max_lat
-    min_lon = args.min_lon
-    max_lon = args.max_lon
-    taxon_filter = args.taxon_filter
-    geocode_precision = args.geocode_precision
-    min_clusters_to_test = args.min_clusters
-    max_clusters_to_test = args.max_clusters
-    max_taxa = args.max_taxa
-    min_geocode_presence = args.min_geocode_presence
+    # Resolve final values from UI elements
+    limit_results = (
+        limit_results_value_ui.value if limit_results_enabled_ui.value else None
+    )
+    log_file = log_file_ui.value
+    parquet_source_path = parquet_source_path_ui.value
+    min_lat = min_lat_ui.value
+    max_lat = max_lat_ui.value
+    min_lon = min_lon_ui.value
+    max_lon = max_lon_ui.value
+    taxon_filter = taxon_filter_ui.value
+    geocode_precision = geocode_precision_ui.value
+    min_clusters_to_test = min_clusters_to_test_ui.value
+    max_clusters_to_test = max_clusters_to_test_ui.value
+    max_taxa = max_taxa_value_ui.value if max_taxa_enabled_ui.value else None
+    min_geocode_presence = (
+        min_geocode_presence_value_ui.value
+        if min_geocode_presence_enabled_ui.value
+        else None
+    )
     bounding_box = Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon)
 
     inputs_table = mo.ui.table(
