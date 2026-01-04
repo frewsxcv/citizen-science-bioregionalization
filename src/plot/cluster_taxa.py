@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, TypeVar, Union, cast
 
 import dataframely as dy
@@ -16,6 +17,8 @@ from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
+logger = logging.getLogger(__name__)
+
 
 def create_cluster_taxa_heatmap(
     geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
@@ -30,18 +33,66 @@ def create_cluster_taxa_heatmap(
     cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
+    logger.info("create_cluster_taxa_heatmap: Starting")
+
+    # Log input dataframe sizes
+    geocode_lf_collected = geocode_lf.collect(engine="streaming")
+    logger.info(f"  geocode_lf: {geocode_lf_collected.height} rows")
+
+    geocode_cluster_df_height = geocode_cluster_df.height
+    logger.info(f"  geocode_cluster_df: {geocode_cluster_df_height} rows")
+
+    cluster_colors_df_height = cluster_colors_df.height
+    logger.info(f"  cluster_colors_df: {cluster_colors_df_height} rows")
+
+    geocode_taxa_counts_collected = geocode_taxa_counts_lf.collect(engine="streaming")
+    logger.info(
+        f"  geocode_taxa_counts_lf: {geocode_taxa_counts_collected.height} rows"
+    )
+
+    cluster_taxa_statistics_df_height = cluster_taxa_statistics_df.height
+    logger.info(
+        f"  cluster_taxa_statistics_df: {cluster_taxa_statistics_df_height} rows"
+    )
+
+    cluster_significant_differences_df_height = (
+        cluster_significant_differences_df.height
+    )
+    logger.info(
+        f"  cluster_significant_differences_df: {cluster_significant_differences_df_height} rows"
+    )
+
+    taxonomy_df_height = taxonomy_df.height
+    logger.info(f"  taxonomy_df: {taxonomy_df_height} rows")
+
     # Use only geocodes that exist in both geocode_lf AND geocode_taxa_counts_lf
     # This ensures we don't try to compute averages for geocodes with no taxa data
-    geocodes_with_taxa = (
-        geocode_taxa_counts_lf.select("geocode").unique().collect(engine="streaming")
+    geocodes_in_geocode_lf = geocode_lf_collected.select("geocode").unique()
+    logger.info(f"  Unique geocodes in geocode_lf: {geocodes_in_geocode_lf.height}")
+
+    geocodes_with_taxa = geocode_taxa_counts_collected.select("geocode").unique()
+    logger.info(
+        f"  Unique geocodes in geocode_taxa_counts_lf: {geocodes_with_taxa.height}"
     )
-    ordered_geocodes = (
-        geocode_lf.select("geocode")
-        .unique()
-        .collect(engine="streaming")
-        .join(geocodes_with_taxa, on="geocode", how="semi")
-        .to_series()
+
+    ordered_geocodes = geocodes_in_geocode_lf.join(
+        geocodes_with_taxa, on="geocode", how="semi"
+    ).to_series()
+    logger.info(
+        f"  Geocodes after intersection (ordered_geocodes): {len(ordered_geocodes)}"
     )
+
+    # Check for geocodes in geocode_lf that are NOT in geocode_taxa_counts_lf
+    geocodes_without_taxa = geocodes_in_geocode_lf.join(
+        geocodes_with_taxa, on="geocode", how="anti"
+    )
+    if geocodes_without_taxa.height > 0:
+        logger.warning(
+            f"  WARNING: {geocodes_without_taxa.height} geocodes in geocode_lf have no taxa data!"
+        )
+        logger.warning(
+            f"  Geocodes without taxa: {geocodes_without_taxa['geocode'].to_list()[:10]}..."
+        )
 
     # Create color mapping for geocodes by cluster
     col_colors = []
@@ -56,21 +107,30 @@ def create_cluster_taxa_heatmap(
     joined = cluster_significant_differences_df.join(
         taxonomy_df, on=["taxonId"], how="left"
     )
+    logger.info(f"  Joined significant_differences with taxonomy: {joined.height} rows")
 
     # Process data for each species/taxon
     data = {}
     species_query = joined.select("scientificName", "taxonId").unique()
+    logger.info(f"  Unique species to process: {species_query.height}")
 
     # If there are no significant differences, return None
     if species_query.height == 0:
+        logger.info("  No significant differences found, returning None")
         return None
 
     # Apply limit if specified
     if limit_species is not None:
         species_query = species_query.limit(limit_species)
+        logger.info(f"  Limited to {limit_species} species")
+
+    logger.info(
+        f"  Processing {species_query.height} species across {len(ordered_geocodes)} geocodes"
+    )
 
     for species, taxonId in species_query.iter_rows():
         counts = []
+        logger.info(f"  Processing species: {species} (taxonId={taxonId})")
 
         for geocode in ordered_geocodes:
             geocode_counts_species = (
@@ -89,6 +149,17 @@ def create_cluster_taxa_heatmap(
                 .collect()
                 .item()
             )
+
+            if geocode_counts_all is None or geocode_counts_all == 0:
+                logger.error(
+                    f"  DIVISION BY ZERO: geocode={geocode}, taxonId={taxonId}, "
+                    f"geocode_counts_species={geocode_counts_species}, geocode_counts_all={geocode_counts_all}"
+                )
+                raise ZeroDivisionError(
+                    f"geocode_counts_all is {geocode_counts_all} for geocode={geocode}. "
+                    f"This geocode should have been filtered out but wasn't."
+                )
+
             geocode_average = geocode_counts_species / geocode_counts_all
             all_average = (
                 cluster_taxa_statistics_df.filter(
@@ -107,8 +178,12 @@ def create_cluster_taxa_heatmap(
         # numeric values resulting from mathematical operations
         data[species] = min_max_normalize(counts)
 
+    logger.info(f"  Finished processing all species, creating clustermap")
+
     # Create dataframe and generate clustermap
     dataframe = pl.DataFrame(data=data)
+    logger.info(f"  Heatmap dataframe shape: {dataframe.shape}")
+
     g = sns.clustermap(
         data=dataframe,  # type: ignore
         col_cluster=False,

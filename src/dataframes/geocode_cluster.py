@@ -40,9 +40,21 @@ def build_geocode_cluster_df(
     Returns:
         DataFrame with clustering results for the specified k value only
     """
+    logger.info(
+        f"build_geocode_cluster_df: Extracting k={num_clusters} from multi_k_df with {multi_k_df.height} rows"
+    )
+
     df = multi_k_df.filter(pl.col("num_clusters") == num_clusters).select(
         ["geocode", "cluster"]
     )
+
+    unique_geocodes = df.select("geocode").unique().height
+    unique_clusters = df.select("cluster").unique().height
+    logger.info(
+        f"build_geocode_cluster_df: Output has {df.height} rows, "
+        f"{unique_geocodes} unique geocodes, {unique_clusters} unique clusters"
+    )
+
     return GeocodeClusterSchema.validate(df)
 
 
@@ -74,6 +86,16 @@ def build_geocode_cluster_multi_k_df(
     geocode_df = geocode_lf.collect()
     geocodes = geocode_df["geocode"]
     num_geocodes = len(geocodes)
+
+    logger.info(
+        f"build_geocode_cluster_multi_k_df: Input geocode_lf has {num_geocodes} geocodes"
+    )
+    logger.info(
+        f"build_geocode_cluster_multi_k_df: distance_matrix shape: {distance_matrix.squareform().shape}"
+    )
+    logger.info(
+        f"build_geocode_cluster_multi_k_df: connectivity_matrix shape: {connectivity_matrix._connectivity_matrix.shape}"
+    )
 
     # Validate k range
     if max_k >= num_geocodes:
@@ -114,6 +136,13 @@ def build_geocode_cluster_multi_k_df(
         all_results.append(k_df)
 
     df = pl.concat(all_results)
+
+    logger.info(
+        f"build_geocode_cluster_multi_k_df: Final output has {df.height} rows "
+        f"({df.select('geocode').unique().height} unique geocodes, "
+        f"{df.select('num_clusters').unique().height} k values)"
+    )
+
     return GeocodeClusterMultiKSchema.validate(df)
 
 

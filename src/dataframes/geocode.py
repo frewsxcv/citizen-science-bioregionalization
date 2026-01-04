@@ -131,13 +131,17 @@ def build_geocode_no_edges_lf(
     Returns:
         A validated GeocodeNoEdgesSchema lazyframe with edge hexagons removed
     """
+    # Collect input to get count
+    input_df = geocode_lf.collect(engine="streaming")
+    logger.info(f"build_geocode_no_edges_lf: Input geocode count: {input_df.height}")
+
     # Filter out edge hexagons and collect
-    return GeocodeNoEdgesSchema.validate(
-        geocode_lf.filter(~pl.col("is_edge"))
-        .collect(engine="streaming")
-        .sort(by="geocode"),
-        eager=False,
+    result_df = input_df.filter(~pl.col("is_edge")).sort(by="geocode")
+    logger.info(
+        f"build_geocode_no_edges_lf: Output geocode count (after removing edges): {result_df.height}"
     )
+
+    return GeocodeNoEdgesSchema.validate(result_df, eager=False)
 
 
 def index_of_geocode(

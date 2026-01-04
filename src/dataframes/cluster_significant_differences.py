@@ -1,3 +1,4 @@
+import logging
 import math
 
 import dataframely as dy
@@ -10,6 +11,8 @@ from src.dataframes.cluster_taxa_statistics import (
     ClusterTaxaStatisticsSchema,
     iter_cluster_ids,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ClusterSignificantDifferencesSchema(dy.Schema):
@@ -46,15 +49,35 @@ def build_cluster_significant_differences_df(
     Returns:
         A validated DataFrame conforming to ClusterSignificantDifferencesSchema
     """
+    logger.info("build_cluster_significant_differences_df: Starting")
+
+    # Log input sizes
+    all_stats_clusters = all_stats.select("cluster").unique().height
+    all_stats_taxa = all_stats.select("taxonId").unique().height
+    logger.info(
+        f"build_cluster_significant_differences_df: all_stats has {all_stats.height} rows, "
+        f"{all_stats_clusters} unique clusters (including null), {all_stats_taxa} unique taxa"
+    )
+
+    cluster_neighbors_df = cluster_neighbors.collect(engine="streaming")
+    logger.info(
+        f"build_cluster_significant_differences_df: cluster_neighbors has {cluster_neighbors_df.height} rows"
+    )
+
     significant_differences = []
 
     neighbors_map = dict(
-        cluster_neighbors.select("cluster", "direct_and_indirect_neighbors")
-        .collect(engine="streaming")
-        .iter_rows()
+        cluster_neighbors_df.select(
+            "cluster", "direct_and_indirect_neighbors"
+        ).iter_rows()
     )
 
-    for cluster in iter_cluster_ids(all_stats):
+    cluster_ids = iter_cluster_ids(all_stats)
+    logger.info(
+        f"build_cluster_significant_differences_df: Processing {len([c for c in cluster_ids if c is not None])} clusters"
+    )
+
+    for cluster in cluster_ids:
         if cluster is None:
             continue
 
@@ -117,7 +140,14 @@ def build_cluster_significant_differences_df(
                     }
                 )
 
+    logger.info(
+        f"build_cluster_significant_differences_df: Found {len(significant_differences)} significant differences"
+    )
+
     if not significant_differences:
+        logger.info(
+            "build_cluster_significant_differences_df: No significant differences found, returning empty DataFrame"
+        )
         return ClusterSignificantDifferencesSchema.validate(
             pl.DataFrame(
                 {
@@ -148,6 +178,13 @@ def build_cluster_significant_differences_df(
         pl.col("taxonId").cast(pl.UInt32),
         pl.col("cluster_count").cast(pl.UInt32),
         pl.col("neighbor_count").cast(pl.UInt32),
+    )
+
+    unique_clusters = df.select("cluster").unique().height
+    unique_taxa = df.select("taxonId").unique().height
+    logger.info(
+        f"build_cluster_significant_differences_df: Output has {df.height} rows, "
+        f"{unique_clusters} unique clusters, {unique_taxa} unique taxa"
     )
 
     # Calculate scoring metrics to identify interesting taxa

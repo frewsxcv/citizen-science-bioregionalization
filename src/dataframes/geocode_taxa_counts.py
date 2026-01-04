@@ -40,6 +40,12 @@ def build_geocode_taxa_counts_lf(
     Returns:
         A validated DataFrame conforming to GeocodeTaxaCountsSchema
     """
+    # Log input sizes
+    geocode_input_df = geocode_lf.collect(engine="streaming")
+    logger.info(
+        f"build_geocode_taxa_counts_lf: Input geocode_lf has {geocode_input_df.height} geocodes"
+    )
+
     aggregated = (
         darwin_core_lf.select(
             "decimalLatitude",
@@ -76,12 +82,23 @@ def build_geocode_taxa_counts_lf(
         .sort(by="geocode")
     )
 
-    return GeocodeTaxaCountsSchema.validate(
+    result_lf = GeocodeTaxaCountsSchema.validate(
         aggregated.with_columns(
             pl.col("taxonId").cast(pl.UInt32), pl.col("count").cast(pl.UInt32)
         ),
         eager=False,
     )
+
+    # Log output sizes
+    result_df = result_lf.collect(engine="streaming")
+    unique_geocodes = result_df.select("geocode").unique().height
+    unique_taxa = result_df.select("taxonId").unique().height
+    logger.info(
+        f"build_geocode_taxa_counts_lf: Output has {result_df.height} rows, "
+        f"{unique_geocodes} unique geocodes, {unique_taxa} unique taxa"
+    )
+
+    return result_lf
 
 
 def filter_top_taxa_lf(
@@ -138,6 +155,15 @@ def filter_top_taxa_lf(
     """
     lf = geocode_taxa_counts_lf
 
+    # Log input state
+    input_df = lf.collect(engine="streaming")
+    input_geocodes = input_df.select("geocode").unique().height
+    input_taxa = input_df.select("taxonId").unique().height
+    logger.info(
+        f"filter_top_taxa_lf: Input has {input_df.height} rows, "
+        f"{input_geocodes} unique geocodes, {input_taxa} unique taxa"
+    )
+
     if min_geocode_presence is not None:
         # Count unique geocodes
         total_geocodes = log_action(
@@ -159,6 +185,15 @@ def filter_top_taxa_lf(
         )
         lf = lf.join(taxa_to_keep, on="taxonId", how="semi")
 
+        # Log state after min_geocode_presence filter
+        after_presence_df = lf.collect(engine="streaming")
+        after_presence_geocodes = after_presence_df.select("geocode").unique().height
+        after_presence_taxa = after_presence_df.select("taxonId").unique().height
+        logger.info(
+            f"filter_top_taxa_lf: After min_geocode_presence filter: {after_presence_df.height} rows, "
+            f"{after_presence_geocodes} unique geocodes, {after_presence_taxa} unique taxa"
+        )
+
     if max_taxa is not None:
         logger.info(f"Filtering to top {max_taxa} taxa by total count")
 
@@ -171,5 +206,23 @@ def filter_top_taxa_lf(
             .select("taxonId")
         )
         lf = lf.join(top_taxa, on="taxonId", how="semi")
+
+        # Log state after max_taxa filter
+        after_max_taxa_df = lf.collect(engine="streaming")
+        after_max_taxa_geocodes = after_max_taxa_df.select("geocode").unique().height
+        after_max_taxa_taxa = after_max_taxa_df.select("taxonId").unique().height
+        logger.info(
+            f"filter_top_taxa_lf: After max_taxa filter: {after_max_taxa_df.height} rows, "
+            f"{after_max_taxa_geocodes} unique geocodes, {after_max_taxa_taxa} unique taxa"
+        )
+
+    # Log final output state
+    final_df = lf.collect(engine="streaming")
+    final_geocodes = final_df.select("geocode").unique().height
+    final_taxa = final_df.select("taxonId").unique().height
+    logger.info(
+        f"filter_top_taxa_lf: Final output has {final_df.height} rows, "
+        f"{final_geocodes} unique geocodes, {final_taxa} unique taxa"
+    )
 
     return GeocodeTaxaCountsSchema.validate(lf, eager=False)
