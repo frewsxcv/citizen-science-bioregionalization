@@ -61,8 +61,8 @@ jobs:
             --min-lon ${{ matrix.min_lon }} \
             --max-lon ${{ matrix.max_lon }} \
             --limit-results ${{ matrix.limit_results }} \
-            ${{ matrix.max_taxa && format('--max-taxa {0}', matrix.max_taxa) || '' }} \
-            ${{ matrix.min_geocode_presence && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }} \
+            ${{ matrix.max_taxa != null && format('--max-taxa {0}', matrix.max_taxa) || '' }} \
+            ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence {0}', matrix.min_geocode_presence) || '' }} \
             "${{ matrix.source_path }}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
