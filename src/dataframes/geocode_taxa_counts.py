@@ -136,9 +136,6 @@ def filter_top_taxa_lf(
         first, then max_taxa. This ensures the "top N" selection is made
         from taxa that are already sufficiently widespread.
     """
-    logger.info(
-        f"filter_top_taxa_lf called with max_taxa={max_taxa}, min_geocode_presence={min_geocode_presence}"
-    )
     lf = geocode_taxa_counts_lf
 
     if min_geocode_presence is not None:
