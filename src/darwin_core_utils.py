@@ -41,7 +41,7 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Taxonomic metadata
     "taxonrank": pl.String(),
     "scientificname": pl.String(),
-    "taxonkey": pl.Int64(),
+    "taxonkey": pl.UInt32(),
     # Observation metadata
     "individualcount": pl.Int32(),
 }
@@ -337,14 +337,19 @@ def build_darwin_core_raw_lf(
     else:
         # Load from parquet snapshot and rename columns to camelCase
         # Public GCS buckets (like GBIF) are accessible without credentials
-        inner_lf = pl.scan_parquet(
-            source_path,
-            low_memory=True,
-            cache=False,
-            parallel="prefiltered",
-        ).rename(
-            get_parquet_to_darwin_core_column_mapping(),
-            strict=False,
+        inner_lf = (
+            pl.scan_parquet(
+                source_path,
+                low_memory=True,
+                cache=False,
+                parallel="prefiltered",
+            )
+            .rename(
+                get_parquet_to_darwin_core_column_mapping(),
+                strict=False,
+            )
+            # Cast taxonKey from String to UInt32 (GBIF parquet stores it as String)
+            .with_columns(pl.col("taxonKey").cast(pl.UInt32))
         )
 
     # Apply categorical casting (handles both lowercase and camelCase columns)

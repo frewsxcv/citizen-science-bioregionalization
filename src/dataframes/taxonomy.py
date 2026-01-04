@@ -21,7 +21,7 @@ class TaxonomySchema(dy.Schema):
     kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
-    gbifTaxonId = dy.Int64(nullable=False)
+    gbifTaxonId = dy.UInt32(nullable=False)
 
 
 def build_taxonomy_lf(

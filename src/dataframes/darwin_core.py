@@ -38,7 +38,7 @@ class DarwinCoreSchema(dy.Schema):
     # Taxonomic metadata
     taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
-    taxonKey = dy.Int64(nullable=False)
+    taxonKey = dy.UInt32(nullable=False)
 
     individualCount = dy.Int32(nullable=True)
 
