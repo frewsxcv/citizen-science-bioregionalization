@@ -30,8 +30,17 @@ def create_cluster_taxa_heatmap(
     cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
     limit_species=None,
 ):
+    # Use only geocodes that exist in both geocode_lf AND geocode_taxa_counts_lf
+    # This ensures we don't try to compute averages for geocodes with no taxa data
+    geocodes_with_taxa = (
+        geocode_taxa_counts_lf.select("geocode").unique().collect(engine="streaming")
+    )
     ordered_geocodes = (
-        geocode_lf.select("geocode").unique().collect(engine="streaming").to_series()
+        geocode_lf.select("geocode")
+        .unique()
+        .collect(engine="streaming")
+        .join(geocodes_with_taxa, on="geocode", how="semi")
+        .to_series()
     )
 
     # Create color mapping for geocodes by cluster
