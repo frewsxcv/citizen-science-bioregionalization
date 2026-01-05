@@ -58,6 +58,7 @@ def build_taxonomy_lf(
         )
         # Semi-join: keeps rows where geocode exists, without loading list to memory
         .join(geocode_filter_lf, on="geocode", how="semi")
+        .drop("geocode")
         .unique()
         # Add a unique taxonId for each row
         .with_row_index("taxonId")
