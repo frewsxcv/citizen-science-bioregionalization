@@ -58,11 +58,11 @@ def build_taxonomy_lf(
             # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
             pl.col("taxonKey").alias("gbifTaxonId"),
         )
-        .unique(
-            subset=[
-                "scientificName",  # Need to confirm this. Will there be different scientific names for the same GBIF taxon ID?
-                "gbifTaxonId",
-            ],
+        # Use group_by instead of unique() for better streaming support
+        .group_by("scientificName", "gbifTaxonId")
+        .agg(
+            pl.col("kingdom").first(),
+            pl.col("taxonRank").first(),
         )
         # Add a unique taxonId for each row
         .with_row_index("taxonId")
