@@ -13,7 +13,7 @@ import polars as pl
 import polars_st as pl_st
 import shapely
 
-from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
+from src.constants import KINGDOM_VALUES
 from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
@@ -165,7 +165,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "family": ["Felidae", "Corvidae"],
                 "genus": ["Panthera", "Corvus"],
                 "species": ["leo", "corax"],
-                "taxonRank": ["SPECIES", "SPECIES"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
                 "gbifTaxonId": [5219404, 2482468],
             }
@@ -177,7 +176,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("order").cast(pl.Categorical),
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
-            pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
             pl.col("gbifTaxonId").cast(pl.UInt32),
         )
         taxonomy_df = TaxonomySchema.validate(taxonomy_df)
@@ -337,7 +335,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "family": ["Felidae", "Corvidae"],
                 "genus": ["Panthera", "Corvus"],
                 "species": ["leo", "corax"],
-                "taxonRank": ["SPECIES", "SPECIES"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
                 "gbifTaxonId": [5219404, 2482468],
             }
@@ -349,7 +346,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("order").cast(pl.Categorical),
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
-            pl.col("taxonRank").cast(pl.Enum(TAXON_RANK_VALUES)),
             pl.col("gbifTaxonId").cast(pl.UInt32),
         )
         taxonomy_df = TaxonomySchema.validate(taxonomy_df)
