@@ -7,7 +7,7 @@ from typing import Any, Union
 
 import polars as pl
 
-from src.constants import KINGDOM_DATA_TYPE, TAXON_RANK_DATA_TYPE
+from src.constants import KINGDOM_DATA_TYPE
 
 
 @dataclass
@@ -27,7 +27,6 @@ class _Meta:
 # Maps column name (lowercase) to target data type
 _CATEGORICAL_CASTS: dict[str, pl.DataType] = {
     "kingdom": KINGDOM_DATA_TYPE,
-    "taxonrank": TAXON_RANK_DATA_TYPE,
 }
 
 
@@ -39,7 +38,6 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Taxonomic hierarchy (read as String, cast to Categorical later)
     "kingdom": pl.String(),
     # Taxonomic metadata
-    "taxonrank": pl.String(),
     "scientificname": pl.String(),
     "taxonkey": pl.UInt32(),
     # Observation metadata
@@ -51,7 +49,6 @@ _LOWER_TO_CAMEL: dict[str, str] = {
     "decimallatitude": "decimalLatitude",
     "decimallongitude": "decimalLongitude",
     "taxonkey": "taxonKey",
-    "taxonrank": "taxonRank",
     "scientificname": "scientificName",
     "individualcount": "individualCount",
     "catalognumber": "catalogNumber",
@@ -91,7 +88,7 @@ def cast_taxonomic_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
     Cast taxonomic columns to their appropriate Categorical types.
 
     This function applies consistent casting for taxonomic hierarchy columns
-    (kingdom, phylum, class, order, family, genus) and taxonRank to optimize
+    (kingdom, phylum, class, order, family, genus) to optimize
     memory usage and query performance.
 
     Args:

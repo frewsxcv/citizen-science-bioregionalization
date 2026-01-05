@@ -3,7 +3,7 @@ import logging
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES, TAXON_RANK_VALUES
+from src.constants import KINGDOM_VALUES
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lf
@@ -19,7 +19,6 @@ class TaxonomySchema(dy.Schema):
 
     taxonId = dy.UInt32(nullable=False)  # Unique identifier for each taxon
     kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
-    taxonRank = dy.Enum(TAXON_RANK_VALUES, nullable=False)
     scientificName = dy.String(nullable=True)
     gbifTaxonId = dy.UInt32(nullable=False)
 
@@ -53,7 +52,6 @@ def build_taxonomy_lf(
         .join(geocode_filter_lf, on="geocode", how="semi")
         .select(
             "kingdom",
-            "taxonRank",
             "scientificName",
             # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
             pl.col("taxonKey").alias("gbifTaxonId"),
@@ -62,7 +60,6 @@ def build_taxonomy_lf(
         .group_by("scientificName", "gbifTaxonId")
         .agg(
             pl.col("kingdom").first(),
-            pl.col("taxonRank").first(),
         )
         # Add a unique taxonId for each row
         .with_row_index("taxonId")
