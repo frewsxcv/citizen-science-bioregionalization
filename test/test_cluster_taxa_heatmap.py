@@ -13,7 +13,6 @@ import polars as pl
 import polars_st as pl_st
 import shapely
 
-from src.constants import KINGDOM_VALUES
 from src.dataframes.cluster_color import ClusterColorSchema
 from src.dataframes.cluster_significant_differences import (
     ClusterSignificantDifferencesSchema,
@@ -158,7 +157,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
         taxonomy_df = pl.DataFrame(
             {
                 "taxonId": [101, 102],
-                "kingdom": ["Animalia", "Animalia"],
                 "phylum": ["Chordata", "Chordata"],
                 "class": ["Mammalia", "Aves"],
                 "order": ["Carnivora", "Passeriformes"],
@@ -170,7 +168,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
-            pl.col("kingdom").cast(pl.Enum(KINGDOM_VALUES)),
             pl.col("phylum").cast(pl.Categorical),
             pl.col("class").cast(pl.Categorical),
             pl.col("order").cast(pl.Categorical),
@@ -328,7 +325,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
         taxonomy_df = pl.DataFrame(
             {
                 "taxonId": [101, 102],
-                "kingdom": ["Animalia", "Animalia"],
                 "phylum": ["Chordata", "Chordata"],
                 "class": ["Mammalia", "Aves"],
                 "order": ["Carnivora", "Passeriformes"],
@@ -340,7 +336,6 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
-            pl.col("kingdom").cast(pl.Enum(KINGDOM_VALUES)),
             pl.col("phylum").cast(pl.Categorical),
             pl.col("class").cast(pl.Categorical),
             pl.col("order").cast(pl.Categorical),

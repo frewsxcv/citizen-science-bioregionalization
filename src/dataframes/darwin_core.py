@@ -14,7 +14,6 @@ import polars as pl
 
 logger = logging.getLogger(__name__)
 
-from src.constants import KINGDOM_VALUES
 from src.darwin_core_utils import build_darwin_core_raw_lf
 from src.geocode import filter_by_bounding_box
 from src.types import Bbox
@@ -31,9 +30,6 @@ class DarwinCoreSchema(dy.Schema):
     # Geographic fields (required for spatial analysis)
     decimalLatitude = dy.Float64(nullable=False)
     decimalLongitude = dy.Float64(nullable=False)
-
-    # Taxonomic hierarchy
-    kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
 
     # Taxonomic metadata
     scientificName = dy.String(nullable=True)
@@ -86,7 +82,6 @@ def build_darwin_core_lf(
     lf = lf.select(
         "decimalLatitude",
         "decimalLongitude",
-        "kingdom",
         "scientificName",
         "taxonKey",
         "individualCount",

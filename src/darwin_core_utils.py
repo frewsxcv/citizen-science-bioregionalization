@@ -7,8 +7,6 @@ from typing import Any, Union
 
 import polars as pl
 
-from src.constants import KINGDOM_DATA_TYPE
-
 
 @dataclass
 class _Meta:
@@ -25,9 +23,7 @@ class _Meta:
 
 # Columns that should be cast to Categorical/Enum types after loading
 # Maps column name (lowercase) to target data type
-_CATEGORICAL_CASTS: dict[str, pl.DataType] = {
-    "kingdom": KINGDOM_DATA_TYPE,
-}
+_CATEGORICAL_CASTS: dict[str, pl.DataType] = {}
 
 
 # Actual categorical casting is done via cast_taxonomic_columns()
@@ -35,8 +31,6 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Geographic fields
     "decimallatitude": pl.Float64(),
     "decimallongitude": pl.Float64(),
-    # Taxonomic hierarchy (read as String, cast to Categorical later)
-    "kingdom": pl.String(),
     # Taxonomic metadata
     "scientificname": pl.String(),
     "taxonkey": pl.UInt32(),
@@ -88,7 +82,7 @@ def cast_taxonomic_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
     Cast taxonomic columns to their appropriate Categorical types.
 
     This function applies consistent casting for taxonomic hierarchy columns
-    (kingdom, phylum, class, order, family, genus) to optimize
+    (phylum, class, order, family, genus) to optimize
     memory usage and query performance.
 
     Args:
@@ -288,7 +282,7 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
     Build a Polars expression to filter observations by taxon name.
 
     Checks if the taxon name matches any taxonomic rank column:
-    kingdom, phylum, class, order, family, genus, or species.
+    phylum, class, order, family, genus, or species.
 
     Args:
         taxon_name: The taxon name to filter by
@@ -299,8 +293,7 @@ def build_taxon_filter(taxon_name: str) -> pl.Expr:
     """
     raise NotImplementedError("Not currently implemented")
     # return (
-    #     (pl.col("kingdom") == taxon_name)
-    #     | (pl.col("phylum") == taxon_name)
+    #     (pl.col("phylum") == taxon_name)
     #     | (pl.col("class") == taxon_name)
     #     | (pl.col("order") == taxon_name)
     #     | (pl.col("family") == taxon_name)

@@ -3,7 +3,6 @@ import logging
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lf
@@ -18,7 +17,6 @@ class TaxonomySchema(dy.Schema):
     """
 
     taxonId = dy.UInt32(nullable=False)  # Unique identifier for each taxon
-    kingdom = dy.Enum(KINGDOM_VALUES, nullable=True)
     scientificName = dy.String(nullable=True)
     gbifTaxonId = dy.UInt32(nullable=False)
 
@@ -46,21 +44,21 @@ def build_taxonomy_lf(
     geocode_filter_lf = geocode_lf.select("geocode")
 
     lf = (
-        darwin_core_lf.pipe(filter_by_bounding_box, bounding_box=bounding_box)
-        .pipe(with_geocode_lf, geocode_precision=geocode_precision)
-        # Semi-join: keeps rows where geocode exists, without loading list to memory
-        .join(geocode_filter_lf, on="geocode", how="semi")
-        .select(
-            "kingdom",
+        darwin_core_lf.select(
+            "decimalLatitude",
+            "decimalLongitude",
             "scientificName",
-            # pl.col("acceptedTaxonKey").alias("gbifTaxonId"),
             pl.col("taxonKey").alias("gbifTaxonId"),
         )
-        # Use group_by instead of unique() for better streaming support
-        .group_by("scientificName", "gbifTaxonId")
-        .agg(
-            pl.col("kingdom").first(),
+        .pipe(filter_by_bounding_box, bounding_box=bounding_box)
+        .pipe(with_geocode_lf, geocode_precision=geocode_precision)
+        .drop(
+            "decimalLatitude",
+            "decimalLongitude",
         )
+        # Semi-join: keeps rows where geocode exists, without loading list to memory
+        .join(geocode_filter_lf, on="geocode", how="semi")
+        .unique()
         # Add a unique taxonId for each row
         .with_row_index("taxonId")
         .cast({"taxonId": pl.UInt32})

@@ -1,7 +1,6 @@
 import dataframely as dy
 import polars as pl
 
-from src.constants import KINGDOM_VALUES
 from src.dataframes.taxonomy import TaxonomySchema
 
 
@@ -12,7 +11,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
     taxonomy_data = [
         {
             "taxonId": 0,
-            "kingdom": "Animalia",
             "phylum": "Chordata",
             "class": "Mammalia",
             "order": "Carnivora",
@@ -24,7 +22,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         },
         {
             "taxonId": 1,
-            "kingdom": "Animalia",
             "phylum": "Chordata",
             "class_": "Mammalia",
             "order": "Carnivora",
@@ -36,7 +33,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         },
         {
             "taxonId": 2,
-            "kingdom": "Plantae",
             "phylum": "Tracheophyta",
             "class": "Magnoliopsida",
             "order": "Fagales",
@@ -48,7 +44,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         },
         {
             "taxonId": 3,
-            "kingdom": "Animalia",
             "phylum": "Chordata",
             "class": "Aves",
             "order": "Anseriformes",
@@ -61,7 +56,6 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
     ]
     taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
         pl.col("taxonId").cast(pl.UInt32),
-        pl.col("kingdom").cast(pl.Enum(KINGDOM_VALUES)),
         pl.col("phylum").cast(pl.Categorical),
         pl.col("class").cast(pl.Categorical),
         pl.col("order").cast(pl.Categorical),
