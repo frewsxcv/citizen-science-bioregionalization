@@ -44,7 +44,7 @@ def cache_parquet(
     output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
 
     if isinstance(data, pl.LazyFrame):
-        data.sink_parquet(output_path)
+        data.sink_parquet(output_path, engine="streaming")
     else:
         data.write_parquet(output_path)
 
