@@ -413,11 +413,11 @@ def _(darwin_core_lf, pl):
 def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
     from src.dataframes.geocode import (
         GeocodeSchema,
-        build_geocode_df,
+        build_geocode_lf,
     )
 
     geocode_lf_with_edges = cache_parquet(
-        build_geocode_df(
+        build_geocode_lf(
             darwin_core_lf,
             geocode_precision,
             bounding_box=bounding_box,

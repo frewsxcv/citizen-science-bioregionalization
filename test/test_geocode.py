@@ -11,6 +11,7 @@ from src.dataframes.geocode import (
     GeocodeNoEdgesSchema,
     GeocodeSchema,
     build_geocode_df,
+    build_geocode_lf,
     build_geocode_no_edges_lf,
     index_of_geocode,
 )
@@ -54,6 +55,42 @@ class TestGeocodeSchema(unittest.TestCase):
         )
 
         # Validate the result
+        self.assertIsInstance(geocode_df, pl.DataFrame)
+
+        # Should have unique geocodes
+        self.assertEqual(
+            geocode_df["geocode"].n_unique(),
+            geocode_df.shape[0],
+            "Geocodes should be unique",
+        )
+
+        # Check that we have the expected columns
+        self.assertIn("geocode", geocode_df.columns)
+        self.assertIn("center", geocode_df.columns)
+        self.assertIn("boundary", geocode_df.columns)
+        self.assertIn("is_edge", geocode_df.columns)
+
+    def test_build_geocode_lf_returns_lazyframe(self):
+        """Test that build_geocode_lf returns a LazyFrame"""
+        bounding_box = Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0)
+
+        darwin_core_lf = build_darwin_core_lf(
+            source_path=os.path.join("test", "sample-archive"),
+            bounding_box=bounding_box,
+            limit=10,
+        )
+
+        geocode_lf = build_geocode_lf(
+            darwin_core_lf,
+            geocode_precision=8,
+            bounding_box=bounding_box,
+        )
+
+        # Validate it's a LazyFrame
+        self.assertIsInstance(geocode_lf, pl.LazyFrame)
+
+        # Collect and verify contents
+        geocode_df = geocode_lf.collect()
         self.assertIsInstance(geocode_df, pl.DataFrame)
 
         # Should have unique geocodes

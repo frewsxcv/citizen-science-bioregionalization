@@ -1,17 +1,11 @@
-import logging
-
 import dataframely as dy
 import polars as pl
 import polars_h3
 import polars_st as pl_st
-import shapely
-from shapely.geometry import box
 
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.geocode import select_geocode_lf
 from src.types import Bbox
-
-logger = logging.getLogger(__name__)
 
 
 class GeocodeSchema(dy.Schema):
@@ -42,12 +36,109 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         return ~pl.col("is_edge")
 
 
+def _bbox_boundary_coords(bounding_box: Bbox) -> list[list[float]]:
+    """Create bounding box boundary coordinates as a closed linestring.
+
+    Args:
+        bounding_box: Geographic bounding box
+
+    Returns:
+        List of [lng, lat] coordinates forming a closed ring
+    """
+    return [
+        [bounding_box.min_lng, bounding_box.min_lat],
+        [bounding_box.max_lng, bounding_box.min_lat],
+        [bounding_box.max_lng, bounding_box.max_lat],
+        [bounding_box.min_lng, bounding_box.max_lat],
+        [bounding_box.min_lng, bounding_box.min_lat],  # close the ring
+    ]
+
+
+def build_geocode_lf(
+    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    geocode_precision: int,
+    bounding_box: Bbox,
+) -> dy.LazyFrame[GeocodeSchema]:
+    """Build a GeocodeSchema LazyFrame from Darwin Core occurrence data.
+
+    This function is fully lazy - no collection occurs until downstream code
+    explicitly collects the result.
+
+    Args:
+        darwin_core_lf: LazyFrame of Darwin Core occurrence records
+        geocode_precision: H3 resolution (0-15). Higher = smaller hexagons.
+        bounding_box: Geographic bounding box to determine edge hexagons
+
+    Returns:
+        A validated LazyFrame conforming to GeocodeSchema
+    """
+    # Create bounding box boundary as a linestring for intersection testing
+    bbox_coords = _bbox_boundary_coords(bounding_box)
+
+    lf = (
+        darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
+        .filter(pl.col("geocode").is_not_null())
+        .unique()
+        .sort(by="geocode")
+        # Create center point from geocode
+        .with_columns(
+            center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
+        )
+        .with_columns(
+            center=pl_st.point("center_xy"),
+        )
+        # Get boundary coordinates from H3 (returns list[list[f64]] in lat,lng order)
+        .with_columns(_boundary_coords=polars_h3.cell_to_boundary("geocode"))
+        .with_columns(
+            _boundary_coords_lnglat=pl.col("_boundary_coords").list.eval(
+                pl.element().list.reverse()
+            )
+        )
+        # Close the polygon ring by appending the first point
+        .with_columns(
+            _boundary_coords_closed=pl.col("_boundary_coords_lnglat").list.concat(
+                pl.col("_boundary_coords_lnglat").list.slice(0, 1)
+            )
+        )
+        # Add row index for wrapping operation
+        .with_row_index("_row_idx")
+        # Wrap in another list for polygon format: list[list[list[f64]]]
+        .with_columns(
+            _boundary_ring=pl.col("_boundary_coords_closed").implode().over("_row_idx")
+        )
+        # Create polygon geometry from coordinates
+        .with_columns(boundary=pl_st.polygon("_boundary_ring"))
+        # Create bbox boundary linestring and check intersection
+        .with_columns(_bbox_boundary=pl_st.linestring(pl.lit(bbox_coords)))
+        .with_columns(
+            is_edge=pl_st.geom("boundary").st.intersects(pl_st.geom("_bbox_boundary"))
+        )
+        # Clean up intermediate columns
+        .drop(
+            "center_xy",
+            "_boundary_coords",
+            "_boundary_coords_lnglat",
+            "_boundary_coords_closed",
+            "_row_idx",
+            "_boundary_ring",
+            "_bbox_boundary",
+        )
+        # Select final columns in schema order
+        .select(list(GeocodeSchema.columns().keys()))
+    )
+
+    return GeocodeSchema.validate(lf, eager=False)
+
+
 def build_geocode_df(
     darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
     geocode_precision: int,
     bounding_box: Bbox,
 ) -> dy.DataFrame[GeocodeSchema]:
     """Build a GeocodeSchema DataFrame from Darwin Core occurrence data.
+
+    This is a convenience wrapper around build_geocode_lf() that collects
+    the result into an eager DataFrame.
 
     Args:
         darwin_core_lf: LazyFrame of Darwin Core occurrence records
@@ -57,67 +148,8 @@ def build_geocode_df(
     Returns:
         A validated DataFrame conforming to GeocodeSchema
     """
-    df = (
-        darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
-        .filter(pl.col("geocode").is_not_null())
-        .unique()
-        .sort(by="geocode")
-        .with_columns(
-            center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
-        )
-        .with_columns(
-            center=pl_st.point("center_xy"),
-        )
-        .collect(engine="streaming")
-    )
-
-    # Create boundaries for all hexagons
-    boundaries: list[shapely.Polygon] = []
-
-    for geocode, geometry in df.select(
-        "geocode",
-        polars_h3.cell_to_boundary("geocode").alias("geometry"),
-    ).iter_rows():
-        boundary = shapely.Polygon(latlng_list_to_lnglat_list(geometry))
-        boundaries.append(boundary)
-
-    # Use provided bounding box to determine edge hexagons
-    logger.info(
-        f"Using provided bounding box: lat=[{bounding_box.min_lat:.4f}, {bounding_box.max_lat:.4f}], "
-        f"lng=[{bounding_box.min_lng:.4f}, {bounding_box.max_lng:.4f}]"
-    )
-
-    # Create bounding box boundary (the edges, not the filled box)
-    bbox_boundary = box(
-        bounding_box.min_lng,
-        bounding_box.min_lat,
-        bounding_box.max_lng,
-        bounding_box.max_lat,
-    ).boundary
-
-    # Check which hexagons intersect the bounding box edges
-    is_edge_list: list[bool] = []
-    for boundary in boundaries:
-        intersects_edge = boundary.intersects(bbox_boundary)
-        if intersects_edge is None:
-            raise ValueError(
-                f"boundary.intersects() returned None for boundary: {boundary}"
-            )
-        is_edge_list.append(intersects_edge)
-
-    df = df.with_columns(
-        boundary=pl_st.from_shapely(pl.Series(boundaries)),
-        is_edge=pl.Series(is_edge_list),
-    )
-
-    initial_count = len(df)
-    edge_count = df.filter(pl.col("is_edge")).shape[0]
-    logger.info(
-        f"Identified {edge_count} edge hexagons ({edge_count / initial_count * 100:.1f}%)"
-    )
-
-    df = df.select(list(GeocodeSchema.columns().keys()))
-    return GeocodeSchema.validate(df)
+    lf = build_geocode_lf(darwin_core_lf, geocode_precision, bounding_box)
+    return GeocodeSchema.validate(lf.collect())
 
 
 def build_geocode_no_edges_lf(
@@ -125,23 +157,17 @@ def build_geocode_no_edges_lf(
 ) -> dy.LazyFrame[GeocodeNoEdgesSchema]:
     """Build a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
+    This function is fully lazy - no collection occurs until downstream code
+    explicitly collects the result.
+
     Args:
         geocode_lf: A validated GeocodeSchema lazy dataframe
 
     Returns:
         A validated GeocodeNoEdgesSchema lazyframe with edge hexagons removed
     """
-    # Collect input to get count
-    input_df = geocode_lf.collect(engine="streaming")
-    logger.info(f"build_geocode_no_edges_lf: Input geocode count: {input_df.height}")
-
-    # Filter out edge hexagons and collect
-    result_df = input_df.filter(~pl.col("is_edge")).sort(by="geocode")
-    logger.info(
-        f"build_geocode_no_edges_lf: Output geocode count (after removing edges): {result_df.height}"
-    )
-
-    return GeocodeNoEdgesSchema.validate(result_df, eager=False)
+    lf = geocode_lf.filter(~pl.col("is_edge")).sort(by="geocode")
+    return GeocodeNoEdgesSchema.validate(lf, eager=False)
 
 
 def index_of_geocode(
@@ -164,14 +190,3 @@ def index_of_geocode(
     if index is None:
         raise ValueError(f"Geocode {geocode} not found in GeocodeDataFrame")
     return index
-
-
-def latlng_list_to_lnglat_list(
-    latlng_list: list[tuple[float, float]],
-) -> list[tuple[float, float]]:
-    """Convert a list of (lat, lng) tuples to (lng, lat) tuples.
-
-    H3 returns coordinates in (lat, lng) order, but most GIS tools
-    expect (lng, lat) order.
-    """
-    return [(lng, lat) for (lat, lng) in latlng_list]
