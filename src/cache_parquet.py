@@ -1,10 +1,14 @@
 import hashlib
+import logging
 import os
 import tempfile
 from typing import TypeVar, cast, overload
 
 import dataframely as dy
 import polars as pl
+
+logger = logging.getLogger(__name__)
+
 
 SchemaT = TypeVar("SchemaT", bound=dy.Schema)
 
@@ -44,8 +48,14 @@ def cache_parquet(
     output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
 
     if isinstance(data, pl.LazyFrame):
+        logger.info(
+            f"Writing data from {cache_key.__name__} LazyFrame to {output_path}"
+        )
         data.sink_parquet(output_path, engine="streaming")
     else:
+        logger.info(
+            f"Writing data from {cache_key.__name__} DataFrame to {output_path}"
+        )
         data.write_parquet(output_path)
 
     return cast(dy.LazyFrame[SchemaT], pl.scan_parquet(output_path))
