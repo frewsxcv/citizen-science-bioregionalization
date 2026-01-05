@@ -77,6 +77,10 @@ def build_geocode_lf(
 
     lf = (
         darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
+        .drop(
+            "decimalLatitude",
+            "decimalLongitude",
+        )
         .filter(pl.col("geocode").is_not_null())
         .unique()
         .sort(by="geocode")
