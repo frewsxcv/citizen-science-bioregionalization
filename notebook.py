@@ -405,7 +405,7 @@ def _(bounding_box, limit_results, parquet_source_path, taxon_filter):
 
 @app.cell
 def _(darwin_core_lf, pl):
-    darwin_core_lf.select(pl.len()).collect(engine="streaming")
+    # darwin_core_lf.select(pl.len()).collect(engine="streaming")
     return
 
 
