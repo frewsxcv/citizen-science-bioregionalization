@@ -3,6 +3,24 @@ name: Run
 on: push
 
 jobs:
+  create-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      label: ${{ steps.create-runner.outputs.label }}
+    steps:
+      - id: create-runner
+        uses: related-sciences/gce-github-runner@v0.14
+        with:
+          token: ${{ secrets.GH_SA_TOKEN }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          image_project: ubuntu-os-cloud
+          image_family: ubuntu-2004-lts
+  test:
+    needs: create-runner
+    runs-on: ${{ needs.create-runner.outputs.label }}
+    steps:
+      - run: echo "This runs on the GCE VM"
   build:
     runs-on: ubuntu-latest
     strategy:
