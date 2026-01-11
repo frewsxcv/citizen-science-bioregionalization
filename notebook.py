@@ -1103,7 +1103,7 @@ def _(all_clusters_df, geocode_distance_matrix, optimal_num_clusters, pl):
         pl.DataFrame(
             {
                 "geocode": k_df["geocode"],
-                "silhouette_score": list(samples),
+                "silhouette_score": list(samples),  # type: ignore
                 "num_clusters": [optimal_num_clusters] * len(k_df),
             }
         ).with_columns(
