@@ -81,9 +81,11 @@ class TestGeocodeClusterMetricsSchema(unittest.TestCase):
                 "silhouette_score": [0.5, 0.6, 0.4],
                 "calinski_harabasz_score": [100.0, 150.0, 120.0],
                 "davies_bouldin_score": [0.8, 0.6, 0.9],
+                "inertia": [500.0, 300.0, 200.0],
                 "silhouette_normalized": [0.75, 0.8, 0.7],
                 "calinski_harabasz_normalized": [0.0, 1.0, 0.4],
                 "davies_bouldin_normalized": [0.33, 1.0, 0.0],
+                "inertia_normalized": [0.0, 0.67, 1.0],
                 "combined_score": [0.6, 0.8, 0.5],
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
@@ -98,9 +100,11 @@ class TestGeocodeClusterMetricsSchema(unittest.TestCase):
                 "silhouette_score": [0.5],
                 "calinski_harabasz_score": [100.0],
                 "davies_bouldin_score": [0.8],
+                "inertia": [500.0],
                 "silhouette_normalized": [0.75],
                 "calinski_harabasz_normalized": [0.5],
                 "davies_bouldin_normalized": [0.5],
+                "inertia_normalized": [0.5],
                 "combined_score": [0.6],
             }
         )
@@ -250,9 +254,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.3,
                     "calinski_harabasz_score": 100.0,
                     "davies_bouldin_score": 0.8,
+                    "inertia": 500.0,
                     "silhouette_normalized": 0.65,
                     "calinski_harabasz_normalized": 0.0,
                     "davies_bouldin_normalized": 1.0,
+                    "inertia_normalized": 0.0,
                     "combined_score": 0.5,
                 },
                 {
@@ -260,9 +266,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.5,
                     "calinski_harabasz_score": 150.0,
                     "davies_bouldin_score": 0.6,
+                    "inertia": 300.0,
                     "silhouette_normalized": 0.75,
                     "calinski_harabasz_normalized": 1.0,
                     "davies_bouldin_normalized": 0.5,
+                    "inertia_normalized": 0.67,
                     "combined_score": 0.75,  # Highest
                 },
                 {
@@ -270,9 +278,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.4,
                     "calinski_harabasz_score": 120.0,
                     "davies_bouldin_score": 0.7,
+                    "inertia": 200.0,
                     "silhouette_normalized": 0.7,
                     "calinski_harabasz_normalized": 0.4,
                     "davies_bouldin_normalized": 0.75,
+                    "inertia_normalized": 1.0,
                     "combined_score": 0.6,
                 },
             ]
@@ -291,22 +301,26 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                 {
                     "num_clusters": 2,
                     "silhouette_score": 0.2,  # Below threshold
-                    "calinski_harabasz_score": 200.0,
-                    "davies_bouldin_score": 0.4,
+                    "calinski_harabasz_score": 100.0,
+                    "davies_bouldin_score": 0.8,
+                    "inertia": 500.0,
                     "silhouette_normalized": 0.6,
-                    "calinski_harabasz_normalized": 1.0,
+                    "calinski_harabasz_normalized": 0.0,
                     "davies_bouldin_normalized": 1.0,
-                    "combined_score": 0.9,  # Would be highest without filter
+                    "inertia_normalized": 0.0,
+                    "combined_score": 0.9,  # Highest combined but low silhouette
                 },
                 {
                     "num_clusters": 3,
                     "silhouette_score": 0.3,  # Above threshold
-                    "calinski_harabasz_score": 100.0,
-                    "davies_bouldin_score": 0.8,
+                    "calinski_harabasz_score": 80.0,
+                    "davies_bouldin_score": 0.9,
+                    "inertia": 300.0,
                     "silhouette_normalized": 0.65,
-                    "calinski_harabasz_normalized": 0.0,
-                    "davies_bouldin_normalized": 0.0,
-                    "combined_score": 0.3,
+                    "calinski_harabasz_normalized": 0.5,
+                    "davies_bouldin_normalized": 0.5,
+                    "inertia_normalized": 1.0,
+                    "combined_score": 0.6,
                 },
             ]
         )
@@ -327,9 +341,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.1,  # Below threshold
                     "calinski_harabasz_score": 100.0,
                     "davies_bouldin_score": 0.8,
+                    "inertia": 500.0,
                     "silhouette_normalized": 0.55,
                     "calinski_harabasz_normalized": 0.0,
                     "davies_bouldin_normalized": 0.0,
+                    "inertia_normalized": 0.0,
                     "combined_score": 0.3,
                 },
                 {
@@ -337,9 +353,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.15,  # Below threshold
                     "calinski_harabasz_score": 150.0,
                     "davies_bouldin_score": 0.6,
+                    "inertia": 300.0,
                     "silhouette_normalized": 0.575,
                     "calinski_harabasz_normalized": 1.0,
                     "davies_bouldin_normalized": 1.0,
+                    "inertia_normalized": 1.0,
                     "combined_score": 0.8,
                 },
             ]
@@ -360,9 +378,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.6,  # Highest silhouette
                     "calinski_harabasz_score": 50.0,  # Lowest CH
                     "davies_bouldin_score": 1.5,  # Worst DB
+                    "inertia": 500.0,
                     "silhouette_normalized": 0.8,
                     "calinski_harabasz_normalized": 0.0,
                     "davies_bouldin_normalized": 0.0,
+                    "inertia_normalized": 0.0,
                     "combined_score": 0.3,  # Lowest combined
                 },
                 {
@@ -370,9 +390,11 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
                     "silhouette_score": 0.4,
                     "calinski_harabasz_score": 200.0,
                     "davies_bouldin_score": 0.5,
+                    "inertia": 300.0,
                     "silhouette_normalized": 0.7,
                     "calinski_harabasz_normalized": 1.0,
                     "davies_bouldin_normalized": 1.0,
+                    "inertia_normalized": 1.0,
                     "combined_score": 0.9,  # Highest combined
                 },
             ]
@@ -385,7 +407,6 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
         # Should select k=2 based on silhouette alone
         self.assertEqual(optimal_k, 2)
 
-
 class TestGetMetricsSummary(unittest.TestCase):
     """Tests for get_metrics_summary function."""
 
@@ -393,14 +414,16 @@ class TestGetMetricsSummary(unittest.TestCase):
         """Test that summary is sorted by combined score descending."""
         df = pl.DataFrame(
             {
-                "num_clusters": [2, 3, 4],
-                "silhouette_score": [0.3, 0.5, 0.4],
-                "calinski_harabasz_score": [100.0, 150.0, 120.0],
-                "davies_bouldin_score": [0.8, 0.6, 0.7],
-                "silhouette_normalized": [0.65, 0.75, 0.7],
-                "calinski_harabasz_normalized": [0.0, 1.0, 0.4],
-                "davies_bouldin_normalized": [0.0, 1.0, 0.5],
-                "combined_score": [0.3, 0.85, 0.5],
+                "num_clusters": [2, 5, 10],
+                "silhouette_score": [0.5, 0.45, 0.4],
+                "calinski_harabasz_score": [200.0, 150.0, 100.0],
+                "davies_bouldin_score": [0.5, 0.6, 0.7],
+                "inertia": [800.0, 400.0, 200.0],
+                "silhouette_normalized": [0.75, 0.725, 0.7],
+                "calinski_harabasz_normalized": [1.0, 0.5, 0.0],
+                "davies_bouldin_normalized": [1.0, 0.5, 0.0],
+                "inertia_normalized": [0.0, 0.5, 1.0],
+                "combined_score": [0.9, 0.6, 0.3],
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
 
@@ -408,7 +431,7 @@ class TestGetMetricsSummary(unittest.TestCase):
         summary = get_metrics_summary(metrics_df)
 
         # Should be sorted by combined_score descending
-        self.assertEqual(summary["num_clusters"].to_list(), [3, 4, 2])
+        self.assertEqual(summary["num_clusters"].to_list(), [2, 5, 10])
         self.assertEqual(summary["rank"].to_list(), [1, 2, 3])
 
     def test_includes_expected_columns(self):
@@ -419,9 +442,11 @@ class TestGetMetricsSummary(unittest.TestCase):
                 "silhouette_score": [0.3, 0.5],
                 "calinski_harabasz_score": [100.0, 150.0],
                 "davies_bouldin_score": [0.8, 0.6],
+                "inertia": [500.0, 300.0],
                 "silhouette_normalized": [0.65, 0.75],
                 "calinski_harabasz_normalized": [0.0, 1.0],
                 "davies_bouldin_normalized": [0.0, 1.0],
+                "inertia_normalized": [0.0, 1.0],
                 "combined_score": [0.3, 0.85],
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
@@ -435,6 +460,7 @@ class TestGetMetricsSummary(unittest.TestCase):
             "silhouette_score",
             "calinski_harabasz_score",
             "davies_bouldin_score",
+            "inertia",
             "combined_score",
         }
         self.assertEqual(set(summary.columns), expected_columns)
@@ -451,6 +477,7 @@ class TestGetMetricInterpretations(unittest.TestCase):
             "silhouette_score",
             "calinski_harabasz_score",
             "davies_bouldin_score",
+            "inertia",
             "combined_score",
         }
         self.assertEqual(set(interpretations.keys()), expected_keys)

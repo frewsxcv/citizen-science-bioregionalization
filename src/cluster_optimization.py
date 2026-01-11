@@ -120,6 +120,7 @@ def optimize_num_clusters_multi_metric(
         selection_method: Method for selecting k:
             - "combined": Use combined weighted score (default)
             - "silhouette": Use silhouette score only
+            - "elbow": Find the elbow point in the inertia curve
 
     Returns:
         A tuple containing:

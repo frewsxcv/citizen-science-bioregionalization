@@ -65,6 +65,11 @@ def _(cli_args, defaults, mo):
         value=cli_args.get("max-clusters", defaults.MAX_CLUSTERS),
         label="Max clusters to test",
     )
+    cluster_selection_method_ui = mo.ui.dropdown(
+        options=["combined", "silhouette", "elbow"],
+        value=cli_args.get("selection-method", defaults.CLUSTER_SELECTION_METHOD),
+        label="Cluster selection method",
+    )
     taxon_filter_ui = mo.ui.text(
         cli_args.get("taxon-filter", defaults.TAXON_FILTER),
         label="Taxon filter (optional)",
@@ -113,6 +118,7 @@ def _(cli_args, defaults, mo):
     no_stop = "no-stop" in cli_args
     run_button_ui = mo.ui.run_button()
     return (
+        cluster_selection_method_ui,
         geocode_precision_ui,
         limit_results_enabled_ui,
         limit_results_value_ui,
@@ -153,9 +159,20 @@ def _(geocode_precision_ui):
 
 
 @app.cell(hide_code=True)
-def _(max_clusters_to_test_ui, min_clusters_to_test_ui, mo):
+def _(
+    cluster_selection_method_ui,
+    max_clusters_to_test_ui,
+    min_clusters_to_test_ui,
+    mo,
+):
     _description = mo.md(
-        "**Cluster Configuration:** Number of clusters will be automatically optimized based on silhouette scores."
+        "**Cluster Configuration:** Number of clusters will be automatically optimized based on validation metrics."
+    )
+    _method_notes = mo.md(
+        "_**Method notes:**_\n"
+        "- _'combined': Weighted average of silhouette, Calinski-Harabasz, and Davies-Bouldin metrics_\n"
+        "- _'silhouette': Uses silhouette score only_\n"
+        "- _'elbow': Finds the 'elbow' point where adding clusters stops reducing inertia significantly_"
     )
 
     mo.vstack(
@@ -163,6 +180,8 @@ def _(max_clusters_to_test_ui, min_clusters_to_test_ui, mo):
             _description,
             min_clusters_to_test_ui,
             max_clusters_to_test_ui,
+            cluster_selection_method_ui,
+            _method_notes,
         ]
     )
     return
@@ -269,6 +288,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(
+    cluster_selection_method_ui,
     geocode_precision_ui,
     limit_results_enabled_ui,
     limit_results_value_ui,
@@ -305,6 +325,7 @@ def _(
     geocode_precision = geocode_precision_ui.value
     min_clusters_to_test = min_clusters_to_test_ui.value
     max_clusters_to_test = max_clusters_to_test_ui.value
+    cluster_selection_method = cluster_selection_method_ui.value
     max_taxa = max_taxa_value_ui.value if max_taxa_enabled_ui.value else None
     min_geocode_presence = (
         min_geocode_presence_value_ui.value
@@ -329,6 +350,7 @@ def _(
             {"variable": "geocode_precision", "value": geocode_precision},
             {"variable": "min_clusters_to_test", "value": min_clusters_to_test},
             {"variable": "max_clusters_to_test", "value": max_clusters_to_test},
+            {"variable": "cluster_selection_method", "value": cluster_selection_method},
             {"variable": "max_taxa", "value": max_taxa},
             {"variable": "min_geocode_presence", "value": min_geocode_presence},
         ],
@@ -347,6 +369,7 @@ def _(
     mo.md("Notebook started")
     return (
         bounding_box,
+        cluster_selection_method,
         geocode_precision,
         limit_results,
         log_file,
@@ -691,15 +714,21 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, geocode_distance_matrix):
+def _(
+    all_clusters_df,
+    cluster_selection_method,
+    geocode_distance_matrix,
+):
     from src.cluster_optimization import optimize_num_clusters_multi_metric
 
     optimal_num_clusters, all_cluster_metrics = optimize_num_clusters_multi_metric(
         geocode_distance_matrix,
         all_clusters_df,
         weights={"silhouette": 0.3, "calinski_harabasz": 0.4, "davies_bouldin": 0.3},
-        selection_method="combined",  # Options: "combined", "silhouette"
+        selection_method=cluster_selection_method,
     )
+
+    all_cluster_metrics
     return all_cluster_metrics, optimal_num_clusters
 
 
@@ -731,22 +760,6 @@ def _(all_clusters_df, cache_parquet, optimal_num_clusters):
         cache_key=GeocodeClusterSchema,
     ).collect(engine="streaming")
     return (geocode_cluster_df,)
-
-
-@app.cell
-def _(all_cluster_metrics_df, mo, optimal_num_clusters, pl):
-    _selected = all_cluster_metrics_df.filter(pl.col("num_clusters") == optimal_num_clusters)
-    mo.md(f"""
-    **Optimal number of clusters: k={optimal_num_clusters}**
-
-    | Metric | Score |
-    |--------|-------|
-    | Silhouette | {_selected['silhouette_score'][0]:.4f} |
-    | Calinski-Harabasz | {_selected['calinski_harabasz_score'][0]:.2f} |
-    | Davies-Bouldin | {_selected['davies_bouldin_score'][0]:.4f} |
-    | **Combined Score** | **{_selected['combined_score'][0]:.4f}** |
-    """)
-    return
 
 
 @app.cell
