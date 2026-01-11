@@ -11,7 +11,6 @@ import umap  # type: ignore
 from sklearn.manifold import MDS  # type: ignore
 
 from src.colors import darken_hex_color
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
@@ -28,12 +27,10 @@ class ClusterColorSchema(dy.Schema):
 
 def build_cluster_color_df(
     cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
-    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
     cluster_taxa_statistics_df: Optional[
         dy.DataFrame[ClusterTaxaStatisticsSchema]
     ] = None,
     color_method: Literal["geographic", "taxonomic"] = "geographic",
-    ocean_threshold: float = 0.90,
 ) -> dy.DataFrame[ClusterColorSchema]:
     """
     Build a ClusterColorSchema DataFrame using either geographic neighbor-based coloring
@@ -41,10 +38,8 @@ def build_cluster_color_df(
 
     Args:
         cluster_neighbors_lf: Lazyframe of cluster neighbors
-        cluster_boundary_df: Dataframe of cluster boundaries
         cluster_taxa_statistics_df: Dataframe of cluster taxa statistics (required for taxonomic coloring)
         color_method: Method to use for coloring clusters ("geographic" or "taxonomic")
-        ocean_threshold: Threshold for determining ocean clusters (only used with geographic method)
 
     Returns:
         A ClusterColorSchema DataFrame with colors assigned to clusters
@@ -52,9 +47,7 @@ def build_cluster_color_df(
     logger.info(f"build_cluster_color_df: Starting with color_method={color_method}")
 
     if color_method == "geographic":
-        df = _build_geographic(
-            cluster_neighbors_lf, cluster_boundary_df, ocean_threshold
-        )
+        df = _build_geographic(cluster_neighbors_lf)
     elif color_method == "taxonomic":
         assert cluster_taxa_statistics_df is not None, (
             "cluster_taxa_statistics_df is required for taxonomic coloring"
@@ -82,54 +75,28 @@ def to_dict(
 
 def _build_geographic(
     cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
-    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
-    ocean_threshold: float = 0.90,
 ) -> pl.DataFrame:
     """
-    Creates a coloring where neighboring clusters have different colors,
-    and ocean and land clusters have different color palettes.
+    Creates a coloring where neighboring clusters have different colors.
     """
-    # Import here to avoid circular imports
-    from src.geojson import find_ocean_clusters
-
     G = to_graph(cluster_neighbors_lf)
-
-    # Find ocean clusters
-    ocean_clusters = set(
-        find_ocean_clusters(cluster_boundary_df, threshold=ocean_threshold)
-    )
-
-    # Find land clusters
-    land_clusters = set(G.nodes()) - ocean_clusters
 
     # Use NetworkX to color the entire graph - this ensures adjacent nodes have different colors
     color_indices = nx.coloring.greedy_color(G)
-    ocean_color_indices = {
-        cluster: color_indices[cluster] for cluster in ocean_clusters
-    }
-    land_color_indices = {cluster: color_indices[cluster] for cluster in land_clusters}
 
-    # Determine how many unique colors needed for each group
-    num_ocean_colors = len(set(ocean_color_indices.values()))
-    num_land_colors = len(set(land_color_indices.values()))
+    # Determine how many unique colors needed
+    num_colors = len(set(color_indices.values()))
 
-    # Generate color palettes with the exact sizes needed
-    ocean_palette = sns.color_palette("Blues", num_ocean_colors).as_hex()
-    land_palette = sns.color_palette("YlOrRd", num_land_colors).as_hex()
+    # Generate color palette with the exact size needed
+    palette = sns.color_palette("YlOrRd", num_colors).as_hex()
 
     # Create mapping from color indices to colors
-    ocean_palette_map = dict(
-        zip(sorted(set(ocean_color_indices.values())), ocean_palette)
-    )
-    land_palette_map = dict(zip(sorted(set(land_color_indices.values())), land_palette))
+    palette_map = dict(zip(sorted(set(color_indices.values())), palette))
 
     # Map color indices to actual colors
     rows = []
     for cluster, color_index in color_indices.items():
-        if cluster in ocean_clusters:
-            color = ocean_palette_map[color_index]
-        else:
-            color = land_palette_map[color_index]
+        color = palette_map[color_index]
 
         rows.append(
             {

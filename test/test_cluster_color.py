@@ -6,7 +6,6 @@ import numpy as np
 import polars as pl
 import shapely
 
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
 from src.dataframes.cluster_color import (
     ClusterColorSchema,
     build_cluster_color_df,
@@ -14,15 +13,14 @@ from src.dataframes.cluster_color import (
 )
 from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-from src.geojson import find_ocean_clusters
 from test.fixtures.cluster_taxa_statistics import (
     mock_cluster_taxa_statistics_df,
 )
 
 
 class TestClusterColorSchema(unittest.TestCase):
-    def test_ocean_coloring(self):
-        """Test that ocean clusters get blue colors and land clusters get non-blue colors"""
+    def test_geographic_coloring(self):
+        """Test that geographic coloring assigns colors to all clusters"""
 
         # Create a simple cluster neighbors dataframe with correct schema
         neighbors_df = pl.DataFrame(
@@ -39,48 +37,19 @@ class TestClusterColorSchema(unittest.TestCase):
         )
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
-        # Create mock cluster boundaries
-        # Clusters 1 and 3 will be within the ocean area (-5,-5 to 5,5)
-        # Clusters 2 and 4 will be outside the ocean area (15,15 to 25,25)
-        ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])
-        land_polygon = shapely.Polygon([(15, 15), (25, 15), (25, 25), (15, 25)])
-
-        ocean_wkb = shapely.to_wkb(ocean_polygon)
-        land_wkb = shapely.to_wkb(land_polygon)
-
-        boundaries_df = pl.DataFrame(
-            {
-                "cluster": [1, 2, 3, 4],
-                "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
-            }
-        ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
-
         # Generate colors
-        color_df = build_cluster_color_df(cluster_neighbors.lazy(), cluster_boundaries)
+        color_df = build_cluster_color_df(cluster_neighbors.lazy())
 
         # Get the colors
         colors_dict = to_dict(color_df)
 
-        # Check that clusters 1 and 3 have blue-ish colors
-        for cluster in [1, 3]:
-            color = colors_dict[cluster]
-            # Convert hex to RGB and check if blue is dominant component
-            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-            self.assertTrue(
-                b > r and b > g,
-                f"Cluster {cluster} should have blue-ish color, got {color}",
-            )
+        # Verify all clusters have colors
+        self.assertEqual(len(colors_dict), 4)
 
-        # Check that clusters 2 and 4 have non-blue colors
-        for cluster in [2, 4]:
-            color = colors_dict[cluster]
-            # Convert hex to RGB and check if blue is NOT dominant component
-            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-            self.assertFalse(
-                b > r and b > g,
-                f"Cluster {cluster} should not have blue-ish color, got {color}",
-            )
+        # Verify all colors are valid hex colors
+        for cluster, color in colors_dict.items():
+            self.assertTrue(color.startswith("#"))
+            self.assertEqual(len(color), 7)
 
     def test_color_separation(self):
         """Test that two adjacent clusters never have the same color"""
@@ -104,24 +73,8 @@ class TestClusterColorSchema(unittest.TestCase):
         )
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
-        # Create mock cluster boundaries
-        # Same as above test
-        ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])
-        land_polygon = shapely.Polygon([(15, 15), (25, 15), (25, 25), (15, 25)])
-
-        ocean_wkb = shapely.to_wkb(ocean_polygon)
-        land_wkb = shapely.to_wkb(land_polygon)
-
-        boundaries_df = pl.DataFrame(
-            {
-                "cluster": [1, 2, 3, 4],
-                "geometry": [ocean_wkb, land_wkb, ocean_wkb, land_wkb],
-            }
-        ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
-
         # Generate colors
-        color_df = build_cluster_color_df(cluster_neighbors.lazy(), cluster_boundaries)
+        color_df = build_cluster_color_df(cluster_neighbors.lazy())
 
         # Get the colors
         colors_dict = to_dict(color_df)
@@ -146,7 +99,7 @@ class TestClusterColorSchema(unittest.TestCase):
         # This is below the minimum required for UMAP
         cluster_taxa_stats = mock_cluster_taxa_statistics_df()
 
-        # Create dummy neighbor and boundary data (not used for taxonomic coloring)
+        # Create dummy neighbor data (not used for taxonomic coloring)
         neighbors_df = pl.DataFrame(
             {
                 "cluster": [1, 2, 3, 4],
@@ -161,23 +114,10 @@ class TestClusterColorSchema(unittest.TestCase):
         )
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
-        # Create mock cluster boundaries
-        ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])
-        ocean_wkb = shapely.to_wkb(ocean_polygon)
-
-        boundaries_df = pl.DataFrame(
-            {
-                "cluster": [1, 2, 3, 4],
-                "geometry": [ocean_wkb, ocean_wkb, ocean_wkb, ocean_wkb],
-            }
-        ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
-
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
             build_cluster_color_df(
                 cluster_neighbors.lazy(),
-                cluster_boundaries,
                 cluster_taxa_stats,
                 color_method="taxonomic",
             )
@@ -247,7 +187,7 @@ class TestClusterColorSchema(unittest.TestCase):
 
         cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(taxa_stats_df)
 
-        # Create dummy neighbor and boundary data (not used for taxonomic coloring)
+        # Create dummy neighbor data (not used for taxonomic coloring)
         neighbors_df = pl.DataFrame(
             {
                 "cluster": clusters,
@@ -262,19 +202,9 @@ class TestClusterColorSchema(unittest.TestCase):
         )
         cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
 
-        # Create mock cluster boundaries
-        ocean_polygon = shapely.Polygon([(-5, -5), (5, -5), (5, 5), (-5, 5)])
-        ocean_wkb = shapely.to_wkb(ocean_polygon)
-
-        boundaries_df = pl.DataFrame(
-            {"cluster": clusters, "geometry": [ocean_wkb for _ in range(12)]}
-        ).with_columns([pl.col("cluster").cast(pl.UInt32())])
-        cluster_boundaries = ClusterBoundarySchema.validate(boundaries_df)
-
         # Generate colors using the UMAP-based approach
         color_df = build_cluster_color_df(
             cluster_neighbors.lazy(),
-            cluster_boundaries,
             cluster_taxa_stats,
             color_method="taxonomic",
         )

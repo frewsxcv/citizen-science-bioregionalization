@@ -1010,7 +1010,6 @@ def _(optimal_num_clusters):
 @app.cell
 def _(
     cache_parquet,
-    cluster_boundary_df,
     cluster_neighbors_lf,
     cluster_taxa_statistics_df,
     color_method,
@@ -1020,7 +1019,6 @@ def _(
     cluster_colors_df = cache_parquet(
         build_cluster_color_df(
             cluster_neighbors_lf,
-            cluster_boundary_df,
             cluster_taxa_statistics_df,
             color_method=color_method,
         ),
