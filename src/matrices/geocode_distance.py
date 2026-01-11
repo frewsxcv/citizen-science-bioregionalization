@@ -159,12 +159,17 @@ class GeocodeDistanceMatrix:
     column and row is the similarity (or distance) between the two geocodes. Internally it is stored
     as a condensed distance matrix, which is a one-dimensional array containing the upper triangular
     part of the distance matrix.
+
+    Also stores the UMAP-reduced feature matrix for computing cluster validation metrics
+    like Calinski-Harabasz and Davies-Bouldin scores.
     """
 
     _condensed: np.ndarray
+    _reduced_features: np.ndarray
 
-    def __init__(self, condensed: np.ndarray):
+    def __init__(self, condensed: np.ndarray, reduced_features: np.ndarray):
         self._condensed = condensed
+        self._reduced_features = reduced_features
 
     @classmethod
     def build(
@@ -207,10 +212,23 @@ class GeocodeDistanceMatrix:
             lambda: pdist(reduced_feature_matrix, metric="braycurtis"),
         )
 
-        return cls(condensed_distances)
+        return cls(condensed_distances, reduced_feature_matrix.to_numpy())
 
     def condensed(self) -> np.ndarray:
         return self._condensed
 
     def squareform(self) -> np.ndarray:
         return squareform(self._condensed)
+
+    def reduced_features(self) -> np.ndarray:
+        """
+        Returns the UMAP-reduced feature matrix.
+
+        This is needed for computing cluster validation metrics like
+        Calinski-Harabasz and Davies-Bouldin scores, which require
+        the feature matrix rather than the distance matrix.
+
+        Returns:
+            numpy array of shape (n_geocodes, n_components)
+        """
+        return self._reduced_features

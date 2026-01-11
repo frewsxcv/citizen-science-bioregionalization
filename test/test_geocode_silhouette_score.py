@@ -19,7 +19,9 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         # Create a condensed distance matrix for 3 geocodes
         # Condensed format contains pairwise distances: [d(0,1), d(0,2), d(1,2)]
         condensed_distances = np.array([0.5, 0.9, 0.8])
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (3 geocodes x 2 dimensions)
+        reduced_features = np.array([[0.1, 0.2], [0.6, 0.7], [0.9, 0.1]])
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
 
         num_clusters = 2
         geocode_cluster_df = mock_geocode_cluster_multi_k_df(num_clusters=num_clusters)
@@ -52,7 +54,9 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         """
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (3 geocodes x 2 dimensions)
+        reduced_features = np.array([[0.1, 0.2], [0.6, 0.7], [0.9, 0.1]])
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
 
         # Test with different num_clusters values
         for num_k in [2, 5, 10]:
@@ -70,7 +74,9 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         """
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (3 geocodes x 2 dimensions)
+        reduced_features = np.array([[0.1, 0.2], [0.6, 0.7], [0.9, 0.1]])
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
 
         # Build two dataframes with different num_clusters
         geocode_cluster_df_2 = mock_geocode_cluster_multi_k_df(num_clusters=2)
@@ -100,7 +106,9 @@ class TestGeocodeSilhouetteScore(unittest.TestCase):
         """
         # Create a condensed distance matrix for 3 geocodes
         condensed_distances = np.array([0.5, 0.9, 0.8])
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (3 geocodes x 2 dimensions)
+        reduced_features = np.array([[0.1, 0.2], [0.6, 0.7], [0.9, 0.1]])
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
         geocode_cluster_df = mock_geocode_cluster_multi_k_df(num_clusters=3)
 
         result = build_geocode_silhouette_score_df(

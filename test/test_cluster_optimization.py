@@ -96,7 +96,11 @@ class TestClusterOptimization(unittest.TestCase):
         condensed_distances = np.array(
             [0.2, 0.8, 0.9, 0.85, 0.15, 0.7, 0.75, 0.8, 0.85, 0.3]
         )
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (5 geocodes x 2 dimensions)
+        reduced_features = np.array(
+            [[0.1, 0.2], [0.15, 0.25], [0.8, 0.9], [0.85, 0.95], [0.5, 0.5]]
+        )
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
 
         # Create connectivity matrix from neighbors
         geocode_neighbors_df = mock_geocode_neighbors_df()
@@ -144,7 +148,11 @@ class TestClusterOptimization(unittest.TestCase):
         condensed_distances = np.array(
             [0.2, 0.8, 0.9, 0.85, 0.15, 0.7, 0.75, 0.8, 0.85, 0.3]
         )
-        distance_matrix = GeocodeDistanceMatrix(condensed_distances)
+        # Create mock reduced features (5 geocodes x 2 dimensions)
+        reduced_features = np.array(
+            [[0.1, 0.2], [0.15, 0.25], [0.8, 0.9], [0.85, 0.95], [0.5, 0.5]]
+        )
+        distance_matrix = GeocodeDistanceMatrix(condensed_distances, reduced_features)
         geocode_neighbors_df = mock_geocode_neighbors_df()
         connectivity_matrix = GeocodeConnectivityMatrix.build(geocode_neighbors_df)
 

@@ -15,7 +15,6 @@ def _():
 
     from src import defaults
     from src.cache_parquet import cache_parquet
-
     return cache_parquet, defaults, folium, mo, np, pl
 
 
@@ -693,25 +692,27 @@ def _(mo):
 
 @app.cell
 def _(all_clusters_df, geocode_distance_matrix):
-    from src.cluster_optimization import optimize_num_clusters
+    from src.cluster_optimization import optimize_num_clusters_multi_metric
 
-    optimal_num_clusters, all_silhouette_scores = optimize_num_clusters(
+    optimal_num_clusters, all_cluster_metrics = optimize_num_clusters_multi_metric(
         geocode_distance_matrix,
         all_clusters_df,
+        weights={"silhouette": 0.3, "calinski_harabasz": 0.4, "davies_bouldin": 0.3},
+        selection_method="combined",  # Options: "combined", "silhouette"
     )
-    return all_silhouette_scores, optimal_num_clusters
+    return all_cluster_metrics, optimal_num_clusters
 
 
 @app.cell
-def _(all_silhouette_scores, cache_parquet):
+def _(all_cluster_metrics, cache_parquet):
     # Cache the results
-    from src.cluster_optimization import optimize_num_clusters as optimization_cache_key
+    from src.dataframes.geocode_cluster_metrics import GeocodeClusterMetricsSchema
 
-    all_silhouette_scores_df = cache_parquet(
-        all_silhouette_scores,
-        cache_key=optimization_cache_key,
+    all_cluster_metrics_df = cache_parquet(
+        all_cluster_metrics,
+        cache_key=GeocodeClusterMetricsSchema,
     ).collect(engine="streaming")
-    return (all_silhouette_scores_df,)
+    return (all_cluster_metrics_df,)
 
 
 @app.cell
@@ -733,16 +734,24 @@ def _(all_clusters_df, cache_parquet, optimal_num_clusters):
 
 
 @app.cell
-def _(mo, optimal_num_clusters):
+def _(all_cluster_metrics_df, mo, optimal_num_clusters, pl):
+    _selected = all_cluster_metrics_df.filter(pl.col("num_clusters") == optimal_num_clusters)
     mo.md(f"""
     **Optimal number of clusters: k={optimal_num_clusters}**
+
+    | Metric | Score |
+    |--------|-------|
+    | Silhouette | {_selected['silhouette_score'][0]:.4f} |
+    | Calinski-Harabasz | {_selected['calinski_harabasz_score'][0]:.2f} |
+    | Davies-Bouldin | {_selected['davies_bouldin_score'][0]:.4f} |
+    | **Combined Score** | **{_selected['combined_score'][0]:.4f}** |
     """)
     return
 
 
 @app.cell
-def _(all_silhouette_scores_df):
-    all_silhouette_scores_df
+def _(all_cluster_metrics_df):
+    all_cluster_metrics_df
     return
 
 
@@ -755,27 +764,27 @@ def _(mo):
 
 
 @app.cell
-def _(all_silhouette_scores_df):
-    from src.cluster_optimization import format_optimization_results
+def _(all_cluster_metrics_df):
+    from src.dataframes.geocode_cluster_metrics import get_metrics_summary
 
-    format_optimization_results(all_silhouette_scores_df)
+    get_metrics_summary(all_cluster_metrics_df)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Silhouette Score vs Number of Clusters
+    ### Multi-Metric Cluster Validation
     """)
     return
 
 
 @app.cell
-def _(all_silhouette_scores_df, optimal_num_clusters):
-    from src.plot.cluster_optimization import plot_silhouette_vs_k
+def _(all_cluster_metrics_df, optimal_num_clusters):
+    from src.plot.cluster_metrics import plot_all_metrics_vs_k
 
-    plot_silhouette_vs_k(
-        all_silhouette_scores_df,
+    plot_all_metrics_vs_k(
+        all_cluster_metrics_df,
         optimal_k=optimal_num_clusters,
     )
     return
@@ -784,18 +793,18 @@ def _(all_silhouette_scores_df, optimal_num_clusters):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Silhouette Score Distributions
+    ### Normalized Metrics Comparison
     """)
     return
 
 
 @app.cell
-def _(all_silhouette_scores_df):
-    from src.plot.cluster_optimization import plot_silhouette_distributions
+def _(all_cluster_metrics_df, optimal_num_clusters):
+    from src.plot.cluster_metrics import plot_normalized_metrics
 
-    plot_silhouette_distributions(
-        all_silhouette_scores_df,
-        top_n=5,
+    plot_normalized_metrics(
+        all_cluster_metrics_df,
+        optimal_k=optimal_num_clusters,
     )
     return
 
@@ -1062,10 +1071,32 @@ def _(mo):
 
 
 @app.cell
-def _(all_silhouette_scores_df, optimal_num_clusters, pl):
-    # Filter the already-computed silhouette scores to just the optimal k
-    geocode_silhouette_score_df = all_silhouette_scores_df.filter(
-        pl.col("num_clusters") == optimal_num_clusters
+def _(all_clusters_df, geocode_distance_matrix, optimal_num_clusters, pl):
+    from sklearn.metrics import silhouette_samples
+
+    from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
+
+    # Get clustering for optimal k
+    k_df = all_clusters_df.filter(pl.col("num_clusters") == optimal_num_clusters)
+
+    # Compute per-geocode silhouette scores for the optimal k
+    samples = silhouette_samples(
+        X=geocode_distance_matrix.squareform(),
+        labels=k_df["cluster"],
+        metric="precomputed",
+    )
+
+    geocode_silhouette_score_df = GeocodeSilhouetteScoreSchema.validate(
+        pl.DataFrame(
+            {
+                "geocode": k_df["geocode"],
+                "silhouette_score": list(samples),
+                "num_clusters": [optimal_num_clusters] * len(k_df),
+            }
+        ).with_columns(
+            pl.col("geocode").cast(pl.UInt64),
+            pl.col("num_clusters").cast(pl.UInt32),
+        )
     )
     return (geocode_silhouette_score_df,)
 
@@ -1194,17 +1225,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    cluster_colors_df,
-    cluster_significant_differences_df,
-    cluster_taxa_statistics_df,
-    geocode_cluster_df,
-    geocode_distance_matrix,
-    geocode_lf,
-    geocode_taxa_counts_lf,
-    mo,
-    taxonomy_lf,
-):
+def _():
     # from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
     # heatmap = create_cluster_taxa_heatmap(

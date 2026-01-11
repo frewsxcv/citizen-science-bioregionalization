@@ -2,7 +2,13 @@
 Cluster optimization module for automatically determining the optimal number of clusters.
 
 This module provides functionality to test multiple clustering configurations and
-select the optimal number of clusters based on silhouette scores.
+select the optimal number of clusters based on validation metrics.
+
+Two optimization approaches are available:
+1. Single-metric (silhouette score only) - via optimize_num_clusters()
+2. Multi-metric (silhouette + Calinski-Harabasz + Davies-Bouldin) - via optimize_num_clusters_multi_metric()
+
+The multi-metric approach is recommended for more robust cluster selection.
 """
 
 import logging
@@ -12,6 +18,11 @@ import dataframely as dy
 import polars as pl
 
 from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
+from src.dataframes.geocode_cluster_metrics import (
+    GeocodeClusterMetricsSchema,
+    build_geocode_cluster_metrics_df,
+    select_optimal_k_multi_metric,
+)
 from src.dataframes.geocode_silhouette_score import (
     GeocodeSilhouetteScoreSchema,
     build_geocode_silhouette_score_df,
@@ -79,6 +90,91 @@ def optimize_num_clusters(
     logger.info(f"Optimal number of clusters: k={optimal_k}")
 
     return optimal_k, silhouette_scores_df
+
+
+def optimize_num_clusters_multi_metric(
+    distance_matrix: GeocodeDistanceMatrix,
+    geocode_cluster_df: dy.DataFrame[GeocodeClusterMultiKSchema],
+    weights: dict[str, float] | None = None,
+    min_silhouette_threshold: float | None = 0.25,
+    selection_method: str = "combined",
+) -> Tuple[int, dy.DataFrame[GeocodeClusterMetricsSchema]]:
+    """
+    Find optimal number of clusters using multiple validation metrics.
+
+    This function uses three complementary metrics to select the optimal k:
+    - Silhouette Score: Measures cluster cohesion and separation
+    - Calinski-Harabasz Index: Ratio of between-cluster to within-cluster variance
+    - Davies-Bouldin Index: Average similarity between clusters (lower is better)
+
+    Using multiple metrics provides more robust k selection than silhouette alone.
+
+    Args:
+        distance_matrix: Precomputed distance matrix between geocodes
+        geocode_cluster_df: DataFrame with clustering results for all k values to test
+        weights: Optional dict with metric weights for combined score.
+                 Keys: "silhouette", "calinski_harabasz", "davies_bouldin"
+                 Default: {"silhouette": 0.4, "calinski_harabasz": 0.3, "davies_bouldin": 0.3}
+        min_silhouette_threshold: Minimum acceptable silhouette score (default: 0.25)
+                                  Set to None to disable threshold filtering.
+        selection_method: Method for selecting k:
+            - "combined": Use combined weighted score (default)
+            - "silhouette": Use silhouette score only
+
+    Returns:
+        A tuple containing:
+        - optimal_k: The number of clusters with the best combined score
+        - metrics_df: DataFrame with all metrics for all tested k values
+
+    Example:
+        >>> cluster_df = build_geocode_cluster_multi_k_df(
+        ...     geocode_lf, distance_matrix, connectivity_matrix,
+        ...     min_k=2, max_k=15
+        ... )
+        >>> optimal_k, metrics_df = optimize_num_clusters_multi_metric(
+        ...     distance_matrix, cluster_df
+        ... )
+        >>> print(f"Optimal number of clusters: {optimal_k}")
+    """
+    # Compute all cluster validation metrics
+    metrics_df = build_geocode_cluster_metrics_df(
+        distance_matrix,
+        geocode_cluster_df,
+        weights=weights,
+    )
+
+    # Select optimal k using multi-metric criteria
+    optimal_k = select_optimal_k_multi_metric(
+        metrics_df,
+        min_silhouette_threshold=min_silhouette_threshold,
+        selection_method=selection_method,
+    )
+
+    if optimal_k is None:
+        logger.warning(
+            "No k value met minimum threshold. Selecting k with highest combined score."
+        )
+        optimal_k = select_optimal_k_multi_metric(
+            metrics_df,
+            min_silhouette_threshold=None,
+            selection_method=selection_method,
+        )
+        if optimal_k is None:
+            raise RuntimeError(
+                "Could not determine optimal k - all metrics may be invalid"
+            )
+
+    # Log the metrics for the selected k
+    selected_metrics = metrics_df.filter(pl.col("num_clusters") == optimal_k)
+    logger.info(
+        f"Optimal k={optimal_k} selected via {selection_method} method:\n"
+        f"  Silhouette: {selected_metrics['silhouette_score'][0]:.4f}\n"
+        f"  Calinski-Harabasz: {selected_metrics['calinski_harabasz_score'][0]:.2f}\n"
+        f"  Davies-Bouldin: {selected_metrics['davies_bouldin_score'][0]:.4f}\n"
+        f"  Combined Score: {selected_metrics['combined_score'][0]:.4f}"
+    )
+
+    return optimal_k, metrics_df
 
 
 def get_overall_silhouette_scores(
