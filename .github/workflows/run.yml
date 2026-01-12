@@ -25,7 +25,7 @@ jobs:
             max_lat: 47
             min_lon: -87
             max_lon: -66
-            limit_results: 400000000
+            limit_results: 300000000
             geocode_precision: 4
             min_clusters: 2
             max_clusters: 15
