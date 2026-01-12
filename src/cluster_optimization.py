@@ -98,6 +98,7 @@ def optimize_num_clusters_multi_metric(
     weights: dict[str, float] | None = None,
     min_silhouette_threshold: float | None = 0.25,
     selection_method: str = "combined",
+    elbow_sensitivity: float = 1.0,
 ) -> Tuple[int, dy.DataFrame[GeocodeClusterMetricsSchema]]:
     """
     Find optimal number of clusters using multiple validation metrics.
@@ -120,7 +121,11 @@ def optimize_num_clusters_multi_metric(
         selection_method: Method for selecting k:
             - "combined": Use combined weighted score (default)
             - "silhouette": Use silhouette score only
-            - "elbow": Find the elbow point in the inertia curve
+            - "elbow": Find the elbow point in the inertia curve using Kneedle algorithm
+        elbow_sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
+                          Higher values (e.g., 2.0) make detection more conservative,
+                          lower values (e.g., 0.5) make it more aggressive.
+                          Only used when selection_method="elbow".
 
     Returns:
         A tuple containing:
@@ -149,16 +154,21 @@ def optimize_num_clusters_multi_metric(
         metrics_df,
         min_silhouette_threshold=min_silhouette_threshold,
         selection_method=selection_method,
+        elbow_sensitivity=elbow_sensitivity,
     )
 
     if optimal_k is None:
+        # If elbow method failed to find a knee, fall back to combined method
+        fallback_method = "combined" if selection_method == "elbow" else selection_method
         logger.warning(
-            "No k value met minimum threshold. Selecting k with highest combined score."
+            f"{selection_method} method could not determine optimal k. "
+            f"Falling back to {fallback_method} method with no threshold."
         )
         optimal_k = select_optimal_k_multi_metric(
             metrics_df,
             min_silhouette_threshold=None,
-            selection_method=selection_method,
+            selection_method=fallback_method,
+            elbow_sensitivity=elbow_sensitivity,
         )
         if optimal_k is None:
             raise RuntimeError(

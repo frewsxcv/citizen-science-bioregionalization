@@ -25,6 +25,7 @@ from typing import TypedDict
 import dataframely as dy
 import numpy as np
 import polars as pl
+from kneed import KneeLocator  # typed: ignore
 from sklearn.metrics import (
     calinski_harabasz_score,
     davies_bouldin_score,
@@ -301,6 +302,7 @@ def select_optimal_k_multi_metric(
     metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
     min_silhouette_threshold: float | None = 0.25,
     selection_method: str = "combined",
+    elbow_sensitivity: float = 1.0,
 ) -> int | None:
     """
     Select optimal k using multi-metric criteria.
@@ -314,14 +316,18 @@ def select_optimal_k_multi_metric(
             - "silhouette": Use silhouette score only (fallback to single metric)
             - "elbow": Use elbow method based on inertia curve.
               Finds the point of maximum curvature in the inertia vs k plot.
+        elbow_sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
+                          Higher values (e.g., 2.0) make detection more conservative,
+                          lower values (e.g., 0.5) make it more aggressive.
+                          Only used when selection_method="elbow".
 
     Returns:
         Optimal k value, or None if no k meets the threshold criteria
 
     Notes:
-        The "elbow" method finds the point of maximum curvature in the inertia
-        curve. This is where adding more clusters stops providing significant
-        reduction in within-cluster variance.
+        The "elbow" method uses the Kneedle algorithm to find the point of maximum
+        curvature in the inertia curve. This is where adding more clusters stops
+        providing significant reduction in within-cluster variance.
     """
     df = metrics_df
 
@@ -346,7 +352,7 @@ def select_optimal_k_multi_metric(
 
     elif selection_method == "elbow":
         # Use elbow method based on inertia curve
-        optimal_k = _find_elbow_point(metrics_df)
+        optimal_k = _find_elbow_point(metrics_df, sensitivity=elbow_sensitivity)
         if optimal_k is not None:
             logger.info(f"Elbow method selected k={optimal_k}")
         return optimal_k
@@ -357,6 +363,7 @@ def select_optimal_k_multi_metric(
 
 def _find_elbow_point(
     metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    sensitivity: float = 1.0,
 ) -> int | None:
     """
     Find the elbow point in the inertia curve using the Kneedle algorithm.
@@ -364,14 +371,22 @@ def _find_elbow_point(
     The elbow point is where the rate of decrease in inertia sharply changes,
     indicating that adding more clusters provides diminishing returns.
 
-    Uses the perpendicular distance method: finds the point farthest from
-    the line connecting the first and last points of the curve.
+    Uses the Kneedle algorithm (Satopaa et al., 2011) which applies a difference
+    curve approach to robustly detect knee points in noisy data.
 
     Args:
         metrics_df: DataFrame with cluster metrics including inertia values
+        sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
+                    Higher values make detection more conservative (fewer points
+                    detected as knees), lower values make it more aggressive.
 
     Returns:
         The k value at the elbow point, or None if it cannot be determined
+
+    References:
+        Satopaa, V., Albrecht, J., Irwin, D., & Raghavan, B. (2011).
+        Finding a "Kneedle" in a Haystack: Detecting Knee Points in System Behavior.
+        31st International Conference on Distributed Computing Systems Workshops.
     """
     df = metrics_df.sort("num_clusters")
 
@@ -379,75 +394,61 @@ def _find_elbow_point(
         logger.warning("Need at least 3 k values to find elbow point")
         return None
 
-    k_values = np.array(df["num_clusters"].to_list(), dtype=float)
-    inertia_values = np.array(df["inertia"].to_list(), dtype=float)
+    k_values = df["num_clusters"].to_list()
+    inertia_values = df["inertia"].to_list()
 
-    # Normalize both axes to [0, 1] for fair distance calculation
-    k_norm = (k_values - k_values.min()) / (k_values.max() - k_values.min())
-    inertia_norm = (inertia_values - inertia_values.min()) / (
-        inertia_values.max() - inertia_values.min() + 1e-10
-    )
+    try:
+        kneedle = KneeLocator(
+            x=k_values,
+            y=inertia_values,
+            curve="convex",  # Inertia curves are convex (decreasing at decreasing rate)
+            direction="decreasing",  # Inertia decreases as k increases
+            S=sensitivity,
+        )
 
-    # Line from first point to last point
-    p1 = np.array([k_norm[0], inertia_norm[0]])
-    p2 = np.array([k_norm[-1], inertia_norm[-1]])
+        if kneedle.elbow is None:
+            logger.warning("Kneedle algorithm could not find an elbow point")
+            return None
 
-    # Calculate perpendicular distance from each point to the line
-    line_vec = p2 - p1
-    line_len = np.linalg.norm(line_vec)
+        elbow_k = int(kneedle.elbow)
+        logger.debug(f"Kneedle algorithm selected k={elbow_k} (sensitivity={sensitivity})")
+        return elbow_k
 
-    if line_len < 1e-10:
-        logger.warning("Degenerate inertia curve (all values equal)")
+    except Exception as e:
+        logger.error(f"Kneedle algorithm failed: {e}")
         return None
-
-    line_unit = line_vec / line_len
-
-    distances = []
-    for i in range(len(k_norm)):
-        point = np.array([k_norm[i], inertia_norm[i]])
-        point_vec = point - p1
-        # Perpendicular distance = magnitude of cross product / line length
-        cross = abs(point_vec[0] * line_unit[1] - point_vec[1] * line_unit[0])
-        distances.append(cross)
-
-    # Find the point with maximum distance (the elbow)
-    elbow_idx = np.argmax(distances)
-    elbow_k = int(k_values[elbow_idx])
-
-    logger.debug(
-        f"Elbow detection: max distance={distances[elbow_idx]:.4f} at k={elbow_k}"
-    )
-
-    return elbow_k
 
 
 def get_elbow_analysis(
     metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    sensitivity: float = 1.0,
 ) -> ElbowAnalysisResult:
     """
-    Get detailed elbow analysis data for visualization.
+    Get detailed elbow analysis data for visualization using the Kneedle algorithm.
 
     Returns data useful for plotting the elbow curve and understanding
-    the selection rationale.
+    the Kneedle algorithm's selection rationale.
 
     Args:
         metrics_df: DataFrame with cluster metrics including inertia values
+        sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
 
     Returns:
         Dictionary containing:
         - k_values: List of k values tested
         - inertia_values: Corresponding inertia values
-        - elbow_k: The detected elbow point
-        - distances: Perpendicular distances for each point
-        - inertia_deltas: First derivative of inertia
-        - inertia_delta2: Second derivative of inertia
+        - elbow_k: The detected elbow point (from Kneedle algorithm)
+        - distances: Normalized y-distance from each point to the baseline
+                    (computed by Kneedle algorithm)
+        - inertia_deltas: First derivative of inertia (rate of change)
+        - inertia_delta2: Second derivative of inertia (acceleration)
     """
     df = metrics_df.sort("num_clusters")
 
     k_values = df["num_clusters"].to_list()
     inertia_values = df["inertia"].to_list()
 
-    # Compute derivatives
+    # Compute derivatives for additional analysis
     inertia_deltas = []
     inertia_delta2 = []
 
@@ -463,32 +464,39 @@ def get_elbow_analysis(
         else:
             inertia_delta2.append(inertia_deltas[i] - inertia_deltas[i - 1])
 
-    # Compute distances for visualization
-    k_arr = np.array(k_values, dtype=float)
-    inertia_arr = np.array(inertia_values, dtype=float)
+    # Use Kneedle algorithm to get elbow point and distance data
+    elbow_k = _find_elbow_point(metrics_df, sensitivity=sensitivity)
 
-    k_norm = (k_arr - k_arr.min()) / (k_arr.max() - k_arr.min() + 1e-10)
-    inertia_norm = (inertia_arr - inertia_arr.min()) / (
-        inertia_arr.max() - inertia_arr.min() + 1e-10
-    )
-
-    p1 = np.array([k_norm[0], inertia_norm[0]])
-    p2 = np.array([k_norm[-1], inertia_norm[-1]])
-    line_vec = p2 - p1
-    line_len = np.linalg.norm(line_vec)
-
+    # Get normalized distance data from Kneedle algorithm for visualization
     distances = []
-    if line_len > 1e-10:
-        line_unit = line_vec / line_len
-        for i in range(len(k_norm)):
-            point = np.array([k_norm[i], inertia_norm[i]])
-            point_vec = point - p1
-            cross = abs(point_vec[0] * line_unit[1] - point_vec[1] * line_unit[0])
-            distances.append(float(cross))
-    else:
-        distances = [0.0] * len(k_values)
+    try:
+        kneedle = KneeLocator(
+            x=k_values,
+            y=inertia_values,
+            curve="convex",
+            direction="decreasing",
+            S=sensitivity,
+        )
 
-    elbow_k = _find_elbow_point(metrics_df)
+        # The Kneedle algorithm provides normalized y-distances
+        # These represent the distance from each point to the baseline
+        if hasattr(kneedle, "y_difference"):
+            # y_difference contains the normalized distances used for knee detection
+            distances = list(kneedle.y_difference)
+        else:
+            # Fallback: compute normalized distances manually
+            y_norm = (np.array(inertia_values) - min(inertia_values)) / (
+                max(inertia_values) - min(inertia_values) + 1e-10
+            )
+            x_norm = (np.array(k_values) - min(k_values)) / (
+                max(k_values) - min(k_values) + 1e-10
+            )
+            # Distance from normalized curve to diagonal
+            distances = list(y_norm - x_norm)
+
+    except Exception as e:
+        logger.warning(f"Could not extract Kneedle distance data: {e}")
+        distances = [0.0] * len(k_values)
 
     return {
         "k_values": k_values,
