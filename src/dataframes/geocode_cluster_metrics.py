@@ -298,67 +298,65 @@ def _add_normalized_scores(
     return df
 
 
-def select_optimal_k_multi_metric(
+def select_optimal_k_elbow(
     metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
-    min_silhouette_threshold: float | None = 0.25,
-    selection_method: str = "combined",
-    elbow_sensitivity: float = 1.0,
+    sensitivity: float = 1.0,
 ) -> int | None:
     """
-    Select optimal k using multi-metric criteria.
+    Select optimal k using the elbow method (Kneedle algorithm).
+
+    Finds the point of maximum curvature in the inertia vs k plot. This is where
+    adding more clusters stops providing significant reduction in within-cluster variance.
 
     Args:
         metrics_df: DataFrame with cluster metrics for all k values
-        min_silhouette_threshold: Minimum acceptable silhouette score.
-                                  Set to None to disable filtering.
-        selection_method: Method for selecting k:
-            - "combined": Use combined weighted score (default)
-            - "silhouette": Use silhouette score only (fallback to single metric)
-            - "elbow": Use elbow method based on inertia curve.
-              Finds the point of maximum curvature in the inertia vs k plot.
-        elbow_sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
-                          Higher values (e.g., 2.0) make detection more conservative,
-                          lower values (e.g., 0.5) make it more aggressive.
-                          Only used when selection_method="elbow".
+        sensitivity: Kneedle algorithm sensitivity parameter (S). Default 1.0.
+                    Higher values (e.g., 2.0) make detection more conservative,
+                    lower values (e.g., 0.5) make it more aggressive.
 
     Returns:
-        Optimal k value, or None if no k meets the threshold criteria
+        Optimal k value, or None if no clear elbow point is found
 
     Notes:
-        The "elbow" method uses the Kneedle algorithm to find the point of maximum
-        curvature in the inertia curve. This is where adding more clusters stops
-        providing significant reduction in within-cluster variance.
+        Uses the Kneedle algorithm to robustly detect the elbow point in the inertia curve.
     """
-    df = metrics_df
+    optimal_k = _find_elbow_point(metrics_df, sensitivity=sensitivity)
+    if optimal_k is not None:
+        logger.info(f"Elbow method selected k={optimal_k}")
+    return optimal_k
 
-    # Apply silhouette threshold filter if specified (except for elbow method)
-    if min_silhouette_threshold is not None and selection_method != "elbow":
-        df = df.filter(pl.col("silhouette_score") >= min_silhouette_threshold)
-        if len(df) == 0:
-            logger.warning(
-                f"No k values meet silhouette threshold of {min_silhouette_threshold}"
-            )
-            return None
 
-    if selection_method == "combined":
-        # Select k with highest combined score
-        best_row = df.sort("combined_score", descending=True).head(1)
-        return int(best_row["num_clusters"][0])
+# Backwards compatibility alias
+def select_optimal_k_multi_metric(
+    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    min_silhouette_threshold: float | None = 0.25,
+    selection_method: str = "elbow",
+    elbow_sensitivity: float = 1.0,
+) -> int | None:
+    """
+    Backwards compatibility wrapper for select_optimal_k_elbow.
 
-    elif selection_method == "silhouette":
-        # Fallback to silhouette-only selection
-        best_row = df.sort("silhouette_score", descending=True).head(1)
-        return int(best_row["num_clusters"][0])
+    Always uses the elbow method. If elbow method fails to find a clear elbow,
+    falls back to selecting k with the highest combined score.
 
-    elif selection_method == "elbow":
-        # Use elbow method based on inertia curve
-        optimal_k = _find_elbow_point(metrics_df, sensitivity=elbow_sensitivity)
-        if optimal_k is not None:
-            logger.info(f"Elbow method selected k={optimal_k}")
-        return optimal_k
+    Args:
+        metrics_df: DataFrame with cluster metrics for all k values
+        min_silhouette_threshold: Ignored (kept for compatibility)
+        selection_method: Ignored (kept for compatibility)
+        elbow_sensitivity: Kneedle algorithm sensitivity parameter
 
-    else:
-        raise ValueError(f"Unknown selection method: {selection_method}")
+    Returns:
+        Optimal k value, or None if metrics_df is empty
+    """
+    optimal_k = select_optimal_k_elbow(metrics_df, sensitivity=elbow_sensitivity)
+
+    if optimal_k is None and len(metrics_df) > 0:
+        # Fallback to highest combined score
+        logger.warning("Elbow method failed, falling back to highest combined score")
+        best_row = metrics_df.sort("combined_score", descending=True).head(1)
+        optimal_k = int(best_row["num_clusters"][0])
+
+    return optimal_k
 
 
 def _find_elbow_point(
@@ -411,7 +409,9 @@ def _find_elbow_point(
             return None
 
         elbow_k = int(kneedle.elbow)
-        logger.debug(f"Kneedle algorithm selected k={elbow_k} (sensitivity={sensitivity})")
+        logger.debug(
+            f"Kneedle algorithm selected k={elbow_k} (sensitivity={sensitivity})"
+        )
         return elbow_k
 
     except Exception as e:

@@ -24,7 +24,6 @@ MAX_LON = -66.0
 # Clustering defaults
 MIN_CLUSTERS = 2
 MAX_CLUSTERS = 20
-CLUSTER_SELECTION_METHOD = "combined"  # Options: "combined", "silhouette", "elbow"
 
 # Filtering defaults
 TAXON_FILTER = ""
