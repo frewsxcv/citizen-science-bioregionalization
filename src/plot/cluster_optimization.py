@@ -16,7 +16,6 @@ import numpy as np
 import polars as pl
 import seaborn as sns
 
-from src.cluster_optimization import get_overall_silhouette_scores
 from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
 
 logger = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ def plot_silhouette_vs_k(
         ...     save_path="output/silhouette_vs_k.png"
         ... )
     """
-    overall_scores = get_overall_silhouette_scores(silhouette_df)
+    overall_scores = silhouette_df.filter(pl.col("geocode").is_null())
 
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -180,7 +179,7 @@ def plot_silhouette_distributions(
         ...     save_path="output/silhouette_distributions.png"
         ... )
     """
-    overall_scores = get_overall_silhouette_scores(silhouette_df)
+    overall_scores = silhouette_df.filter(pl.col("geocode").is_null())
     top_k_values = overall_scores["num_clusters"].head(top_n).to_list()
 
     # Filter to per-geocode scores for top k values
@@ -321,7 +320,7 @@ def plot_optimization_summary(
 
     # Left plot: Silhouette vs k
     ax1 = fig.add_subplot(gs[0, 0])
-    overall_scores = get_overall_silhouette_scores(silhouette_df)
+    overall_scores = silhouette_df.filter(pl.col("geocode").is_null())
 
     ax1.plot(
         overall_scores["num_clusters"],
