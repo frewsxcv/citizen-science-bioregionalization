@@ -63,5 +63,19 @@ restore a `PyLazyFrame` function) once a polars/toolchain combo builds it cleanl
 
 `pyo3/extension-module` is set only in `[tool.maturin]`, not in the crate's default
 features, because it suppresses libpython linking and breaks `cargo test`'s
-standalone binary. If `cargo test` can't find a Python to link, pass
-`PYO3_PYTHON=$(uv run which python)`.
+standalone binary. If `cargo test` can't find a Python to link against at *build*
+time, pass `PYO3_PYTHON=$(uv run which python)`.
+
+Separately, at *run* time the test binary dynamically links libpython but doesn't
+get an rpath to uv's managed Python install, so the runtime loader may not find it
+either (`error while loading shared libraries: libpython3.13.so.1.0` on Linux,
+`Library not loaded: .../libpython3.13.dylib` on macOS). Point the loader at it
+explicitly:
+
+```bash
+PYTHON_LIBDIR=$(uv run python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))")
+LD_LIBRARY_PATH="$PYTHON_LIBDIR" cargo test --lib   # Linux
+DYLD_LIBRARY_PATH="$PYTHON_LIBDIR" cargo test --lib # macOS
+```
+
+CI (`.github/workflows/bioregion-rs.yml`) does this automatically.
