@@ -229,8 +229,24 @@ verified against Python in `bioregion_rs/harness.py`.
   connected component; the indirect-edge tie-break (nearest pair when multiple
   candidates are equidistant) matched Python exactly on the test fixture, though this
   isn't guaranteed in general — see the caveat in `geocode_neighbors.rs`.
-- `src/matrices/geocode_connectivity.py` — TODO: build sparse adjacency from neighbor lists
-  (CSR via `sprs` or dense `ndarray`).
+- `src/matrices/geocode_connectivity.py` — ✅ DONE: `build_geocode_connectivity_matrix`
+  builds the dense 0/1 adjacency matrix from `direct_and_indirect_neighbors`, returned
+  as a nested `Vec<Vec<i64>>` (plain Python list of lists — no `ndarray`/`sprs`
+  dependency; PyO3 converts nested `Vec<u8>` to Python `bytes`, which is why cells are
+  `i64` rather than a narrower type) for the Python side to wrap with `np.array(...)`.
+  The single-connected-component invariant is checked via a small BFS (instead of
+  `networkx`) and raises instead of Python's `assert`. Verified against
+  `GeocodeConnectivityMatrix.build`'s output for exact matrix equality.
+
+This closes out Phase 1's non-trivial files. `bioregion_rs` now has CI
+(`.github/workflows/bioregion-rs.yml`): `cargo test --lib`, `maturin develop`, and
+`harness.py` run on every push, so a Rust change that breaks parity with Python fails
+CI instead of relying on someone running the harness locally. Note this is a
+crate-level check only — the main pipeline's own CI (`run.yml`) still runs the
+all-Python `notebook.py` end-to-end and does not yet invoke `bioregion_rs` at all,
+since no pipeline call site has been switched over to Rust yet (see "Recommended end
+state" above — that cutover is a later step, done file-by-file once each port is
+validated).
 
 ### Phase 2 — graph, geometry, and stats (⚠️ ported algorithms)
 
