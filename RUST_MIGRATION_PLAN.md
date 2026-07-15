@@ -269,8 +269,24 @@ validated).
   `to_graph()` helper (produces an `nx.Graph`) stays in Python, same reasoning as
   `geocode_neighbors.graph()`. Verified against Python by comparing neighbor sets per
   cluster, using a synthetic geocode→cluster assignment (Phase 3, out of scope here).
-- `src/matrices/cluster_distance.py` — braycurtis `pdist` over cluster taxon vectors.
-  Simple port. ✅
+- `src/matrices/cluster_distance.py` — ✅ DONE: `build_cluster_distance_matrix`.
+  Unlike `geocode_distance.py` (Phase 3), this file has **no UMAP step** — it's just
+  `RobustScaler` (median/IQR per column, hand-ported: numpy's linear-interpolation
+  percentile, IQR-of-0 leaves a column unscaled per sklearn's documented behavior) then
+  `pdist(metric="braycurtis")`, both fully portable, so this is a complete port, not
+  scaffolding for later. Returns a condensed (scipy `pdist`-order) distance vector plus
+  the cluster IDs in row order, rather than a `ClusterDistanceMatrix` object — row/column
+  order doesn't need to match Python's `pivot()` exactly, since both RobustScaler
+  (per-column) and Bray-Curtis (order-invariant sums) give identical distances under any
+  *consistent* column permutation. Verified against `ClusterDistanceMatrix.build` by
+  looking up pairwise distances by cluster-ID pair (order-independent). **Caveat found
+  while testing:** with exactly 2 clusters, RobustScaler always scales every non-constant
+  column to a perfect ±1 pair, making Bray-Curtis's `sum(|u+v|)` denominator ~0 for every
+  such column — the distance becomes a huge, floating-point-rounding-dominated number
+  that two independent implementations have no reason to agree on bit-for-bit. This is a
+  property of the algorithm at k=2, not a port bug; the harness test uses more clusters
+  to avoid it, but real runs with `min_clusters=2` could hit this instability in Python
+  today too.
 - `src/dataframes/cluster_color.py` **(geographic path only)** — `nx.greedy_color` →
   `petgraph`'s greedy coloring; palette mapping is deterministic. ✅
   (Taxonomic path uses UMAP+MDS — see Phase 3.)

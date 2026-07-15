@@ -53,5 +53,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::cluster_neighbors::build_cluster_neighbors,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        matrices::cluster_distance::build_cluster_distance_matrix,
+        m
+    )?)?;
     Ok(())
 }
