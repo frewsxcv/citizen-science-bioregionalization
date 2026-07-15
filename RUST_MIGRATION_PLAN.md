@@ -199,8 +199,24 @@ verified against Python in `bioregion_rs/harness.py`.
   the `lazy` feature is currently disabled (Phase 0 finding), so it stays in Python for now.
   (Also confirm the Rust polars build enables the cloud/object-store feature for `gs://`.)
 - `src/dataframes/darwin_core.py` — TODO: schema + bbox filter + column select.
-- `src/dataframes/taxonomy.py`, `src/dataframes/geocode_taxa_counts.py` — TODO: group-by/agg
-  transforms. Direct polars-rs (eager).
+- `src/dataframes/taxonomy.py` — ✅ DONE: `build_taxonomy` (distinct
+  (scientificName, gbifTaxonId) pairs restricted to known geocodes, each assigned a
+  synthetic `taxonId`). Uses `DataFrame::group_by`/`unique`/`with_row_index` from
+  **`polars-core`** directly — no `polars-ops`/joins/`is_in` needed (semi-join and
+  dedup done as eager, hand-rolled filters, consistent with the no-`lazy` constraint).
+  Verified against Python by comparing the (scientificName, gbifTaxonId) pair set and
+  that `taxonId` is a 0..n bijection (row order — and thus which literal `taxonId` a
+  pair gets — is not guaranteed to match Python's `.unique()` ordering, only the set
+  and the bijection are).
+- `src/dataframes/geocode_taxa_counts.py` — ✅ DONE: `build_geocode_taxa_counts` (the
+  core `build_geocode_taxa_counts_lf` aggregation; `filter_top_taxa_lf` is deferred —
+  it's an optional scaling filter, not on the critical path). The Python join against
+  taxonomy (on scientificName+gbifTaxonId) and the group-by-sum are hand-rolled with a
+  `HashMap` lookup + `polars-core`'s (deprecated but functional) `GroupBy::sum`, for the
+  same reason as `taxonomy.rs` — no `polars-ops` dependency. Verified by resolving both
+  engines' output back through their own taxonomy to (geocode, scientificName,
+  gbifTaxonId, count) and comparing as sets (sidesteps the taxonId-ordering
+  non-determinism noted above).
 - `src/dataframes/geocode_neighbors.py` — TODO: `grid_ring(k=1)` via `h3o`; connectivity
   fixup (single connected component) via `petgraph`. moderate
 - `src/matrices/geocode_connectivity.py` — TODO: build sparse adjacency from neighbor lists

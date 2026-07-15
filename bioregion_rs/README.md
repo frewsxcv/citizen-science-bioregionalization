@@ -10,8 +10,10 @@ every subsequent file migration will use.
 - `src/lib.rs` — a PyO3 extension module (`bioregion_rs`) exposing:
   - `darken_hex_color(hex, factor=0.5)` — pure function (plain PyO3 boundary),
     mirrors `src/colors.py`.
-  - `select_geocode(df, precision)` — `pl.DataFrame` → `pl.DataFrame` via `h3o`
-    (pyo3-polars Arrow-FFI boundary), mirrors `src/geocode.py::select_geocode_lf`.
+  - `select_geocode`/`with_geocode`/`filter_by_bounding_box` — mirrors `src/geocode.py`.
+  - `build_geocode` — mirrors `src/dataframes/geocode.py`.
+  - `build_taxonomy` — mirrors `src/dataframes/taxonomy.py`.
+  - `build_geocode_taxa_counts` — mirrors `src/dataframes/geocode_taxa_counts.py`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

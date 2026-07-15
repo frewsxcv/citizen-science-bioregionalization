@@ -80,8 +80,8 @@ pub fn build_geocode(
     let geocode_col = UInt64Chunked::from_vec("geocode".into(), cells).into_column();
     let center_col = binary_column("center", &centers);
     let boundary_col = binary_column("boundary", &boundaries);
-    let is_edge_col = BooleanChunked::from_iter_values("is_edge".into(), is_edge.into_iter())
-        .into_column();
+    let is_edge_col =
+        BooleanChunked::from_iter_values("is_edge".into(), is_edge.into_iter()).into_column();
 
     let height = geocode_col.len();
     let out = DataFrame::new(

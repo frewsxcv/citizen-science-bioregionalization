@@ -51,7 +51,10 @@ mod tests {
         let ring = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)];
         let b = polygon(&ring);
         assert_eq!(b[0], BYTE_ORDER_LE);
-        assert_eq!(u32::from_le_bytes(b[1..5].try_into().unwrap()), TYPE_POLYGON);
+        assert_eq!(
+            u32::from_le_bytes(b[1..5].try_into().unwrap()),
+            TYPE_POLYGON
+        );
         assert_eq!(u32::from_le_bytes(b[5..9].try_into().unwrap()), 1);
         assert_eq!(u32::from_le_bytes(b[9..13].try_into().unwrap()), 4);
     }
