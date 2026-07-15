@@ -18,6 +18,7 @@ sys.path.insert(0, str(REPO_ROOT))
 import numpy as np
 import polars as pl
 import shapely
+from scipy.spatial.distance import squareform
 
 import bioregion_rs
 from src.colors import darken_hex_color as py_darken
@@ -37,6 +38,7 @@ from src.geocode import (
     select_geocode_lf,
     with_geocode_lf,
 )
+from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.types import Bbox
 
@@ -351,9 +353,11 @@ def test_build_cluster_taxa_statistics() -> None:
     # agglomerative clustering, out of scope for this port): split geocodes
     # into two clusters deterministically so both the overall and per-cluster
     # aggregation paths get exercised.
+    # Cluster by row index (not geocode value) since H3 cell IDs at a given
+    # resolution can share low-order bits, making `geocode % k` degenerate.
     geocodes = py_counts["geocode"].unique().sort()
     geocode_cluster_df = pl.DataFrame(
-        {"geocode": geocodes, "cluster": [g % 2 for g in geocodes]}
+        {"geocode": geocodes, "cluster": [i % 2 for i in range(len(geocodes))]}
     ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
 
     rust_out = bioregion_rs.build_cluster_taxa_statistics(
@@ -390,13 +394,13 @@ def test_build_cluster_neighbors() -> None:
         py_neighbors, geocode_no_edges_df
     )
 
-    # Synthetic cluster assignment covering every geocode in the no-edges
-    # neighbor set (real clustering is sklearn Ward, out of scope here): split
-    # into 3 clusters deterministically so cross-cluster adjacency actually
-    # gets exercised.
+    # Cluster by row index (not geocode value) since H3 cell IDs at a given
+    # resolution can share low-order bits, making `geocode % k` degenerate.
+    # Real clustering is sklearn Ward, out of scope here; 3 clusters so
+    # cross-cluster adjacency actually gets exercised.
     geocodes = py_neighbors_no_edges["geocode"].sort()
     geocode_cluster_df = pl.DataFrame(
-        {"geocode": geocodes, "cluster": [g % 3 for g in geocodes]}
+        {"geocode": geocodes, "cluster": [i % 3 for i in range(len(geocodes))]}
     ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
 
     rust_out = bioregion_rs.build_cluster_neighbors(py_neighbors_no_edges, geocode_cluster_df)
@@ -412,6 +416,65 @@ def test_build_cluster_neighbors() -> None:
         "same direct_and_indirect_neighbors set per cluster",
         _neighbor_sets(rust_out, "direct_and_indirect_neighbors", key="cluster")
         == _neighbor_sets(py_out, "direct_and_indirect_neighbors", key="cluster"),
+    )
+
+
+# --- src/matrices/cluster_distance.py -----------------------------------------
+
+
+def _pairwise_distances(condensed, cluster_ids) -> dict:
+    square = squareform(np.asarray(condensed))
+    return {
+        tuple(sorted((c1, c2))): round(float(square[i][j]), 9)
+        for i, c1 in enumerate(cluster_ids)
+        for j, c2 in enumerate(cluster_ids)
+        if i < j
+    }
+
+
+def test_build_cluster_distance_matrix() -> None:
+    print("src/matrices/cluster_distance.py  (build_cluster_distance_matrix):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    py_taxonomy = build_taxonomy_lf(
+        darwin_df.lazy(), precision, geocode_no_edges_df.lazy(), bbox
+    ).collect()
+    py_counts = build_geocode_taxa_counts_lf(
+        darwin_df.lazy(), precision, py_taxonomy.lazy(), geocode_no_edges_df.lazy(), bbox
+    ).collect()
+
+    # Cluster by row index (not geocode value) since H3 cell IDs at a given
+    # resolution can share low-order bits, making `geocode % k` degenerate.
+    # Real clustering is sklearn Ward, out of scope here. Use one cluster per
+    # geocode (not just 2): with exactly 2 clusters, RobustScaler always
+    # scales every non-constant column to a perfect +-1 pair, so Bray-Curtis's
+    # sum(|u+v|) denominator is ~0 for every such column and the distance
+    # becomes a huge, rounding-dominated number that two independent
+    # implementations have no reason to agree on bit-for-bit.
+    geocodes = py_counts["geocode"].unique().sort()
+    n = len(geocodes)
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": list(range(n))}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+    cluster_taxa_stats = build_cluster_taxa_statistics_df(
+        py_counts.lazy(), geocode_cluster_df.lazy(), py_taxonomy.lazy()
+    )
+
+    rust_condensed, rust_cluster_ids = bioregion_rs.build_cluster_distance_matrix(
+        cluster_taxa_stats
+    )
+    py_matrix = ClusterDistanceMatrix.build(cluster_taxa_stats)
+
+    check(f"non-trivial: {len(rust_cluster_ids)} clusters", len(rust_cluster_ids) > 1)
+
+    rust_distances = _pairwise_distances(rust_condensed, rust_cluster_ids)
+    py_distances = _pairwise_distances(py_matrix.condensed(), py_matrix.cluster_ids())
+
+    check("same cluster ID pairs", set(rust_distances) == set(py_distances))
+    check(
+        "same pairwise Bray-Curtis distances",
+        all(abs(rust_distances[k] - py_distances[k]) < 1e-9 for k in rust_distances),
     )
 
 
@@ -444,6 +507,7 @@ def main() -> None:
     test_build_geocode_connectivity_matrix()
     test_build_cluster_taxa_statistics()
     test_build_cluster_neighbors()
+    test_build_cluster_distance_matrix()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
