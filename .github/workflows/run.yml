@@ -86,6 +86,9 @@ jobs:
 
   deploy:
     needs: build
+    # Only deploy from the default branch. The github-pages environment is
+    # protected to main, so running this on PR branches only ever fails.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
