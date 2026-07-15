@@ -287,9 +287,19 @@ validated).
   property of the algorithm at k=2, not a port bug; the harness test uses more clusters
   to avoid it, but real runs with `min_clusters=2` could hit this instability in Python
   today too.
-- `src/dataframes/cluster_color.py` **(geographic path only)** — `nx.greedy_color` →
-  `petgraph`'s greedy coloring; palette mapping is deterministic. ✅
-  (Taxonomic path uses UMAP+MDS — see Phase 3.)
+- `src/dataframes/cluster_color.py` **(geographic path only)** — ✅ DONE:
+  `build_cluster_color`. No `petgraph` needed — greedy coloring (`largest_first`
+  ordering: nodes sorted by degree descending, stable-sorted so ties keep original
+  order, then each node gets the smallest color index not used by an already-colored
+  neighbor) is a ~20-line hand-rolled algorithm, exactly matching
+  `networkx.coloring.greedy_color(G, strategy="largest_first")`. The palette step
+  (`sns.color_palette("YlOrRd", n)`) turned out to be fully portable too: reverse-
+  engineered matplotlib's exact sampling algorithm (`LinearSegmentedColormap`'s 9
+  control points per RGB channel, piecewise-linear interpolation, `floor(x*256)`
+  index quantization; seaborn samples at `linspace(0,1,n+2)[1:-1]`, excluding the
+  colormap's extremes) and verified it reproduces `sns.color_palette("YlOrRd",
+  n).as_hex()` bit-for-bit for n up to 15. `darken_hex_color` (Phase 0) is reused
+  directly. (Taxonomic path uses UMAP+MDS — see Phase 3.)
 - `src/dataframes/cluster_boundary.py` — union hex boundary polygons per cluster.
   `geo`'s `unary_union` / boolean ops (or `geos` bindings for robustness). moderate
 - `src/dataframes/cluster_significant_differences.py` — 2×2 Fisher's exact per (cluster,
