@@ -35,6 +35,14 @@ dependencies = [
 
 [tool.pyright]
 typeCheckingMode = "standard"
+# bioregion_rs is a separate Rust/maturin sub-project; its Python is a dev harness
+# that imports the compiled extension module (no stubs, not built in the pyright CI
+# job). Exclude it so pyright doesn't treat the crate dir as a namespace package.
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "bioregion_rs",
+]
 
 [dependency-groups]
 dev = [
