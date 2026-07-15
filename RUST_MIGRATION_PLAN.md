@@ -178,23 +178,33 @@ Still TODO for the schema contract (carry into Phase 1): port each `dy.Schema` t
 struct describing column names/dtypes/nullability + validation rules so both sides agree
 on the parquet schema. Not blocking — done per-file as each `build_*` is ported.
 
-### Phase 1 — leaves & pure tabular/IO (✅ do first)
+### Phase 1 — leaves & pure tabular/IO (in progress)
 
+Ported functions live in per-file Rust modules mirroring the Python layout
+(`bioregion_rs/src/colors.rs`, `geocode.rs`, `dataframes/geocode.rs`, `wkb.rs`), each
+verified against Python in `bioregion_rs/harness.py`.
+
+- `src/colors.py` — ✅ `darken_hex_color` (Phase 0).
+- `src/geocode.py` — ✅ DONE: `select_geocode`, `with_geocode`, `filter_by_bounding_box`
+  (`h3o` + eager polars). Verified against `polars-h3` / Python across precisions.
+- `src/dataframes/geocode.py` — ✅ DONE: `build_geocode` (H3 cell → center point +
+  boundary polygon + edge-intersect test). `h3o` for center/boundary, hand-rolled WKB
+  encoders (`wkb.rs`), `geo`'s `Intersects` for the bbox-boundary test. **Geometry matches
+  Python bit-for-bit** (center coord error 0.0, boundary symmetric-difference area 0.0);
+  `is_edge` matches exactly including True cases.
 - `src/types.py`, `src/constants.py`, `src/defaults.py`, `src/logging.py`,
-  `src/colors.py` (hex darken), `src/country_bbox.py` (static bbox data) — trivial ports.
-- `src/geocode.py` — `latlng_to_cell`, bbox filter. `h3o` + polars expressions. ✅
-- `src/darwin_core_utils.py` — parquet/CSV scan + `meta.xml` parsing + column renames.
-  `quick-xml` for the meta parse; `pl.scan_parquet`/`scan_csv` equivalents in Rust. ✅
-  (Note: GCS `gs://` parquet scanning — confirm the Rust polars build has the cloud/object-store feature enabled.)
-- `src/dataframes/darwin_core.py` — schema + bbox filter + column select. ✅
-- `src/dataframes/geocode.py` — H3 cell → center point + boundary polygon + edge-intersect
-  test. `h3o` for cell→boundary, `geo` for the polygon + bbox-linestring intersection. moderate
-- `src/dataframes/taxonomy.py`, `src/dataframes/geocode_taxa_counts.py` — group-by/agg
-  transforms. Direct polars-rs. ✅
-- `src/dataframes/geocode_neighbors.py` — `grid_ring(k=1)` via `h3o`; connectivity fixup
-  (ensure single connected component) via `petgraph`. moderate
-- `src/matrices/geocode_connectivity.py` — build sparse adjacency from neighbor lists.
-  Represent as CSR (`sprs` crate) or dense `ndarray`. ✅
+  `src/country_bbox.py` (static bbox data) — TODO, trivial ports (done as needed).
+- `src/darwin_core_utils.py` — TODO: parquet/CSV scan + `meta.xml` parse + column renames.
+  `quick-xml` for meta; polars scan in Rust. **Note:** this is lazy/streaming + IO-bound and
+  the `lazy` feature is currently disabled (Phase 0 finding), so it stays in Python for now.
+  (Also confirm the Rust polars build enables the cloud/object-store feature for `gs://`.)
+- `src/dataframes/darwin_core.py` — TODO: schema + bbox filter + column select.
+- `src/dataframes/taxonomy.py`, `src/dataframes/geocode_taxa_counts.py` — TODO: group-by/agg
+  transforms. Direct polars-rs (eager).
+- `src/dataframes/geocode_neighbors.py` — TODO: `grid_ring(k=1)` via `h3o`; connectivity
+  fixup (single connected component) via `petgraph`. moderate
+- `src/matrices/geocode_connectivity.py` — TODO: build sparse adjacency from neighbor lists
+  (CSR via `sprs` or dense `ndarray`).
 
 ### Phase 2 — graph, geometry, and stats (⚠️ ported algorithms)
 

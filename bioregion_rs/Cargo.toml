@@ -10,6 +10,7 @@ name = "bioregion_rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+geo = "0.33.1"
 h3o = "0.8"
 # NOTE: polars 0.54.4's `lazy` feature set (polars-lazy / polars-stream) fails to
 # compile on this toolchain due to internal feature-unification bugs. Phase 0
