@@ -49,5 +49,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::cluster_taxa_statistics::build_cluster_taxa_statistics,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::cluster_neighbors::build_cluster_neighbors,
+        m
+    )?)?;
     Ok(())
 }

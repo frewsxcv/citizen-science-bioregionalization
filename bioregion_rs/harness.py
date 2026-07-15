@@ -21,6 +21,7 @@ import shapely
 
 import bioregion_rs
 from src.colors import darken_hex_color as py_darken
+from src.dataframes.cluster_neighbors import build_cluster_neighbors_df
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
@@ -245,8 +246,8 @@ def test_build_geocode_taxa_counts() -> None:
 # --- src/dataframes/geocode_neighbors.py --------------------------------------
 
 
-def _neighbor_sets(df: pl.DataFrame, column: str) -> dict:
-    return {geocode: set(neighbors) for geocode, neighbors in df.select("geocode", column).iter_rows()}
+def _neighbor_sets(df: pl.DataFrame, column: str, key: str = "geocode") -> dict:
+    return {k: set(neighbors) for k, neighbors in df.select(key, column).iter_rows()}
 
 
 def _is_single_component(df: pl.DataFrame, include_indirect_neighbors: bool) -> bool:
@@ -375,6 +376,45 @@ def test_build_cluster_taxa_statistics() -> None:
     check("same (cluster, taxonId, count, average) row set", _rows(rust_out) == _rows(py_out))
 
 
+# --- src/dataframes/cluster_neighbors.py --------------------------------------
+
+
+def test_build_cluster_neighbors() -> None:
+    print("src/dataframes/cluster_neighbors.py  (build_cluster_neighbors):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+    py_neighbors = build_geocode_neighbors_df(geocode_df)
+    py_neighbors_no_edges = build_geocode_neighbors_no_edges_df(
+        py_neighbors, geocode_no_edges_df
+    )
+
+    # Synthetic cluster assignment covering every geocode in the no-edges
+    # neighbor set (real clustering is sklearn Ward, out of scope here): split
+    # into 3 clusters deterministically so cross-cluster adjacency actually
+    # gets exercised.
+    geocodes = py_neighbors_no_edges["geocode"].sort()
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": [g % 3 for g in geocodes]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+
+    rust_out = bioregion_rs.build_cluster_neighbors(py_neighbors_no_edges, geocode_cluster_df)
+    py_out = build_cluster_neighbors_df(py_neighbors_no_edges, geocode_cluster_df)
+
+    check(f"non-trivial: {py_out.height} clusters", py_out.height > 1)
+    check(
+        "same direct_neighbors set per cluster",
+        _neighbor_sets(rust_out, "direct_neighbors", key="cluster")
+        == _neighbor_sets(py_out, "direct_neighbors", key="cluster"),
+    )
+    check(
+        "same direct_and_indirect_neighbors set per cluster",
+        _neighbor_sets(rust_out, "direct_and_indirect_neighbors", key="cluster")
+        == _neighbor_sets(py_out, "direct_and_indirect_neighbors", key="cluster"),
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -403,6 +443,7 @@ def main() -> None:
     test_build_geocode_neighbors_no_edges()
     test_build_geocode_connectivity_matrix()
     test_build_cluster_taxa_statistics()
+    test_build_cluster_neighbors()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
