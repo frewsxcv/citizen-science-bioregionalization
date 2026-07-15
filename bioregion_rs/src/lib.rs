@@ -45,5 +45,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         matrices::geocode_connectivity::build_geocode_connectivity_matrix,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::cluster_taxa_statistics::build_cluster_taxa_statistics,
+        m
+    )?)?;
     Ok(())
 }

@@ -250,7 +250,15 @@ validated).
 
 ### Phase 2 — graph, geometry, and stats (⚠️ ported algorithms)
 
-- `src/dataframes/cluster_taxa_statistics.py` — per-cluster taxon aggregation. ✅
+- `src/dataframes/cluster_taxa_statistics.py` — ✅ DONE: `build_cluster_taxa_statistics`
+  (per-taxon count/average, overall and per cluster). Same eager, hand-rolled
+  join/group-by pattern as Phase 1 (`HashMap`s, no `polars-ops`): the join against
+  `taxonomy_df` is really just a semi-filter (taxonId is a unique key there, so it
+  never fans out rows and no taxonomy column is used downstream), and the join
+  against the geocode→cluster mapping is a real inner join, implemented as a
+  `HashMap<geocode, cluster>` lookup. Verified against Python by comparing
+  `(cluster, taxonId, count, average)` as a row set, using a synthetic geocode→cluster
+  assignment in the harness since real clustering (sklearn Ward) is Phase 3.
 - `src/dataframes/cluster_neighbors.py` — build cluster adjacency graph, connected
   components / neighbor expansion. `petgraph`. moderate
 - `src/matrices/cluster_distance.py` — braycurtis `pdist` over cluster taxon vectors.
