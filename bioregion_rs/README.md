@@ -22,6 +22,7 @@ every subsequent file migration will use.
   - `build_cluster_distance_matrix` — mirrors `src/matrices/cluster_distance.py`.
   - `build_cluster_color` — mirrors `src/dataframes/cluster_color.py` (geographic
     path only; the taxonomic path uses UMAP + MDS and stays in Python).
+  - `build_cluster_boundary` — mirrors `src/dataframes/cluster_boundary.py`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

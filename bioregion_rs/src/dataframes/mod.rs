@@ -1,5 +1,6 @@
 //! Ports of `src/dataframes/*.py`.
 
+pub mod cluster_boundary;
 pub mod cluster_color;
 pub mod cluster_neighbors;
 pub mod cluster_taxa_statistics;
