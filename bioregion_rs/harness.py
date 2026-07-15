@@ -22,6 +22,11 @@ import bioregion_rs
 from src.colors import darken_hex_color as py_darken
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
+from src.dataframes.geocode_neighbors import (
+    build_geocode_neighbors_df,
+    build_geocode_neighbors_no_edges_df,
+    graph as neighbors_graph,
+)
 from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
 from src.dataframes.taxonomy import build_taxonomy_lf
 from src.geocode import (
@@ -234,6 +239,74 @@ def test_build_geocode_taxa_counts() -> None:
     )
 
 
+# --- src/dataframes/geocode_neighbors.py --------------------------------------
+
+
+def _neighbor_sets(df: pl.DataFrame, column: str) -> dict:
+    return {geocode: set(neighbors) for geocode, neighbors in df.select("geocode", column).iter_rows()}
+
+
+def _is_single_component(df: pl.DataFrame, include_indirect_neighbors: bool) -> bool:
+    import networkx as nx
+
+    g = neighbors_graph(df, include_indirect_neighbors=include_indirect_neighbors)
+    return nx.number_connected_components(g) == 1
+
+
+def test_build_geocode_neighbors() -> None:
+    print("src/dataframes/geocode_neighbors.py  (build_geocode_neighbors):")
+    bbox, precision, _darwin_lf, darwin_df, _geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+
+    rust_out = bioregion_rs.build_geocode_neighbors(geocode_df)
+    py_out = build_geocode_neighbors_df(geocode_df)
+
+    check(f"non-trivial: {py_out.height} geocodes", py_out.height > 1)
+    check("same geocode order", rust_out["geocode"].equals(py_out["geocode"]))
+    check(
+        "same direct_neighbors set per geocode",
+        _neighbor_sets(rust_out, "direct_neighbors") == _neighbor_sets(py_out, "direct_neighbors"),
+    )
+    check("rust output is a single connected component", _is_single_component(rust_out, True))
+    check("python output is a single connected component", _is_single_component(py_out, True))
+    check(
+        "same direct_and_indirect_neighbors set per geocode",
+        _neighbor_sets(rust_out, "direct_and_indirect_neighbors")
+        == _neighbor_sets(py_out, "direct_and_indirect_neighbors"),
+    )
+
+
+def test_build_geocode_neighbors_no_edges() -> None:
+    print("src/dataframes/geocode_neighbors.py  (build_geocode_neighbors_no_edges):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+
+    rust_neighbors = bioregion_rs.build_geocode_neighbors(geocode_df)
+    py_neighbors = build_geocode_neighbors_df(geocode_df)
+
+    rust_out = bioregion_rs.build_geocode_neighbors_no_edges(rust_neighbors, geocode_no_edges_df)
+    py_out = build_geocode_neighbors_no_edges_df(py_neighbors, geocode_no_edges_df)
+
+    check(f"non-trivial: {py_out.height} geocodes", 0 < py_out.height < geocode_df.height)
+    check("sorted by geocode (rust)", rust_out["geocode"].is_sorted())
+    check("same geocode set", set(rust_out["geocode"].to_list()) == set(py_out["geocode"].to_list()))
+    check(
+        "same direct_neighbors set per geocode",
+        _neighbor_sets(rust_out, "direct_neighbors") == _neighbor_sets(py_out, "direct_neighbors"),
+    )
+    check("rust output is a single connected component", _is_single_component(rust_out, True))
+    check("python output is a single connected component", _is_single_component(py_out, True))
+    check(
+        "same direct_and_indirect_neighbors set per geocode",
+        _neighbor_sets(rust_out, "direct_and_indirect_neighbors")
+        == _neighbor_sets(py_out, "direct_and_indirect_neighbors"),
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -258,6 +331,8 @@ def main() -> None:
     test_build_geocode()
     test_build_taxonomy()
     test_build_geocode_taxa_counts()
+    test_build_geocode_neighbors()
+    test_build_geocode_neighbors_no_edges()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

@@ -14,6 +14,8 @@ every subsequent file migration will use.
   - `build_geocode` — mirrors `src/dataframes/geocode.py`.
   - `build_taxonomy` — mirrors `src/dataframes/taxonomy.py`.
   - `build_geocode_taxa_counts` — mirrors `src/dataframes/geocode_taxa_counts.py`.
+  - `build_geocode_neighbors`/`build_geocode_neighbors_no_edges` — mirrors
+    `src/dataframes/geocode_neighbors.py`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

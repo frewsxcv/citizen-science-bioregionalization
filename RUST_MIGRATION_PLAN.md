@@ -217,8 +217,18 @@ verified against Python in `bioregion_rs/harness.py`.
   engines' output back through their own taxonomy to (geocode, scientificName,
   gbifTaxonId, count) and comparing as sets (sidesteps the taxonId-ordering
   non-determinism noted above).
-- `src/dataframes/geocode_neighbors.py` — TODO: `grid_ring(k=1)` via `h3o`; connectivity
-  fixup (single connected component) via `petgraph`. moderate
+- `src/dataframes/geocode_neighbors.py` — ✅ DONE: `build_geocode_neighbors` and
+  `build_geocode_neighbors_no_edges` (H3 `grid_ring_fast(1)` for direct adjacency; a
+  hand-rolled union-find + brute-force nearest-point search for the connectivity fixup,
+  instead of `petgraph` — the graph is tiny per bioregion and this avoids a new
+  dependency). The public `graph()` helper (produces an `nx.Graph` for downstream
+  consumers) stays in Python unchanged — it's a thin, Python-object-specific wrapper
+  around whichever engine produced the `GeocodeNeighborsSchema` DataFrame. Verified
+  against Python by comparing `direct_neighbors`/`direct_and_indirect_neighbors` as
+  per-geocode sets (order-independent) and confirming both outputs are a single
+  connected component; the indirect-edge tie-break (nearest pair when multiple
+  candidates are equidistant) matched Python exactly on the test fixture, though this
+  isn't guaranteed in general — see the caveat in `geocode_neighbors.rs`.
 - `src/matrices/geocode_connectivity.py` — TODO: build sparse adjacency from neighbor lists
   (CSR via `sprs` or dense `ndarray`).
 

@@ -32,6 +32,20 @@ pub fn polygon(ring: &[(f64, f64)]) -> Vec<u8> {
     buf
 }
 
+/// Decode a WKB-encoded 2D point back to (x, y). Panics on malformed input;
+/// only intended for round-tripping this module's own `point()` output.
+pub fn decode_point(bytes: &[u8]) -> (f64, f64) {
+    assert_eq!(
+        bytes[0], BYTE_ORDER_LE,
+        "only little-endian WKB is supported"
+    );
+    let kind = u32::from_le_bytes(bytes[1..5].try_into().unwrap());
+    assert_eq!(kind, TYPE_POINT, "expected a WKB Point");
+    let x = f64::from_le_bytes(bytes[5..13].try_into().unwrap());
+    let y = f64::from_le_bytes(bytes[13..21].try_into().unwrap());
+    (x, y)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,6 +58,7 @@ mod tests {
         assert_eq!(u32::from_le_bytes(b[1..5].try_into().unwrap()), TYPE_POINT);
         assert_eq!(f64::from_le_bytes(b[5..13].try_into().unwrap()), 1.0);
         assert_eq!(f64::from_le_bytes(b[13..21].try_into().unwrap()), 2.0);
+        assert_eq!(decode_point(&b), (1.0, 2.0));
     }
 
     #[test]
