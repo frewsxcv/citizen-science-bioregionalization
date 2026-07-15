@@ -1,0 +1,24 @@
+[package]
+name = "bioregion_rs"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "bioregion_rs"
+# cdylib: build a native Python extension module.
+# rlib: also build a normal Rust lib so `cargo test` can link the crate.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+h3o = "0.8"
+# NOTE: polars 0.54.4's `lazy` feature set (polars-lazy / polars-stream) fails to
+# compile on this toolchain due to internal feature-unification bugs. Phase 0
+# therefore uses only the eager DataFrame API, which is all the robust interop
+# path (Arrow-FFI DataFrame transfer + the parquet boundary) requires. LazyFrame
+# plan-passing is deferred (it is the version-sensitive path per the plan).
+polars = { version = "0.54.4", default-features = false }
+# `extension-module` is intentionally NOT set here: it suppresses libpython
+# linking, which breaks `cargo test`'s standalone test binary. maturin adds it at
+# wheel-build time (see [tool.maturin] features below).
+pyo3 = { version = "0.28", features = ["abi3-py313"] }
+pyo3-polars = "0.27"
