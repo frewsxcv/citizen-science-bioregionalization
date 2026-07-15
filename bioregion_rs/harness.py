@@ -22,6 +22,7 @@ from scipy.spatial.distance import squareform
 
 import bioregion_rs
 from src.colors import darken_hex_color as py_darken
+from src.dataframes.cluster_color import build_cluster_color_df
 from src.dataframes.cluster_neighbors import build_cluster_neighbors_df
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.darwin_core import build_darwin_core_lf
@@ -478,6 +479,44 @@ def test_build_cluster_distance_matrix() -> None:
     )
 
 
+# --- src/dataframes/cluster_color.py (geographic path only) ------------------
+
+
+def test_build_cluster_color() -> None:
+    print("src/dataframes/cluster_color.py  (build_cluster_color, geographic):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+    py_neighbors = build_geocode_neighbors_df(geocode_df)
+    py_neighbors_no_edges = build_geocode_neighbors_no_edges_df(
+        py_neighbors, geocode_no_edges_df
+    )
+
+    # Cluster by row index (not geocode value): see the note in
+    # test_build_cluster_neighbors. Use enough clusters that the adjacency
+    # graph actually needs more than one color.
+    geocodes = py_neighbors_no_edges["geocode"].sort()
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": [i % 4 for i in range(len(geocodes))]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+    cluster_neighbors_df = build_cluster_neighbors_df(
+        py_neighbors_no_edges, geocode_cluster_df
+    )
+
+    rust_out = bioregion_rs.build_cluster_color(cluster_neighbors_df)
+    py_out = build_cluster_color_df(
+        cluster_neighbors_df.lazy(), color_method="geographic"
+    )
+
+    check(f"non-trivial: {py_out.height} clusters colored", py_out.height > 1)
+
+    def _rows(df: pl.DataFrame) -> set:
+        return set(df.select("cluster", "color", "darkened_color").iter_rows())
+
+    check("same (cluster, color, darkened_color) row set", _rows(rust_out) == _rows(py_out))
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -508,6 +547,7 @@ def main() -> None:
     test_build_cluster_taxa_statistics()
     test_build_cluster_neighbors()
     test_build_cluster_distance_matrix()
+    test_build_cluster_color()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
