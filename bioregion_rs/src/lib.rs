@@ -27,5 +27,10 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(geocode::with_geocode, m)?)?;
     m.add_function(wrap_pyfunction!(geocode::filter_by_bounding_box, m)?)?;
     m.add_function(wrap_pyfunction!(dataframes::geocode::build_geocode, m)?)?;
+    m.add_function(wrap_pyfunction!(dataframes::taxonomy::build_taxonomy, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::geocode_taxa_counts::build_geocode_taxa_counts,
+        m
+    )?)?;
     Ok(())
 }

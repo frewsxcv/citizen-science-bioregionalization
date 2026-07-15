@@ -22,6 +22,8 @@ import bioregion_rs
 from src.colors import darken_hex_color as py_darken
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
+from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
+from src.dataframes.taxonomy import build_taxonomy_lf
 from src.geocode import (
     filter_by_bounding_box as py_filter_bbox,
     select_geocode_lf,
@@ -141,6 +143,97 @@ def test_build_geocode() -> None:
     )
 
 
+# --- src/dataframes/taxonomy.py, src/dataframes/geocode_taxa_counts.py -------
+
+
+def _load_bbox_darwin_and_geocode_no_edges():
+    """Shared fixture: sample-archive Darwin Core data + its non-edge geocodes."""
+    load_bbox = Bbox.from_coordinates(-90.0, 90.0, -180.0, 180.0)
+    bbox = Bbox.from_coordinates(35.0, 43.5, -50.0, 10.0)
+    precision = 4
+    darwin_lf = build_darwin_core_lf(str(REPO_ROOT / "test" / "sample-archive"), load_bbox)
+    darwin_df = darwin_lf.collect()
+    geocode_df = build_geocode_df(darwin_lf, precision, bbox)
+    geocode_no_edges_df = geocode_df.filter(~pl.col("is_edge"))
+    return bbox, precision, darwin_lf, darwin_df, geocode_no_edges_df
+
+
+def _taxonomy_pairs(taxonomy_df: pl.DataFrame) -> set:
+    return set(taxonomy_df.select("scientificName", "gbifTaxonId").iter_rows())
+
+
+def test_build_taxonomy() -> None:
+    print("src/dataframes/taxonomy.py  (build_taxonomy):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+
+    rust_out = bioregion_rs.build_taxonomy(
+        darwin_df, precision, geocode_no_edges_df,
+        bbox.min_lat, bbox.max_lat, bbox.min_lng, bbox.max_lng,
+    )
+    py_out = build_taxonomy_lf(
+        darwin_df.lazy(), precision, geocode_no_edges_df.lazy(), bbox
+    ).collect()
+
+    check(f"non-trivial: {py_out.height} taxa built", py_out.height > 0)
+    check(
+        "same (scientificName, gbifTaxonId) pair set",
+        _taxonomy_pairs(rust_out) == _taxonomy_pairs(py_out),
+    )
+    check(
+        "taxonId is a 0..n bijection (rust)",
+        set(rust_out["taxonId"].to_list()) == set(range(rust_out.height)),
+    )
+    check(
+        "taxonId is a 0..n bijection (python)",
+        set(py_out["taxonId"].to_list()) == set(range(py_out.height)),
+    )
+
+
+def test_build_geocode_taxa_counts() -> None:
+    print("src/dataframes/geocode_taxa_counts.py  (build_geocode_taxa_counts):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+
+    rust_taxonomy = bioregion_rs.build_taxonomy(
+        darwin_df, precision, geocode_no_edges_df,
+        bbox.min_lat, bbox.max_lat, bbox.min_lng, bbox.max_lng,
+    )
+    py_taxonomy = build_taxonomy_lf(
+        darwin_df.lazy(), precision, geocode_no_edges_df.lazy(), bbox
+    ).collect()
+
+    rust_counts = bioregion_rs.build_geocode_taxa_counts(
+        darwin_df, precision, rust_taxonomy, geocode_no_edges_df,
+        bbox.min_lat, bbox.max_lat, bbox.min_lng, bbox.max_lng,
+    )
+    py_counts = build_geocode_taxa_counts_lf(
+        darwin_df.lazy(), precision, py_taxonomy.lazy(), geocode_no_edges_df.lazy(), bbox
+    ).collect()
+
+    check(f"non-trivial: {py_counts.height} (geocode, taxon) rows built", py_counts.height > 0)
+    check(
+        "total count matches",
+        int(rust_counts["count"].sum()) == int(py_counts["count"].sum()),
+    )
+
+    # taxonId assignment order can differ between engines (unique() ordering is
+    # not guaranteed), so compare by joining back through each engine's own
+    # taxonomy to (geocode, scientificName, gbifTaxonId, count).
+    def _resolved(counts: pl.DataFrame, taxonomy: pl.DataFrame) -> set:
+        joined = counts.join(taxonomy, on="taxonId", how="left")
+        return set(
+            joined.select("geocode", "scientificName", "gbifTaxonId", "count").iter_rows()
+        )
+
+    check(
+        "same (geocode, scientificName, gbifTaxonId, count) set",
+        _resolved(rust_counts, rust_taxonomy) == _resolved(py_counts, py_taxonomy),
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -163,6 +256,8 @@ def main() -> None:
     test_with_geocode()
     test_filter_by_bounding_box()
     test_build_geocode()
+    test_build_taxonomy()
+    test_build_geocode_taxa_counts()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

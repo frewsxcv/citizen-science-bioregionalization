@@ -27,7 +27,9 @@ pub(crate) fn latlng_to_geocode(
         .iter()
         .zip(lng.iter())
         .map(|(la, lo)| match (la, lo) {
-            (Some(la), Some(lo)) => LatLng::new(la, lo).ok().map(|ll| u64::from(ll.to_cell(res))),
+            (Some(la), Some(lo)) => LatLng::new(la, lo)
+                .ok()
+                .map(|ll| u64::from(ll.to_cell(res))),
             _ => None,
         })
         .collect();
@@ -73,6 +75,46 @@ pub fn with_geocode(df: PyDataFrame, precision: u8) -> PyResult<PyDataFrame> {
     Ok(PyDataFrame(df))
 }
 
+/// Filter a DataFrame to rows whose lat/lng (by column name) are non-null and
+/// within the bounding box (inclusive on both bounds).
+///
+/// Mirrors `src/geocode.py::filter_by_bounding_box`.
+pub(crate) fn filter_by_bounding_box_df(
+    df: &DataFrame,
+    min_lat: f64,
+    max_lat: f64,
+    min_lng: f64,
+    max_lng: f64,
+    lat_col: &str,
+    lng_col: &str,
+) -> PolarsResult<DataFrame> {
+    let (lat, lng) = latlng_columns(df, lat_col, lng_col)?;
+    let lat = lat.f64()?;
+    let lng = lng.f64()?;
+    let mask: BooleanChunked = lat
+        .iter()
+        .zip(lng.iter())
+        .map(|(la, lo)| match (la, lo) {
+            (Some(la), Some(lo)) => {
+                la >= min_lat && la <= max_lat && lo >= min_lng && lo <= max_lng
+            }
+            _ => false,
+        })
+        .collect();
+    df.filter(&mask)
+}
+
+/// Return the input DataFrame with an added `geocode` (UInt64) column, reading
+/// lat/lng from `decimalLatitude` / `decimalLongitude`.
+pub(crate) fn with_geocode_df(df: &DataFrame, precision: u8) -> PolarsResult<DataFrame> {
+    let mut df = df.clone();
+    let res = resolution_from_u8(precision)?;
+    let (lat, lng) = latlng_columns(&df, "decimalLatitude", "decimalLongitude")?;
+    let geocode = latlng_to_geocode(lat, lng, res)?;
+    df.with_column(geocode.into_column())?;
+    Ok(df)
+}
+
 /// Filter a DataFrame to rows whose lat/lng are non-null and within the bounding
 /// box (inclusive on both bounds).
 ///
@@ -94,20 +136,9 @@ pub fn filter_by_bounding_box(
     lng_col: String,
 ) -> PyResult<PyDataFrame> {
     let df: DataFrame = df.into();
-    let (lat, lng) = latlng_columns(&df, &lat_col, &lng_col).map_err(to_py)?;
-    let lat = lat.f64().map_err(to_py)?;
-    let lng = lng.f64().map_err(to_py)?;
-    let mask: BooleanChunked = lat
-        .iter()
-        .zip(lng.iter())
-        .map(|(la, lo)| match (la, lo) {
-            (Some(la), Some(lo)) => {
-                la >= min_lat && la <= max_lat && lo >= min_lng && lo <= max_lng
-            }
-            _ => false,
-        })
-        .collect();
-    let out = df.filter(&mask).map_err(to_py)?;
+    let out =
+        filter_by_bounding_box_df(&df, min_lat, max_lat, min_lng, max_lng, &lat_col, &lng_col)
+            .map_err(to_py)?;
     Ok(PyDataFrame(out))
 }
 
