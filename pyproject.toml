@@ -37,4 +37,6 @@ dependencies = [
 typeCheckingMode = "standard"
 
 [dependency-groups]
-dev = []
+dev = [
+    "maturin>=1.14.1",
+]

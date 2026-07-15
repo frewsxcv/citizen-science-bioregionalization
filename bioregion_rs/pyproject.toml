@@ -1,0 +1,15 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "bioregion-rs"
+description = "Rust core for the citizen-science bioregionalization pipeline"
+requires-python = ">=3.13,<3.14"
+classifiers = ["Programming Language :: Rust"]
+dynamic = ["version"]
+
+[tool.maturin]
+# Build a pure-Rust extension module named `bioregion_rs`.
+module-name = "bioregion_rs"
+features = ["pyo3/extension-module"]
