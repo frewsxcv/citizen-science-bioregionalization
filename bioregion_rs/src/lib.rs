@@ -13,6 +13,7 @@ use pyo3::prelude::*;
 mod colors;
 mod dataframes;
 mod geocode;
+mod matrices;
 mod wkb;
 
 /// Convert a polars error into a Python `ValueError`.
@@ -38,6 +39,10 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     m.add_function(wrap_pyfunction!(
         dataframes::geocode_neighbors::build_geocode_neighbors_no_edges,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        matrices::geocode_connectivity::build_geocode_connectivity_matrix,
         m
     )?)?;
     Ok(())

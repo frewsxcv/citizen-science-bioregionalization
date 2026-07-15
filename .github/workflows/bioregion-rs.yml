@@ -1,0 +1,31 @@
+name: bioregion_rs
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Cache cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            bioregion_rs/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('bioregion_rs/Cargo.lock') }}
+      - name: cargo test (Rust unit tests)
+        working-directory: bioregion_rs
+        run: PYO3_PYTHON=$(cd .. && uv run which python) cargo test --lib
+      - name: Build the bioregion_rs extension into the venv
+        run: uv run maturin develop --manifest-path bioregion_rs/Cargo.toml
+      - name: Run interop/correctness harness (Rust output vs Python output)
+        run: uv run python bioregion_rs/harness.py

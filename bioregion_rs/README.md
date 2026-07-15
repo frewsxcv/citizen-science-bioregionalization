@@ -19,6 +19,9 @@ every subsequent file migration will use.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
+CI (`.github/workflows/bioregion-rs.yml`) runs `cargo test --lib`, builds the
+extension via `maturin develop`, and runs `harness.py` on every push.
+
 ## Build & test
 
 ```bash

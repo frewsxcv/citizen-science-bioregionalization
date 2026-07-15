@@ -15,6 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # Make the repo-root `src` package importable regardless of CWD.
 sys.path.insert(0, str(REPO_ROOT))
 
+import numpy as np
 import polars as pl
 import shapely
 
@@ -34,6 +35,7 @@ from src.geocode import (
     select_geocode_lf,
     with_geocode_lf,
 )
+from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.types import Bbox
 
 
@@ -307,6 +309,27 @@ def test_build_geocode_neighbors_no_edges() -> None:
     )
 
 
+# --- src/matrices/geocode_connectivity.py -------------------------------------
+
+
+def test_build_geocode_connectivity_matrix() -> None:
+    print("src/matrices/geocode_connectivity.py  (build_geocode_connectivity_matrix):")
+    bbox, precision, _darwin_lf, darwin_df, _geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+    geocode_neighbors_df = build_geocode_neighbors_df(geocode_df)
+
+    rust_matrix = bioregion_rs.build_geocode_connectivity_matrix(geocode_neighbors_df)
+    py_matrix = GeocodeConnectivityMatrix.build(geocode_neighbors_df)._connectivity_matrix
+
+    check(f"non-trivial: {len(rust_matrix)}x{len(rust_matrix)} matrix", len(rust_matrix) > 1)
+    check(
+        "matrix matches exactly",
+        np.array(rust_matrix, dtype=int).tolist() == py_matrix.astype(int).tolist(),
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -333,6 +356,7 @@ def main() -> None:
     test_build_geocode_taxa_counts()
     test_build_geocode_neighbors()
     test_build_geocode_neighbors_no_edges()
+    test_build_geocode_connectivity_matrix()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
