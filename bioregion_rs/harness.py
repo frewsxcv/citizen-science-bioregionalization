@@ -21,6 +21,7 @@ import shapely
 
 import bioregion_rs
 from src.colors import darken_hex_color as py_darken
+from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
 from src.dataframes.geocode_neighbors import (
@@ -330,6 +331,50 @@ def test_build_geocode_connectivity_matrix() -> None:
     )
 
 
+# --- src/dataframes/cluster_taxa_statistics.py --------------------------------
+
+
+def test_build_cluster_taxa_statistics() -> None:
+    print("src/dataframes/cluster_taxa_statistics.py  (build_cluster_taxa_statistics):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    py_taxonomy = build_taxonomy_lf(
+        darwin_df.lazy(), precision, geocode_no_edges_df.lazy(), bbox
+    ).collect()
+    py_counts = build_geocode_taxa_counts_lf(
+        darwin_df.lazy(), precision, py_taxonomy.lazy(), geocode_no_edges_df.lazy(), bbox
+    ).collect()
+
+    # Synthetic cluster assignment (real clustering is sklearn Ward
+    # agglomerative clustering, out of scope for this port): split geocodes
+    # into two clusters deterministically so both the overall and per-cluster
+    # aggregation paths get exercised.
+    geocodes = py_counts["geocode"].unique().sort()
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": [g % 2 for g in geocodes]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+
+    rust_out = bioregion_rs.build_cluster_taxa_statistics(
+        py_counts, geocode_cluster_df, py_taxonomy
+    )
+    py_out = build_cluster_taxa_statistics_df(
+        py_counts.lazy(), geocode_cluster_df.lazy(), py_taxonomy.lazy()
+    )
+
+    check(f"non-trivial: {py_out.height} rows", py_out.height > 0)
+
+    def _rows(df: pl.DataFrame) -> set:
+        return {
+            (cluster, taxon_id, count, round(average, 9))
+            for cluster, taxon_id, count, average in df.select(
+                "cluster", "taxonId", "count", "average"
+            ).iter_rows()
+        }
+
+    check("same (cluster, taxonId, count, average) row set", _rows(rust_out) == _rows(py_out))
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -357,6 +402,7 @@ def main() -> None:
     test_build_geocode_neighbors()
     test_build_geocode_neighbors_no_edges()
     test_build_geocode_connectivity_matrix()
+    test_build_cluster_taxa_statistics()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
