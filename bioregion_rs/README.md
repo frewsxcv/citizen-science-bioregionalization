@@ -18,6 +18,7 @@ every subsequent file migration will use.
     `src/dataframes/geocode_neighbors.py`.
   - `build_geocode_connectivity_matrix` — mirrors `src/matrices/geocode_connectivity.py`.
   - `build_cluster_taxa_statistics` — mirrors `src/dataframes/cluster_taxa_statistics.py`.
+  - `build_cluster_neighbors` — mirrors `src/dataframes/cluster_neighbors.py`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

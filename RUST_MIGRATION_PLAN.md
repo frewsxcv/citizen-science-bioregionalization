@@ -259,8 +259,16 @@ validated).
   `HashMap<geocode, cluster>` lookup. Verified against Python by comparing
   `(cluster, taxonId, count, average)` as a row set, using a synthetic geocode→cluster
   assignment in the harness since real clustering (sklearn Ward) is Phase 3.
-- `src/dataframes/cluster_neighbors.py` — build cluster adjacency graph, connected
-  components / neighbor expansion. `petgraph`. moderate
+- `src/dataframes/cluster_neighbors.py` — ✅ DONE: `build_cluster_neighbors` derives
+  which clusters are (direct/indirect) neighbors of each other from geocode-level
+  adjacency plus a geocode→cluster mapping. Turned out not to need `petgraph` or any
+  connected-components logic at all — it's a pure derivation (for each geocode's
+  neighbors, note the pair of clusters if they differ), done with a
+  `HashMap<geocode, cluster>` lookup. Mirrors Python's fail-fast behavior (errors
+  instead of silently skipping) if a geocode is missing from the cluster mapping. The
+  `to_graph()` helper (produces an `nx.Graph`) stays in Python, same reasoning as
+  `geocode_neighbors.graph()`. Verified against Python by comparing neighbor sets per
+  cluster, using a synthetic geocode→cluster assignment (Phase 3, out of scope here).
 - `src/matrices/cluster_distance.py` — braycurtis `pdist` over cluster taxon vectors.
   Simple port. ✅
 - `src/dataframes/cluster_color.py` **(geographic path only)** — `nx.greedy_color` →
