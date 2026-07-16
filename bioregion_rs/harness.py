@@ -32,6 +32,10 @@ from src.dataframes.cluster_significant_differences import (
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
+from src.dataframes.geocode_cluster_metrics import (
+    build_geocode_cluster_metrics_df,
+    select_optimal_k_elbow,
+)
 from src.dataframes.geocode_neighbors import (
     build_geocode_neighbors_df,
     build_geocode_neighbors_no_edges_df,
@@ -702,6 +706,70 @@ def test_build_permanova_results() -> None:
     )
 
 
+# --- src/dataframes/geocode_cluster_metrics.py --------------------------------
+
+
+def test_build_geocode_cluster_metrics() -> None:
+    print(
+        "src/dataframes/geocode_cluster_metrics.py  (build_geocode_cluster_metrics):"
+    )
+    # Hand-built (not sample-archive-derived): 6 points forming 3 tight pairs,
+    # each pair far from the others, tested at both k=2 and k=3.
+    geocode_ids = [1, 2, 3, 4, 5, 6]
+    condensed = [
+        0.1, 2.0, 2.0, 3.0, 3.0,  # (1,2) (1,3) (1,4) (1,5) (1,6)
+             2.0, 2.0, 3.0, 3.0,  # (2,3) (2,4) (2,5) (2,6)
+                  0.1, 3.0, 3.0,  # (3,4) (3,5) (3,6)
+                       3.0, 3.0,  # (4,5) (4,6)
+                            0.1,  # (5,6)
+    ]  # fmt: skip
+    geocode_cluster_multi_k_df = pl.DataFrame(
+        {
+            "geocode": geocode_ids + geocode_ids,
+            "cluster": [0, 0, 1, 1, 2, 2] + [0, 0, 0, 1, 1, 1],
+            "num_clusters": [3] * 6 + [2] * 6,
+        }
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32, "num_clusters": pl.UInt32})
+    distance_matrix = GeocodeDistanceMatrix(
+        condensed=np.array(condensed), reduced_features=np.empty((6, 0))
+    )
+
+    rust_out = bioregion_rs.build_geocode_cluster_metrics(
+        condensed, geocode_cluster_multi_k_df
+    )
+    py_out = build_geocode_cluster_metrics_df(distance_matrix, geocode_cluster_multi_k_df)
+
+    check(f"non-trivial: {py_out.height} k values tested", py_out.height == 2)
+
+    def _rows(df: pl.DataFrame) -> set:
+        return {
+            (
+                row["num_clusters"],
+                round(row["silhouette_score"], 6),
+                round(row["calinski_harabasz_score"], 6),
+                round(row["davies_bouldin_score"], 6),
+                round(row["inertia"], 6),
+                round(row["combined_score"], 6),
+            )
+            for row in df.iter_rows(named=True)
+        }
+
+    check("same metrics per k (all engines)", _rows(rust_out) == _rows(py_out))
+
+    # Kneedle elbow selection: select_optimal_k_elbow only ever touches the
+    # num_clusters/inertia columns, so a minimal 2-column DataFrame suffices
+    # (it isn't run through GeocodeClusterMetricsSchema.validate()).
+    k_values = [2, 3, 4, 5, 6]
+    inertia_values = [100.0, 50.0, 20.0, 18.0, 17.0]
+    metrics_df = pl.DataFrame(
+        {"num_clusters": k_values, "inertia": inertia_values}
+    ).cast({"num_clusters": pl.UInt32, "inertia": pl.Float64})
+
+    rust_k = bioregion_rs.select_optimal_k_elbow(k_values, inertia_values, 1.0)
+    py_k = select_optimal_k_elbow(metrics_df, sensitivity=1.0)
+    check(f"elbow k matches (rust={rust_k}, py={py_k})", rust_k == py_k)
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -736,6 +804,7 @@ def main() -> None:
     test_build_cluster_boundary()
     test_build_cluster_significant_differences()
     test_build_permanova_results()
+    test_build_geocode_cluster_metrics()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

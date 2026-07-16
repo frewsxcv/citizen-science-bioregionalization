@@ -30,6 +30,10 @@ every subsequent file migration will use.
     pseudo-F statistic is exact; the p-value uses Rust's own RNG for its Monte Carlo
     permutation test (the Python call site is itself unseeded, so bit-reproducibility
     isn't achievable or expected — see the plan for details).
+  - `build_geocode_cluster_metrics`/`select_optimal_k_elbow` — mirrors
+    `src/dataframes/geocode_cluster_metrics.py`. Elbow detection uses the `kneed`
+    crate rather than a hand-rolled Kneedle port — see the plan for why (a hand-rolled
+    first pass had a real, if subtle, bug around curve-endpoint handling).
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
@@ -63,6 +67,7 @@ together.
 | `h3o` | 0.8 | pure-Rust H3; produces cell ids identical to `polars-h3` |
 | `geo` | 0.33.1 | boolean ops (`unary_union`) for `cluster_boundary` |
 | `rand` | 0.9 | PERMANOVA's Monte Carlo shuffle; already resolved transitively by `polars` |
+| `kneed` | 1.0 | Kneedle elbow detection; independent Rust port of the Python `kneed` package — pulled in for correctness (see the plan), at the cost of a real added dependency tree (`nalgebra`, `glam`, `polyfit-rs`) for a polynomial-interpolation path this crate doesn't use |
 
 ### Known toolchain constraint
 

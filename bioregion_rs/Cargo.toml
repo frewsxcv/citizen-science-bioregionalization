@@ -12,6 +12,11 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 geo = "0.33.1"
 h3o = "0.8"
+# Kneedle elbow detection for geocode_cluster_metrics; a 1:1 port of the
+# Python `kneed` package we port from. Used instead of a hand-rolled
+# reimplementation of scipy's argrelextrema(mode="clip") boundary semantics,
+# which is subtle to get exactly right (see the module doc comment).
+kneed = "1.0"
 # NOTE: polars 0.54.4's `lazy` feature set (polars-lazy / polars-stream) fails to
 # compile on this toolchain due to internal feature-unification bugs. Phase 0
 # therefore uses only the eager DataFrame API, which is all the robust interop
