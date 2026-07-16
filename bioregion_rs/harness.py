@@ -7,6 +7,7 @@ template every file migration follows.
 Run:  uv run python bioregion_rs/harness.py
 """
 
+import json
 import math
 import sys
 import tempfile
@@ -16,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # Make the repo-root `src` package importable regardless of CWD.
 sys.path.insert(0, str(REPO_ROOT))
 
+import geojson as geojson_lib
 import numpy as np
 import polars as pl
 import shapely
@@ -51,6 +53,7 @@ from src.geocode import (
     select_geocode_lf,
     with_geocode_lf,
 )
+from src.geojson import build_geojson_feature_collection
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
@@ -837,6 +840,88 @@ def test_optimize_num_clusters() -> None:
     check("same metrics table (combined_score by k)", _rows(rust_metrics) == _rows(py_metrics))
 
 
+# --- src/geojson.py -------------------------------------------------------------
+
+
+def test_build_geojson_feature_collection() -> None:
+    print("src/geojson.py  (build_geojson_feature_collection):")
+    bbox, precision, _darwin_lf, darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+    geocode_df = build_geocode_df(darwin_df.lazy(), precision, bbox)
+
+    # Cluster by row index (not geocode value): see the note in
+    # test_build_cluster_neighbors. 3 clusters -> a mix of single-geocode
+    # (bare Polygon) and multi-geocode (MultiPolygon) cluster boundaries,
+    # exercising both geometry shapes build_geojson_feature_collection emits.
+    geocodes = geocode_no_edges_df["geocode"].sort()
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": [i % 3 for i in range(len(geocodes))]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+
+    cluster_boundary_df = build_cluster_boundary_df(
+        geocode_cluster_df, geocode_no_edges_df.lazy()
+    )
+
+    py_neighbors = build_geocode_neighbors_df(geocode_df)
+    py_neighbors_no_edges = build_geocode_neighbors_no_edges_df(
+        py_neighbors, geocode_no_edges_df
+    )
+    cluster_neighbors_df = build_cluster_neighbors_df(
+        py_neighbors_no_edges, geocode_cluster_df
+    )
+    cluster_color_df = build_cluster_color_df(
+        cluster_neighbors_df.lazy(), color_method="geographic"
+    )
+
+    rust_json = bioregion_rs.build_geojson_feature_collection(
+        cluster_boundary_df, cluster_color_df
+    )
+    py_feature_collection = build_geojson_feature_collection(
+        cluster_boundary_df, cluster_color_df
+    )
+
+    rust_parsed = json.loads(rust_json)
+    py_parsed = json.loads(geojson_lib.dumps(py_feature_collection))
+
+    check(f"non-trivial: {len(py_parsed['features'])} features", len(py_parsed["features"]) > 1)
+    check(
+        "both are FeatureCollections",
+        rust_parsed["type"] == "FeatureCollection" and py_parsed["type"] == "FeatureCollection",
+    )
+
+    def _by_cluster(fc: dict) -> dict:
+        return {f["properties"]["cluster"]: f for f in fc["features"]}
+
+    rust_by_cluster = _by_cluster(rust_parsed)
+    py_by_cluster = _by_cluster(py_parsed)
+    check("same cluster set", set(rust_by_cluster) == set(py_by_cluster))
+    check(
+        "same properties per cluster",
+        all(
+            rust_by_cluster[c]["properties"] == py_by_cluster[c]["properties"]
+            for c in rust_by_cluster
+        ),
+    )
+
+    # Geometry: relative tolerance, not exact equality -- these boundaries
+    # come from geo::unary_union (see cluster_boundary.rs), which is a
+    # different implementation from GEOS's union and differs by a tiny
+    # (~1e-7 relative) amount at shared hexagon edges, same as
+    # test_build_cluster_boundary.
+    max_relative_symdiff = max(
+        shapely.geometry.shape(rust_by_cluster[c]["geometry"])
+        .symmetric_difference(shapely.geometry.shape(py_by_cluster[c]["geometry"]))
+        .area
+        / shapely.geometry.shape(py_by_cluster[c]["geometry"]).area
+        for c in rust_by_cluster
+    )
+    check(
+        f"geometries match (max relative sym-diff {max_relative_symdiff:.2e})",
+        max_relative_symdiff < 1e-5,
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -874,6 +959,7 @@ def main() -> None:
     test_build_geocode_cluster_metrics()
     test_build_geocode_silhouette_score()
     test_optimize_num_clusters()
+    test_build_geojson_feature_collection()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

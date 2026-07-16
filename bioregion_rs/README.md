@@ -39,6 +39,11 @@ every subsequent file migration will use.
     mean, extended to per-geocode).
   - `optimize_num_clusters` — mirrors `src/cluster_optimization.py`; thin in-process
     orchestration over `build_geocode_cluster_metrics` + `find_elbow_point`.
+  - `build_geojson_feature_collection` — mirrors `src/geojson.py`. Uses the `geojson`
+    crate (see the plan for why — a hand-built `format!` first pass had a real
+    property-swap bug), returning the FeatureCollection as a JSON string rather than a
+    `geojson.FeatureCollection` Python object (nothing in the codebase does an
+    `isinstance` check against that type).
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
@@ -71,6 +76,7 @@ together.
 | `pyo3` | 0.28 | abi3-py313 |
 | `h3o` | 0.8 | pure-Rust H3; produces cell ids identical to `polars-h3` |
 | `geo` | 0.33.1 | boolean ops (`unary_union`) for `cluster_boundary` |
+| `geojson` | 1.0 | typed GeoJSON Feature/FeatureCollection construction + serialization for `geojson.rs`; its `geo-types` feature converts `geo`'s types directly, and its pinned `geo-types` range unifies with the version `geo` already pulls in |
 | `rand` | 0.9 | PERMANOVA's Monte Carlo shuffle; already resolved transitively by `polars` |
 | `kneed` | 1.0 | Kneedle elbow detection; independent Rust port of the Python `kneed` package — pulled in for correctness (see the plan), at the cost of a real added dependency tree (`nalgebra`, `glam`, `polyfit-rs`) for a polynomial-interpolation path this crate doesn't use |
 

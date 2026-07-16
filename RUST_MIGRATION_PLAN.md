@@ -399,10 +399,42 @@ validated).
   multi-k fixture used for `geocode_cluster_metrics.py`, deliberately using only 2
   distinct k values so the test exercises the "no elbow found" fallback path (elbow-found
   behavior itself is already covered by `geocode_cluster_metrics.py`'s own tests).
-- `src/dataframes/significant_taxa_images.py` — image URL/id lookup join. ✅ (confirm no
-  network fetch; if it hits an API, keep that thin bit in Python or use `reqwest`).
-- `src/geojson.py`, `src/output.py`, `src/render.py` — GeoJSON + JSON (+ HTML) emit.
-  `geojson`/`serde_json` crates; decode WKB with `wkb`+`geo`. ✅
+- `src/dataframes/significant_taxa_images.py` — 🔴 STAYS IN PYTHON, confirmed:
+  `_fetch_wikidata_images` does a live SPARQL-over-HTTP POST to Wikidata. Checked
+  whether a Rust SPARQL client would change that (a user-authored crate,
+  [rust-sparqling](https://github.com/observ-ing/rust-sparqling), depends on
+  `reqwest` + `tokio`) — it would work for the fetch itself, but it'd be the single
+  heaviest dependency addition in this migration (bigger than `kneed`'s
+  `nalgebra`/`glam` tree) and the *first* async code in a crate that's otherwise
+  entirely synchronous PyO3, all to accelerate a one-shot, non-performance-critical
+  network call whose actual "compute" (a dict lookup + join) is trivial. Not worth it;
+  matches this plan's original call ("if it hits an API, keep that thin bit in
+  Python").
+- `src/geojson.py` — ✅ DONE: `build_geojson_feature_collection`, using the **`geojson`
+  crate** (its `geo-types` feature converts our existing `geo::Polygon`/`MultiPolygon`
+  directly; its pinned `geo-types` range unifies with the version `geo` already pulls
+  in, so no duplicate). A first pass hand-built the JSON via `format!` to avoid a
+  dependency — that version had a real bug (a copy-paste swap of the `color`/
+  `fillColor` property values), caught only because a unit test happened to assert the
+  exact JSON shape. Building typed `Feature`/`FeatureCollection` values and letting the
+  crate serialize them removes that whole class of mistake, so the crate won out
+  here despite the added dependency (unlike, say, `cluster_boundary.py`'s hand-rolled
+  WKB encoding, which has no such structural-mistake risk). Still returns the
+  FeatureCollection as a JSON string rather than a `geojson.FeatureCollection` Python
+  object — nothing in the codebase does an `isinstance` check against that type (it's
+  only ever handed to `geojson.dump`, which just needs something JSON-serializable).
+  Required extending `wkb.rs` to decode a WKB *MultiPolygon* (not just `Polygon`),
+  since `cluster_boundary.rs`'s output can be either shape depending on cluster size;
+  the refactor also had to change `decode_polygon` to report how many bytes it
+  consumed, so a MultiPolygon's embedded per-polygon WKB buffers can be walked in
+  sequence. `write_geojson` (a plain file write) stays in Python — I/O, not compute,
+  and no pipeline call site has been cut over yet. Verified against
+  `build_geojson_feature_collection` in `harness.py` on real boundaries derived from
+  the sample archive (a mix of single-geocode `Polygon` and multi-geocode
+  `MultiPolygon` clusters, exercising both shapes): properties compared exactly,
+  geometry compared with the same relative-tolerance check as
+  `cluster_boundary.py` (same underlying `geo`-vs-GEOS union discrepancy).
+- `src/output.py`, `src/render.py` — TODO: JSON (+ HTML) emit, not yet ported.
 
 ### Phase 3 — hard ML kernels (🔴 keep in Python until validated)
 

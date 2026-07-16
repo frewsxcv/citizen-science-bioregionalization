@@ -11,6 +11,12 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 geo = "0.33.1"
+# GeoJSON Feature/FeatureCollection construction + serialization for
+# geojson.rs; its `geo-types` feature (on by default) converts our existing
+# geo::Polygon/MultiPolygon directly, and its pinned geo-types range
+# (>=0.7.13, <0.8) unifies with the geo-types 0.7.19 `geo` already pulls in --
+# no duplicate geo-types version.
+geojson = "1.0"
 h3o = "0.8"
 # Kneedle elbow detection for geocode_cluster_metrics; a 1:1 port of the
 # Python `kneed` package we port from. Used instead of a hand-rolled
