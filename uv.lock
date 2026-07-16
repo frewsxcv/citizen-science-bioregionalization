@@ -2,6 +2,12 @@ version = 1
 revision = 3
 requires-python = "==3.13.*"
 
+[manifest]
+members = [
+    "bioregion-rs",
+    "inaturalist-ecoregions",
+]
+
 [[package]]
 name = "altair"
 version = "6.0.0"
@@ -76,6 +82,10 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/71/f7167a0926994a4fd4740befcf379ded751efe7b53c8b790fd581df0c1a2/biom_format-2.1.17-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d17ff0d09c2d58d111756b7fcf05f6709ccc9db511b534d1a636bda58caa39ed", size = 12296610, upload-time = "2025-08-26T15:19:05.797Z" },
     { url = "https://files.pythonhosted.org/packages/6b/06/dbc9e5ee8a413b07cddde794a34ae57b3edd7469934d77fe79c05abf446e/biom_format-2.1.17-cp313-cp313-win_amd64.whl", hash = "sha256:e70c4939545ca65ed0a665ee4b33ded6c1ffa933a9ed1a01990496179f0a29cd", size = 11878888, upload-time = "2025-08-26T15:19:07.523Z" },
 ]
+
+[[package]]
+name = "bioregion-rs"
+source = { editable = "bioregion_rs" }
 
 [[package]]
 name = "black"
@@ -360,6 +370,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "altair" },
+    { name = "bioregion-rs" },
     { name = "black" },
     { name = "dataframely" },
     { name = "folium" },
@@ -395,6 +406,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "altair", specifier = ">=6.0.0" },
+    { name = "bioregion-rs", editable = "bioregion_rs" },
     { name = "black", specifier = ">=25.1.0" },
     { name = "dataframely", specifier = ">=1.7.6" },
     { name = "folium", specifier = ">=0.19.5" },

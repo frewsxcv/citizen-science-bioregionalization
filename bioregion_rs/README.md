@@ -51,7 +51,34 @@ every subsequent file migration will use.
   input and asserts they match. The template for migrating each file.
 
 CI (`.github/workflows/bioregion-rs.yml`) runs `cargo test --lib`, builds the
-extension via `maturin develop`, and runs `harness.py` on every push.
+extension via `uv sync`, and runs `harness.py` on every push.
+
+## Packaging
+
+`bioregion_rs` is a `uv` workspace member of the root project (see the root
+`pyproject.toml`'s `[tool.uv.workspace]`/`[tool.uv.sources]`), declared as a
+dependency under its PEP 503 name `bioregion-rs` (hyphen) — the importable
+module name stays `bioregion_rs` (underscore), set via this crate's own
+`pyproject.toml` (`[tool.maturin] module-name`). Plain `uv sync`/`uv run` from
+the repo root build and install it like any other dependency, which means a
+Rust toolchain must be on `PATH` for that to succeed (this crate has no
+published prebuilt wheels).
+
+`bioregion_rs.pyi` is a hand-maintained type stub for pyright (PyO3/maturin
+extensions don't auto-generate stubs); maturin bundles it into the wheel
+automatically since it lives at the project root next to `Cargo.toml`. Keep it
+in sync whenever a `#[pyfunction]`'s signature changes.
+
+**Gotcha:** `bioregion_rs/target/wheels/` can hold a stale pre-built wheel that
+maturin's PEP 517 build backend may reuse without reinvoking `cargo` if that
+directory persists across builds (confirmed by hand: a source-only change,
+even via `touch`, wasn't picked up by a subsequent `uv sync` once a wheel
+already existed there). This can't happen in CI (each job starts from a clean
+checkout), but the `actions/cache@v4` steps in `bioregion-rs.yml`/`run.yml`/
+`unittest.yml` deliberately exclude `bioregion_rs/target/wheels` from what
+gets cached, to be safe. Locally, if `uv sync` seems to have skipped a rebuild
+after editing `.rs` source, run `uv sync --reinstall-package bioregion-rs`
+(or delete `bioregion_rs/target/wheels/` first).
 
 ## Build & test
 
@@ -59,8 +86,9 @@ extension via `maturin develop`, and runs `harness.py` on every push.
 # Rust unit tests (pure logic; needs a Python on PATH for pyo3 linking):
 cargo test --lib
 
-# Build the extension into the project venv:
-uv run maturin develop --manifest-path bioregion_rs/Cargo.toml
+# Build the extension into the project venv (also runs automatically on any
+# `uv run`/`uv sync` once bioregion-rs is a declared dependency):
+uv sync
 
 # Correctness / interop harness (Rust output vs Python output):
 uv run python bioregion_rs/harness.py
