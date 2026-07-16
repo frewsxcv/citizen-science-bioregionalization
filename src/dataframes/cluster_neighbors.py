@@ -1,7 +1,6 @@
 import logging
 
 import dataframely as dy
-import networkx as nx
 
 import bioregion_rs
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
@@ -41,28 +40,3 @@ def build_cluster_neighbors_df(
         geocode_cluster_df.select("geocode", "cluster"),
     )
     return ClusterNeighborsSchema.validate(df)
-
-
-def to_graph(
-    cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
-) -> nx.Graph:
-    """Convert the DataFrame back to a NetworkX graph."""
-    G: nx.Graph[str] = nx.Graph()
-
-    cluster_neighbors_df = cluster_neighbors_lf.collect(engine="streaming")
-
-    # Add all clusters as nodes
-    G.add_nodes_from(cluster_neighbors_df["cluster"])
-
-    # Add edges based on direct neighbors
-    for row in cluster_neighbors_df.iter_rows(named=True):
-        cluster = row["cluster"]
-        for neighbor in row["direct_neighbors"]:
-            G.add_edge(cluster, neighbor, type="direct")
-
-        # Add indirect neighbors that aren't already direct neighbors
-        for neighbor in row["direct_and_indirect_neighbors"]:
-            if neighbor not in row["direct_neighbors"]:
-                G.add_edge(cluster, neighbor, type="indirect")
-
-    return G

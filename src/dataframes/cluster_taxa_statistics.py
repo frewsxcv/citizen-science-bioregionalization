@@ -6,7 +6,6 @@ import bioregion_rs
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 from src.dataframes.taxonomy import TaxonomySchema
-from src.types import ClusterId
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +67,3 @@ def build_cluster_taxa_statistics_df(
     logger.info(f"build_cluster_taxa_statistics_df: Final output has {df.height} rows")
 
     return ClusterTaxaStatisticsSchema.validate(df)
-
-
-def iter_cluster_ids(
-    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
-) -> list[ClusterId]:
-    return cluster_taxa_statistics_df["cluster"].unique().to_list()

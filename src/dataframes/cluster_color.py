@@ -3,15 +3,14 @@ from typing import Dict, List, Literal, Optional
 
 import dataframely as dy
 import matplotlib.colors as mcolors
-import networkx as nx
 import numpy as np
 import polars as pl
-import seaborn as sns
 import umap  # type: ignore
 from sklearn.manifold import MDS  # type: ignore
 
+import bioregion_rs
 from src.colors import darken_hex_color
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema, to_graph
+from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
@@ -79,34 +78,8 @@ def _build_geographic(
     """
     Creates a coloring where neighboring clusters have different colors.
     """
-    G = to_graph(cluster_neighbors_lf)
-
-    # Use NetworkX to color the entire graph - this ensures adjacent nodes have different colors
-    color_indices = nx.coloring.greedy_color(G)
-
-    # Determine how many unique colors needed
-    num_colors = len(set(color_indices.values()))
-
-    # Generate color palette with the exact size needed
-    palette = sns.color_palette("YlOrRd", num_colors).as_hex()
-
-    # Create mapping from color indices to colors
-    palette_map = dict(zip(sorted(set(color_indices.values())), palette))
-
-    # Map color indices to actual colors
-    rows = []
-    for cluster, color_index in color_indices.items():
-        color = palette_map[color_index]
-
-        rows.append(
-            {
-                "cluster": cluster,
-                "color": color,
-                "darkened_color": darken_hex_color(color),
-            }
-        )
-
-    return pl.DataFrame(rows).with_columns(pl.col("cluster").cast(pl.UInt32))
+    cluster_neighbors_df = cluster_neighbors_lf.collect(engine="streaming")
+    return bioregion_rs.build_cluster_color(cluster_neighbors_df)
 
 
 def _build_taxonomic(
