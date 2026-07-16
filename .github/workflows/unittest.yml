@@ -6,11 +6,25 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Rust
+        # bioregion-rs is a uv workspace member (see root pyproject.toml);
+        # `uv run` below builds it via maturin, which needs cargo.
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          # Excludes bioregion_rs/target/wheels -- see bioregion-rs.yml for why.
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            bioregion_rs/target/debug
+            bioregion_rs/target/release
+          key: ${{ runner.os }}-cargo-${{ hashFiles('bioregion_rs/Cargo.lock') }}
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Run unit tests
         run: uv run python -m unittest

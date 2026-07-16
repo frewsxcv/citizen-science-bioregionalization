@@ -17,10 +17,17 @@ jobs:
       - name: Cache cargo registry and build artifacts
         uses: actions/cache@v4
         with:
+          # NOTE: deliberately excludes bioregion_rs/target/wheels -- maturin's
+          # PEP 517 build backend (invoked by `uv sync` below) can reuse an
+          # existing wheel it finds there without reinvoking cargo, which would
+          # silently ship a stale extension if that directory were cached
+          # across runs. Caching only the compiled objects still makes rebuilds
+          # fast; the wheel itself is always packaged fresh from current source.
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            bioregion_rs/target
+            bioregion_rs/target/debug
+            bioregion_rs/target/release
           key: ${{ runner.os }}-cargo-${{ hashFiles('bioregion_rs/Cargo.lock') }}
       - name: cargo test (Rust unit tests)
         working-directory: bioregion_rs
@@ -34,6 +41,8 @@ jobs:
             LD_LIBRARY_PATH="$PYTHON_LIBDIR:$LD_LIBRARY_PATH" \
             cargo test --lib
       - name: Build the bioregion_rs extension into the venv
-        run: uv run maturin develop --manifest-path bioregion_rs/Cargo.toml
+        # bioregion-rs is now a uv workspace member (see root pyproject.toml),
+        # so `uv sync` builds and installs it like any other dependency.
+        run: uv sync
       - name: Run interop/correctness harness (Rust output vs Python output)
         run: uv run python bioregion_rs/harness.py

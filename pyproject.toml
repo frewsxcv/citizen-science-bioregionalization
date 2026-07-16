@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "altair>=6.0.0",
+    "bioregion-rs",
     "black>=25.1.0",
     "dataframely>=1.7.6",
     "folium>=0.19.5",
@@ -51,3 +52,9 @@ exclude = [
 dev = [
     "maturin>=1.14.1",
 ]
+
+[tool.uv.workspace]
+members = ["bioregion_rs"]
+
+[tool.uv.sources]
+bioregion-rs = { workspace = true }
