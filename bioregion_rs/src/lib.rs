@@ -16,6 +16,7 @@ mod dataframes;
 mod geocode;
 mod geojson;
 mod matrices;
+mod output;
 mod wkb;
 
 /// Convert a polars error into a Python `ValueError`.
@@ -95,5 +96,6 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         geojson::build_geojson_feature_collection,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(output::build_json_output, m)?)?;
     Ok(())
 }

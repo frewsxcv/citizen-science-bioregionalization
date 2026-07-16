@@ -434,7 +434,26 @@ validated).
   `MultiPolygon` clusters, exercising both shapes): properties compared exactly,
   geometry compared with the same relative-tolerance check as
   `cluster_boundary.py` (same underlying `geo`-vs-GEOS union discrepancy).
-- `src/output.py`, `src/render.py` — TODO: JSON (+ HTML) emit, not yet ported.
+- `src/output.py` — ✅ DONE (`build_json_output` in `output.rs`, mirrors
+  `write_json_output`'s assembly logic). Joins `cluster_boundary_df` with
+  `cluster_color_df` (inner), and per cluster, `cluster_significant_differences_df`
+  with `taxonomy_df` (inner) and `significant_taxa_images_df` (left) — a taxonId
+  missing from `taxonomy_df` is dropped, one missing from
+  `significant_taxa_images_df` gets a null `image_url`, matching Python's join
+  semantics exactly. Boundary WKB is converted to a GeoJSON geometry via the same
+  `wkb::decode_geometry` + `geojson` crate path as `geojson.rs`. Returns the
+  assembled JSON as a `String` rather than writing it — `prepare_file_path` +
+  the actual file write stay in Python (I/O, not compute; no pipeline call site
+  cut over yet, same rationale as `geojson.rs`'s `write_geojson`). Verified in
+  `harness.py` against a hand-built fixture (reusing
+  `test_build_cluster_significant_differences`'s data) that deliberately
+  exercises both join edge cases (a dropped taxonId, a null `image_url`);
+  `significant_taxa` lists are compared as order-independent sets since neither
+  implementation's join guarantees row order.
+- `src/render.py` (`features_to_polars_df`) — 🔴 NOT PORTED, likely dead code:
+  confirmed via repo-wide grep that this function is referenced only by its own
+  test (`test/test_render.py`), not by `notebook.py` or any other pipeline file.
+  Not worth porting unless something starts calling it.
 
 ### Phase 3 — hard ML kernels (🔴 keep in Python until validated)
 

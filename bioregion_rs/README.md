@@ -44,6 +44,9 @@ every subsequent file migration will use.
     property-swap bug), returning the FeatureCollection as a JSON string rather than a
     `geojson.FeatureCollection` Python object (nothing in the codebase does an
     `isinstance` check against that type).
+  - `build_json_output` — mirrors `src/output.py`'s `write_json_output` (the
+    join/assembly logic; the actual file write stays in Python, same as
+    `geojson.rs`'s `write_geojson`). Returns the assembled JSON as a `String`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

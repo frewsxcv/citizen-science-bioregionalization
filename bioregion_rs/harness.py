@@ -57,6 +57,7 @@ from src.geojson import build_geojson_feature_collection
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
+from src.output import write_json_output
 from src.types import Bbox
 
 
@@ -922,6 +923,161 @@ def test_build_geojson_feature_collection() -> None:
     )
 
 
+def test_write_json_output() -> None:
+    print("src/output.py  (write_json_output):")
+
+    # Reuses test_build_cluster_significant_differences's fixture (its real
+    # taxa counts clear MIN_COUNT_THRESHOLD=5 and produce a non-trivial
+    # result set to build the rest of this test's fixtures on top of).
+    all_stats = pl.DataFrame(
+        {
+            "cluster": [0, 0, 1, 1, 2, 2],
+            "taxonId": [1, 2, 1, 2, 1, 2],
+            "count": [50, 10, 5, 55, 30, 30],
+            "average": [0.0] * 6,
+        }
+    ).cast(
+        {
+            "cluster": pl.UInt32,
+            "taxonId": pl.UInt32,
+            "count": pl.UInt32,
+            "average": pl.Float64,
+        }
+    )
+    cluster_neighbors_df = pl.DataFrame(
+        {
+            "cluster": [0, 1, 2],
+            "direct_neighbors": [[1], [0, 2], [1]],
+            "direct_and_indirect_neighbors": [[1], [0, 2], [1]],
+        }
+    ).cast(
+        {
+            "cluster": pl.UInt32,
+            "direct_neighbors": pl.List(pl.UInt32),
+            "direct_and_indirect_neighbors": pl.List(pl.UInt32),
+        }
+    )
+    cluster_significant_differences_df = build_cluster_significant_differences_df(
+        all_stats, cluster_neighbors_df.lazy()
+    )
+    check(
+        f"non-trivial: {cluster_significant_differences_df.height} significant differences",
+        cluster_significant_differences_df.height > 0,
+    )
+
+    clusters_present = (
+        cluster_significant_differences_df["cluster"].unique().sort().to_list()
+    )
+    cluster_boundary_df = pl.DataFrame(
+        {
+            "cluster": clusters_present,
+            "geometry": [
+                shapely.to_wkb(shapely.geometry.box(i, i, i + 1, i + 1))
+                for i in range(len(clusters_present))
+            ],
+        }
+    ).cast({"cluster": pl.UInt32, "geometry": pl.Binary})
+    cluster_color_df = pl.DataFrame(
+        {
+            "cluster": clusters_present,
+            "color": [f"#{i:02x}{i:02x}{i:02x}" for i in range(len(clusters_present))],
+            "darkened_color": [
+                py_darken(f"#{i:02x}{i:02x}{i:02x}") for i in range(len(clusters_present))
+            ],
+        }
+    ).cast({"cluster": pl.UInt32, "color": pl.String, "darkened_color": pl.String})
+
+    # Exercise both join edge cases write_json_output relies on: a taxonId
+    # present in the significant differences but absent from taxonomy_df is
+    # dropped (inner join), and a taxonId present in taxonomy_df but absent
+    # from significant_taxa_images_df gets a null image_url (left join).
+    present_taxon_ids = (
+        cluster_significant_differences_df["taxonId"].unique().sort().to_list()
+    )
+    taxonomy_taxon_ids = (
+        present_taxon_ids[:-1] if len(present_taxon_ids) > 1 else present_taxon_ids
+    )
+    taxonomy_df = pl.DataFrame(
+        {
+            "taxonId": taxonomy_taxon_ids,
+            "scientificName": [f"Taxon {t}" for t in taxonomy_taxon_ids],
+            "gbifTaxonId": [1000 + t for t in taxonomy_taxon_ids],
+        }
+    ).cast(
+        {"taxonId": pl.UInt32, "scientificName": pl.String, "gbifTaxonId": pl.UInt32}
+    )
+    images_taxon_ids = (
+        taxonomy_taxon_ids[:-1] if len(taxonomy_taxon_ids) > 1 else []
+    )
+    significant_taxa_images_df = pl.DataFrame(
+        {
+            "taxonId": images_taxon_ids,
+            "image_url": [f"https://example.com/{t}.jpg" for t in images_taxon_ids],
+        }
+    ).cast({"taxonId": pl.UInt32, "image_url": pl.String})
+
+    rust_json = bioregion_rs.build_json_output(
+        cluster_significant_differences_df,
+        cluster_boundary_df,
+        taxonomy_df,
+        cluster_color_df,
+        significant_taxa_images_df,
+    )
+    rust_parsed = json.loads(rust_json)
+
+    with tempfile.TemporaryDirectory() as d:
+        out_path = str(Path(d) / "output.json")
+        write_json_output(
+            cluster_significant_differences_df,
+            cluster_boundary_df,
+            taxonomy_df,
+            cluster_color_df,
+            significant_taxa_images_df,
+            out_path,
+        )
+        with open(out_path) as f:
+            py_parsed = json.load(f)
+
+    check(f"non-trivial: {len(py_parsed)} clusters", len(py_parsed) > 1)
+    check("dropped a taxonId missing from taxonomy_df", len(taxonomy_taxon_ids) < len(present_taxon_ids))
+    check("left a taxonId's image_url null", len(images_taxon_ids) < len(taxonomy_taxon_ids))
+
+    def _by_cluster(entries: list) -> dict:
+        return {e["cluster"]: e for e in entries}
+
+    rust_by_cluster = _by_cluster(rust_parsed)
+    py_by_cluster = _by_cluster(py_parsed)
+    check("same cluster set", set(rust_by_cluster) == set(py_by_cluster))
+    check(
+        "same color/darkened_color per cluster",
+        all(
+            rust_by_cluster[c]["color"] == py_by_cluster[c]["color"]
+            and rust_by_cluster[c]["darkened_color"] == py_by_cluster[c]["darkened_color"]
+            for c in rust_by_cluster
+        ),
+    )
+    check(
+        "same boundary geometry per cluster",
+        all(
+            rust_by_cluster[c]["boundary"] == py_by_cluster[c]["boundary"]
+            for c in rust_by_cluster
+        ),
+    )
+
+    def _taxa_set(entry: dict) -> set:
+        # Order isn't guaranteed by either implementation's join, so compare
+        # as a set of rows rather than an exact list.
+        return {tuple(sorted(t.items())) for t in entry["significant_taxa"]}
+
+    check(
+        "same significant_taxa per cluster (order-independent)",
+        all(
+            _taxa_set(rust_by_cluster[c]) == _taxa_set(py_by_cluster[c])
+            for c in rust_by_cluster
+        ),
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -960,6 +1116,7 @@ def main() -> None:
     test_build_geocode_silhouette_score()
     test_optimize_num_clusters()
     test_build_geojson_feature_collection()
+    test_write_json_output()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

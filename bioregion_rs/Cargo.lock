@@ -118,6 +118,7 @@ dependencies = [
  "pyo3",
  "pyo3-polars",
  "rand 0.9.5",
+ "serde_json",
 ]
 
 [[package]]
