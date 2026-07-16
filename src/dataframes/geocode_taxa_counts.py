@@ -52,10 +52,10 @@ def build_geocode_taxa_counts_lf(
         "scientificName",
         "taxonKey",
         "individualCount",
-    ).collect()
+    ).collect(engine="streaming")
     taxonomy_df = taxonomy_lf.select(
         "taxonId", "scientificName", "gbifTaxonId"
-    ).collect()
+    ).collect(engine="streaming")
 
     df = bioregion_rs.build_geocode_taxa_counts(
         darwin_core_df,
