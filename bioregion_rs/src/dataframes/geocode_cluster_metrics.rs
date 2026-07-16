@@ -9,17 +9,19 @@
 //! not something introduced by this port. Inertia is the codebase's own
 //! hand-rolled distance-matrix approximation (`_compute_inertia`), not an
 //! sklearn function. The Kneedle elbow-detection algorithm
-//! (`select_optimal_k_elbow` / `_find_elbow_point`) is ported from `kneed`'s
-//! `KneeLocator`, specialized to this call site's fixed parameters
-//! (`curve="convex"`, `direction="decreasing"`, `interp_method="interp1d"`,
-//! `online=False`) — `interp1d` evaluated at its own control points is the
-//! identity, so no spline-fitting is needed.
+//! (`select_optimal_k_elbow` / `_find_elbow_point`) delegates to the `kneed`
+//! crate (an independent Rust port of the same Python `kneed` package this
+//! module ports from) rather than a hand-rolled reimplementation — see the
+//! note above `find_elbow_point` for why.
 //!
 //! `get_elbow_analysis`, `get_metrics_summary`, and `get_metric_interpretations`
 //! stay in Python: they're plotting/presentation helpers, not compute.
 
 use std::collections::HashMap;
 
+use kneed::knee_locator::{
+    InterpMethod, KneeLocator, KneeLocatorParams, ValidCurve, ValidDirection,
+};
 use polars::prelude::*;
 use pyo3::prelude::*;
 use pyo3_polars::PyDataFrame;
@@ -324,91 +326,39 @@ pub fn build_geocode_cluster_metrics(
 }
 
 // --- Kneedle elbow detection ---------------------------------------------------
-
-/// Local maxima of `y` (index `i` where `y[i] >= y[i-1]` and `y[i] >= y[i+1]`;
-/// endpoints excluded), matching `scipy.signal.argrelextrema(y, np.greater_equal)`.
-fn local_maxima(y: &[f64]) -> Vec<usize> {
-    (1..y.len() - 1)
-        .filter(|&i| y[i] >= y[i - 1] && y[i] >= y[i + 1])
-        .collect()
-}
-
-/// Local minima of `y`, matching `argrelextrema(y, np.less_equal)`.
-fn local_minima(y: &[f64]) -> Vec<usize> {
-    (1..y.len() - 1)
-        .filter(|&i| y[i] <= y[i - 1] && y[i] <= y[i + 1])
-        .collect()
-}
+//
+// Delegates to the `kneed` crate (a from-scratch, independently-maintained
+// Rust port of the same Python `kneed` package `geocode_cluster_metrics.py`
+// uses), rather than a hand-rolled reimplementation. An earlier version of
+// this function hand-rolled `argrelextrema`, excluding the first/last point
+// from local-extrema consideration; that's wrong in general —
+// `scipy.signal.argrelextrema`'s default `mode="clip"` compares boundary
+// points against a clipped (self-referential) neighbor, which is only ever
+// *not* trivially satisfied by the other side's real comparison, so
+// excluding endpoints silently diverges on non-monotonic curves (confirmed
+// against real inertia data: y=[90,100,50,20,18,17] gave elbow=5 by hand,
+// vs. Python kneed's actual elbow=2). `kneed` handles this correctly, and
+// getting this exactly right by hand a second time isn't worth the risk
+// versus depending on a crate purpose-built to match the same reference
+// implementation.
 
 /// Find the elbow point in a convex, decreasing curve (e.g. inertia vs k).
 ///
-/// Ports `kneed.KneeLocator` specialized to this call site's fixed parameters
-/// (`curve="convex"`, `direction="decreasing"`, `interp_method="interp1d"`,
-/// `online=False`): `interp1d` evaluated at its own control points is the
-/// identity, so `x`/`y` are used directly with no spline fit. `x` must
-/// already be sorted ascending (matches `metrics_df.sort("num_clusters")`
-/// before calling `_find_elbow_point`).
+/// `x` must already be sorted ascending (matches `metrics_df.sort("num_clusters")`
+/// before calling `_find_elbow_point`). Mirrors `_find_elbow_point`'s own
+/// `len(df) < 3` guard, which lives in the Python wrapper rather than in
+/// `kneed.KneeLocator` itself.
 pub(crate) fn find_elbow_point(x: &[f64], y: &[f64], sensitivity: f64) -> Option<f64> {
-    let n = x.len();
-    if n < 3 {
+    if x.len() < 3 {
         return None;
     }
-
-    let x_min = x.iter().copied().fold(f64::INFINITY, f64::min);
-    let x_max = x.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    let y_min = y.iter().copied().fold(f64::INFINITY, f64::min);
-    let y_max = y.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-
-    let x_normalized: Vec<f64> = x.iter().map(|&v| (v - x_min) / (x_max - x_min)).collect();
-    // y_normalized, then transform_y for curve="convex", direction="decreasing": y = y.max() - y.
-    // y.max() of the [0,1]-normalized values is 1.0, so this is just 1 - y_normalized.
-    let y_normalized: Vec<f64> = y
-        .iter()
-        .map(|&v| 1.0 - (v - y_min) / (y_max - y_min))
-        .collect();
-
-    let y_difference: Vec<f64> = y_normalized
-        .iter()
-        .zip(&x_normalized)
-        .map(|(yn, xn)| yn - xn)
-        .collect();
-
-    let maxima_indices = local_maxima(&y_difference);
-    if maxima_indices.is_empty() {
-        return None;
-    }
-    let minima_indices = local_minima(&y_difference);
-
-    let mean_abs_dx = x_normalized
-        .windows(2)
-        .map(|w| (w[1] - w[0]).abs())
-        .sum::<f64>()
-        / (n - 1) as f64;
-    let tmx: Vec<f64> = maxima_indices
-        .iter()
-        .map(|&i| y_difference[i] - sensitivity * mean_abs_dx)
-        .collect();
-
-    let mut maxima_threshold_index = 0usize;
-    let mut threshold = f64::NAN;
-    let mut threshold_index = 0usize;
-
-    for i in maxima_indices[0]..(n - 1) {
-        let j = i + 1;
-        if maxima_indices.contains(&i) {
-            threshold = tmx[maxima_threshold_index];
-            threshold_index = i;
-            maxima_threshold_index += 1;
-        }
-        if minima_indices.contains(&i) {
-            threshold = 0.0;
-        }
-        if y_difference[j] < threshold {
-            // curve="convex", direction="decreasing": knee = x[threshold_index].
-            return Some(x[threshold_index]);
-        }
-    }
-    None
+    let params = KneeLocatorParams::new(
+        ValidCurve::Convex,
+        ValidDirection::Decreasing,
+        InterpMethod::Interp1d,
+    );
+    let locator = KneeLocator::new(x.to_vec(), y.to_vec(), sensitivity, params).ok()?;
+    locator.knee
 }
 
 /// Find the optimal `num_clusters` via the elbow (Kneedle) method over the
@@ -465,5 +415,20 @@ mod tests {
         let x = [1.0, 2.0, 3.0, 4.0, 5.0];
         let y = [50.0, 40.0, 30.0, 20.0, 10.0];
         assert_eq!(find_elbow_point(&x, &y, 1.0), None);
+    }
+
+    #[test]
+    fn elbow_matches_python_kneed_on_non_monotonic_curve() {
+        // KneeLocator([2,3,4,5,6,7], [90,100,50,20,18,17], curve="convex",
+        // direction="decreasing", S=1.0).elbow == 2 in Python's real `kneed`.
+        // A non-monotonic ("wobbly") curve like this is exactly the case an
+        // earlier hand-rolled version of this function got wrong (it
+        // excluded curve endpoints from local-extrema consideration, which
+        // diverges from scipy's actual `argrelextrema(mode="clip")`
+        // semantics whenever the first point isn't the strict global
+        // extreme) -- it returned 5 instead of 2.
+        let x = [2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
+        let y = [90.0, 100.0, 50.0, 20.0, 18.0, 17.0];
+        assert_eq!(find_elbow_point(&x, &y, 1.0), Some(2.0));
     }
 }

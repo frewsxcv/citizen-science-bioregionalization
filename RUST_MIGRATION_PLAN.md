@@ -360,14 +360,30 @@ validated).
   distance matrix as an n-dimensional "feature vector" and computes ordinary Euclidean
   distances between rows; this port preserves that (unusual but pre-existing)
   methodology rather than "fixing" it. Inertia is the codebase's own hand-rolled
-  distance-matrix formula (not an sklearn function). The Kneedle elbow algorithm
-  (`kneed.KneeLocator`) is ported specialized to this call site's fixed parameters
-  (`curve="convex"`, `direction="decreasing"`, `interp_method="interp1d"`,
-  `online=False`) — `interp1d` evaluated at its own control points is the identity, so
-  no spline-fitting was needed, just direct arithmetic on the given points. Verified
-  bit-for-bit against sklearn/`kneed` calls and against the ported functions on a
-  hand-built multi-k fixture. `get_elbow_analysis`/`get_metrics_summary`/
-  `get_metric_interpretations` stay in Python (plotting/presentation helpers).
+  distance-matrix formula (not an sklearn function). Elbow detection uses the **`kneed`
+  crate** rather than a hand-rolled Kneedle port. A first pass hand-rolled it
+  (specialized to this call site's fixed `curve="convex"`, `direction="decreasing"`,
+  `interp_method="interp1d"` parameters) and *looked* correct — it matched on every
+  test case tried, including sklearn/`kneed` reference values — but excluded the
+  curve's first/last point from local-extrema consideration, which silently diverges
+  from scipy's actual `argrelextrema(mode="clip")` semantics whenever the first point
+  isn't the strict global extreme (a real possibility: clustering metrics aren't
+  guaranteed monotonic in k). Concretely: `y=[90,100,50,20,18,17]` gave elbow=5
+  by hand vs. Python `kneed`'s real elbow=2. Caught by deliberately constructing a
+  non-monotonic curve to stress-test the boundary case, *after* the hand-rolled
+  version had already merged — see the regression test
+  `elbow_matches_python_kneed_on_non_monotonic_curve`. Swapped to the `kneed` crate
+  (crates.io, v1.0, an independent Rust port of the same Python `kneed` package,
+  correctly handles this case) rather than fixing the hand-rolled version a second
+  time — not worth re-deriving `argrelextrema`'s boundary semantics by hand twice.
+  **Trade-off worth knowing**: `kneed` pulls in a real dependency tree (`nalgebra`,
+  ~18 pinned `glam` versions, `polyfit-rs`, `anyhow`) for its polynomial-interpolation
+  path, which we don't use (`interp_method="interp1d"` only) — this is the one place
+  in the crate so far where "use an existing library" clearly won on correctness risk
+  but cost noticeably more in dependency surface than the hand-rolled alternatives
+  used everywhere else (Fisher's exact, `YlOrRd`, robust scaling, etc.). `get_elbow_analysis`/
+  `get_metrics_summary`/`get_metric_interpretations` stay in Python (plotting/presentation
+  helpers).
 - `src/dataframes/geocode_silhouette_score.py` — TODO: per-sample silhouette (needs
   `silhouette_samples`, not just the mean `silhouette_score` this PR ported for
   `geocode_cluster_metrics.py` — same underlying formula, extended to return one score
