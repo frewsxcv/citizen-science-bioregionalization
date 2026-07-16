@@ -26,12 +26,8 @@ import dataframely as dy
 import numpy as np
 import polars as pl
 from kneed import KneeLocator  # typed: ignore
-from sklearn.metrics import (
-    calinski_harabasz_score,
-    davies_bouldin_score,
-    silhouette_score,
-)
 
+import bioregion_rs
 from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
@@ -109,91 +105,25 @@ def build_geocode_cluster_metrics_df(
             "davies_bouldin": 0.3,
         }
 
-    # Validate weights sum to 1
-    weight_sum = sum(weights.values())
-    if not np.isclose(weight_sum, 1.0):
-        logger.warning(
-            f"Metric weights sum to {weight_sum}, not 1.0. Normalizing weights."
-        )
-        weights = {k: v / weight_sum for k, v in weights.items()}
-
-    # Get squareform distance matrix for feature-based metrics
-    dm_square = distance_matrix.squareform()
-
-    # Get unique k values from the geocode_cluster_df
     k_values = geocode_cluster_df["num_clusters"].unique().sort().to_list()
-
     logger.info(
         f"Computing cluster metrics for {len(k_values)} k values: {k_values[0]} to {k_values[-1]}"
     )
 
-    results: list[dict[str, float | int]] = []
-
-    for k in k_values:
-        # Filter to just this k value
-        k_df = geocode_cluster_df.filter(pl.col("num_clusters") == k)
-        labels = k_df["cluster"].to_numpy()
-
-        # Compute silhouette score using precomputed distances
-        sil_score = float(
-            silhouette_score(
-                X=dm_square,
-                labels=labels,
-                metric="precomputed",
-            )
-        )
-
-        # Compute Calinski-Harabasz using distance matrix as features
-        # Each row represents a geocode's distances to all other geocodes
-        ch_score = float(
-            calinski_harabasz_score(
-                X=dm_square,
-                labels=labels,
-            )
-        )
-
-        # Compute Davies-Bouldin using distance matrix as features
-        db_score = float(
-            davies_bouldin_score(
-                X=dm_square,
-                labels=labels,
-            )
-        )
-
-        # Compute inertia (within-cluster sum of squares)
-        inertia_val = _compute_inertia(dm_square, labels)
-
-        results.append(
-            {
-                "num_clusters": k,
-                "silhouette_score": sil_score,
-                "calinski_harabasz_score": ch_score,
-                "davies_bouldin_score": db_score,
-                "inertia": inertia_val,
-            }
-        )
-
-        logger.debug(
-            f"k={k}: silhouette={sil_score:.4f}, "
-            f"calinski_harabasz={ch_score:.2f}, "
-            f"davies_bouldin={db_score:.4f}, "
-            f"inertia={inertia_val:.2f}"
-        )
-
-    # Create DataFrame and compute normalized scores
-    df = pl.DataFrame(results)
-
-    # Normalize scores to [0, 1] range for combining
-    df = _add_normalized_scores(df, weights)
+    df = bioregion_rs.build_geocode_cluster_metrics(
+        distance_matrix.condensed().tolist(),
+        geocode_cluster_df,
+        weights["silhouette"],
+        weights["calinski_harabasz"],
+        weights["davies_bouldin"],
+    )
 
     logger.info(
         f"Computed cluster metrics. Best combined score at k="
         f"{df.sort('combined_score', descending=True)['num_clusters'][0]}"
     )
 
-    return GeocodeClusterMetricsSchema.validate(
-        df.with_columns(pl.col("num_clusters").cast(pl.UInt32))
-    )
+    return GeocodeClusterMetricsSchema.validate(df)
 
 
 def _compute_inertia(dm_square: np.ndarray, labels: np.ndarray) -> float:
@@ -235,69 +165,6 @@ def _compute_inertia(dm_square: np.ndarray, labels: np.ndarray) -> float:
     return float(total_inertia)
 
 
-def _add_normalized_scores(
-    df: pl.DataFrame,
-    weights: dict[str, float],
-) -> pl.DataFrame:
-    """
-    Add normalized scores and combined weighted score to metrics DataFrame.
-
-    Normalization approach:
-    - Silhouette: Linear rescale from [-1, 1] to [0, 1]
-    - Calinski-Harabasz: Min-max normalization (higher is better)
-    - Davies-Bouldin: Inverted min-max normalization (lower is better)
-    - Inertia: Inverted min-max normalization (lower is better)
-    """
-    # Silhouette normalization: [-1, 1] -> [0, 1]
-    df = df.with_columns(
-        ((pl.col("silhouette_score") + 1) / 2).alias("silhouette_normalized")
-    )
-
-    # Calinski-Harabasz normalization: min-max scaling
-    ch_min = float(df["calinski_harabasz_score"].min())  # type: ignore[arg-type]
-    ch_max = float(df["calinski_harabasz_score"].max())  # type: ignore[arg-type]
-    ch_range = ch_max - ch_min if ch_max != ch_min else 1.0
-
-    df = df.with_columns(
-        ((pl.col("calinski_harabasz_score") - ch_min) / ch_range).alias(
-            "calinski_harabasz_normalized"
-        )
-    )
-
-    # Davies-Bouldin normalization: inverted min-max scaling (lower DB is better)
-    db_min = float(df["davies_bouldin_score"].min())  # type: ignore[arg-type]
-    db_max = float(df["davies_bouldin_score"].max())  # type: ignore[arg-type]
-    db_range = db_max - db_min if db_max != db_min else 1.0
-
-    df = df.with_columns(
-        (1 - (pl.col("davies_bouldin_score") - db_min) / db_range).alias(
-            "davies_bouldin_normalized"
-        )
-    )
-
-    # Inertia normalization: inverted min-max scaling (lower inertia is better)
-    inertia_min = float(df["inertia"].min())  # type: ignore[arg-type]
-    inertia_max = float(df["inertia"].max())  # type: ignore[arg-type]
-    inertia_range = inertia_max - inertia_min if inertia_max != inertia_min else 1.0
-
-    df = df.with_columns(
-        (1 - (pl.col("inertia") - inertia_min) / inertia_range).alias(
-            "inertia_normalized"
-        )
-    )
-
-    # Combined weighted score (inertia not included - used for elbow method)
-    df = df.with_columns(
-        (
-            weights["silhouette"] * pl.col("silhouette_normalized")
-            + weights["calinski_harabasz"] * pl.col("calinski_harabasz_normalized")
-            + weights["davies_bouldin"] * pl.col("davies_bouldin_normalized")
-        ).alias("combined_score")
-    )
-
-    return df
-
-
 def select_optimal_k_elbow(
     metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
     sensitivity: float = 1.0,
@@ -320,7 +187,11 @@ def select_optimal_k_elbow(
     Notes:
         Uses the Kneedle algorithm to robustly detect the elbow point in the inertia curve.
     """
-    optimal_k = _find_elbow_point(metrics_df, sensitivity=sensitivity)
+    optimal_k = bioregion_rs.select_optimal_k_elbow(
+        metrics_df["num_clusters"].to_list(),
+        metrics_df["inertia"].to_list(),
+        sensitivity,
+    )
     if optimal_k is not None:
         logger.info(f"Elbow method selected k={optimal_k}")
     return optimal_k
