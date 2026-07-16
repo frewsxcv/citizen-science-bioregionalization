@@ -318,9 +318,21 @@ validated).
   checks used everywhere else in this crate. This is the exact "geometry robustness"
   risk this plan flagged at the top; in practice `geo` was accurate enough that `geos`
   bindings weren't needed.
-- `src/dataframes/cluster_significant_differences.py` — 2×2 Fisher's exact per (cluster,
-  taxon) + log2 fold change + normalized scoring. Port `fisher_exact` (hypergeometric tail
-  sum; use `statrs`). The scoring math is plain polars. moderate
+- `src/dataframes/cluster_significant_differences.py` — ✅ DONE:
+  `build_cluster_significant_differences`. **No `statrs` needed** — Fisher's exact
+  (`scipy.stats.fisher_exact(table, alternative="two-sided")`) is hand-ported from
+  scipy's actual C-level 2x2 algorithm (mode + binary search over the hypergeometric
+  tail, `epsilon=1e-14` tie tolerance — read straight from scipy's source, since its
+  docstring only describes the *result*, not how it's computed), backed by a
+  from-scratch Lanczos `ln_gamma` (only ever called with argument >= 1 here, so the
+  reflection formula for x < 0.5 isn't needed). Verified bit-for-bit (< 1e-12) against
+  both worked examples in scipy's `fisher_exact` docstring. The scoring/normalization
+  math (linear log2-fold-change scaling, logarithmic count scaling, the two composite
+  scores) is hand-rolled arithmetic over plain Rust structs rather than polars
+  expressions, consistent with this crate's eager/hand-rolled style. Verified against
+  Python on a small hand-built (not sample-archive-derived) fixture designed to
+  actually trigger the significance path — the sample archive's real counts are all
+  well under `MIN_COUNT_THRESHOLD=5`.
 - `src/dataframes/permanova_results.py` — PERMANOVA is a permutation pseudo-F test over the
   condensed distance matrix + grouping. Fully portable; seed the RNG for reproducibility. moderate
 - `src/dataframes/geocode_cluster_metrics.py` — silhouette / Calinski-Harabasz /

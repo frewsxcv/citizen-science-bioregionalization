@@ -25,6 +25,9 @@ from src.colors import darken_hex_color as py_darken
 from src.dataframes.cluster_boundary import build_cluster_boundary_df
 from src.dataframes.cluster_color import build_cluster_color_df
 from src.dataframes.cluster_neighbors import build_cluster_neighbors_df
+from src.dataframes.cluster_significant_differences import (
+    build_cluster_significant_differences_df,
+)
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_df
@@ -564,6 +567,69 @@ def test_build_cluster_boundary() -> None:
     )
 
 
+# --- src/dataframes/cluster_significant_differences.py ------------------------
+
+
+def test_build_cluster_significant_differences() -> None:
+    print(
+        "src/dataframes/cluster_significant_differences.py  "
+        "(build_cluster_significant_differences):"
+    )
+    # Hand-built (not derived from the sample archive): its real taxa counts
+    # are all well under MIN_COUNT_THRESHOLD=5, so nothing would ever reach
+    # the Fisher's-exact/scoring logic this is meant to exercise.
+    all_stats = pl.DataFrame(
+        {
+            "cluster": [0, 0, 1, 1, 2, 2],
+            "taxonId": [1, 2, 1, 2, 1, 2],
+            "count": [50, 10, 5, 55, 30, 30],
+            "average": [0.0] * 6,
+        }
+    ).cast(
+        {
+            "cluster": pl.UInt32,
+            "taxonId": pl.UInt32,
+            "count": pl.UInt32,
+            "average": pl.Float64,
+        }
+    )
+    cluster_neighbors_df = pl.DataFrame(
+        {
+            "cluster": [0, 1, 2],
+            "direct_neighbors": [[1], [0, 2], [1]],
+            "direct_and_indirect_neighbors": [[1], [0, 2], [1]],
+        }
+    ).cast(
+        {
+            "cluster": pl.UInt32,
+            "direct_neighbors": pl.List(pl.UInt32),
+            "direct_and_indirect_neighbors": pl.List(pl.UInt32),
+        }
+    )
+
+    rust_out = bioregion_rs.build_cluster_significant_differences(all_stats, cluster_neighbors_df)
+    py_out = build_cluster_significant_differences_df(all_stats, cluster_neighbors_df.lazy())
+
+    check(f"non-trivial: {py_out.height} significant differences found", py_out.height > 0)
+
+    def _rows(df: pl.DataFrame) -> set:
+        return {
+            (cluster, taxon_id, round(p, 9), round(log2fc, 9), cc, nc, round(hs, 9), round(ls, 9))
+            for cluster, taxon_id, p, log2fc, cc, nc, hs, ls in df.select(
+                "cluster",
+                "taxonId",
+                "p_value",
+                "log2_fold_change",
+                "cluster_count",
+                "neighbor_count",
+                "high_log2_high_count_score",
+                "low_log2_high_count_score",
+            ).iter_rows()
+        }
+
+    check("same rows (all columns)", _rows(rust_out) == _rows(py_out))
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -596,6 +662,7 @@ def main() -> None:
     test_build_cluster_distance_matrix()
     test_build_cluster_color()
     test_build_cluster_boundary()
+    test_build_cluster_significant_differences()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

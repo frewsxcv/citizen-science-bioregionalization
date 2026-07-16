@@ -3,6 +3,7 @@
 pub mod cluster_boundary;
 pub mod cluster_color;
 pub mod cluster_neighbors;
+pub mod cluster_significant_differences;
 pub mod cluster_taxa_statistics;
 pub mod geocode;
 pub mod geocode_neighbors;
