@@ -1,12 +1,13 @@
-import os
 import numpy as np
 import polars as pl
 from typing import Tuple, List
 from sklearn.preprocessing import RobustScaler
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import squareform
 from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 import dataframely as dy
-from src.logging import log_action, logger
+
+import bioregion_rs
+from src.logging import log_action
 
 
 def pivot_taxon_counts_for_clusters(
@@ -86,21 +87,10 @@ class ClusterDistanceMatrix:
         cls,
         cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
     ) -> "ClusterDistanceMatrix":
-        X, cluster_ids = build_X(cluster_taxa_stats)
-
-        logger.info(
-            f"Building cluster distance matrix: {X.shape[0]} clusters, {X.shape[1]} taxon IDs"
+        condensed, cluster_ids = bioregion_rs.build_cluster_distance_matrix(
+            cluster_taxa_stats
         )
-
-        Y = log_action(
-            f"Running pdist on cluster matrix",
-            lambda: pdist(X, metric="braycurtis"),
-        )
-
-        # Replace any infinity values with 1.0 (maximum distance)
-        Y = np.nan_to_num(Y, nan=1.0, posinf=1.0, neginf=1.0)
-
-        return cls(Y, cluster_ids)
+        return cls(np.array(condensed), list(cluster_ids))
 
     def condensed(self) -> np.ndarray:
         return self._condensed
