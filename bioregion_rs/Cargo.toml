@@ -37,3 +37,7 @@ pyo3-polars = "0.27"
 # Already resolved transitively (polars depends on rand 0.9.5); pinned here to
 # match, for the PERMANOVA permutation test's Monte Carlo shuffling.
 rand = "0.9"
+# Already resolved transitively (the geojson crate depends on it); used
+# directly in output.rs to build the plain (non-GeoJSON-FeatureCollection)
+# JSON array that write_json_output produces.
+serde_json = "1.0"
