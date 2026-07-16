@@ -3,10 +3,10 @@ import logging
 import dataframely as dy
 import polars as pl
 
+import bioregion_rs
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.dataframes.taxonomy import TaxonomySchema
-from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.logging import log_action
 from src.types import Bbox
 
@@ -46,48 +46,28 @@ def build_geocode_taxa_counts_lf(
         f"build_geocode_taxa_counts_lf: Input geocode_lf has {geocode_input_df.height} geocodes"
     )
 
-    aggregated = (
-        darwin_core_lf.select(
-            "decimalLatitude",
-            "decimalLongitude",
-            "scientificName",
-            pl.col("taxonKey").alias("gbifTaxonId"),
-            "individualCount",
-        )
-        .pipe(filter_by_bounding_box, bounding_box=bounding_box)
-        .pipe(with_geocode_lf, geocode_precision=geocode_precision)
-        .select(
-            "geocode",
-            "scientificName",
-            "gbifTaxonId",
-            "individualCount",
-        )
-        .join(
-            # Ensure geocode exists and is not an edge
-            geocode_lf.select("geocode"),
-            on="geocode",
-            how="semi",
-        )
-        .join(
-            taxonomy_lf.select("taxonId", "scientificName", "gbifTaxonId"),
-            on=["scientificName", "gbifTaxonId"],
-        )
-        .select(
-            "geocode",
-            "taxonId",
-            "individualCount",
-        )
-        .group_by("geocode", "taxonId")
-        .agg(pl.col("individualCount").fill_null(1).sum().alias("count"))
-        .sort(by="geocode")
-    )
+    darwin_core_df = darwin_core_lf.select(
+        "decimalLatitude",
+        "decimalLongitude",
+        "scientificName",
+        "taxonKey",
+        "individualCount",
+    ).collect()
+    taxonomy_df = taxonomy_lf.select(
+        "taxonId", "scientificName", "gbifTaxonId"
+    ).collect()
 
-    result_lf = GeocodeTaxaCountsSchema.validate(
-        aggregated.with_columns(
-            pl.col("taxonId").cast(pl.UInt32), pl.col("count").cast(pl.UInt32)
-        ),
-        eager=False,
+    df = bioregion_rs.build_geocode_taxa_counts(
+        darwin_core_df,
+        geocode_precision,
+        taxonomy_df,
+        geocode_input_df.select("geocode"),
+        bounding_box.min_lat,
+        bounding_box.max_lat,
+        bounding_box.min_lng,
+        bounding_box.max_lng,
     )
+    result_lf = GeocodeTaxaCountsSchema.validate(df.lazy(), eager=False)
 
     # Log output sizes
     result_df = result_lf.collect(engine="streaming")
