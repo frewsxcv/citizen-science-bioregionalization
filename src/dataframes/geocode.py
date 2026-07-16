@@ -1,10 +1,8 @@
 import dataframely as dy
 import polars as pl
-import polars_h3
-import polars_st as pl_st
 
+import bioregion_rs
 from src.dataframes.darwin_core import DarwinCoreSchema
-from src.geocode import select_geocode_lf
 from src.types import Bbox
 
 
@@ -36,33 +34,12 @@ class GeocodeNoEdgesSchema(GeocodeSchema):
         return ~pl.col("is_edge")
 
 
-def _bbox_boundary_coords(bounding_box: Bbox) -> list[list[float]]:
-    """Create bounding box boundary coordinates as a closed linestring.
-
-    Args:
-        bounding_box: Geographic bounding box
-
-    Returns:
-        List of [lng, lat] coordinates forming a closed ring
-    """
-    return [
-        [bounding_box.min_lng, bounding_box.min_lat],
-        [bounding_box.max_lng, bounding_box.min_lat],
-        [bounding_box.max_lng, bounding_box.max_lat],
-        [bounding_box.min_lng, bounding_box.max_lat],
-        [bounding_box.min_lng, bounding_box.min_lat],  # close the ring
-    ]
-
-
 def build_geocode_lf(
     darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
     geocode_precision: int,
     bounding_box: Bbox,
 ) -> dy.LazyFrame[GeocodeSchema]:
     """Build a GeocodeSchema LazyFrame from Darwin Core occurrence data.
-
-    This function is fully lazy - no collection occurs until downstream code
-    explicitly collects the result.
 
     Args:
         darwin_core_lf: LazyFrame of Darwin Core occurrence records
@@ -72,62 +49,18 @@ def build_geocode_lf(
     Returns:
         A validated LazyFrame conforming to GeocodeSchema
     """
-    # Create bounding box boundary as a linestring for intersection testing
-    bbox_coords = _bbox_boundary_coords(bounding_box)
-
-    lf = (
-        darwin_core_lf.pipe(select_geocode_lf, geocode_precision=geocode_precision)
-        .filter(pl.col("geocode").is_not_null())
-        .unique()
-        .sort(by="geocode")
-        # Create center point from geocode
-        .with_columns(
-            center_xy=polars_h3.cell_to_latlng(pl.col("geocode")).list.reverse()
-        )
-        .with_columns(
-            center=pl_st.point("center_xy"),
-        )
-        # Get boundary coordinates from H3 (returns list[list[f64]] in lat,lng order)
-        .with_columns(_boundary_coords=polars_h3.cell_to_boundary("geocode"))
-        .with_columns(
-            _boundary_coords_lnglat=pl.col("_boundary_coords").list.eval(
-                pl.element().list.reverse()
-            )
-        )
-        # Close the polygon ring by appending the first point
-        .with_columns(
-            _boundary_coords_closed=pl.col("_boundary_coords_lnglat").list.concat(
-                pl.col("_boundary_coords_lnglat").list.slice(0, 1)
-            )
-        )
-        # Add row index for wrapping operation
-        .with_row_index("_row_idx")
-        # Wrap in another list for polygon format: list[list[list[f64]]]
-        .with_columns(
-            _boundary_ring=pl.col("_boundary_coords_closed").implode().over("_row_idx")
-        )
-        # Create polygon geometry from coordinates
-        .with_columns(boundary=pl_st.polygon("_boundary_ring"))
-        # Create bbox boundary linestring and check intersection
-        .with_columns(_bbox_boundary=pl_st.linestring(pl.lit(bbox_coords)))
-        .with_columns(
-            is_edge=pl_st.geom("boundary").st.intersects(pl_st.geom("_bbox_boundary"))
-        )
-        # Clean up intermediate columns
-        .drop(
-            "center_xy",
-            "_boundary_coords",
-            "_boundary_coords_lnglat",
-            "_boundary_coords_closed",
-            "_row_idx",
-            "_boundary_ring",
-            "_bbox_boundary",
-        )
-        # Select final columns in schema order
-        .select(list(GeocodeSchema.columns().keys()))
+    darwin_core_df = darwin_core_lf.select(
+        "decimalLatitude", "decimalLongitude"
+    ).collect()
+    df = bioregion_rs.build_geocode(
+        darwin_core_df,
+        geocode_precision,
+        bounding_box.min_lat,
+        bounding_box.max_lat,
+        bounding_box.min_lng,
+        bounding_box.max_lng,
     )
-
-    return GeocodeSchema.validate(lf, eager=False)
+    return GeocodeSchema.validate(df.lazy(), eager=False)
 
 
 def build_geocode_df(
