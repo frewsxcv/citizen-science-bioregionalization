@@ -44,8 +44,8 @@ def build_taxonomy_lf(
         "decimalLongitude",
         "scientificName",
         "taxonKey",
-    ).collect()
-    geocode_df = geocode_lf.select("geocode").collect()
+    ).collect(engine="streaming")
+    geocode_df = geocode_lf.select("geocode").collect(engine="streaming")
 
     df = bioregion_rs.build_taxonomy(
         darwin_core_df,
