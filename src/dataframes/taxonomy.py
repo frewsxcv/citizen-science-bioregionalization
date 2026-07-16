@@ -1,11 +1,10 @@
 import logging
 
 import dataframely as dy
-import polars as pl
 
+import bioregion_rs
 from src.dataframes.darwin_core import DarwinCoreSchema
 from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.types import Bbox
 
 logger = logging.getLogger(__name__)
@@ -40,29 +39,21 @@ def build_taxonomy_lf(
     """
     logger.info("build_taxonomy_lf: Starting")
 
-    # Use semi-join to filter without materializing geocodes to Python list
-    geocode_filter_lf = geocode_lf.select("geocode")
+    darwin_core_df = darwin_core_lf.select(
+        "decimalLatitude",
+        "decimalLongitude",
+        "scientificName",
+        "taxonKey",
+    ).collect()
+    geocode_df = geocode_lf.select("geocode").collect()
 
-    lf = (
-        darwin_core_lf.select(
-            "decimalLatitude",
-            "decimalLongitude",
-            "scientificName",
-            pl.col("taxonKey").alias("gbifTaxonId"),
-        )
-        .pipe(filter_by_bounding_box, bounding_box=bounding_box)
-        .pipe(with_geocode_lf, geocode_precision=geocode_precision)
-        .drop(
-            "decimalLatitude",
-            "decimalLongitude",
-        )
-        # Semi-join: keeps rows where geocode exists, without loading list to memory
-        .join(geocode_filter_lf, on="geocode", how="semi")
-        .drop("geocode")
-        .unique()
-        # Add a unique taxonId for each row
-        .with_row_index("taxonId")
-        .cast({"taxonId": pl.UInt32})
+    df = bioregion_rs.build_taxonomy(
+        darwin_core_df,
+        geocode_precision,
+        geocode_df,
+        bounding_box.min_lat,
+        bounding_box.max_lat,
+        bounding_box.min_lng,
+        bounding_box.max_lng,
     )
-
-    return TaxonomySchema.validate(lf, eager=False)
+    return TaxonomySchema.validate(df.lazy(), eager=False)
