@@ -14,6 +14,7 @@ mod cluster_optimization;
 mod colors;
 mod dataframes;
 mod geocode;
+mod geojson;
 mod matrices;
 mod wkb;
 
@@ -88,6 +89,10 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     m.add_function(wrap_pyfunction!(
         cluster_optimization::optimize_num_clusters,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        geojson::build_geojson_feature_collection,
         m
     )?)?;
     Ok(())

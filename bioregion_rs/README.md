@@ -39,6 +39,10 @@ every subsequent file migration will use.
     mean, extended to per-geocode).
   - `optimize_num_clusters` — mirrors `src/cluster_optimization.py`; thin in-process
     orchestration over `build_geocode_cluster_metrics` + `find_elbow_point`.
+  - `build_geojson_feature_collection` — mirrors `src/geojson.py`. Returns the
+    FeatureCollection as a JSON string (no `serde_json` dependency; the shape here is
+    small and hand-built via `format!`), not a `geojson.FeatureCollection` object —
+    see the plan for why that's a safe stand-in.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
