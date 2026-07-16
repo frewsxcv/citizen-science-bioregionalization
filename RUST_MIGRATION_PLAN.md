@@ -384,10 +384,13 @@ validated).
   used everywhere else (Fisher's exact, `YlOrRd`, robust scaling, etc.). `get_elbow_analysis`/
   `get_metrics_summary`/`get_metric_interpretations` stay in Python (plotting/presentation
   helpers).
-- `src/dataframes/geocode_silhouette_score.py` — TODO: per-sample silhouette (needs
-  `silhouette_samples`, not just the mean `silhouette_score` this PR ported for
-  `geocode_cluster_metrics.py` — same underlying formula, extended to return one score
-  per point instead of the average).
+- `src/dataframes/geocode_silhouette_score.py` — ✅ DONE: `build_geocode_silhouette_score`.
+  Same per-point formula as `geocode_cluster_metrics.py`'s mean silhouette score (both
+  read from sklearn's `_silhouette_reduce`), extended to emit one score per geocode
+  instead of just the average — plus a leading `geocode = null` row per k holding that
+  average, matching the Python output shape exactly. Verified against
+  `build_geocode_silhouette_score_df` on the same hand-built multi-k fixture used for
+  `geocode_cluster_metrics.py`.
 - `src/cluster_optimization.py` — thin orchestration over metrics + elbow. ✅
 - `src/dataframes/significant_taxa_images.py` — image URL/id lookup join. ✅ (confirm no
   network fetch; if it hits an API, keep that thin bit in Python or use `reqwest`).

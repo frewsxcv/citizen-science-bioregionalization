@@ -81,5 +81,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::geocode_cluster_metrics::select_optimal_k_elbow,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::geocode_silhouette_score::build_geocode_silhouette_score,
+        m
+    )?)?;
     Ok(())
 }
