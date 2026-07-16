@@ -10,6 +10,8 @@ import shapely
 import shapely.ops
 from shapely import MultiPoint
 
+import bioregion_rs
+
 logger = logging.getLogger(__name__)
 
 MAX_NUM_NEIGHBORS = 6
@@ -46,34 +48,7 @@ def build_geocode_neighbors_df(
     logger.info(
         f"build_geocode_neighbors_df: Building neighbors for {geocode_df.height} geocodes"
     )
-    known_geocodes = geocode_df["geocode"].unique().to_list()
-
-    # Calculate direct neighbors using H3 grid_ring
-    df = (
-        geocode_df.select("geocode", "center")
-        .with_columns(
-            direct_neighbors_including_unknown=polars_h3.grid_ring(
-                pl.col("geocode"), 1
-            ),
-            known_geocodes=pl.lit(known_geocodes, dtype=pl.List(pl.UInt64)),
-        )
-        .with_columns(
-            direct_neighbors=pl.col("direct_neighbors_including_unknown")
-            .list.set_intersection(pl.col("known_geocodes"))
-            .cast(pl.List(pl.UInt64)),
-        )
-        .with_columns(
-            direct_and_indirect_neighbors=pl.col("direct_neighbors"),
-        )
-        .select(
-            "geocode", "center", "direct_neighbors", "direct_and_indirect_neighbors"
-        )
-    )
-
-    # Ensure single connected component
-    df = _reduce_connected_components_to_one(df)
-
-    df = df.select(list(GeocodeNeighborsSchema.columns().keys()))
+    df = bioregion_rs.build_geocode_neighbors(geocode_df.select("geocode", "center"))
     return GeocodeNeighborsSchema.validate(df)
 
 
@@ -94,37 +69,12 @@ def build_geocode_neighbors_no_edges_df(
     Returns:
         A validated DataFrame conforming to GeocodeNeighborsSchema
     """
-    # Get the set of valid (non-edge) geocodes
-    valid_geocodes = set(geocode_no_edges_df["geocode"].to_list())
-    valid_geocodes_lit = pl.lit(list(valid_geocodes), dtype=pl.List(pl.UInt64))
-
-    # Filter to only non-edge geocodes and update neighbor lists
-    df = geocode_neighbors_df.filter(
-        pl.col("geocode").is_in(valid_geocodes)
-    ).with_columns(
-        direct_neighbors=pl.col("direct_neighbors").list.set_intersection(
-            valid_geocodes_lit
-        ),
-        direct_and_indirect_neighbors=pl.col(
-            "direct_and_indirect_neighbors"
-        ).list.set_intersection(valid_geocodes_lit),
+    df = bioregion_rs.build_geocode_neighbors_no_edges(
+        geocode_neighbors_df, geocode_no_edges_df.select("geocode", "center")
     )
-
-    # Join with geocode_no_edges_df to get center column for reconnection
-    df = df.join(
-        geocode_no_edges_df.select("geocode", "center"),
-        on="geocode",
-        how="left",
-    )
-
-    # After removing edge geocodes, we may have disconnected components again
-    df = _reduce_connected_components_to_one(df)
-
-    df = df.sort(by="geocode")
 
     logger.info(f"GeocodeNeighborsSchema (no edges) contains {len(df)} geocodes")
 
-    df = df.select(list(GeocodeNeighborsSchema.columns().keys()))
     return GeocodeNeighborsSchema.validate(df)
 
 
