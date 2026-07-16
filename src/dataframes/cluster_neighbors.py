@@ -2,9 +2,9 @@ import logging
 
 import dataframely as dy
 import networkx as nx
-import polars as pl
 
-from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
+import bioregion_rs
+from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 logger = logging.getLogger(__name__)
@@ -34,58 +34,11 @@ def build_cluster_neighbors_df(
     """
     logger.info("build_cluster_neighbors_df: Starting")
 
-    # Get unique clusters
-    unique_clusters = geocode_cluster_df["cluster"].unique()
-
-    # Initialize a dictionary to store the direct and indirect neighbors
-    direct_neighbors_map: dict[int, set[int]] = {
-        cluster: set() for cluster in unique_clusters
-    }
-    all_neighbors_map: dict[int, set[int]] = {
-        cluster: set() for cluster in unique_clusters
-    }
-
-    # For each geocode, find neighbors in different clusters
-    for (
-        geocode,
-        direct_neighbors,
-        direct_and_indirect_neighbors,
-    ) in geocode_neighbors_df.select(
-        "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
-    ).iter_rows(named=False):
-        # Get the cluster of the current geocode
-        current_cluster = cluster_for_geocode(geocode_cluster_df, geocode)
-
-        # For each direct neighbor, check if it's in a different cluster
-        for neighbor in direct_neighbors:
-            neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
-
-            # If clusters are different, add to direct neighbors
-            if current_cluster != neighbor_cluster:
-                direct_neighbors_map[current_cluster].add(neighbor_cluster)
-                all_neighbors_map[current_cluster].add(neighbor_cluster)
-
-        # For each indirect neighbor, check if it's in a different cluster
-        for neighbor in direct_and_indirect_neighbors:
-            neighbor_cluster = cluster_for_geocode(geocode_cluster_df, neighbor)
-
-            # If clusters are different, add to all neighbors
-            if current_cluster != neighbor_cluster:
-                all_neighbors_map[current_cluster].add(neighbor_cluster)
-
-    df = pl.DataFrame(
-        [
-            {
-                "cluster": cluster,
-                "direct_neighbors": list(direct_neighbors_map[cluster]),
-                "direct_and_indirect_neighbors": list(all_neighbors_map[cluster]),
-            }
-            for cluster in unique_clusters
-        ]
-    ).with_columns(
-        pl.col("cluster").cast(pl.UInt32),
-        pl.col("direct_neighbors").cast(pl.List(pl.UInt32)),
-        pl.col("direct_and_indirect_neighbors").cast(pl.List(pl.UInt32)),
+    df = bioregion_rs.build_cluster_neighbors(
+        geocode_neighbors_df.select(
+            "geocode", "direct_neighbors", "direct_and_indirect_neighbors"
+        ),
+        geocode_cluster_df.select("geocode", "cluster"),
     )
     return ClusterNeighborsSchema.validate(df)
 
