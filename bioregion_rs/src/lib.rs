@@ -69,5 +69,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::cluster_significant_differences::build_cluster_significant_differences,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::permanova_results::build_permanova_results,
+        m
+    )?)?;
     Ok(())
 }

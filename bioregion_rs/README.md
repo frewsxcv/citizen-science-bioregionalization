@@ -26,6 +26,10 @@ every subsequent file migration will use.
   - `build_cluster_significant_differences` — mirrors
     `src/dataframes/cluster_significant_differences.py`, including a from-scratch
     Fisher's exact test port (no external stats crate).
+  - `build_permanova_results` — mirrors `src/dataframes/permanova_results.py`. The
+    pseudo-F statistic is exact; the p-value uses Rust's own RNG for its Monte Carlo
+    permutation test (the Python call site is itself unseeded, so bit-reproducibility
+    isn't achievable or expected — see the plan for details).
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
@@ -57,6 +61,8 @@ together.
 | `pyo3-polars` | 0.27 | pins Rust polars to 0.54 |
 | `pyo3` | 0.28 | abi3-py313 |
 | `h3o` | 0.8 | pure-Rust H3; produces cell ids identical to `polars-h3` |
+| `geo` | 0.33.1 | boolean ops (`unary_union`) for `cluster_boundary` |
+| `rand` | 0.9 | PERMANOVA's Monte Carlo shuffle; already resolved transitively by `polars` |
 
 ### Known toolchain constraint
 

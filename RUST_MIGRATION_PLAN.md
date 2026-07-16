@@ -333,8 +333,25 @@ validated).
   Python on a small hand-built (not sample-archive-derived) fixture designed to
   actually trigger the significance path — the sample archive's real counts are all
   well under `MIN_COUNT_THRESHOLD=5`.
-- `src/dataframes/permanova_results.py` — PERMANOVA is a permutation pseudo-F test over the
-  condensed distance matrix + grouping. Fully portable; seed the RNG for reproducibility. moderate
+- `src/dataframes/permanova_results.py` — ✅ DONE: `build_permanova_results`. The
+  pseudo-F statistic is a deterministic function of the distance matrix + grouping
+  (`s_T`/`s_W`/`F`, read from skbio's actual `_cutils.pyx` Cython source) and is
+  ported exactly — verified bit-for-bit against `skbio.stats.distance.permanova`
+  called directly with `permutations=0`. **The p-value cannot be made
+  bit-reproducible**: `build_permanova_results_df` calls `permanova(..., seed=None)`,
+  i.e. skbio's own Monte Carlo permutation test uses an *unseeded* RNG, so the
+  p-value already differs between two separate Python runs, before Rust is even in
+  the picture — "seed the RNG for reproducibility" (this plan's original suggestion)
+  wouldn't fix that, since the call site never passes a seed. Ported the same
+  algorithm (shuffle labels, recompute F, `p = (1+count(F_perm>=F_obs))/(1+permutations)`)
+  with Rust's own `rand`-crate shuffle, which is the best achievable "equivalence" for
+  an inherently randomized test — verified via a hand-built fixture: exact match on
+  `test_statistic` (`permutations=0`), then a statistical-consistency check (both
+  p-values within a few standard errors of each other) at `permutations=999`.
+  **New dependency**: `rand = "0.9"` — already fully resolved transitively (`polars`
+  depends on the same version), so this adds no real new dependency surface, unlike
+  a from-scratch shuffle which risked getting the RNG quality wrong for a statistical
+  test where that actually matters.
 - `src/dataframes/geocode_cluster_metrics.py` — silhouette / Calinski-Harabasz /
   Davies-Bouldin / inertia + normalization + `kneed` elbow. All are closed-form over the
   distance matrix + labels; port formulas + Kneedle. moderate
