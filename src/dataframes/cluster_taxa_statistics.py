@@ -1,9 +1,8 @@
 import logging
-from typing import Optional
 
 import dataframely as dy
-import polars as pl
 
+import bioregion_rs
 from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 from src.dataframes.taxonomy import TaxonomySchema
@@ -50,7 +49,9 @@ def build_cluster_taxa_statistics_df(
         f"{taxa_counts_geocodes} unique geocodes, {taxa_counts_taxa} unique taxa"
     )
 
-    cluster_df = geocode_cluster_lf.collect(engine="streaming")
+    cluster_df = geocode_cluster_lf.select("geocode", "cluster").collect(
+        engine="streaming"
+    )
     cluster_geocodes = cluster_df.select("geocode").unique().height
     cluster_clusters = cluster_df.select("cluster").unique().height
     logger.info(
@@ -58,64 +59,11 @@ def build_cluster_taxa_statistics_df(
         f"{cluster_geocodes} unique geocodes, {cluster_clusters} unique clusters"
     )
 
-    df = pl.DataFrame()
+    taxonomy_df = taxonomy_lf.select("taxonId").collect(engine="streaming")
 
-    # First, join the geocode_taxa_counts with taxonomy to get back the taxonomic info
-    joined = geocode_taxa_counts_lf.join(taxonomy_lf, on="taxonId").collect(
-        engine="streaming"
+    df = bioregion_rs.build_cluster_taxa_statistics(
+        taxa_counts_df, cluster_df, taxonomy_df
     )
-
-    logger.info(
-        f"build_cluster_taxa_statistics_df: After joining with taxonomy: {joined.height} rows"
-    )
-
-    # Total count of all observations
-    total_count = joined["count"].sum()
-
-    # Calculate stats for all clusters
-    df.vstack(
-        joined.group_by(["taxonId"])
-        .agg(
-            pl.col("count").sum().alias("count"),
-            (pl.col("count").sum() / total_count).alias("average"),
-        )
-        .pipe(add_cluster_column, value=None)
-        .select(ClusterTaxaStatisticsSchema.columns().keys()),  # Reorder columns
-        in_place=True,
-    )
-
-    # Create a mapping from geocode to cluster
-    geocode_to_cluster = geocode_cluster_lf.select(["geocode", "cluster"])
-
-    # Join the cluster information with the data
-    joined_with_cluster = joined.lazy().join(
-        geocode_to_cluster, on="geocode", how="inner"
-    )
-
-    # Calculate total counts per cluster
-    cluster_totals = joined_with_cluster.group_by("cluster").agg(
-        pl.col("count").sum().alias("total_count_in_cluster")
-    )
-
-    # Calculate stats for each cluster in one operation
-    cluster_stats = (
-        joined_with_cluster.group_by(["cluster", "taxonId"])
-        .agg(
-            pl.col("count").sum().alias("count"),
-        )
-        .join(cluster_totals, on="cluster")
-        .with_columns(
-            [(pl.col("count") / pl.col("total_count_in_cluster")).alias("average")]
-        )
-        .drop("total_count_in_cluster")
-        .select(
-            ClusterTaxaStatisticsSchema.columns().keys()
-        )  # Ensure columns are in the right order
-        .collect(engine="streaming")
-    )
-
-    # Add cluster-specific stats to the dataframe
-    df.vstack(cluster_stats, in_place=True)
 
     logger.info(f"build_cluster_taxa_statistics_df: Final output has {df.height} rows")
 
@@ -126,7 +74,3 @@ def iter_cluster_ids(
     cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
 ) -> list[ClusterId]:
     return cluster_taxa_statistics_df["cluster"].unique().to_list()
-
-
-def add_cluster_column(df: pl.DataFrame, value: Optional[int]) -> pl.DataFrame:
-    return df.with_columns(cluster=pl.lit(value).cast(pl.UInt32()))
