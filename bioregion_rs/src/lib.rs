@@ -73,5 +73,13 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::permanova_results::build_permanova_results,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::geocode_cluster_metrics::build_geocode_cluster_metrics,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::geocode_cluster_metrics::select_optimal_k_elbow,
+        m
+    )?)?;
     Ok(())
 }

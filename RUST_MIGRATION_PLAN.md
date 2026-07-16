@@ -352,10 +352,26 @@ validated).
   depends on the same version), so this adds no real new dependency surface, unlike
   a from-scratch shuffle which risked getting the RNG quality wrong for a statistical
   test where that actually matters.
-- `src/dataframes/geocode_cluster_metrics.py` — silhouette / Calinski-Harabasz /
-  Davies-Bouldin / inertia + normalization + `kneed` elbow. All are closed-form over the
-  distance matrix + labels; port formulas + Kneedle. moderate
-- `src/dataframes/geocode_silhouette_score.py` — per-sample silhouette. ✅ (same math)
+- `src/dataframes/geocode_cluster_metrics.py` — ✅ DONE: `build_geocode_cluster_metrics`
+  + `select_optimal_k_elbow`. Silhouette (mean), Calinski-Harabasz, and Davies-Bouldin
+  formulas read directly from sklearn's `_unsupervised.py` source (not just its
+  docstrings) — note Calinski-Harabasz/Davies-Bouldin use `X=dm_square` with no
+  `metric="precomputed"`, i.e. the existing Python code treats each row of the square
+  distance matrix as an n-dimensional "feature vector" and computes ordinary Euclidean
+  distances between rows; this port preserves that (unusual but pre-existing)
+  methodology rather than "fixing" it. Inertia is the codebase's own hand-rolled
+  distance-matrix formula (not an sklearn function). The Kneedle elbow algorithm
+  (`kneed.KneeLocator`) is ported specialized to this call site's fixed parameters
+  (`curve="convex"`, `direction="decreasing"`, `interp_method="interp1d"`,
+  `online=False`) — `interp1d` evaluated at its own control points is the identity, so
+  no spline-fitting was needed, just direct arithmetic on the given points. Verified
+  bit-for-bit against sklearn/`kneed` calls and against the ported functions on a
+  hand-built multi-k fixture. `get_elbow_analysis`/`get_metrics_summary`/
+  `get_metric_interpretations` stay in Python (plotting/presentation helpers).
+- `src/dataframes/geocode_silhouette_score.py` — TODO: per-sample silhouette (needs
+  `silhouette_samples`, not just the mean `silhouette_score` this PR ported for
+  `geocode_cluster_metrics.py` — same underlying formula, extended to return one score
+  per point instead of the average).
 - `src/cluster_optimization.py` — thin orchestration over metrics + elbow. ✅
 - `src/dataframes/significant_taxa_images.py` — image URL/id lookup join. ✅ (confirm no
   network fetch; if it hits an API, keep that thin bit in Python or use `reqwest`).

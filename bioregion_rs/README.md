@@ -30,6 +30,9 @@ every subsequent file migration will use.
     pseudo-F statistic is exact; the p-value uses Rust's own RNG for its Monte Carlo
     permutation test (the Python call site is itself unseeded, so bit-reproducibility
     isn't achievable or expected — see the plan for details).
+  - `build_geocode_cluster_metrics`/`select_optimal_k_elbow` — mirrors
+    `src/dataframes/geocode_cluster_metrics.py`, including a from-scratch Kneedle
+    elbow-detection port.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
