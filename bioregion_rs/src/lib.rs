@@ -65,5 +65,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::cluster_boundary::build_cluster_boundary,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::cluster_significant_differences::build_cluster_significant_differences,
+        m
+    )?)?;
     Ok(())
 }

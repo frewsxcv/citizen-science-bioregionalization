@@ -23,6 +23,9 @@ every subsequent file migration will use.
   - `build_cluster_color` — mirrors `src/dataframes/cluster_color.py` (geographic
     path only; the taxonomic path uses UMAP + MDS and stays in Python).
   - `build_cluster_boundary` — mirrors `src/dataframes/cluster_boundary.py`.
+  - `build_cluster_significant_differences` — mirrors
+    `src/dataframes/cluster_significant_differences.py`, including a from-scratch
+    Fisher's exact test port (no external stats crate).
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 
