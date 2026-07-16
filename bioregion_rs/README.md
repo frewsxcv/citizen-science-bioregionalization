@@ -37,6 +37,8 @@ every subsequent file migration will use.
   - `build_geocode_silhouette_score` — mirrors `src/dataframes/geocode_silhouette_score.py`
     (per-point silhouette scores; same formula as `build_geocode_cluster_metrics`'s
     mean, extended to per-geocode).
+  - `optimize_num_clusters` — mirrors `src/cluster_optimization.py`; thin in-process
+    orchestration over `build_geocode_cluster_metrics` + `find_elbow_point`.
 - `harness.py` — runs each Rust function and its Python counterpart on the same
   input and asserts they match. The template for migrating each file.
 

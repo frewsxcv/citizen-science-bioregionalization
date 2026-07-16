@@ -391,7 +391,14 @@ validated).
   average, matching the Python output shape exactly. Verified against
   `build_geocode_silhouette_score_df` on the same hand-built multi-k fixture used for
   `geocode_cluster_metrics.py`.
-- `src/cluster_optimization.py` — thin orchestration over metrics + elbow. ✅
+- `src/cluster_optimization.py` — ✅ DONE: `optimize_num_clusters`. Genuinely thin
+  orchestration, as the plan predicted: calls the already-ported
+  `build_geocode_cluster_metrics` and `find_elbow_point` directly (in-process, no
+  Python round-trip), falling back to the highest `combined_score` if no elbow point
+  is found. No new math. Verified against Python's `optimize_num_clusters` on the same
+  multi-k fixture used for `geocode_cluster_metrics.py`, deliberately using only 2
+  distinct k values so the test exercises the "no elbow found" fallback path (elbow-found
+  behavior itself is already covered by `geocode_cluster_metrics.py`'s own tests).
 - `src/dataframes/significant_taxa_images.py` — image URL/id lookup join. ✅ (confirm no
   network fetch; if it hits an API, keep that thin bit in Python or use `reqwest`).
 - `src/geojson.py`, `src/output.py`, `src/render.py` — GeoJSON + JSON (+ HTML) emit.
