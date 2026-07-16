@@ -22,6 +22,7 @@ import shapely
 from scipy.spatial.distance import squareform
 
 import bioregion_rs
+from src.cluster_optimization import optimize_num_clusters
 from src.colors import darken_hex_color as py_darken
 from src.dataframes.cluster_boundary import build_cluster_boundary_df
 from src.dataframes.cluster_color import build_cluster_color_df
@@ -805,6 +806,37 @@ def test_build_geocode_silhouette_score() -> None:
     check("same (geocode, num_clusters, silhouette_score) rows", _rows(rust_out) == _rows(py_out))
 
 
+# --- src/cluster_optimization.py -----------------------------------------------
+
+
+def test_optimize_num_clusters() -> None:
+    print("src/cluster_optimization.py  (optimize_num_clusters):")
+    # Only 2 distinct k values (2, 3) are tested here, which is below
+    # _find_elbow_point's own `len(df) < 3` minimum -- so this specifically
+    # exercises the "no elbow found, fall back to highest combined_score"
+    # path. Elbow-found behavior itself is already covered by
+    # geocode_cluster_metrics.py's own tests; this file is pure orchestration
+    # on top of that.
+    condensed, geocode_cluster_multi_k_df, distance_matrix = (
+        _six_point_three_pair_fixture()
+    )
+
+    rust_k, rust_metrics = bioregion_rs.optimize_num_clusters(
+        condensed, geocode_cluster_multi_k_df
+    )
+    py_k, py_metrics = optimize_num_clusters(distance_matrix, geocode_cluster_multi_k_df)
+
+    check(f"same optimal k (rust={rust_k}, py={py_k})", rust_k == py_k)
+
+    def _rows(df: pl.DataFrame) -> set:
+        return {
+            (row["num_clusters"], round(row["combined_score"], 6))
+            for row in df.iter_rows(named=True)
+        }
+
+    check("same metrics table (combined_score by k)", _rows(rust_metrics) == _rows(py_metrics))
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -841,6 +873,7 @@ def main() -> None:
     test_build_permanova_results()
     test_build_geocode_cluster_metrics()
     test_build_geocode_silhouette_score()
+    test_optimize_num_clusters()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
