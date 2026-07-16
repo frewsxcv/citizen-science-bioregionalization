@@ -410,19 +410,25 @@ validated).
   network call whose actual "compute" (a dict lookup + join) is trivial. Not worth it;
   matches this plan's original call ("if it hits an API, keep that thin bit in
   Python").
-- `src/geojson.py` — ✅ DONE: `build_geojson_feature_collection`. Returns the
+- `src/geojson.py` — ✅ DONE: `build_geojson_feature_collection`, using the **`geojson`
+  crate** (its `geo-types` feature converts our existing `geo::Polygon`/`MultiPolygon`
+  directly; its pinned `geo-types` range unifies with the version `geo` already pulls
+  in, so no duplicate). A first pass hand-built the JSON via `format!` to avoid a
+  dependency — that version had a real bug (a copy-paste swap of the `color`/
+  `fillColor` property values), caught only because a unit test happened to assert the
+  exact JSON shape. Building typed `Feature`/`FeatureCollection` values and letting the
+  crate serialize them removes that whole class of mistake, so the crate won out
+  here despite the added dependency (unlike, say, `cluster_boundary.py`'s hand-rolled
+  WKB encoding, which has no such structural-mistake risk). Still returns the
   FeatureCollection as a JSON string rather than a `geojson.FeatureCollection` Python
   object — nothing in the codebase does an `isinstance` check against that type (it's
-  only ever handed to `geojson.dump`, which just needs something JSON-serializable),
-  so a plain string is a safe, dependency-free stand-in. No `serde_json` needed either:
-  the GeoJSON shape here is small and fixed, so it's hand-built via `format!` (a small
-  hand-rolled JSON-string escaper for the two color fields). Required extending
-  `wkb.rs` to decode a WKB *MultiPolygon* (not just `Polygon`), since
-  `cluster_boundary.rs`'s output can be either shape depending on cluster size; the
-  refactor also had to change `decode_polygon` to report how many bytes it consumed,
-  so a MultiPolygon's embedded per-polygon WKB buffers can be walked in sequence.
-  `write_geojson` (a plain file write) stays in Python — I/O, not compute, and no
-  pipeline call site has been cut over yet. Verified against
+  only ever handed to `geojson.dump`, which just needs something JSON-serializable).
+  Required extending `wkb.rs` to decode a WKB *MultiPolygon* (not just `Polygon`),
+  since `cluster_boundary.rs`'s output can be either shape depending on cluster size;
+  the refactor also had to change `decode_polygon` to report how many bytes it
+  consumed, so a MultiPolygon's embedded per-polygon WKB buffers can be walked in
+  sequence. `write_geojson` (a plain file write) stays in Python — I/O, not compute,
+  and no pipeline call site has been cut over yet. Verified against
   `build_geojson_feature_collection` in `harness.py` on real boundaries derived from
   the sample archive (a mix of single-geocode `Polygon` and multi-geocode
   `MultiPolygon` clusters, exercising both shapes): properties compared exactly,
