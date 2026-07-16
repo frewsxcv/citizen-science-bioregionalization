@@ -51,7 +51,7 @@ def build_geocode_lf(
     """
     darwin_core_df = darwin_core_lf.select(
         "decimalLatitude", "decimalLongitude"
-    ).collect()
+    ).collect(engine="streaming")
     df = bioregion_rs.build_geocode(
         darwin_core_df,
         geocode_precision,
