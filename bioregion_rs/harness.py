@@ -7,6 +7,7 @@ template every file migration follows.
 Run:  uv run python bioregion_rs/harness.py
 """
 
+import math
 import sys
 import tempfile
 from pathlib import Path
@@ -37,6 +38,7 @@ from src.dataframes.geocode_neighbors import (
     graph as neighbors_graph,
 )
 from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
+from src.dataframes.permanova_results import build_permanova_results_df
 from src.dataframes.taxonomy import build_taxonomy_lf
 from src.geocode import (
     filter_by_bounding_box as py_filter_bbox,
@@ -45,6 +47,7 @@ from src.geocode import (
 )
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
+from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.types import Bbox
 
 
@@ -630,6 +633,75 @@ def test_build_cluster_significant_differences() -> None:
     check("same rows (all columns)", _rows(rust_out) == _rows(py_out))
 
 
+# --- src/dataframes/permanova_results.py --------------------------------------
+
+
+def test_build_permanova_results() -> None:
+    print("src/dataframes/permanova_results.py  (build_permanova_results):")
+    # Hand-built (not sample-archive-derived, which is too small for a
+    # meaningful permutation test): 3 geocodes tightly clustered in group 0,
+    # 3 in group 1, far apart from group 0.
+    geocode_ids = [1, 2, 3, 4, 5, 6]
+    condensed = [
+        0.1, 0.1, 0.9, 0.9, 0.9,  # (1,2) (1,3) (1,4) (1,5) (1,6)
+             0.1, 0.9, 0.9, 0.9,  # (2,3) (2,4) (2,5) (2,6)
+                  0.9, 0.9, 0.9,  # (3,4) (3,5) (3,6)
+                       0.1, 0.1,  # (4,5) (4,6)
+                            0.1,  # (5,6)
+    ]  # fmt: skip
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocode_ids, "cluster": [0, 0, 0, 1, 1, 1]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+    distance_matrix = GeocodeDistanceMatrix(
+        condensed=np.array(condensed), reduced_features=np.empty((6, 0))
+    )
+    geocode_lf = pl.DataFrame({"geocode": geocode_ids}).cast({"geocode": pl.UInt64}).lazy()
+
+    # permutations=0 skips the Monte Carlo step entirely, so this is fully
+    # deterministic -- but dataframely's schema rejects the resulting NaN
+    # p_value (build_permanova_results_df's own output would fail its own
+    # validation), so call skbio directly for this exact-match check rather
+    # than through the wrapper function.
+    from skbio.stats.distance import DistanceMatrix, permanova as skbio_permanova
+
+    dm_skbio = DistanceMatrix(np.array(condensed), ids=[str(g) for g in geocode_ids])
+    skbio_res = skbio_permanova(dm_skbio, [0, 0, 0, 1, 1, 1], permutations=0)
+    py_test_statistic = skbio_res["test statistic"]
+
+    rust_out = bioregion_rs.build_permanova_results(
+        condensed, geocode_ids, geocode_cluster_df, 0
+    )
+    check(
+        "test_statistic matches skbio exactly",
+        abs(rust_out["test_statistic"][0] - py_test_statistic) < 1e-9,
+    )
+    check("p_value is NaN (permutations=0)", math.isnan(rust_out["p_value"][0]))
+
+    # permutations=999: skbio.stats.distance.permanova runs its Monte Carlo
+    # permutation test with an unseeded RNG (seed=None), so the p-value isn't
+    # bit-reproducible even between two separate Python runs, let alone
+    # between Python and Rust -- only statistical equivalence is achievable.
+    # With only 6 objects in 2 equal-size groups there are just 20 distinct
+    # 3-3 partitions, several tied with (or close to) the observed one given
+    # this fixture's symmetric 0.1/0.9 distances, so the true p-value sits
+    # around ~0.10 (not near 0 as "obviously separated" clusters might
+    # suggest). Check both estimates land within a few standard errors of
+    # each other (SE ~= sqrt(0.1*0.9/999) ~= 0.0095 here) instead of asserting
+    # a specific significance threshold.
+    rust_out2 = bioregion_rs.build_permanova_results(
+        condensed, geocode_ids, geocode_cluster_df, 999
+    )
+    py_out2 = build_permanova_results_df(
+        distance_matrix, geocode_cluster_df, geocode_lf, permutations=999
+    )
+    rust_p = rust_out2["p_value"][0]
+    py_p = py_out2["p_value"][0]
+    check(
+        f"p-values statistically consistent (rust={rust_p:.4f}, py={py_p:.4f})",
+        abs(rust_p - py_p) < 0.05,
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -663,6 +735,7 @@ def main() -> None:
     test_build_cluster_color()
     test_build_cluster_boundary()
     test_build_cluster_significant_differences()
+    test_build_permanova_results()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 

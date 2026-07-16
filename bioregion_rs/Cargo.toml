@@ -23,3 +23,6 @@ polars = { version = "0.54.4", default-features = false }
 # wheel-build time (see [tool.maturin] features below).
 pyo3 = { version = "0.28", features = ["abi3-py313"] }
 pyo3-polars = "0.27"
+# Already resolved transitively (polars depends on rand 0.9.5); pinned here to
+# match, for the PERMANOVA permutation test's Monte Carlo shuffling.
+rand = "0.9"
