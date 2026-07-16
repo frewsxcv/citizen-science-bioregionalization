@@ -300,8 +300,24 @@ validated).
   colormap's extremes) and verified it reproduces `sns.color_palette("YlOrRd",
   n).as_hex()` bit-for-bit for n up to 15. `darken_hex_color` (Phase 0) is reused
   directly. (Taxonomic path uses UMAP+MDS — see Phase 3.)
-- `src/dataframes/cluster_boundary.py` — union hex boundary polygons per cluster.
-  `geo`'s `unary_union` / boolean ops (or `geos` bindings for robustness). moderate
+- `src/dataframes/cluster_boundary.py` — ✅ DONE: `build_cluster_boundary`, using
+  `geo::unary_union` (no `geos` bindings needed) over WKB-decoded hexagon boundaries.
+  Added general WKB Polygon/MultiPolygon decode+encode to `wkb.rs` (rings + holes,
+  not just the single-ring hexagons `dataframes/geocode.rs` produces) to round-trip
+  through `geo::Polygon`/`MultiPolygon`. A single-geocode cluster is encoded as a bare
+  `Polygon` (matching Python exactly); a multi-geocode cluster is always encoded as a
+  `MultiPolygon` (`unary_union`'s return type), even when the pieces fully merge into
+  one shape — unlike shapely, which collapses that case to a bare `Polygon`. This is a
+  WKB type-tag difference only, not a shape difference (GEOS treats a one-polygon
+  `MultiPolygon` as topologically `.equals()` the bare `Polygon`, confirmed while
+  testing). **Geometry-robustness caveat found while verifying:** `geo`'s
+  `i_overlay`-based union and GEOS's union are different implementations, so the
+  unioned shapes differ by a tiny amount (~2e-7 relative, i.e. floating-point-level
+  vertex differences at shared hexagon edges) — the harness compares with a relative
+  symmetric-difference tolerance instead of exact equality, unlike the exact/bit-for-bit
+  checks used everywhere else in this crate. This is the exact "geometry robustness"
+  risk this plan flagged at the top; in practice `geo` was accurate enough that `geos`
+  bindings weren't needed.
 - `src/dataframes/cluster_significant_differences.py` — 2×2 Fisher's exact per (cluster,
   taxon) + log2 fold change + normalized scoring. Port `fisher_exact` (hypergeometric tail
   sum; use `statrs`). The scoring math is plain polars. moderate

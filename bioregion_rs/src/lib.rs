@@ -61,5 +61,9 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         dataframes::cluster_color::build_cluster_color,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(
+        dataframes::cluster_boundary::build_cluster_boundary,
+        m
+    )?)?;
     Ok(())
 }

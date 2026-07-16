@@ -22,6 +22,7 @@ from scipy.spatial.distance import squareform
 
 import bioregion_rs
 from src.colors import darken_hex_color as py_darken
+from src.dataframes.cluster_boundary import build_cluster_boundary_df
 from src.dataframes.cluster_color import build_cluster_color_df
 from src.dataframes.cluster_neighbors import build_cluster_neighbors_df
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
@@ -517,6 +518,52 @@ def test_build_cluster_color() -> None:
     check("same (cluster, color, darkened_color) row set", _rows(rust_out) == _rows(py_out))
 
 
+# --- src/dataframes/cluster_boundary.py ---------------------------------------
+
+
+def test_build_cluster_boundary() -> None:
+    print("src/dataframes/cluster_boundary.py  (build_cluster_boundary):")
+    _bbox, _precision, _darwin_lf, _darwin_df, geocode_no_edges_df = (
+        _load_bbox_darwin_and_geocode_no_edges()
+    )
+
+    # Cluster by row index (not geocode value): see the note in
+    # test_build_cluster_neighbors.
+    geocodes = geocode_no_edges_df["geocode"].sort()
+    geocode_cluster_df = pl.DataFrame(
+        {"geocode": geocodes, "cluster": [i % 3 for i in range(len(geocodes))]}
+    ).cast({"geocode": pl.UInt64, "cluster": pl.UInt32})
+
+    rust_out = bioregion_rs.build_cluster_boundary(geocode_cluster_df, geocode_no_edges_df)
+    py_out = build_cluster_boundary_df(geocode_cluster_df, geocode_no_edges_df.lazy())
+
+    check(f"non-trivial: {py_out.height} cluster boundaries", py_out.height > 1)
+    check(
+        "same cluster set",
+        set(rust_out["cluster"].to_list()) == set(py_out["cluster"].to_list()),
+    )
+
+    # Relative (not absolute) tolerance: geo's i_overlay-based unary_union and
+    # GEOS's union algorithm are different implementations, so tiny
+    # floating-point differences in how they resolve shared hexagon edges are
+    # expected (unlike the direct WKB pass-through checks elsewhere in this
+    # harness) — this is the "geometry robustness" caveat the migration plan
+    # already flagged, not a correctness bug.
+    rust_geoms = dict(rust_out.select("cluster", "geometry").iter_rows())
+    py_geoms = dict(py_out.select("cluster", "geometry").iter_rows())
+    max_relative_symdiff = max(
+        shapely.from_wkb(rust_geoms[cluster])
+        .symmetric_difference(shapely.from_wkb(py_geoms[cluster]))
+        .area
+        / shapely.from_wkb(py_geoms[cluster]).area
+        for cluster in rust_geoms
+    )
+    check(
+        f"geometries match (max relative sym-diff {max_relative_symdiff:.2e})",
+        max_relative_symdiff < 1e-5,
+    )
+
+
 # --- parquet stage boundary --------------------------------------------------
 
 
@@ -548,6 +595,7 @@ def main() -> None:
     test_build_cluster_neighbors()
     test_build_cluster_distance_matrix()
     test_build_cluster_color()
+    test_build_cluster_boundary()
     test_parquet_boundary()
     print("\nAll interop + correctness checks passed.")
 
