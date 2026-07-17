@@ -1063,31 +1063,15 @@ def _(mo):
 
 @app.cell
 def _(all_clusters_df, geocode_distance_matrix, optimal_num_clusters, pl):
-    from sklearn.metrics import silhouette_samples
-
-    from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
+    from src.dataframes.geocode_silhouette_score import (
+        build_geocode_silhouette_score_df,
+    )
 
     # Get clustering for optimal k
     k_df = all_clusters_df.filter(pl.col("num_clusters") == optimal_num_clusters)
 
-    # Compute per-geocode silhouette scores for the optimal k
-    samples = silhouette_samples(
-        X=geocode_distance_matrix.squareform(),
-        labels=k_df["cluster"],
-        metric="precomputed",
-    )
-
-    geocode_silhouette_score_df = GeocodeSilhouetteScoreSchema.validate(
-        pl.DataFrame(
-            {
-                "geocode": k_df["geocode"],
-                "silhouette_score": list(samples),  # type: ignore
-                "num_clusters": [optimal_num_clusters] * len(k_df),
-            }
-        ).with_columns(
-            pl.col("geocode").cast(pl.UInt64),
-            pl.col("num_clusters").cast(pl.UInt32),
-        )
+    geocode_silhouette_score_df = build_geocode_silhouette_score_df(
+        geocode_distance_matrix, k_df
     )
     return (geocode_silhouette_score_df,)
 
