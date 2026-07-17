@@ -11,12 +11,15 @@ interop question: **can we pass DataFrames/LazyFrames across the Rust↔Python b
   2. **The parquet cache boundary you already have.** `cache_parquet()` already sinks
      every pipeline stage to parquet and rescans it. That is a ready-made seam: a Rust
      stage and a Python stage interoperate just by reading/writing the same parquet file.
-- **A 100% rewrite is not the right target.** Two ML kernels have no faithful Rust
-  equivalent today: **UMAP** (`umap-learn`) and **connectivity-constrained Ward
-  agglomerative clustering** (`sklearn`). Everything else — geometry, H3, graph coloring,
-  group-bys, Fisher's exact, PERMANOVA, cluster metrics, GeoJSON/JSON output — ports
-  cleanly. Recommendation: a **hybrid** where Rust owns the deterministic compute and
-  Python keeps notebook orchestration, all plotting, and (initially) the two hard kernels.
+- **A 100% rewrite is not the right target.** One ML kernel has no faithful Rust
+  equivalent today: **UMAP** (`umap-learn`). The other hard kernel —
+  **connectivity-constrained Ward agglomerative clustering** (`sklearn`) — turned out
+  to have no library equivalent but *was* portable by reproducing sklearn's own
+  `ward_tree` + `_hc_cut` algorithm directly, and is now cut over (see Phase 3).
+  Everything else — geometry, H3, graph coloring, group-bys, Fisher's exact, PERMANOVA,
+  cluster metrics, GeoJSON/JSON output — ports cleanly. Recommendation: a **hybrid**
+  where Rust owns the deterministic compute and Python keeps notebook orchestration,
+  all plotting, and (for now) UMAP.
 - Migrate **file-by-file behind the parquet boundary**, diffing Rust output against the
   current Python output at each stage before switching over.
 
@@ -132,7 +135,7 @@ in-process to skip intermediate parquet I/O.
 | `RobustScaler` | feature scaling | port (median/IQR) | easy |
 | `pdist(braycurtis)` / `squareform` | distance matrix | port (simple loops) | easy |
 | **`umap-learn`** | dim reduction (2 places) | **no faithful equiv** (`annembed` is close-ish) | **hard / keep in Python** |
-| **sklearn `AgglomerativeClustering` ward+connectivity** | clustering | **no equiv** (`kodama` = ward but no connectivity) | **hard / port or keep** |
+| **sklearn `AgglomerativeClustering` ward+connectivity** | clustering | **ported** — reproduce sklearn's `ward_tree`+`_hc_cut` (no crate does connectivity-constrained Ward) | done (was: hard) |
 | `sklearn.manifold.MDS` | taxonomic color layout | port SMACOF, or keep | hard-ish |
 | `matplotlib`/`seaborn`/`altair`/`folium` | plots & maps | **keep in Python** | n/a |
 | `marimo` | notebook orchestration | **keep in Python** (thin driver) | n/a |
@@ -571,11 +574,30 @@ the crate, verified via `harness.py`, available for a future attempt at this.
     the reduced-feature parquet to Rust). `annembed` exists but won't reproduce sklearn/UMAP
     output — a swap here changes clustering results and needs its own validation.
 - `src/dataframes/geocode_cluster.py` — **connectivity-constrained Ward agglomerative
-  clustering** per k. 🔴 `kodama` does Ward but **not** connectivity constraints; sklearn's
-  `ward_tree` with a connectivity graph would need a direct port (feasible — it's a
-  heap-based nearest-merge over the connectivity structure — but it's the single most
-  involved algorithm here). Keep in Python first; port behind the parquet boundary and diff
-  labels against Python before switching.
+  clustering** per k. ✅ DONE and ✅ **cut over** (Phase 4-style, in
+  `dataframes/geocode_cluster.rs`: `build_geocode_cluster_multi_k`). `kodama` does Ward
+  but **not** connectivity constraints, and no other crate does either, so this
+  reproduces sklearn's own algorithm read straight from source:
+  `sklearn.cluster._agglomerative.ward_tree` (the connectivity-constrained heap-based
+  nearest-merge) + `_hc_cut` (cutting the full tree at each k) + the `compute_ward_dist`
+  and `_get_parents` Cython helpers. Two properties made an *exact* deterministic port
+  possible: (1) the pipeline passes the squareform distance matrix as `X` with the
+  default `metric="euclidean"` (not `precomputed`), so each row is a feature vector —
+  the same pre-existing methodology `geocode_cluster_metrics.rs` already preserves; and
+  (2) sklearn's merge heap is keyed on `(inertia, row, col)` with every pair distinct,
+  a strict total order with no ties, so the merge sequence is uniquely determined and a
+  plain Rust `BinaryHeap` reproduces `heapq`'s pop order bit-for-bit. The one
+  heap-array-order-sensitive step (`_hc_cut`'s label numbering) reimplements CPython
+  `heapq`'s sift operations exactly, so the port reproduces sklearn's integer cluster
+  labels, not merely an equivalent partition. Building the full tree **once** and cutting
+  at every k (`compute_full_tree` is always true here — k is far below
+  `max(100, 0.02·n_samples)`) also replaces the Python loop's per-k re-fit. Verified in
+  `harness.py` against sklearn `AgglomerativeClustering(linkage="ward",
+  connectivity=...)` on a connected 4×5 grid graph with *integer* coordinates
+  (deliberately tie-heavy, to stress the merge tie-breaking): cluster labels match
+  **exactly** for every k in 2..6. UMAP still runs in Python and produces the distance
+  matrix this stage consumes — the boundary is `distance_matrix.condensed()`, a clean
+  handoff.
 - `src/dataframes/cluster_color.py` **(taxonomic path)** — UMAP(`metric="precomputed"`) +
   HSV mapping, and `MDS` usage. 🔴 depends on UMAP/MDS. The **geographic** default path is
   already Rust-ready (Phase 2); only migrate taxonomic coloring after UMAP is resolved.
@@ -595,8 +617,7 @@ the crate, verified via `harness.py`, available for a future attempt at this.
 ┌────────────────────────── Python ──────────────────────────┐
 │  marimo notebook (CLI, orchestration, report)               │
 │  plotting: matplotlib / seaborn / altair / folium           │
-│  hard ML kernels: UMAP, Ward+connectivity clustering        │
-│      (until Rust ports are validated)                       │
+│  hard ML kernel: UMAP (no faithful Rust equivalent)         │
 └───────────────▲───────────────────────────▲────────────────┘
                 │ pyo3-polars (frames)       │ parquet cache
                 │ zero-copy in-process       │ (stage boundary)
@@ -605,7 +626,8 @@ the crate, verified via `harness.py`, available for a future attempt at this.
 │  polars · h3o · geo/wkb · petgraph · statrs                 │
 │  darwin_core · geocode · neighbors · taxa_counts ·          │
 │  taxa_statistics · significant_differences · permanova ·    │
-│  cluster_metrics · silhouette · boundaries · colors(geo) ·  │
+│  cluster_metrics · silhouette · ward+connectivity clustering│
+│  boundaries · colors(geo) ·                                 │
 │  connectivity/distance matrices · geojson/json output       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -615,7 +637,9 @@ verified correct in isolation; everything except `taxa_counts` and (upstream of 
 `taxonomy` is also cut over into the real pipeline. Those two remain pure Python —
 cutting them over OOM'd the full-GBIF-snapshot CI job, since their value is in Polars'
 lazy engine reducing a huge raw table *before* materializing, which the current
-collect-then-call-Rust boundary can't preserve.
+collect-then-call-Rust boundary can't preserve. UMAP is now the **only** hard ML
+kernel still in Python; the Ward+connectivity clustering it feeds is cut over, taking
+`distance_matrix.condensed()` as its clean handoff boundary.
 
 ## Risks / open questions
 
@@ -625,8 +649,10 @@ collect-then-call-Rust boundary can't preserve.
    parity matters, UMAP likely stays Python permanently. If the pipeline can tolerate a
    different-but-valid embedding, evaluate `annembed` on cluster-quality metrics, not on
    output equality.
-3. **Ward + connectivity clustering** — portable but the most work; port it early behind the
-   parquet diff harness so you can verify label agreement against sklearn before committing.
+3. **Ward + connectivity clustering** — ✅ resolved. Ported by reproducing sklearn's own
+   `ward_tree`+`_hc_cut` (no crate does connectivity-constrained Ward) and cut over; the
+   harness verifies exact label agreement against sklearn, including on a deliberately
+   tie-heavy fixture. This was the most involved single port but is fully deterministic.
 4. **Geometry robustness** — `shapely`/GEOS handle degenerate unions gracefully; pure-Rust
    `geo` boolean ops are improving but for the boundary-union step consider `geos` bindings
    if you hit robustness issues.

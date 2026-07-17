@@ -32,7 +32,7 @@ use crate::to_py;
 
 /// Distance between points `i` and `j` in a scipy `pdist`-order condensed
 /// vector for `n` objects; 0.0 when `i == j`.
-fn condensed_dist(condensed: &[f64], n: usize, i: usize, j: usize) -> f64 {
+pub(crate) fn condensed_dist(condensed: &[f64], n: usize, i: usize, j: usize) -> f64 {
     if i == j {
         return 0.0;
     }

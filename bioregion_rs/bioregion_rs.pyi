@@ -93,6 +93,14 @@ def select_optimal_k_elbow(
     inertia: list[float],
     sensitivity: float = 1.0,
 ) -> int | None: ...
+def build_geocode_cluster_multi_k(
+    geocodes: list[int],
+    condensed: list[float],
+    edge_a: list[int],
+    edge_b: list[int],
+    min_k: int,
+    max_k: int,
+) -> pl.DataFrame: ...
 def build_geocode_silhouette_score(
     condensed: list[float],
     geocode_cluster_df: pl.DataFrame,

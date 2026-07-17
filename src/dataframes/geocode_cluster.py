@@ -2,10 +2,10 @@ import logging
 from typing import Iterator, List, Tuple
 
 import dataframely as dy
+import numpy as np
 import polars as pl
-from scipy.sparse import csr_matrix
-from sklearn.cluster import AgglomerativeClustering
 
+import bioregion_rs
 from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
@@ -109,33 +109,22 @@ def build_geocode_cluster_multi_k_df(
         f"Testing {max_k - min_k + 1} cluster configurations (k={min_k} to k={max_k})"
     )
 
-    all_results = []
-
-    for k in range(min_k, max_k + 1):
-        logger.info(f"Testing k={k}...")
-
-        clusters = AgglomerativeClustering(
-            n_clusters=k,
-            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),  # type: ignore
-            linkage="ward",
-        ).fit_predict(distance_matrix.squareform())
-
-        assert len(geocodes) == len(clusters)
-
-        k_df = pl.DataFrame(
-            data={
-                "geocode": geocodes,
-                "num_clusters": [k] * len(geocodes),
-                "cluster": clusters,
-            }
-        ).with_columns(
-            pl.col("num_clusters").cast(pl.UInt32),
-            pl.col("cluster").cast(pl.UInt32),
-        )
-
-        all_results.append(k_df)
-
-    df = pl.concat(all_results)
+    # Connectivity-constrained Ward agglomerative clustering, delegated to Rust
+    # (bioregion_rs.build_geocode_cluster_multi_k). It reproduces sklearn's
+    # ward_tree + _hc_cut exactly, building the full merge tree once and cutting
+    # it at every k, instead of re-fitting AgglomerativeClustering per k as this
+    # loop used to. The connectivity matrix is a symmetric 0/1 adjacency, so its
+    # strict upper triangle is each undirected edge once; those edge endpoints
+    # index into the same geocode ordering as the (condensed) distance matrix.
+    edge_rows, edge_cols = np.nonzero(np.triu(connectivity_matrix._connectivity_matrix, k=1))
+    df = bioregion_rs.build_geocode_cluster_multi_k(
+        geocodes.to_list(),
+        distance_matrix.condensed().tolist(),
+        edge_rows.tolist(),
+        edge_cols.tolist(),
+        min_k,
+        max_k,
+    )
 
     logger.info(
         f"build_geocode_cluster_multi_k_df: Final output has {df.height} rows "

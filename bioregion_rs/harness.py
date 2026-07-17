@@ -739,6 +739,96 @@ def _six_point_three_pair_fixture():
     return condensed, geocode_cluster_multi_k_df, distance_matrix
 
 
+# --- src/dataframes/geocode_cluster.py ----------------------------------------
+
+
+def _grid_cluster_fixture():
+    """A connected 4x5 spatial grid graph over 20 points with *integer*
+    coordinates. Integer coords make many pairwise distances (hence many ward
+    inertias) exactly equal, which stresses the merge-heap tie-breaking that
+    both sklearn and the Rust port resolve via the (inertia, row, col) key."""
+    from scipy.spatial.distance import pdist
+
+    from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
+    from src.matrices.geocode_distance import GeocodeDistanceMatrix
+
+    rows, cols = 4, 5
+    n = rows * cols
+    coords = np.array([[float(r), float(c)] for r in range(rows) for c in range(cols)])
+    # scipy pdist order == GeocodeDistanceMatrix.condensed()
+    condensed = pdist(coords)
+    distance_matrix = GeocodeDistanceMatrix(condensed, coords)
+
+    adj = np.zeros((n, n), dtype=np.int64)
+
+    def node(r, c):
+        return r * cols + c
+
+    for r in range(rows):
+        for c in range(cols):
+            if r + 1 < rows:
+                a, b = node(r, c), node(r + 1, c)
+                adj[a, b] = adj[b, a] = 1
+            if c + 1 < cols:
+                a, b = node(r, c), node(r, c + 1)
+                adj[a, b] = adj[b, a] = 1
+    connectivity_matrix = GeocodeConnectivityMatrix(adj)
+    geocodes = pl.Series("geocode", list(range(n)), dtype=pl.UInt64)
+    return geocodes, condensed, distance_matrix, connectivity_matrix
+
+
+def test_build_geocode_cluster_multi_k() -> None:
+    print("src/dataframes/geocode_cluster.py  (build_geocode_cluster_multi_k):")
+    from scipy.sparse import csr_matrix
+    from sklearn.cluster import AgglomerativeClustering
+
+    geocodes, condensed, distance_matrix, connectivity_matrix = _grid_cluster_fixture()
+    n = len(geocodes)
+    min_k, max_k = 2, 6
+
+    edge_rows, edge_cols = np.nonzero(
+        np.triu(connectivity_matrix._connectivity_matrix, k=1)
+    )
+    rust_df = bioregion_rs.build_geocode_cluster_multi_k(
+        geocodes.to_list(),
+        condensed.tolist(),
+        edge_rows.tolist(),
+        edge_cols.tolist(),
+        min_k,
+        max_k,
+    )
+    check(
+        f"non-trivial: {rust_df.height} rows over {max_k - min_k + 1} k values",
+        rust_df.height == n * (max_k - min_k + 1),
+    )
+
+    square = distance_matrix.squareform()
+    all_match = True
+    saw_multi_cluster = False
+    for k in range(min_k, max_k + 1):
+        # Reference: sklearn, exactly as the pre-cutover pipeline called it.
+        ref = AgglomerativeClustering(
+            n_clusters=k,
+            connectivity=csr_matrix(connectivity_matrix._connectivity_matrix),
+            linkage="ward",
+        ).fit_predict(square)
+
+        # geocodes are 0..n-1 in order, so sort("geocode") aligns with ref index.
+        rust_k = (
+            rust_df.filter(pl.col("num_clusters") == k)
+            .sort("geocode")
+            .get_column("cluster")
+            .to_list()
+        )
+        if rust_k != ref.tolist():
+            all_match = False
+        if len(set(ref.tolist())) > 1:
+            saw_multi_cluster = True
+
+    check("cluster labels match sklearn exactly for every k", all_match)
+    check("fixture actually produces multiple clusters", saw_multi_cluster)
+
+
 def test_build_geocode_cluster_metrics() -> None:
     print(
         "src/dataframes/geocode_cluster_metrics.py  (build_geocode_cluster_metrics):"
@@ -1112,6 +1202,7 @@ def main() -> None:
     test_build_cluster_boundary()
     test_build_cluster_significant_differences()
     test_build_permanova_results()
+    test_build_geocode_cluster_multi_k()
     test_build_geocode_cluster_metrics()
     test_build_geocode_silhouette_score()
     test_optimize_num_clusters()
