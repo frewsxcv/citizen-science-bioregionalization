@@ -199,24 +199,42 @@ verified against Python in `bioregion_rs/harness.py`.
   the `lazy` feature is currently disabled (Phase 0 finding), so it stays in Python for now.
   (Also confirm the Rust polars build enables the cloud/object-store feature for `gs://`.)
 - `src/dataframes/darwin_core.py` — TODO: schema + bbox filter + column select.
-- `src/dataframes/taxonomy.py` — ✅ DONE: `build_taxonomy` (distinct
+- `src/dataframes/taxonomy.py` — Rust port ✅ exists (`build_taxonomy`: distinct
   (scientificName, gbifTaxonId) pairs restricted to known geocodes, each assigned a
-  synthetic `taxonId`). Uses `DataFrame::group_by`/`unique`/`with_row_index` from
-  **`polars-core`** directly — no `polars-ops`/joins/`is_in` needed (semi-join and
-  dedup done as eager, hand-rolled filters, consistent with the no-`lazy` constraint).
-  Verified against Python by comparing the (scientificName, gbifTaxonId) pair set and
-  that `taxonId` is a 0..n bijection (row order — and thus which literal `taxonId` a
-  pair gets — is not guaranteed to match Python's `.unique()` ordering, only the set
-  and the bijection are).
-- `src/dataframes/geocode_taxa_counts.py` — ✅ DONE: `build_geocode_taxa_counts` (the
-  core `build_geocode_taxa_counts_lf` aggregation; `filter_top_taxa_lf` is deferred —
-  it's an optional scaling filter, not on the critical path). The Python join against
-  taxonomy (on scientificName+gbifTaxonId) and the group-by-sum are hand-rolled with a
-  `HashMap` lookup + `polars-core`'s (deprecated but functional) `GroupBy::sum`, for the
-  same reason as `taxonomy.rs` — no `polars-ops` dependency. Verified by resolving both
-  engines' output back through their own taxonomy to (geocode, scientificName,
-  gbifTaxonId, count) and comparing as sets (sidesteps the taxonId-ordering
-  non-determinism noted above).
+  synthetic `taxonId`; uses `DataFrame::group_by`/`unique`/`with_row_index` from
+  **`polars-core`** directly — no `polars-ops`/joins/`is_in` needed — and is verified
+  correct against Python via `harness.py`), but **🔴 the real pipeline's
+  `build_taxonomy_lf` was NOT cut over to call it** — reverted after 3/3 CI failures on
+  the full GBIF-snapshot job (`gh pr #27`). Root cause: cutting over meant collecting
+  `darwin_core_lf`'s selected columns (including `scientificName`, a string column)
+  into an eager `DataFrame` *before* calling Rust, so Rust could do the bbox-filter +
+  geocode + semi-join + dedup itself. But the *original* Python implementation never
+  collects at all — it stays a `pl.LazyFrame` end to end (`TaxonomySchema.validate(lf,
+  eager=False)`), letting Polars' lazy engine push the semi-join and `.unique()` dedup
+  down *before* materializing anything. Since the real output is one row per distinct
+  species (thousands) but the raw input is one row per occurrence in the bbox
+  (potentially tens of millions for a large snapshot), materializing the *raw* rows
+  before dedup — as the cutover did — is orders of magnitude more memory than
+  materializing the *deduped* result, as the original lazy pipeline does. This OOM'd
+  the CI runner (`gh run view`'s generic "runner lost communication with the server",
+  reproduced 3/3 times, ~56-58min in every time) even though it passed fine against the
+  small `test/sample-archive/` fixture used for local verification — the bug only shows
+  up at real-snapshot scale. **Lesson for any future cutover of this shape:** a
+  "collect the raw input, then reduce inside Rust" boundary only works when the
+  Rust-side reduction is *cheap relative to the raw input size*; when the real value is
+  in reducing cardinality by orders of magnitude (dedup/aggregation over a huge raw
+  table), that reduction has to happen before crossing the Python/Rust boundary, not
+  after — which the current PyO3/`pyo3-polars` interop (whole-`DataFrame`-at-a-time,
+  no chunked/streaming API) can't do without keeping the reduction in lazy Polars.
+- `src/dataframes/geocode_taxa_counts.py` — same status and same root cause as
+  `taxonomy.py` above: Rust port ✅ exists (`build_geocode_taxa_counts`, verified via
+  harness.py; `filter_top_taxa_lf` was always deferred, not on the critical path), but
+  **🔴 `build_geocode_taxa_counts_lf` was NOT cut over** — reverted after 3/3 CI failures
+  on the full GBIF-snapshot job (`gh pr #28`, same "runner lost communication" pattern,
+  ~1h-1h4min elapsed every time). It has the same shape: the real output is aggregated
+  (geocode, taxonId) counts, but the cutover collected raw per-occurrence rows
+  (including `scientificName`) before aggregating in Rust, instead of letting Polars'
+  lazy `group_by` aggregate before materializing.
 - `src/dataframes/geocode_neighbors.py` — ✅ DONE: `build_geocode_neighbors` and
   `build_geocode_neighbors_no_edges` (H3 `grid_ring_fast(1)` for direct adjacency; a
   hand-rolled union-find + brute-force nearest-point search for the connectivity fixup,
@@ -239,14 +257,14 @@ verified against Python in `bioregion_rs/harness.py`.
   `GeocodeConnectivityMatrix.build`'s output for exact matrix equality.
 
 This closes out Phase 1's non-trivial files. `bioregion_rs` now has CI
-(`.github/workflows/bioregion-rs.yml`): `cargo test --lib`, `maturin develop`, and
+(`.github/workflows/bioregion-rs.yml`): `cargo test --lib`, `maturin develop`
+(later: `uv sync`, once it became a workspace dependency — see Phase 4), and
 `harness.py` run on every push, so a Rust change that breaks parity with Python fails
-CI instead of relying on someone running the harness locally. Note this is a
-crate-level check only — the main pipeline's own CI (`run.yml`) still runs the
-all-Python `notebook.py` end-to-end and does not yet invoke `bioregion_rs` at all,
-since no pipeline call site has been switched over to Rust yet (see "Recommended end
-state" above — that cutover is a later step, done file-by-file once each port is
-validated).
+CI instead of relying on someone running the harness locally. At this point in the
+project this was still a crate-level check only — the main pipeline's own CI
+(`run.yml`) ran the all-Python `notebook.py` end-to-end and didn't invoke
+`bioregion_rs` at all, since no pipeline call site had been switched over to Rust yet
+(that cutover work is Phase 4, below).
 
 ### Phase 2 — graph, geometry, and stats (⚠️ ported algorithms)
 
@@ -427,8 +445,10 @@ validated).
   since `cluster_boundary.rs`'s output can be either shape depending on cluster size;
   the refactor also had to change `decode_polygon` to report how many bytes it
   consumed, so a MultiPolygon's embedded per-polygon WKB buffers can be walked in
-  sequence. `write_geojson` (a plain file write) stays in Python — I/O, not compute,
-  and no pipeline call site has been cut over yet. Verified against
+  sequence. `write_geojson` (a plain file write) stays in Python — I/O, not compute.
+  ✅ **Cut over** (Phase 4): `build_geojson_feature_collection` now calls this, parsing
+  the returned JSON string back into a `geojson.FeatureCollection` via `geojson.loads`.
+  Verified against
   `build_geojson_feature_collection` in `harness.py` on real boundaries derived from
   the sample archive (a mix of single-geocode `Polygon` and multi-geocode
   `MultiPolygon` clusters, exercising both shapes): properties compared exactly,
@@ -443,8 +463,9 @@ validated).
   semantics exactly. Boundary WKB is converted to a GeoJSON geometry via the same
   `wkb::decode_geometry` + `geojson` crate path as `geojson.rs`. Returns the
   assembled JSON as a `String` rather than writing it — `prepare_file_path` +
-  the actual file write stay in Python (I/O, not compute; no pipeline call site
-  cut over yet, same rationale as `geojson.rs`'s `write_geojson`). Verified in
+  the actual file write stay in Python (I/O, not compute, same rationale as
+  `geojson.rs`'s `write_geojson`). ✅ **Cut over** (Phase 4): `write_json_output` now
+  writes this string directly to disk instead of building the JSON by hand. Verified in
   `harness.py` against a hand-built fixture (reusing
   `test_build_cluster_significant_differences`'s data) that deliberately
   exercises both join edge cases (a dropped taxonId, a null `image_url`);
@@ -454,6 +475,91 @@ validated).
   confirmed via repo-wide grep that this function is referenced only by its own
   test (`test/test_render.py`), not by `notebook.py` or any other pipeline file.
   Not worth porting unless something starts calling it.
+
+### Phase 4 — pipeline cutover (Rust ports → actually called by `notebook.py`)
+
+Everything above this point was purely additive: `bioregion_rs` functions existed and
+were verified correct against Python via `harness.py`, but nothing in the real
+pipeline (`notebook.py` or any `src/*.py` module) ever imported `bioregion_rs`. This
+phase made the pipeline actually call the Rust implementations, file by file.
+
+**Packaging/CI prerequisite:** `bioregion_rs` was not a runtime dependency of the root
+project at all — it was only built via a standalone `maturin develop` step in its own
+CI job. Made it a `uv` workspace member (root `pyproject.toml`'s
+`[tool.uv.workspace]`/`[tool.uv.sources]`, declared as `bioregion-rs`), added a Rust
+toolchain + cargo cache to `run.yml`/`unittest.yml` (they'd never built the extension
+before), and added a hand-maintained `bioregion_rs/bioregion_rs.pyi` stub so pyright
+can typecheck call sites (PyO3 extensions don't auto-generate stubs; maturin bundles a
+top-level `<module_name>.pyi` into the wheel automatically). Also found and worked
+around a real footgun: `bioregion_rs/target/wheels/` can hold a stale pre-built wheel
+that maturin's build backend reuses without reinvoking `cargo` if that directory
+persists across builds — not reachable in CI (clean checkout every run), but the cache
+steps deliberately exclude that directory to be safe regardless. See
+`bioregion_rs/README.md`'s "Packaging" section for details.
+
+**Cut over** (each function's public signature and `dataframely`-validated return type
+kept identical, so `notebook.py` and every existing test needed zero changes; only the
+function body's internals changed to delegate to `bioregion_rs`):
+`src/dataframes/geocode.py` (`build_geocode_lf`), `src/dataframes/geocode_neighbors.py`
+(both build functions), `src/matrices/geocode_connectivity.py`
+(`GeocodeConnectivityMatrix.build`), `src/dataframes/cluster_taxa_statistics.py`,
+`src/dataframes/cluster_neighbors.py`, `src/matrices/cluster_distance.py`
+(`ClusterDistanceMatrix.build`), `src/dataframes/cluster_color.py` (geographic path
+only), `src/dataframes/cluster_boundary.py`,
+`src/dataframes/cluster_significant_differences.py`,
+`src/dataframes/permanova_results.py`, `src/dataframes/geocode_cluster_metrics.py`
+(`build_geocode_cluster_metrics_df` + `select_optimal_k_elbow`),
+`src/dataframes/geocode_silhouette_score.py` (**plus** wiring `notebook.py`'s
+silhouette cell to actually call it — it was dead code from the pipeline's
+perspective before this, duplicating the same logic inline via sklearn instead),
+`src/geojson.py`, `src/output.py`. `src/cluster_optimization.py` needed no code
+changes — it's pure orchestration over two of the functions above, so it benefited
+automatically once they were individually cut over.
+
+A recurring theme during this phase: several now-Python-side helper functions became
+dead code once their caller's internals moved to Rust (e.g. `add_cluster_column`,
+`to_graph`, `iter_cluster_ids`, `_add_normalized_scores`, `build_geojson_feature`,
+`_wkb_to_geojson`) and were deleted outright, while others stayed even though their
+caller no longer used them internally, because a test file imports and exercises them
+*directly* (e.g. `_reduce_connected_components_to_one`/`_df_to_graph` in
+`geocode_neighbors.py`, `build_X`/`pivot_taxon_counts_for_clusters` in
+`cluster_distance.py`, `_compute_inertia`/`_find_elbow_point` in
+`geocode_cluster_metrics.py`) — those are left as-is, still under direct test, just no
+longer on the hot path.
+
+**Not cut over — reverted after real production failures:**
+`src/dataframes/taxonomy.py` (`build_taxonomy_lf`) and
+`src/dataframes/geocode_taxa_counts.py` (`build_geocode_taxa_counts_lf`). Both Rust
+ports exist and are verified correct via `harness.py`, but wiring them into the real
+pipeline caused the CI `gbif-snapshot` job (the full ~300M-row public GBIF dataset) to
+OOM the runner 3/3 times (GitHub's generic "runner lost communication with the
+server", ~56min-1h4min elapsed every time — never reproduced against the small
+`test/sample-archive/` fixture used for local verification, which is why this wasn't
+caught until real-scale CI). Root cause: both cutovers required collecting
+`darwin_core_lf`'s selected columns (including `scientificName`, a string column) into
+an eager `DataFrame` *before* calling Rust, so Rust could do the
+filter/geocode/join/dedup-or-aggregate itself. But the *original* Python
+implementations never collect early — they stay `pl.LazyFrame` end to end
+(`eager=False`), letting Polars' lazy engine push the semi-join, `.unique()` dedup, and
+`group_by` aggregation down *before* materializing anything. Since the real output for
+both is orders of magnitude smaller than the raw input (one row per distinct species,
+or one row per (geocode, taxonId) pair, vs. one row per raw occurrence — potentially
+tens of millions at full-snapshot scale), materializing the *raw* rows before
+reduction — which is what the cutover did — is orders of magnitude more memory than
+materializing the *reduced* result, which is what the original lazy pipeline does.
+**Lesson for any future cutover of this shape:** a "collect the raw input, then reduce
+inside Rust" boundary only works when the Rust-side reduction is cheap relative to the
+raw input size. When the real value is in reducing cardinality by orders of magnitude
+(dedup/aggregation over a huge raw table), that reduction has to happen *before*
+crossing the Python/Rust boundary — which the current PyO3/`pyo3-polars` interop
+(whole-`DataFrame`-at-a-time, no chunked/streaming API) can't do without keeping the
+reduction itself in lazy Polars. A real fix would mean either giving `bioregion_rs` a
+streaming/chunked ingestion API, or restructuring these two functions so the
+cardinality-reducing step (semi-join + dedup / group-by) happens lazily in Polars
+first and only the cheap remainder (taxonId assignment / final formatting) goes
+through Rust — out of scope for now. `build_taxonomy_lf`/`build_geocode_taxa_counts_lf`
+remain pure Python; `bioregion_rs.build_taxonomy`/`build_geocode_taxa_counts` stay in
+the crate, verified via `harness.py`, available for a future attempt at this.
 
 ### Phase 3 — hard ML kernels (🔴 keep in Python until validated)
 
@@ -503,6 +609,13 @@ validated).
 │  connectivity/distance matrices · geojson/json output       │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Status vs. this diagram (see Phase 4 above):** everything listed is ported and
+verified correct in isolation; everything except `taxa_counts` and (upstream of it)
+`taxonomy` is also cut over into the real pipeline. Those two remain pure Python —
+cutting them over OOM'd the full-GBIF-snapshot CI job, since their value is in Polars'
+lazy engine reducing a huge raw table *before* materializing, which the current
+collect-then-call-Rust boundary can't preserve.
 
 ## Risks / open questions
 
