@@ -1,11 +1,9 @@
-import dataframely as dy
 import polars as pl
 import shapely
 
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
 
 
-def mock_cluster_boundary_df() -> dy.DataFrame[ClusterBoundarySchema]:
+def mock_cluster_boundary_df() -> pl.DataFrame:
     """
     Creates a mock ClusterBoundaryDataFrame for testing.
     """
@@ -42,4 +40,4 @@ def mock_cluster_boundary_df() -> dy.DataFrame[ClusterBoundarySchema]:
         ]
     ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
-    return ClusterBoundarySchema.validate(cluster_boundary_df)
+    return cluster_boundary_df

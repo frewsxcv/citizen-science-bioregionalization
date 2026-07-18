@@ -1,15 +1,11 @@
 import os
 import unittest
 
-import dataframely as dy
 import polars as pl
 import polars_st as pl_st
-from dataframely.exc import ValidationError
 
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import (
-    GeocodeNoEdgesSchema,
-    GeocodeSchema,
     build_geocode_df,
     build_geocode_lf,
     build_geocode_no_edges_lf,
@@ -34,7 +30,7 @@ class TestGeocodeSchema(unittest.TestCase):
         )
 
         # This should not raise an exception
-        geocode_df = GeocodeSchema.validate(df)
+        geocode_df = df
         self.assertIsInstance(geocode_df, pl.DataFrame)
 
     def test_build_from_darwin_core_csv(self):
@@ -106,36 +102,6 @@ class TestGeocodeSchema(unittest.TestCase):
         self.assertIn("boundary", geocode_df.columns)
         self.assertIn("is_edge", geocode_df.columns)
 
-    def test_geocode_no_edges_schema(self):
-        """Test that GeocodeNoEdgesSchema validates edge constraint"""
-        # Create a df with no edge hexagons (should pass)
-        df_no_edges = pl.DataFrame(
-            {
-                "geocode": pl.Series([1, 2], dtype=pl.UInt64),
-                "center": points_series(2),
-                "boundary": polygon_series(2),
-                "is_edge": pl.Series([False, False], dtype=pl.Boolean),
-            }
-        )
-
-        # This should not raise an exception
-        geocode_df = GeocodeNoEdgesSchema.validate(df_no_edges)
-        self.assertIsInstance(geocode_df, pl.DataFrame)
-
-        # Create a df with edge hexagons (should fail)
-        df_with_edges = pl.DataFrame(
-            {
-                "geocode": pl.Series([1, 2], dtype=pl.UInt64),
-                "center": points_series(2),
-                "boundary": polygon_series(2),
-                "is_edge": pl.Series([True, False], dtype=pl.Boolean),
-            }
-        )
-
-        # This should raise a validation error
-        with self.assertRaises(ValidationError):
-            GeocodeNoEdgesSchema.validate(df_with_edges)
-
     def test_build_geocode_no_edges_df(self):
         """Test building a GeocodeNoEdgesSchema by filtering edges"""
         # Create a GeocodeSchema df with some edge hexagons
@@ -148,8 +114,8 @@ class TestGeocodeSchema(unittest.TestCase):
             }
         )
 
-        geocode_df = GeocodeSchema.validate(df)
-        geocode_lf: dy.LazyFrame[GeocodeSchema] = geocode_df.lazy()
+        geocode_df = df
+        geocode_lf: pl.LazyFrame = geocode_df.lazy()
 
         # Build no-edges df
         no_edges_df = build_geocode_no_edges_lf(geocode_lf).collect()
@@ -172,7 +138,7 @@ class TestGeocodeSchema(unittest.TestCase):
             }
         )
 
-        geocode_df = GeocodeSchema.validate(df)
+        geocode_df = df
 
         # Test finding index of existing geocode
         index = index_of_geocode(8514355555555555, geocode_df)

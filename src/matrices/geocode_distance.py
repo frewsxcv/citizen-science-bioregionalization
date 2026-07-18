@@ -1,4 +1,3 @@
-import dataframely as dy
 import numpy as np
 import polars as pl
 import umap
@@ -6,7 +5,6 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import RobustScaler
 
 from src.dataframes import geocode_taxa_counts
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.logging import log_action, logger
 
 
@@ -57,8 +55,8 @@ def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
 
 
 def build_X(
-    geocode_taxa_counts_lf: dy.LazyFrame[geocode_taxa_counts.GeocodeTaxaCountsSchema],
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_taxa_counts_lf: pl.LazyFrame,
+    geocode_lf: pl.LazyFrame,
 ) -> pl.DataFrame:
     """
     Builds the feature matrix (X) for distance calculation.
@@ -174,10 +172,8 @@ class GeocodeDistanceMatrix:
     @classmethod
     def build(
         cls,
-        geocode_taxa_counts_lf: dy.LazyFrame[
-            geocode_taxa_counts.GeocodeTaxaCountsSchema
-        ],
-        geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+        geocode_taxa_counts_lf: pl.LazyFrame,
+        geocode_lf: pl.LazyFrame,
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
     ) -> "GeocodeDistanceMatrix":

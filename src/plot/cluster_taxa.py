@@ -1,19 +1,12 @@
 import logging
 from typing import Dict, TypeVar, Union, cast
 
-import dataframely as dy
 import polars as pl
 import seaborn as sns
 from scipy.cluster.hierarchy import linkage
 
-from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
-from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesSchema,
-)
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.dataframes.geocode_cluster import GeocodeClusterSchema, cluster_for_geocode
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
+from src.dataframes.cluster_color import get_color_for_cluster
+from src.dataframes.geocode_cluster import cluster_for_geocode
 
 NumericSeries = TypeVar("NumericSeries", bound=pl.Series)
 
@@ -21,16 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def create_cluster_taxa_heatmap(
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-    cluster_colors_df: dy.DataFrame["ClusterColorSchema"],
+    geocode_lf: pl.LazyFrame,
+    geocode_cluster_df: pl.DataFrame,
+    cluster_colors_df: pl.DataFrame,
     geocode_distance_matrix,
-    cluster_significant_differences_df: dy.DataFrame[
-        "ClusterSignificantDifferencesSchema"
-    ],
+    cluster_significant_differences_df: pl.DataFrame,
     taxonomy_df,
-    geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
-    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    geocode_taxa_counts_lf: pl.LazyFrame,
+    cluster_taxa_statistics_df: pl.DataFrame,
     limit_species=None,
 ):
     logger.info("create_cluster_taxa_heatmap: Starting")

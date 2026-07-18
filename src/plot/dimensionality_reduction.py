@@ -1,21 +1,19 @@
 from typing import Literal
 
 import altair as alt
-import dataframely as dy
 import numpy as np
 import polars as pl
 import umap
 from sklearn.manifold import TSNE
 
-from src.dataframes.cluster_color import ClusterColorSchema, to_dict
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
+from src.dataframes.cluster_color import to_dict
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 
 
 def create_dimensionality_reduction_plot(
     geocode_distance_matrix: ClusterDistanceMatrix,
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-    cluster_color_df: dy.DataFrame[ClusterColorSchema],
+    geocode_cluster_df: pl.DataFrame,
+    cluster_color_df: pl.DataFrame,
     method: Literal["umap", "tsne"] = "umap",
     n_neighbors: int = 3000,
 ) -> alt.Chart:
@@ -26,9 +24,9 @@ def create_dimensionality_reduction_plot(
     -----------
     geocode_distance_matrix : ClusterDistanceMatrix
         Distance matrix with squareform method
-    geocode_cluster_df : dy.DataFrame[GeocodeClusterSchema]
+    geocode_cluster_df : pl.DataFrame
         DataFrame containing cluster information
-    cluster_color_df : dy.DataFrame[ClusterColorSchema]
+    cluster_color_df : pl.DataFrame
         DataFrame with color mapping for clusters
     method : str, optional
         Dimensionality reduction method to use ('umap' or 'tsne'), default 'umap'

@@ -1,34 +1,19 @@
 # src/dataframes/permanova_results.py
+import polars as pl
 import logging
 
-import dataframely as dy
 
 import bioregion_rs
-from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 logger = logging.getLogger(__name__)
 
-
-class PermanovaResultsSchema(dy.Schema):
-    """
-    Stores the results of a PERMANOVA test.
-    """
-
-    method_name = dy.String(nullable=False)  # e.g., "PERMANOVA"
-    test_statistic_name = dy.String(nullable=False)  # e.g., "pseudo-F"
-    test_statistic = dy.Float64(nullable=False)  # The calculated statistic value
-    p_value = dy.Float64(nullable=False)  # The p-value of the test
-    permutations = dy.UInt64(nullable=False)  # Number of permutations used
-
-
 def build_permanova_results_df(
     geocode_distance_matrix: GeocodeDistanceMatrix,
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_cluster_df: pl.DataFrame,
+    geocode_lf: pl.LazyFrame,
     permutations: int = 999,  # Default permutations
-) -> dy.DataFrame[PermanovaResultsSchema]:
+) -> pl.DataFrame:
     """
     Runs the PERMANOVA test and stores the results.
 
@@ -60,4 +45,4 @@ def build_permanova_results_df(
         permutations,
     )
 
-    return PermanovaResultsSchema.validate(df)
+    return df

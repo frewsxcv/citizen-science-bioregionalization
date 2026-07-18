@@ -9,7 +9,6 @@ import logging
 from pathlib import Path
 from typing import Union
 
-import dataframely as dy
 import polars as pl
 
 logger = logging.getLogger(__name__)
@@ -18,42 +17,12 @@ from src.darwin_core_utils import build_darwin_core_raw_lf
 from src.geocode import filter_by_bounding_box
 from src.types import Bbox
 
-
-class DarwinCoreSchema(dy.Schema):
-    """Schema for Darwin Core occurrence records.
-
-    This schema defines the core fields needed for bioregionalization analysis
-    from Darwin Core occurrence data. It validates that required geographic
-    and taxonomic fields are present and properly typed.
-    """
-
-    # Geographic fields (required for spatial analysis)
-    decimalLatitude = dy.Float64(nullable=False)
-    decimalLongitude = dy.Float64(nullable=False)
-
-    # Taxonomic metadata
-    scientificName = dy.String(nullable=True)
-    taxonKey = dy.UInt32(nullable=False)
-
-    individualCount = dy.Int32(nullable=True)
-
-    @dy.rule()
-    def valid_latitude(cls) -> pl.Expr:
-        """Validate that latitude is within valid range [-90, 90]."""
-        return pl.col("decimalLatitude").is_between(-90, 90)
-
-    @dy.rule()
-    def valid_longitude(cls) -> pl.Expr:
-        """Validate that longitude is within valid range [-180, 180]."""
-        return pl.col("decimalLongitude").is_between(-180, 180)
-
-
 def build_darwin_core_lf(
     source_path: Union[str, Path],
     bounding_box: Bbox,
     limit: Union[int, None] = None,
     taxon_filter: str = "",
-) -> dy.LazyFrame[DarwinCoreSchema]:
+) -> pl.LazyFrame:
     """Build a validated Darwin Core lazyframe from a source file.
 
     Args:
@@ -87,4 +56,4 @@ def build_darwin_core_lf(
         "individualCount",
     )
 
-    return DarwinCoreSchema.validate(lf, eager=False)
+    return lf

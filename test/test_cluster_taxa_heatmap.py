@@ -7,21 +7,11 @@ regression tests for bugs that have been fixed.
 
 import unittest
 
-import dataframely as dy
 import numpy as np
 import polars as pl
 import polars_st as pl_st
 import shapely
 
-from src.dataframes.cluster_color import ClusterColorSchema
-from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesSchema,
-)
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
-from src.dataframes.taxonomy import TaxonomySchema
 from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
 
@@ -85,7 +75,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl_st.from_shapely(pl.Series(centers)).alias("center"),
             pl_st.from_shapely(pl.Series(boundaries)).alias("boundary"),
         )
-        geocode_lf = GeocodeNoEdgesSchema.validate(geocode_df, eager=False)
+        geocode_lf = geocode_df.lazy()
 
         # Create geocode_taxa_counts with data for only 2 of the 3 geocodes
         # Geocode 3000 intentionally has NO taxa data
@@ -100,13 +90,10 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("taxonId").cast(pl.UInt32),
             pl.col("count").cast(pl.UInt32),
         )
-        geocode_taxa_counts_lf = GeocodeTaxaCountsSchema.validate(
-            geocode_taxa_counts_df, eager=False
-        )
+        geocode_taxa_counts_lf = geocode_taxa_counts_df.lazy()
 
         # Create geocode_cluster_df for all 3 geocodes
-        geocode_cluster_df = GeocodeClusterSchema.validate(
-            pl.DataFrame(
+        geocode_cluster_df = pl.DataFrame(
                 {
                     "geocode": [1000, 2000, 3000],
                     "cluster": [0, 0, 1],
@@ -115,18 +102,15 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 pl.col("geocode").cast(pl.UInt64),
                 pl.col("cluster").cast(pl.UInt32),
             )
-        )
 
         # Create cluster_colors_df
-        cluster_colors_df = ClusterColorSchema.validate(
-            pl.DataFrame(
+        cluster_colors_df = pl.DataFrame(
                 {
                     "cluster": [0, 1],
                     "color": ["#ff0000", "#0000ff"],
                     "darkened_color": ["#800000", "#000080"],
                 }
             ).with_columns(pl.col("cluster").cast(pl.UInt32))
-        )
 
         # Create mock distance matrix for 2 geocodes (those with taxa data)
         geocode_distance_matrix = MockGeocodeDistanceMatrix(n_geocodes=2)
@@ -150,7 +134,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("neighbor_count").cast(pl.UInt32),
         )
         cluster_significant_differences_df = (
-            ClusterSignificantDifferencesSchema.validate(significant_diff_df)
+            significant_diff_df
         )
 
         # Create taxonomy_df
@@ -175,7 +159,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("genus").cast(pl.Categorical),
             pl.col("gbifTaxonId").cast(pl.UInt32),
         )
-        taxonomy_df = TaxonomySchema.validate(taxonomy_df)
+        taxonomy_df = taxonomy_df
 
         # Create cluster_taxa_statistics_df
         cluster_taxa_stats_df = pl.DataFrame(
@@ -192,9 +176,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "average": pl.Float64(),
             },
         )
-        cluster_taxa_statistics_df = ClusterTaxaStatisticsSchema.validate(
-            cluster_taxa_stats_df
-        )
+        cluster_taxa_statistics_df = cluster_taxa_stats_df
 
         # This should NOT raise a ZeroDivisionError
         # Before the fix, this would fail because geocode 3000 has no taxa data
@@ -254,7 +236,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl_st.from_shapely(pl.Series(centers)).alias("center"),
             pl_st.from_shapely(pl.Series(boundaries)).alias("boundary"),
         )
-        geocode_lf = GeocodeNoEdgesSchema.validate(geocode_df, eager=False)
+        geocode_lf = geocode_df.lazy()
 
         # Create geocode_taxa_counts with data for both geocodes
         geocode_taxa_counts_df = pl.DataFrame(
@@ -268,13 +250,10 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("taxonId").cast(pl.UInt32),
             pl.col("count").cast(pl.UInt32),
         )
-        geocode_taxa_counts_lf = GeocodeTaxaCountsSchema.validate(
-            geocode_taxa_counts_df, eager=False
-        )
+        geocode_taxa_counts_lf = geocode_taxa_counts_df.lazy()
 
         # Create geocode_cluster_df
-        geocode_cluster_df = GeocodeClusterSchema.validate(
-            pl.DataFrame(
+        geocode_cluster_df = pl.DataFrame(
                 {
                     "geocode": [1000, 2000],
                     "cluster": [0, 1],
@@ -283,18 +262,15 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 pl.col("geocode").cast(pl.UInt64),
                 pl.col("cluster").cast(pl.UInt32),
             )
-        )
 
         # Create cluster_colors_df
-        cluster_colors_df = ClusterColorSchema.validate(
-            pl.DataFrame(
+        cluster_colors_df = pl.DataFrame(
                 {
                     "cluster": [0, 1],
                     "color": ["#ff0000", "#0000ff"],
                     "darkened_color": ["#800000", "#000080"],
                 }
             ).with_columns(pl.col("cluster").cast(pl.UInt32))
-        )
 
         # Create mock distance matrix
         geocode_distance_matrix = MockGeocodeDistanceMatrix(n_geocodes=2)
@@ -318,7 +294,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("neighbor_count").cast(pl.UInt32),
         )
         cluster_significant_differences_df = (
-            ClusterSignificantDifferencesSchema.validate(significant_diff_df)
+            significant_diff_df
         )
 
         # Create taxonomy_df
@@ -343,7 +319,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("genus").cast(pl.Categorical),
             pl.col("gbifTaxonId").cast(pl.UInt32),
         )
-        taxonomy_df = TaxonomySchema.validate(taxonomy_df)
+        taxonomy_df = taxonomy_df
 
         # Create cluster_taxa_statistics_df
         cluster_taxa_stats_df = pl.DataFrame(
@@ -360,9 +336,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "average": pl.Float64(),
             },
         )
-        cluster_taxa_statistics_df = ClusterTaxaStatisticsSchema.validate(
-            cluster_taxa_stats_df
-        )
+        cluster_taxa_statistics_df = cluster_taxa_stats_df
 
         # This should work without any errors
         result = create_cluster_taxa_heatmap(

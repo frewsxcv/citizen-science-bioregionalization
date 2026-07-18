@@ -1,10 +1,8 @@
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.taxonomy import TaxonomySchema
 
 
-def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
+def mock_taxonomy_lf() -> pl.LazyFrame:
     """
     Creates a mock TaxonomyLazyFrame for testing.
     """
@@ -63,4 +61,4 @@ def mock_taxonomy_lf() -> dy.LazyFrame[TaxonomySchema]:
         pl.col("genus").cast(pl.Categorical),
         pl.col("gbifTaxonId").cast(pl.UInt32),
     )
-    return TaxonomySchema.validate(taxonomy_df).lazy()
+    return taxonomy_df.lazy()

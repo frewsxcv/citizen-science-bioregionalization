@@ -1,24 +1,15 @@
+import polars as pl
 import logging
 
-import dataframely as dy
 
 import bioregion_rs
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 logger = logging.getLogger(__name__)
 
-
-class ClusterNeighborsSchema(dy.Schema):
-    cluster = dy.UInt32(nullable=False)
-    direct_neighbors = dy.List(dy.UInt32(), nullable=False)
-    direct_and_indirect_neighbors = dy.List(dy.UInt32(), nullable=False)
-
-
 def build_cluster_neighbors_df(
-    geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema],
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-) -> dy.DataFrame[ClusterNeighborsSchema]:
+    geocode_neighbors_df: pl.DataFrame,
+    geocode_cluster_df: pl.DataFrame,
+) -> pl.DataFrame:
     """Build cluster neighbor relationships from geocode neighbor data.
 
     Determines which clusters are neighbors based on the geocode neighbor
@@ -39,4 +30,4 @@ def build_cluster_neighbors_df(
         ),
         geocode_cluster_df.select("geocode", "cluster"),
     )
-    return ClusterNeighborsSchema.validate(df)
+    return df

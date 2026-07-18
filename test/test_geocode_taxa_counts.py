@@ -1,18 +1,14 @@
 import unittest
 
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_taxa_counts import (
-    GeocodeTaxaCountsSchema,
-    filter_top_taxa_lf,
-)
+from src.dataframes.geocode_taxa_counts import filter_top_taxa_lf
 
 
 class TestFilterTopTaxaLf(unittest.TestCase):
     """Tests for the filter_top_taxa_lf function."""
 
-    def _create_test_data(self) -> dy.LazyFrame[GeocodeTaxaCountsSchema]:
+    def _create_test_data(self) -> pl.LazyFrame:
         """
         Creates test data with known taxa distributions.
 
@@ -39,7 +35,7 @@ class TestFilterTopTaxaLf(unittest.TestCase):
             pl.col("taxonId").cast(pl.UInt32),
             pl.col("count").cast(pl.UInt32),
         )
-        return GeocodeTaxaCountsSchema.validate(df.lazy(), eager=False)
+        return df.lazy()
 
     def test_no_filtering_when_params_none(self):
         """Test that no filtering occurs when both parameters are None."""

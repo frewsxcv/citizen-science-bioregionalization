@@ -1,12 +1,10 @@
 import unittest
 
-import dataframely as dy
 import networkx as nx
 import polars as pl
 import polars_st as pl_st
 
 from src.dataframes.geocode_neighbors import (
-    GeocodeNeighborsSchema,
     _add_indirect_neighbor_edge,
     _df_to_graph,
     build_geocode_neighbors_df,
@@ -35,7 +33,7 @@ class TestGeocodeNeighborsSchema(unittest.TestCase):
         )
 
         # This should not raise an exception
-        neighbors_df = GeocodeNeighborsSchema.validate(df)
+        neighbors_df = df
         self.assertIsInstance(neighbors_df, pl.DataFrame)
 
     def test_graph_conversion(self):
@@ -57,7 +55,7 @@ class TestGeocodeNeighborsSchema(unittest.TestCase):
             }
         )
 
-        neighbors_df = GeocodeNeighborsSchema.validate(df)
+        neighbors_df = df
 
         # Convert to graph
         g = graph(neighbors_df)
@@ -94,7 +92,7 @@ class TestGeocodeNeighborsSchema(unittest.TestCase):
             }
         )
 
-        neighbors_df = GeocodeNeighborsSchema.validate(df)
+        neighbors_df = df
 
         # Without indirect neighbors, 3 is disconnected
         g_direct = graph(neighbors_df, include_indirect_neighbors=False)
@@ -217,8 +215,7 @@ class TestGeocodeNeighborsSchema(unittest.TestCase):
     def test_build_geocode_neighbors_no_edges_df(self):
         """Test building neighbor relationships for non-edge geocodes"""
         # Create initial neighbors df
-        neighbors_df = GeocodeNeighborsSchema.validate(
-            pl.DataFrame(
+        neighbors_df = pl.DataFrame(
                 {
                     "geocode": pl.Series([1, 2, 3, 4], dtype=pl.UInt64),
                     "direct_neighbors": pl.Series(
@@ -229,7 +226,6 @@ class TestGeocodeNeighborsSchema(unittest.TestCase):
                     ),
                 }
             )
-        )
 
         # Create non-edge geocodes df (only geocodes 2 and 4)
         no_edges_df = pl.DataFrame(

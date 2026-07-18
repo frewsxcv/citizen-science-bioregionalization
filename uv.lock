@@ -219,24 +219,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dataframely"
-version = "2.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "fsspec" },
-    { name = "numpy" },
-    { name = "polars" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/7c/a5bbc7d24de5b0a5361bc2e3ed4178759b57f32fdd97f8e3ab786881c7dd/dataframely-2.4.0.tar.gz", hash = "sha256:9dc6fb2b7d1202ce87245b26597d0c003631bb6f088e1bb82becd072b2e5155b", size = 380824, upload-time = "2025-12-23T11:42:09.401Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/5d/49ff6b71e46e8c3645a39967390d34aa721aa3c2bbcaa3554447a570e4c1/dataframely-2.4.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:19ca4cf51c94dae8f6a4e0c6b6e80cb2d48019958d80c1c9874864e03a32c78b", size = 5155855, upload-time = "2025-12-23T11:42:00.818Z" },
-    { url = "https://files.pythonhosted.org/packages/5c/32/426735de7b5f05787d68611192569dd47d7cf9a54e2447c5eca828b2db0d/dataframely-2.4.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:3eedd4eedb546b6784cca486afedc0d5ebb728b6a371a17f12a687dd14c90dbb", size = 4801243, upload-time = "2025-12-23T11:42:02.885Z" },
-    { url = "https://files.pythonhosted.org/packages/b1/e7/9b798279740a682023ee82d7c0bf08bc3e2882539de396f6baac2fb1d834/dataframely-2.4.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:079cae35f496160b9fd3733347767bffc58c794d4a6d0333152335ddb92e1873", size = 5032201, upload-time = "2025-12-23T11:42:04.449Z" },
-    { url = "https://files.pythonhosted.org/packages/89/41/a1bec597bcca12028fba70c53d000784a83f0e28a0a8c85452c4a549565f/dataframely-2.4.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:260762dccf719aac66d91d8f054c056f53cf4c28408ab43d5dbc84e1a0264f16", size = 5333139, upload-time = "2025-12-23T11:42:06.004Z" },
-    { url = "https://files.pythonhosted.org/packages/8c/4a/458776c85e8ecd88c3b78dc43dbd6d792f29726276ab4910633cb56fd177/dataframely-2.4.0-cp310-abi3-win_amd64.whl", hash = "sha256:5881250b8998d01dd01a38695b0b7094ead2688c6084dc489ca7ac75f1cd0369", size = 5349255, upload-time = "2025-12-23T11:42:08.075Z" },
-]
-
-[[package]]
 name = "decorator"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -294,15 +276,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/73/aa/28e40b8d6809a9b5075350a86779163f074d2b617c15d22343fce81918db/fonttools-4.61.1-cp313-cp313-win32.whl", hash = "sha256:4d7092bb38c53bbc78e9255a59158b150bcdc115a1e3b3ce0b5f267dc35dd63c", size = 2267821, upload-time = "2025-12-12T17:30:38.478Z" },
     { url = "https://files.pythonhosted.org/packages/1a/59/453c06d1d83dc0951b69ef692d6b9f1846680342927df54e9a1ca91c6f90/fonttools-4.61.1-cp313-cp313-win_amd64.whl", hash = "sha256:21e7c8d76f62ab13c9472ccf74515ca5b9a761d1bde3265152a6dc58700d895b", size = 2318169, upload-time = "2025-12-12T17:30:40.951Z" },
     { url = "https://files.pythonhosted.org/packages/c7/4e/ce75a57ff3aebf6fc1f4e9d508b8e5810618a33d900ad6c19eb30b290b97/fonttools-4.61.1-py3-none-any.whl", hash = "sha256:17d2bf5d541add43822bcf0c43d7d847b160c9bb01d15d5007d84e2217aaa371", size = 1148996, upload-time = "2025-12-12T17:31:21.03Z" },
-]
-
-[[package]]
-name = "fsspec"
-version = "2026.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d5/7d/5df2650c57d47c57232af5ef4b4fdbff182070421e405e0d62c6cdbfaa87/fsspec-2026.1.0.tar.gz", hash = "sha256:e987cb0496a0d81bba3a9d1cee62922fb395e7d4c3b575e57f547953334fe07b", size = 310496, upload-time = "2026-01-09T15:21:35.562Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/c9/97cc5aae1648dcb851958a3ddf73ccd7dbe5650d95203ecb4d7720b4cdbf/fsspec-2026.1.0-py3-none-any.whl", hash = "sha256:cb76aa913c2285a3b49bdd5fc55b1d7c708d7208126b60f2eb8194fe1b4cbdcc", size = 201838, upload-time = "2026-01-09T15:21:34.041Z" },
 ]
 
 [[package]]
@@ -372,7 +345,6 @@ dependencies = [
     { name = "altair" },
     { name = "bioregion-rs" },
     { name = "black" },
-    { name = "dataframely" },
     { name = "folium" },
     { name = "geojson" },
     { name = "google-auth" },
@@ -408,7 +380,6 @@ requires-dist = [
     { name = "altair", specifier = ">=6.0.0" },
     { name = "bioregion-rs", editable = "bioregion_rs" },
     { name = "black", specifier = ">=25.1.0" },
-    { name = "dataframely", specifier = ">=1.7.6" },
     { name = "folium", specifier = ">=0.19.5" },
     { name = "geojson", specifier = ">=3.1.0" },
     { name = "google-auth", specifier = ">=2.43.0" },

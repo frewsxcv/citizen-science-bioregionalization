@@ -9,12 +9,9 @@ stops providing significant reduction in within-cluster variance (inertia).
 import logging
 from typing import Tuple
 
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 from src.dataframes.geocode_cluster_metrics import (
-    GeocodeClusterMetricsSchema,
     build_geocode_cluster_metrics_df,
     select_optimal_k_elbow,
 )
@@ -25,9 +22,9 @@ logger = logging.getLogger(__name__)
 
 def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterMultiKSchema],
+    geocode_cluster_df: pl.DataFrame,
     elbow_sensitivity: float = 1.0,
-) -> Tuple[int, dy.DataFrame[GeocodeClusterMetricsSchema]]:
+) -> Tuple[int, pl.DataFrame]:
     """
     Find optimal number of clusters using the elbow method (Kneedle algorithm).
 

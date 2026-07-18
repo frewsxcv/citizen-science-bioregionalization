@@ -3,10 +3,7 @@ from unittest.mock import patch
 
 import polars as pl
 
-from src.dataframes.cluster_taxa_statistics import (
-    ClusterTaxaStatisticsSchema,
-    build_cluster_taxa_statistics_df,
-)
+from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from test.fixtures.geocode_cluster import mock_geocode_cluster_df
 from test.fixtures.geocode_taxa_counts import mock_geocode_taxa_counts_df
 from test.fixtures.taxonomy import mock_taxonomy_lf

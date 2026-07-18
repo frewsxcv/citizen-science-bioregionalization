@@ -1,16 +1,11 @@
 import logging
 from typing import Dict, List
 
-import dataframely as dy
 import polars as pl
 import requests
 
 logger = logging.getLogger(__name__)
 
-from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesSchema,
-)
-from src.dataframes.taxonomy import TaxonomySchema
 
 
 def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
@@ -58,18 +53,10 @@ def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
         print(f"Error fetching from Wikidata: {e}")
         return {}
 
-
-class SignificantTaxaImagesSchema(dy.Schema):
-    taxonId = dy.UInt32(nullable=False)
-    image_url = dy.String(nullable=True)
-
-
 def build_significant_taxa_images_df(
-    cluster_significant_differences_df: dy.DataFrame[
-        ClusterSignificantDifferencesSchema
-    ],
-    taxonomy_df: dy.DataFrame[TaxonomySchema],
-) -> dy.DataFrame[SignificantTaxaImagesSchema]:
+    cluster_significant_differences_df: pl.DataFrame,
+    taxonomy_df: pl.DataFrame,
+) -> pl.DataFrame:
     """Build a SignificantTaxaImagesSchema DataFrame with image URLs from Wikidata.
 
     Fetches image URLs from Wikidata for taxa that have significant differences
@@ -95,11 +82,9 @@ def build_significant_taxa_images_df(
     image_map = _fetch_wikidata_images(gbif_ids)
 
     if not image_map:
-        return SignificantTaxaImagesSchema.validate(
-            significant_taxa_df.with_columns(
+        return significant_taxa_df.with_columns(
                 image_url=pl.lit(None, dtype=pl.String)
             ).select(["taxonId", "image_url"])
-        )
 
     images_df = pl.DataFrame(
         {
@@ -113,4 +98,4 @@ def build_significant_taxa_images_df(
         images_df, on="gbifTaxonId", how="left"
     ).select(["taxonId", "image_url"])
 
-    return SignificantTaxaImagesSchema.validate(result_df)
+    return result_df

@@ -3,15 +3,13 @@ import polars as pl
 from typing import Tuple, List
 from sklearn.preprocessing import RobustScaler
 from scipy.spatial.distance import squareform
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-import dataframely as dy
 
 import bioregion_rs
 from src.logging import log_action
 
 
 def pivot_taxon_counts_for_clusters(
-    cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_taxa_stats: pl.DataFrame,
 ) -> pl.DataFrame:
     """
     Create a matrix where each row is a cluster and each column is a taxon ID.
@@ -42,7 +40,7 @@ def pivot_taxon_counts_for_clusters(
 
 
 def build_X(
-    cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_taxa_stats: pl.DataFrame,
 ) -> Tuple[pl.DataFrame, List[int]]:
     X = log_action(
         "Building cluster matrix",
@@ -85,7 +83,7 @@ class ClusterDistanceMatrix:
     @classmethod
     def build(
         cls,
-        cluster_taxa_stats: dy.DataFrame[ClusterTaxaStatisticsSchema],
+        cluster_taxa_stats: pl.DataFrame,
     ) -> "ClusterDistanceMatrix":
         condensed, cluster_ids = bioregion_rs.build_cluster_distance_matrix(
             cluster_taxa_stats

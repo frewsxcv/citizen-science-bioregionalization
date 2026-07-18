@@ -1,21 +1,15 @@
 import unittest
 
-import dataframely as dy
 import networkx as nx
 import numpy as np
 import polars as pl
 import shapely
 
 from src.dataframes.cluster_color import (
-    ClusterColorSchema,
     build_cluster_color_df,
     to_dict,
 )
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
-from test.fixtures.cluster_taxa_statistics import (
-    mock_cluster_taxa_statistics_df,
-)
+from test.fixtures.cluster_taxa_statistics import mock_cluster_taxa_statistics_df
 
 
 class TestClusterColorSchema(unittest.TestCase):
@@ -35,7 +29,7 @@ class TestClusterColorSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
+        cluster_neighbors = neighbors_df
 
         # Generate colors
         color_df = build_cluster_color_df(cluster_neighbors.lazy())
@@ -71,7 +65,7 @@ class TestClusterColorSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
+        cluster_neighbors = neighbors_df
 
         # Generate colors
         color_df = build_cluster_color_df(cluster_neighbors.lazy())
@@ -112,7 +106,7 @@ class TestClusterColorSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
+        cluster_neighbors = neighbors_df
 
         # Verify that attempting to use UMAP with too few clusters raises an AssertionError
         with self.assertRaises(AssertionError) as context:
@@ -185,7 +179,7 @@ class TestClusterColorSchema(unittest.TestCase):
             .alias("cluster")
         )
 
-        cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(taxa_stats_df)
+        cluster_taxa_stats = taxa_stats_df
 
         # Create dummy neighbor data (not used for taxonomic coloring)
         neighbors_df = pl.DataFrame(
@@ -200,7 +194,7 @@ class TestClusterColorSchema(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32),
             },
         )
-        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
+        cluster_neighbors = neighbors_df
 
         # Generate colors using the UMAP-based approach
         color_df = build_cluster_color_df(

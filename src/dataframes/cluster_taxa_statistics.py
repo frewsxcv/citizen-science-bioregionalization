@@ -1,29 +1,16 @@
+import polars as pl
 import logging
 
-import dataframely as dy
 
 import bioregion_rs
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
-from src.dataframes.taxonomy import TaxonomySchema
 
 logger = logging.getLogger(__name__)
 
-
-class ClusterTaxaStatisticsSchema(dy.Schema):
-    cluster = dy.UInt32(nullable=True)  # `null` if stats for all clusters
-    taxonId = dy.UInt32(nullable=False)
-    count = dy.UInt32(nullable=False)
-    average = dy.Float64(
-        nullable=False
-    )  # average of taxa with `taxonId` within `cluster`
-
-
 def build_cluster_taxa_statistics_df(
-    geocode_taxa_counts_lf: dy.LazyFrame[GeocodeTaxaCountsSchema],
-    geocode_cluster_lf: dy.LazyFrame[GeocodeClusterSchema],
-    taxonomy_lf: dy.LazyFrame[TaxonomySchema],
-) -> dy.DataFrame[ClusterTaxaStatisticsSchema]:
+    geocode_taxa_counts_lf: pl.LazyFrame,
+    geocode_cluster_lf: pl.LazyFrame,
+    taxonomy_lf: pl.LazyFrame,
+) -> pl.DataFrame:
     """Build cluster taxa statistics from geocode taxa counts.
 
     Computes aggregated statistics (count, average) for each taxon within each cluster,
@@ -66,4 +53,4 @@ def build_cluster_taxa_statistics_df(
 
     logger.info(f"build_cluster_taxa_statistics_df: Final output has {df.height} rows")
 
-    return ClusterTaxaStatisticsSchema.validate(df)
+    return df

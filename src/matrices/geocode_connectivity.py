@@ -1,10 +1,9 @@
+import polars as pl
 import logging
 
-import dataframely as dy
 import numpy as np
 
 import bioregion_rs
-from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ class GeocodeConnectivityMatrix:
 
     @classmethod
     def build(
-        cls, geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema]
+        cls, geocode_neighbors_df: pl.DataFrame
     ) -> "GeocodeConnectivityMatrix":
         """Build a connectivity matrix from geocode neighbor relationships.
 

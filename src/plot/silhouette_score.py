@@ -1,19 +1,16 @@
-import dataframely as dy
 import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 
-from src.dataframes.cluster_color import ClusterColorSchema, get_color_for_cluster
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
-from src.dataframes.geocode_silhouette_score import GeocodeSilhouetteScoreSchema
+from src.dataframes.cluster_color import get_color_for_cluster
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 
 def plot_silhouette_scores(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: pl.DataFrame,
     geocode_distance_matrix: GeocodeDistanceMatrix,
-    geocode_silhouette_score_df: dy.DataFrame[GeocodeSilhouetteScoreSchema],
-    cluster_colors_df: dy.DataFrame[ClusterColorSchema],
+    geocode_silhouette_score_df: pl.DataFrame,
+    cluster_colors_df: pl.DataFrame,
 ) -> plt.Figure:  # type: ignore
     """
     Create a silhouette plot for clustering results.

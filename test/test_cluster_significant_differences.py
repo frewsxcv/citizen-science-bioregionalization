@@ -1,14 +1,8 @@
 import unittest
 
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
-from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesSchema,
-    build_cluster_significant_differences_df,
-)
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
+from src.dataframes.cluster_significant_differences import build_cluster_significant_differences_df
 
 
 class TestClusterSignificantDifferences(unittest.TestCase):
@@ -29,7 +23,7 @@ class TestClusterSignificantDifferences(unittest.TestCase):
                 "average": pl.Float64(),
             },
         )
-        cluster_taxa_stats = ClusterTaxaStatisticsSchema.validate(taxa_stats_df)
+        cluster_taxa_stats = taxa_stats_df
 
         # Mock cluster neighbors
         neighbors_df = pl.DataFrame(
@@ -44,7 +38,7 @@ class TestClusterSignificantDifferences(unittest.TestCase):
                 "direct_and_indirect_neighbors": pl.List(pl.UInt32()),
             },
         )
-        cluster_neighbors = ClusterNeighborsSchema.validate(neighbors_df)
+        cluster_neighbors = neighbors_df
 
         # Build significant differences
         significant_differences_df = build_cluster_significant_differences_df(

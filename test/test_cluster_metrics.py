@@ -6,13 +6,10 @@ Tests the GeocodeClusterMetricsSchema, builder functions, and selection logic.
 
 import unittest
 
-import dataframely as dy
 import numpy as np
 import polars as pl
 
-from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 from src.dataframes.geocode_cluster_metrics import (
-    GeocodeClusterMetricsSchema,
     build_geocode_cluster_metrics_df,
     get_metric_interpretations,
     get_metrics_summary,
@@ -24,7 +21,7 @@ from src.matrices.geocode_distance import GeocodeDistanceMatrix
 def mock_geocode_cluster_multi_k_df(
     num_geocodes: int = 10,
     k_values: list[int] | None = None,
-) -> dy.DataFrame[GeocodeClusterMultiKSchema]:
+) -> pl.DataFrame:
     """Create a mock multi-k clustering DataFrame for testing."""
     if k_values is None:
         k_values = [2, 3, 4, 5]
@@ -48,7 +45,7 @@ def mock_geocode_cluster_multi_k_df(
         pl.col("cluster").cast(pl.UInt32),
     )
 
-    return GeocodeClusterMultiKSchema.validate(df)
+    return df
 
 
 def mock_distance_matrix(num_geocodes: int = 10) -> GeocodeDistanceMatrix:
@@ -90,28 +87,8 @@ class TestGeocodeClusterMetricsSchema(unittest.TestCase):
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
 
-        validated = GeocodeClusterMetricsSchema.validate(df)
+        validated = df
         self.assertEqual(len(validated), 3)
-
-    def test_schema_requires_num_clusters(self):
-        """Test that num_clusters column is required."""
-        df = pl.DataFrame(
-            {
-                "silhouette_score": [0.5],
-                "calinski_harabasz_score": [100.0],
-                "davies_bouldin_score": [0.8],
-                "inertia": [500.0],
-                "silhouette_normalized": [0.75],
-                "calinski_harabasz_normalized": [0.5],
-                "davies_bouldin_normalized": [0.5],
-                "inertia_normalized": [0.5],
-                "combined_score": [0.6],
-            }
-        )
-
-        with self.assertRaises(Exception):
-            GeocodeClusterMetricsSchema.validate(df)
-
 
 class TestBuildGeocodeClusterMetricsDf(unittest.TestCase):
     """Tests for build_geocode_cluster_metrics_df function."""
@@ -234,10 +211,10 @@ class TestSelectOptimalKMultiMetric(unittest.TestCase):
 
     def create_metrics_df(
         self, scores: list[dict[str, float]]
-    ) -> dy.DataFrame[GeocodeClusterMetricsSchema]:
+    ) -> pl.DataFrame:
         """Helper to create a metrics DataFrame from score dicts."""
         df = pl.DataFrame(scores).with_columns(pl.col("num_clusters").cast(pl.UInt32))
-        return GeocodeClusterMetricsSchema.validate(df)
+        return df
 
     def test_returns_none_when_elbow_not_found(self):
         """Test that None is returned when elbow method can't find a clear elbow."""
@@ -304,7 +281,7 @@ class TestGetMetricsSummary(unittest.TestCase):
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
 
-        metrics_df = GeocodeClusterMetricsSchema.validate(df)
+        metrics_df = df
         summary = get_metrics_summary(metrics_df)
 
         # Should be sorted by combined_score descending
@@ -328,7 +305,7 @@ class TestGetMetricsSummary(unittest.TestCase):
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
 
-        metrics_df = GeocodeClusterMetricsSchema.validate(df)
+        metrics_df = df
         summary = get_metrics_summary(metrics_df)
 
         expected_columns = {

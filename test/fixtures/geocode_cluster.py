@@ -1,13 +1,8 @@
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_cluster import (
-    GeocodeClusterMultiKSchema,
-    GeocodeClusterSchema,
-)
 
 
-def mock_geocode_cluster_df(num_clusters: int = 2) -> dy.DataFrame[GeocodeClusterSchema]:
+def mock_geocode_cluster_df(num_clusters: int = 2) -> pl.DataFrame:
     """
     Creates a mock GeocodeClusterDataFrame for testing (single k value).
 
@@ -23,12 +18,12 @@ def mock_geocode_cluster_df(num_clusters: int = 2) -> dy.DataFrame[GeocodeCluste
         pl.col("geocode").cast(pl.UInt64),
         pl.col("cluster").cast(pl.UInt32),
     )
-    return GeocodeClusterSchema.validate(df)
+    return df
 
 
 def mock_geocode_cluster_multi_k_df(
     num_clusters: int = 2,
-) -> dy.DataFrame[GeocodeClusterMultiKSchema]:
+) -> pl.DataFrame:
     """
     Creates a mock GeocodeClusterDataFrame for testing (with num_clusters field).
 
@@ -45,4 +40,4 @@ def mock_geocode_cluster_multi_k_df(
         pl.col("num_clusters").cast(pl.UInt32),
         pl.col("cluster").cast(pl.UInt32),
     )
-    return GeocodeClusterMultiKSchema.validate(df)
+    return df

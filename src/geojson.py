@@ -1,15 +1,13 @@
-import dataframely as dy
 
+import polars as pl
 import bioregion_rs
 import geojson
 from src import output
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_color import ClusterColorSchema
 
 
 def build_geojson_feature_collection(
-    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
-    cluster_colors_df: dy.DataFrame[ClusterColorSchema],
+    cluster_boundary_df: pl.DataFrame,
+    cluster_colors_df: pl.DataFrame,
 ) -> geojson.FeatureCollection:
     rust_json = bioregion_rs.build_geojson_feature_collection(
         cluster_boundary_df, cluster_colors_df

@@ -1,10 +1,8 @@
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_neighbors import GeocodeNeighborsSchema
 
 
-def mock_geocode_neighbors_df() -> dy.DataFrame[GeocodeNeighborsSchema]:
+def mock_geocode_neighbors_df() -> pl.DataFrame:
     """
     Creates a mock GeocodeNeighborsSchema DataFrame for testing.
 
@@ -39,4 +37,4 @@ def mock_geocode_neighbors_df() -> dy.DataFrame[GeocodeNeighborsSchema]:
         pl.col("direct_and_indirect_neighbors").cast(pl.List(pl.UInt64)),
     )
 
-    return GeocodeNeighborsSchema.validate(df)
+    return df

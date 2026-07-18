@@ -2,40 +2,19 @@ import hashlib
 import logging
 import os
 import tempfile
-from typing import TypeVar, cast, overload
 
-import dataframely as dy
 import polars as pl
 
 logger = logging.getLogger(__name__)
 
 
-SchemaT = TypeVar("SchemaT", bound=dy.Schema)
-
-
-@overload
 def cache_parquet(
-    data: dy.LazyFrame[SchemaT],
-    cache_key: type[dy.Schema],
+    data: pl.LazyFrame | pl.DataFrame,
+    cache_key: str,
     cache_dir: str | None = None,
-) -> dy.LazyFrame[SchemaT]: ...
-
-
-@overload
-def cache_parquet(
-    data: dy.DataFrame[SchemaT],
-    cache_key: type[dy.Schema],
-    cache_dir: str | None = None,
-) -> dy.LazyFrame[SchemaT]: ...
-
-
-def cache_parquet(
-    data: dy.LazyFrame[SchemaT] | dy.DataFrame[SchemaT],
-    cache_key: type[dy.Schema],
-    cache_dir: str | None = None,
-) -> dy.LazyFrame[SchemaT]:
+) -> pl.LazyFrame:
     # Hash the cache key to create a consistent filename
-    cache_hash = hashlib.sha256(cache_key.__name__.encode()).hexdigest()
+    cache_hash = hashlib.sha256(cache_key.encode()).hexdigest()
 
     # Set up cache directory
     if cache_dir is None:
@@ -48,14 +27,10 @@ def cache_parquet(
     output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
 
     if isinstance(data, pl.LazyFrame):
-        logger.info(
-            f"Writing data from {cache_key.__name__} LazyFrame to {output_path}"
-        )
+        logger.info(f"Writing data from {cache_key} LazyFrame to {output_path}")
         data.sink_parquet(output_path, engine="streaming")
     else:
-        logger.info(
-            f"Writing data from {cache_key.__name__} DataFrame to {output_path}"
-        )
+        logger.info(f"Writing data from {cache_key} DataFrame to {output_path}")
         data.write_parquet(output_path)
 
-    return cast(dy.LazyFrame[SchemaT], pl.scan_parquet(output_path))
+    return pl.scan_parquet(output_path)

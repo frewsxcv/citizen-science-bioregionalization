@@ -10,7 +10,6 @@ cluster optimization results.
 import logging
 from typing import Optional
 
-import dataframely as dy
 import matplotlib.figure
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -19,7 +18,6 @@ import polars as pl
 
 from src.dataframes.geocode_cluster_metrics import (
     ElbowAnalysisResult,
-    GeocodeClusterMetricsSchema,
     get_metric_interpretations,
     get_elbow_analysis,
 )
@@ -28,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def plot_all_metrics_vs_k(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     figsize: tuple[float, float] = (14, 10),
     save_path: Optional[str] = None,
@@ -177,7 +175,7 @@ def _highlight_optimal(
 
 
 def plot_elbow_curve(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     show_distances: bool = True,
     figsize: tuple[float, float] = (12, 8),
@@ -327,7 +325,7 @@ def plot_elbow_curve(
 
 
 def plot_elbow_derivatives(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     figsize: tuple[float, float] = (14, 5),
     save_path: Optional[str] = None,
@@ -412,7 +410,7 @@ def plot_elbow_derivatives(
 
 
 def plot_normalized_metrics(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     include_inertia: bool = False,
     figsize: tuple[float, float] = (12, 6),
@@ -497,7 +495,7 @@ def plot_normalized_metrics(
 
 
 def plot_metric_rankings(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     figsize: tuple[float, float] = (10, 6),
     save_path: Optional[str] = None,
@@ -585,7 +583,7 @@ def plot_metric_rankings(
 
 
 def plot_metrics_summary(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     optimal_k: Optional[int] = None,
     selection_method: str = "combined",
     figsize: tuple[float, float] = (16, 12),
