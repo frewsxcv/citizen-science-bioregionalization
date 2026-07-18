@@ -1,32 +1,18 @@
 import logging
 
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.darwin_core import DarwinCoreSchema
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.geocode import filter_by_bounding_box, with_geocode_lf
 from src.types import Bbox
 
 logger = logging.getLogger(__name__)
 
-
-class TaxonomySchema(dy.Schema):
-    """
-    A dataframe of taxonomy information. Note that this may include taxa for geocodes that were filtered out.
-    """
-
-    taxonId = dy.UInt32(nullable=False)  # Unique identifier for each taxon
-    scientificName = dy.String(nullable=True)
-    gbifTaxonId = dy.UInt32(nullable=False)
-
-
 def build_taxonomy_lf(
-    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    darwin_core_lf: pl.LazyFrame,
     geocode_precision: int,
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_lf: pl.LazyFrame,
     bounding_box: Bbox,
-) -> dy.LazyFrame[TaxonomySchema]:
+) -> pl.LazyFrame:
     """Build a validated TaxonomySchema LazyFrame from Darwin Core data.
 
     Args:
@@ -65,4 +51,4 @@ def build_taxonomy_lf(
         .cast({"taxonId": pl.UInt32})
     )
 
-    return TaxonomySchema.validate(lf, eager=False)
+    return lf

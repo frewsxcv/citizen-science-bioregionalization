@@ -1,10 +1,8 @@
-import dataframely as dy
 import polars as pl
 
-from src.dataframes.geocode_taxa_counts import GeocodeTaxaCountsSchema
 
 
-def mock_geocode_taxa_counts_df() -> dy.DataFrame[GeocodeTaxaCountsSchema]:
+def mock_geocode_taxa_counts_df() -> pl.DataFrame:
     """
     Creates a mock GeocodeTaxaCountsDataFrame for testing.
     """
@@ -21,4 +19,4 @@ def mock_geocode_taxa_counts_df() -> dy.DataFrame[GeocodeTaxaCountsSchema]:
         pl.col("taxonId").cast(pl.UInt32),
         pl.col("count").cast(pl.UInt32),
     )
-    return GeocodeTaxaCountsSchema.validate(geocode_taxa_counts_df)
+    return geocode_taxa_counts_df

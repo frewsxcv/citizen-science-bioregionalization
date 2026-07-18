@@ -1,12 +1,10 @@
-import dataframely as dy
 import polars as pl
 import polars_st as pl_st
 import shapely
 
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 
 
-def mock_geocode_no_edges_df() -> dy.DataFrame[GeocodeNoEdgesSchema]:
+def mock_geocode_no_edges_df() -> pl.DataFrame:
     """
     Creates a mock GeocodeNoEdgesSchema DataFrame for testing.
 
@@ -52,4 +50,4 @@ def mock_geocode_no_edges_df() -> dy.DataFrame[GeocodeNoEdgesSchema]:
         pl_st.from_shapely(pl.Series(boundaries)).alias("boundary"),
     )
 
-    return GeocodeNoEdgesSchema.validate(df)
+    return df

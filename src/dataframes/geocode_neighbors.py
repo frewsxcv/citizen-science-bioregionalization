@@ -1,7 +1,6 @@
 import logging
 from typing import Union
 
-import dataframely as dy
 import networkx as nx
 import polars as pl
 import polars_h3
@@ -16,24 +15,9 @@ logger = logging.getLogger(__name__)
 
 MAX_NUM_NEIGHBORS = 6
 
-
-class GeocodeNeighborsSchema(dy.Schema):
-    """Schema for geocode neighbor relationships.
-
-    This schema tracks both direct neighbors (from H3 grid adjacency)
-    and indirect neighbors (added connections to ensure connectivity).
-    """
-
-    geocode = dy.UInt64(nullable=False)
-    # Direct neighbors from H3 grid adjacency
-    direct_neighbors = dy.List(dy.UInt64(), nullable=False)
-    # Direct and indirect neighbors (includes both H3 adjacency and added connections)
-    direct_and_indirect_neighbors = dy.List(dy.UInt64(), nullable=False)
-
-
 def build_geocode_neighbors_df(
     geocode_df: pl.DataFrame,
-) -> dy.DataFrame[GeocodeNeighborsSchema]:
+) -> pl.DataFrame:
     """Build neighbor relationships for geocodes.
 
     Computes direct neighbors using H3 grid adjacency, then adds indirect
@@ -49,13 +33,13 @@ def build_geocode_neighbors_df(
         f"build_geocode_neighbors_df: Building neighbors for {geocode_df.height} geocodes"
     )
     df = bioregion_rs.build_geocode_neighbors(geocode_df.select("geocode", "center"))
-    return GeocodeNeighborsSchema.validate(df)
+    return df
 
 
 def build_geocode_neighbors_no_edges_df(
-    geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema],
+    geocode_neighbors_df: pl.DataFrame,
     geocode_no_edges_df: pl.DataFrame,
-) -> dy.DataFrame[GeocodeNeighborsSchema]:
+) -> pl.DataFrame:
     """Build neighbor relationships for non-edge geocodes.
 
     Filters the neighbor lists to only include valid (non-edge) geocodes,
@@ -75,11 +59,11 @@ def build_geocode_neighbors_no_edges_df(
 
     logger.info(f"GeocodeNeighborsSchema (no edges) contains {len(df)} geocodes")
 
-    return GeocodeNeighborsSchema.validate(df)
+    return df
 
 
 def graph(
-    geocode_neighbors_df: dy.DataFrame[GeocodeNeighborsSchema],
+    geocode_neighbors_df: pl.DataFrame,
     include_indirect_neighbors: bool = False,
 ) -> nx.Graph:
     """Convert geocode neighbors to a NetworkX graph.

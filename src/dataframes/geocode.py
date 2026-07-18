@@ -1,44 +1,13 @@
-import dataframely as dy
 import polars as pl
 
 import bioregion_rs
-from src.dataframes.darwin_core import DarwinCoreSchema
 from src.types import Bbox
 
-
-class GeocodeSchema(dy.Schema):
-    """Schema for geocode spatial information.
-
-    Contains H3 hexagon identifiers with their center points, boundaries,
-    and edge status relative to the bounding box.
-    """
-
-    geocode = dy.UInt64(nullable=False)
-    center = dy.Any()  # Binary (geometry)
-    boundary = dy.Any()  # Binary (geometry)
-    # Whether this hexagon is on the edge (intersects bounding box boundary)
-    is_edge = dy.Bool(nullable=False)
-
-
-class GeocodeNoEdgesSchema(GeocodeSchema):
-    """Schema that validates there are no edge hexagons in the dataset.
-
-    This schema inherits all columns and validations from GeocodeSchema
-    and adds an additional rule to ensure that no hexagons intersect
-    the bounding box boundary (i.e., all is_edge values must be False).
-    """
-
-    @dy.rule()
-    def no_edges(cls) -> pl.Expr:
-        """Validate that no hexagons are on the edge of the bounding box."""
-        return ~pl.col("is_edge")
-
-
 def build_geocode_lf(
-    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    darwin_core_lf: pl.LazyFrame,
     geocode_precision: int,
     bounding_box: Bbox,
-) -> dy.LazyFrame[GeocodeSchema]:
+) -> pl.LazyFrame:
     """Build a GeocodeSchema LazyFrame from Darwin Core occurrence data.
 
     Args:
@@ -60,14 +29,14 @@ def build_geocode_lf(
         bounding_box.min_lng,
         bounding_box.max_lng,
     )
-    return GeocodeSchema.validate(df.lazy(), eager=False)
+    return df.lazy()
 
 
 def build_geocode_df(
-    darwin_core_lf: dy.LazyFrame[DarwinCoreSchema],
+    darwin_core_lf: pl.LazyFrame,
     geocode_precision: int,
     bounding_box: Bbox,
-) -> dy.DataFrame[GeocodeSchema]:
+) -> pl.DataFrame:
     """Build a GeocodeSchema DataFrame from Darwin Core occurrence data.
 
     This is a convenience wrapper around build_geocode_lf() that collects
@@ -82,12 +51,12 @@ def build_geocode_df(
         A validated DataFrame conforming to GeocodeSchema
     """
     lf = build_geocode_lf(darwin_core_lf, geocode_precision, bounding_box)
-    return GeocodeSchema.validate(lf.collect())
+    return lf.collect()
 
 
 def build_geocode_no_edges_lf(
-    geocode_lf: dy.LazyFrame[GeocodeSchema],
-) -> dy.LazyFrame[GeocodeNoEdgesSchema]:
+    geocode_lf: pl.LazyFrame,
+) -> pl.LazyFrame:
     """Build a GeocodeNoEdgesSchema by filtering out edge hexagons from a GeocodeSchema.
 
     This function is fully lazy - no collection occurs until downstream code
@@ -100,12 +69,12 @@ def build_geocode_no_edges_lf(
         A validated GeocodeNoEdgesSchema lazyframe with edge hexagons removed
     """
     lf = geocode_lf.filter(~pl.col("is_edge")).sort(by="geocode")
-    return GeocodeNoEdgesSchema.validate(lf, eager=False)
+    return lf
 
 
 def index_of_geocode(
     geocode: int,
-    geocode_df: dy.DataFrame[GeocodeSchema] | dy.DataFrame[GeocodeNoEdgesSchema],
+    geocode_df: pl.DataFrame | pl.DataFrame,
 ) -> int:
     """Find the index of a geocode in the dataframe.
 

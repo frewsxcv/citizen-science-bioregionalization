@@ -6,20 +6,13 @@ to ensure consistent output file handling across the project. It also includes
 functionality for writing JSON output files.
 """
 
+import polars as pl
 import logging
 import os
 from typing import Optional
 
-import dataframely as dy
 
 import bioregion_rs
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_color import ClusterColorSchema
-from src.dataframes.cluster_significant_differences import (
-    ClusterSignificantDifferencesSchema,
-)
-from src.dataframes.significant_taxa_images import SignificantTaxaImagesSchema
-from src.dataframes.taxonomy import TaxonomySchema
 
 # Default output directory
 OUTPUT_DIR = "output"
@@ -102,13 +95,11 @@ def prepare_file_path(path: str) -> str:
 
 
 def write_json_output(
-    cluster_significant_differences_df: dy.DataFrame[
-        ClusterSignificantDifferencesSchema
-    ],
-    cluster_boundary_df: dy.DataFrame[ClusterBoundarySchema],
-    taxonomy_df: dy.DataFrame[TaxonomySchema],
-    cluster_color_df: dy.DataFrame[ClusterColorSchema],
-    significant_taxa_images_df: dy.DataFrame[SignificantTaxaImagesSchema],
+    cluster_significant_differences_df: pl.DataFrame,
+    cluster_boundary_df: pl.DataFrame,
+    taxonomy_df: pl.DataFrame,
+    cluster_color_df: pl.DataFrame,
+    significant_taxa_images_df: pl.DataFrame,
     output_path: str,
 ) -> None:
     """

@@ -1,23 +1,15 @@
+import polars as pl
 import logging
 
-import dataframely as dy
 
 import bioregion_rs
-from src.dataframes.geocode import GeocodeNoEdgesSchema
-from src.dataframes.geocode_cluster import GeocodeClusterSchema
 
 logger = logging.getLogger(__name__)
 
-
-class ClusterBoundarySchema(dy.Schema):
-    cluster = dy.UInt32(nullable=False)
-    geometry = dy.Binary()
-
-
 def build_cluster_boundary_df(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
-) -> dy.DataFrame[ClusterBoundarySchema]:
+    geocode_cluster_df: pl.DataFrame,
+    geocode_lf: pl.LazyFrame,
+) -> pl.DataFrame:
     """Build cluster boundaries by combining geocode boundaries.
 
     Creates a single boundary polygon for each cluster by unioning all
@@ -38,4 +30,4 @@ def build_cluster_boundary_df(
 
     logger.info(f"build_cluster_boundary_df: Output has {df.height} cluster boundaries")
 
-    return ClusterBoundarySchema.validate(df)
+    return df

@@ -1,36 +1,20 @@
 import logging
 from typing import Iterator, List, Tuple
 
-import dataframely as dy
 import numpy as np
 import polars as pl
 
 import bioregion_rs
-from src.dataframes.geocode import GeocodeNoEdgesSchema
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from src.types import ClusterId, Geocode
 
 logger = logging.getLogger(__name__)
 
-
-class GeocodeClusterSchema(dy.Schema):
-    """Schema for clustering results for a single k value."""
-
-    geocode = dy.UInt64(nullable=False)
-    cluster = dy.UInt32(nullable=False)
-
-
-class GeocodeClusterMultiKSchema(GeocodeClusterSchema):
-    """Schema for clustering results across multiple k values."""
-
-    num_clusters = dy.UInt32(nullable=False)
-
-
 def build_geocode_cluster_df(
-    multi_k_df: dy.DataFrame[GeocodeClusterMultiKSchema],
+    multi_k_df: pl.DataFrame,
     num_clusters: int,
-) -> dy.DataFrame[GeocodeClusterSchema]:
+) -> pl.DataFrame:
     """Extract clustering results for a single k value from multi-k results.
 
     Args:
@@ -55,16 +39,16 @@ def build_geocode_cluster_df(
         f"{unique_geocodes} unique geocodes, {unique_clusters} unique clusters"
     )
 
-    return GeocodeClusterSchema.validate(df)
+    return df
 
 
 def build_geocode_cluster_multi_k_df(
-    geocode_lf: dy.LazyFrame[GeocodeNoEdgesSchema],
+    geocode_lf: pl.LazyFrame,
     distance_matrix: GeocodeDistanceMatrix,
     connectivity_matrix: GeocodeConnectivityMatrix,
     min_k: int,
     max_k: int,
-) -> dy.DataFrame[GeocodeClusterMultiKSchema]:
+) -> pl.DataFrame:
     """Build clustering results for all k values from min_k to max_k.
 
     Args:
@@ -132,17 +116,17 @@ def build_geocode_cluster_multi_k_df(
         f"{df.select('num_clusters').unique().height} k values)"
     )
 
-    return GeocodeClusterMultiKSchema.validate(df)
+    return df
 
 
 def cluster_ids(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: pl.DataFrame,
 ) -> List[ClusterId]:
     return geocode_cluster_df["cluster"].unique().to_list()
 
 
 def iter_clusters_and_geocodes(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: pl.DataFrame,
 ) -> Iterator[Tuple[ClusterId, List[str]]]:
     for row in (geocode_cluster_df.group_by("cluster").all().sort("cluster")).iter_rows(
         named=True
@@ -151,7 +135,7 @@ def iter_clusters_and_geocodes(
 
 
 def cluster_for_geocode(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema], geocode: Geocode
+    geocode_cluster_df: pl.DataFrame, geocode: Geocode
 ) -> ClusterId:
     return geocode_cluster_df.filter(pl.col("geocode") == geocode)["cluster"].to_list()[
         0
@@ -159,13 +143,13 @@ def cluster_for_geocode(
 
 
 def geocodes_for_cluster(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema], cluster: ClusterId
+    geocode_cluster_df: pl.DataFrame, cluster: ClusterId
 ) -> List[Geocode]:
     return geocode_cluster_df.filter(pl.col("cluster") == cluster)["geocode"].to_list()
 
 
 def num_clusters(
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterSchema],
+    geocode_cluster_df: pl.DataFrame,
 ) -> int:
     num = geocode_cluster_df["cluster"].max()
     assert isinstance(num, int)

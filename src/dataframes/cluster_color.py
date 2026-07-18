@@ -1,7 +1,6 @@
 import logging
 from typing import Dict, List, Literal, Optional
 
-import dataframely as dy
 import matplotlib.colors as mcolors
 import numpy as np
 import polars as pl
@@ -10,27 +9,18 @@ from sklearn.manifold import MDS  # type: ignore
 
 import bioregion_rs
 from src.colors import darken_hex_color
-from src.dataframes.cluster_neighbors import ClusterNeighborsSchema
-from src.dataframes.cluster_taxa_statistics import ClusterTaxaStatisticsSchema
 from src.matrices.cluster_distance import ClusterDistanceMatrix
 from src.types import ClusterId
 
 logger = logging.getLogger(__name__)
 
-
-class ClusterColorSchema(dy.Schema):
-    cluster = dy.UInt32(nullable=False)
-    color = dy.String(nullable=False)
-    darkened_color = dy.String(nullable=False)
-
-
 def build_cluster_color_df(
-    cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
+    cluster_neighbors_lf: pl.LazyFrame,
     cluster_taxa_statistics_df: Optional[
-        dy.DataFrame[ClusterTaxaStatisticsSchema]
+        pl.DataFrame
     ] = None,
     color_method: Literal["geographic", "taxonomic"] = "geographic",
-) -> dy.DataFrame[ClusterColorSchema]:
+) -> pl.DataFrame:
     """
     Build a ClusterColorSchema DataFrame using either geographic neighbor-based coloring
     or taxonomic similarity-based coloring.
@@ -54,17 +44,17 @@ def build_cluster_color_df(
         df = _build_taxonomic(cluster_taxa_statistics_df)
     else:
         raise ValueError(f"Invalid color_method: {color_method}")
-    return ClusterColorSchema.validate(df)
+    return df
 
 
 def get_color_for_cluster(
-    cluster_color_df: dy.DataFrame[ClusterColorSchema], cluster: ClusterId
+    cluster_color_df: pl.DataFrame, cluster: ClusterId
 ) -> str:
     return cluster_color_df.filter(pl.col("cluster") == cluster)["color"].to_list()[0]
 
 
 def to_dict(
-    cluster_color_df: dy.DataFrame[ClusterColorSchema],
+    cluster_color_df: pl.DataFrame,
 ) -> Dict[ClusterId, str]:
     return {
         x: get_color_for_cluster(cluster_color_df, x)
@@ -73,7 +63,7 @@ def to_dict(
 
 
 def _build_geographic(
-    cluster_neighbors_lf: dy.LazyFrame[ClusterNeighborsSchema],
+    cluster_neighbors_lf: pl.LazyFrame,
 ) -> pl.DataFrame:
     """
     Creates a coloring where neighboring clusters have different colors.
@@ -83,7 +73,7 @@ def _build_geographic(
 
 
 def _build_taxonomic(
-    cluster_taxa_statistics_df: dy.DataFrame[ClusterTaxaStatisticsSchema],
+    cluster_taxa_statistics_df: pl.DataFrame,
 ) -> pl.DataFrame:
     """
     Creates a coloring where clusters with similar taxonomic composition

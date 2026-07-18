@@ -3,8 +3,6 @@ import unittest
 import polars as pl
 import shapely
 
-from src.dataframes.cluster_boundary import ClusterBoundarySchema
-from src.dataframes.cluster_color import ClusterColorSchema
 from src.geojson import build_geojson_feature_collection
 
 
@@ -46,18 +44,16 @@ class TestGeojson(unittest.TestCase):
             ]
         ).with_columns(pl.col("cluster").cast(pl.UInt32()))
 
-        cluster_boundary_df = ClusterBoundarySchema.validate(cluster_boundary_df)
+        cluster_boundary_df = cluster_boundary_df
 
         actual = build_geojson_feature_collection(
             cluster_boundary_df=cluster_boundary_df,
-            cluster_colors_df=ClusterColorSchema.validate(
-                pl.DataFrame(
+            cluster_colors_df=pl.DataFrame(
                     [
                         {"cluster": 1, "color": "#ff0000", "darkened_color": "#800000"},
                         {"cluster": 2, "color": "#0000ff", "darkened_color": "#000080"},
                     ]
-                ).with_columns(pl.col("cluster").cast(pl.UInt32()))
-            ),
+                ).with_columns(pl.col("cluster").cast(pl.UInt32())),
         )
         expected = {
             "features": [

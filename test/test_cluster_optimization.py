@@ -5,7 +5,6 @@ import polars as pl
 
 from src.cluster_optimization import optimize_num_clusters
 from src.dataframes.geocode_cluster_metrics import (
-    GeocodeClusterMetricsSchema,
     _compute_inertia,
     _find_elbow_point,
     get_elbow_analysis,
@@ -148,9 +147,7 @@ class TestElbowMethod(unittest.TestCase):
         ).with_columns(
             pl.col("num_clusters").cast(pl.UInt32),
         )
-        self.mock_metrics_df = GeocodeClusterMetricsSchema.validate(
-            self.mock_metrics_data
-        )
+        self.mock_metrics_df = self.mock_metrics_data
 
     def test_find_elbow_point_clear_elbow(self):
         """Test elbow detection with a clear elbow pattern."""
@@ -177,7 +174,7 @@ class TestElbowMethod(unittest.TestCase):
                 "combined_score": [0.27, 0.71],
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
-        few_points_df = GeocodeClusterMetricsSchema.validate(few_points)
+        few_points_df = few_points
 
         elbow_k = _find_elbow_point(few_points_df)
         self.assertIsNone(elbow_k)
@@ -199,7 +196,7 @@ class TestElbowMethod(unittest.TestCase):
                 "combined_score": [0.57] * 5,
             }
         ).with_columns(pl.col("num_clusters").cast(pl.UInt32))
-        linear_df = GeocodeClusterMetricsSchema.validate(linear_data)
+        linear_df = linear_data
 
         # For linear decrease, Kneedle algorithm correctly returns None (no elbow)
         elbow_k = _find_elbow_point(linear_df)

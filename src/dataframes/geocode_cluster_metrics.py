@@ -22,13 +22,11 @@ Using multiple metrics provides more robust k selection than any single metric a
 import logging
 from typing import TypedDict
 
-import dataframely as dy
 import numpy as np
 import polars as pl
 from kneed import KneeLocator  # typed: ignore
 
 import bioregion_rs
-from src.dataframes.geocode_cluster import GeocodeClusterMultiKSchema
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 logger = logging.getLogger(__name__)
@@ -44,34 +42,11 @@ class ElbowAnalysisResult(TypedDict):
     inertia_deltas: list[float]
     inertia_delta2: list[float]
 
-
-class GeocodeClusterMetricsSchema(dy.Schema):
-    """
-    Schema for multi-metric cluster validation results.
-
-    Stores overall cluster quality metrics for each tested k value.
-    All metrics are computed at the clustering level (one row per k).
-    """
-
-    num_clusters = dy.UInt32(nullable=False)
-    silhouette_score = dy.Float64(nullable=False)
-    calinski_harabasz_score = dy.Float64(nullable=False)
-    davies_bouldin_score = dy.Float64(nullable=False)
-    inertia = dy.Float64(nullable=False)
-    # Normalized scores for combining metrics (all scaled to [0, 1])
-    silhouette_normalized = dy.Float64(nullable=False)
-    calinski_harabasz_normalized = dy.Float64(nullable=False)
-    davies_bouldin_normalized = dy.Float64(nullable=False)
-    inertia_normalized = dy.Float64(nullable=False)
-    # Combined score using weighted average of normalized scores
-    combined_score = dy.Float64(nullable=False)
-
-
 def build_geocode_cluster_metrics_df(
     distance_matrix: GeocodeDistanceMatrix,
-    geocode_cluster_df: dy.DataFrame[GeocodeClusterMultiKSchema],
+    geocode_cluster_df: pl.DataFrame,
     weights: dict[str, float] | None = None,
-) -> dy.DataFrame[GeocodeClusterMetricsSchema]:
+) -> pl.DataFrame:
     """
     Build multi-metric cluster validation scores for all clustering results.
 
@@ -123,7 +98,7 @@ def build_geocode_cluster_metrics_df(
         f"{df.sort('combined_score', descending=True)['num_clusters'][0]}"
     )
 
-    return GeocodeClusterMetricsSchema.validate(df)
+    return df
 
 
 def _compute_inertia(dm_square: np.ndarray, labels: np.ndarray) -> float:
@@ -166,7 +141,7 @@ def _compute_inertia(dm_square: np.ndarray, labels: np.ndarray) -> float:
 
 
 def select_optimal_k_elbow(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     sensitivity: float = 1.0,
 ) -> int | None:
     """
@@ -199,7 +174,7 @@ def select_optimal_k_elbow(
 
 # Backwards compatibility alias
 def select_optimal_k_multi_metric(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     min_silhouette_threshold: float | None = 0.25,
     selection_method: str = "elbow",
     elbow_sensitivity: float = 1.0,
@@ -231,7 +206,7 @@ def select_optimal_k_multi_metric(
 
 
 def _find_elbow_point(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     sensitivity: float = 1.0,
 ) -> int | None:
     """
@@ -291,7 +266,7 @@ def _find_elbow_point(
 
 
 def get_elbow_analysis(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
     sensitivity: float = 1.0,
 ) -> ElbowAnalysisResult:
     """
@@ -380,7 +355,7 @@ def get_elbow_analysis(
 
 
 def get_metrics_summary(
-    metrics_df: dy.DataFrame[GeocodeClusterMetricsSchema],
+    metrics_df: pl.DataFrame,
 ) -> pl.DataFrame:
     """
     Format metrics as a summary table for display.

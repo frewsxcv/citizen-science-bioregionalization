@@ -3,10 +3,7 @@ import unittest
 import numpy as np
 import polars as pl
 
-from src.dataframes.geocode_silhouette_score import (
-    GeocodeSilhouetteScoreSchema,
-    build_geocode_silhouette_score_df,
-)
+from src.dataframes.geocode_silhouette_score import build_geocode_silhouette_score_df
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 from test.fixtures.geocode_cluster import mock_geocode_cluster_multi_k_df
 
