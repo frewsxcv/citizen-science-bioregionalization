@@ -180,6 +180,61 @@ def bench_metrics(n, max_k, repeats):
     return bench(rust, repeats), bench(py, repeats)
 
 
+# --------------------------------------------------------------------------
+# Stage 4: cluster boundary (dissolve each cluster's hexagons into one polygon)
+# Rust: bioregion_rs.build_cluster_boundary (geo::unary_union over WKB)
+# Python: the original per-cluster shapely.unary_union + shapely.to_wkb.
+# Real H3 geometry: synthesize points over a bbox, run the actual build_geocode
+# to get valid hexagon boundaries, then assign spatially-contiguous clusters.
+# --------------------------------------------------------------------------
+def _geocode_df_for(precision, bbox, grid=400):
+    min_lat, max_lat, min_lng, max_lng = bbox
+    lats = np.linspace(min_lat + 0.3, max_lat - 0.3, grid)
+    lngs = np.linspace(min_lng + 0.3, max_lng - 0.3, grid)
+    la, lo = np.meshgrid(lats, lngs)
+    pts = pl.DataFrame({"decimalLatitude": la.ravel(), "decimalLongitude": lo.ravel()})
+    return bioregion_rs.build_geocode(pts, precision, min_lat, max_lat, min_lng, max_lng)
+
+
+def bench_boundary(precision, bbox, k, repeats):
+    import shapely
+
+    geocode_df = _geocode_df_for(precision, bbox)
+    n = geocode_df.height
+    boundaries = geocode_df["boundary"].to_list()
+    geo_ids = geocode_df["geocode"].to_list()
+
+    # Assign k spatially-contiguous clusters via a coarse grid over cell centres
+    # (so hexagons within a cluster are adjacent and actually dissolve).
+    centers = [shapely.from_wkb(b) for b in geocode_df["center"].to_list()]
+    xs = np.array([p.x for p in centers])
+    ys = np.array([p.y for p in centers])
+    kx = int(round(np.sqrt(k)))
+    ky = int(np.ceil(k / kx))
+    cx = np.clip(((xs - xs.min()) / (np.ptp(xs) + 1e-9) * kx).astype(int), 0, kx - 1)
+    cy = np.clip(((ys - ys.min()) / (np.ptp(ys) + 1e-9) * ky).astype(int), 0, ky - 1)
+    labels = (cy * kx + cx).astype(np.uint32)
+    cluster_df = pl.DataFrame({"geocode": geo_ids, "cluster": labels.tolist()}).cast(
+        {"geocode": pl.UInt64, "cluster": pl.UInt32}
+    )
+
+    groups = {}
+    for gid, b, lab in zip(geo_ids, boundaries, labels.tolist()):
+        groups.setdefault(lab, []).append(b)
+
+    def rust():
+        bioregion_rs.build_cluster_boundary(cluster_df, geocode_df)
+
+    def py():
+        for polys_wkb in groups.values():
+            polys = [shapely.from_wkb(b) for b in polys_wkb]
+            u = polys[0] if len(polys) == 1 else shapely.unary_union(polys)
+            shapely.to_wkb(u)
+
+    rs, pyt = bench(rust, repeats), bench(py, repeats)
+    return n, len(groups), rs, pyt
+
+
 def fmt(rs, py):
     speedup = py / rs if rs > 0 else float("inf")
     return f"{rs*1000:9.2f} ms   {py*1000:10.2f} ms   {speedup:7.1f}x"
@@ -216,6 +271,18 @@ def main():
     for n, max_k, reps in [(150, 10, 5), (400, 15, 3), (800, 15, 2), (1500, 15, 1)]:
         rs, py = bench_metrics(n, max_k, reps)
         print(f"{n:>10} {max_k:>6}   {fmt(rs, py)}")
+
+    print()
+    print("=" * 74)
+    print("Cluster boundary  (dissolve each cluster's hexagons into one polygon)")
+    print("  Rust: geo::unary_union   |   Python: shapely.unary_union")
+    print("=" * 74)
+    print(f"{'n_hexagons':>10} {'clusters':>8}   {'Rust':>10}   {'Python':>12}   {'speedup':>8}")
+    full = (20.0, 50.0, -120.0, -70.0)
+    medium = (28.0, 45.0, -108.0, -82.0)
+    for precision, bbox, reps in [(2, full, 5), (3, full, 3), (4, medium, 2)]:
+        n, nclusters, rs, py = bench_boundary(precision, bbox, 12, reps)
+        print(f"{n:>10} {nclusters:>8}   {fmt(rs, py)}")
 
 
 if __name__ == "__main__":
