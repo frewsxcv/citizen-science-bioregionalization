@@ -1,11 +1,15 @@
 import unittest
+from pathlib import Path
 
 import polars as pl
 
 from src.darwin_core_utils import (
+    _parse_meta,
     build_taxon_filter,
     get_parquet_to_darwin_core_column_mapping,
 )
+
+SAMPLE_META = Path("test/sample-archive/meta.xml")
 
 
 def rename_parquet_columns_to_darwin_core(lf: pl.LazyFrame) -> pl.LazyFrame:
@@ -138,6 +142,30 @@ class TestDarwinCoreUtils(unittest.TestCase):
         self.assertIn("decimalLatitude", result_df.columns)
         self.assertIn("decimalLongitude", result_df.columns)
         self.assertEqual(len(result_df), 0)
+
+
+class TestParseMeta(unittest.TestCase):
+    """Regression tests for _parse_meta (delegates to the Rust
+    bioregion_rs.parse_darwin_core_meta port)."""
+
+    def test_parse_sample_archive_meta(self):
+        meta = _parse_meta(SAMPLE_META)
+
+        self.assertEqual(meta.core_file, "occurrence.txt")
+        self.assertTrue(meta.has_header)  # ignoreHeaderLines="1"
+        self.assertEqual(meta.separator, "\t")  # fieldsTerminatedBy="\t"
+        self.assertEqual(meta.quote_char, "")  # fieldsEnclosedBy=""
+        self.assertEqual(meta.encoding, "UTF-8")
+        # <field default="WGS84" term=".../geodeticDatum"/>
+        self.assertEqual(meta.default_fields, {"geodeticDatum": "WGS84"})
+
+        # Column 0 is <id index="0"/> which coincides with gbifID at index 0.
+        self.assertEqual(meta.columns[0], "gbifID")
+        # Known indexed terms are reduced to their bare term names.
+        self.assertIn("decimalLatitude", meta.columns)
+        self.assertIn("individualCount", meta.columns)
+        # No empty column names remain (empties become col_{i}).
+        self.assertTrue(all(name for name in meta.columns))
 
 
 if __name__ == "__main__":

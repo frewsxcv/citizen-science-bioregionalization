@@ -206,11 +206,18 @@ verified against Python in `bioregion_rs/harness.py`.
   `is_edge` matches exactly including True cases.
 - `src/types.py`, `src/constants.py`, `src/defaults.py`, `src/logging.py`,
   `src/country_bbox.py` (static bbox data) — TODO, trivial ports (done as needed).
-- `src/darwin_core_utils.py` — TODO: parquet/CSV scan + `meta.xml` parse + column renames.
-  `quick-xml` for meta; polars scan in Rust. **Note:** this is lazy/streaming + IO-bound.
-  The `lazy` feature is currently off in the crate (though it does compile with `temporal`
-  enabled — see the corrected Phase 0 finding), so it stays in Python for now.
-  (Also confirm the Rust polars build enables the cloud/object-store feature for `gs://`.)
+- `src/darwin_core_utils.py` — ✅ PARTIAL: `meta.xml` parsing ported to Rust
+  (`parse_darwin_core_meta`, `quick-xml`); `_parse_meta` now delegates to it and
+  reconstructs the `_Meta` dataclass. Verified against the sample archive
+  (`test/test_darwin_core_utils.py::TestParseMeta`). **The scan itself stays in
+  Python** (`scan_darwin_core_archive` / `build_darwin_core_raw_lf`): it is pure
+  Polars plan construction that must run in the pipeline's own Polars engine.
+  Returning the scan as a `PyLazyFrame` was investigated and rejected — pyo3-polars
+  serializes the logical plan and its `DSL_SCHEMA_HASH` only matches when the Rust
+  crate is built from the *exact same commit* as the installed pip polars wheel
+  (not merely the same version: crates.io `0.54.4` and pip `1.42.0` — both nominal
+  workspace 0.54.4 — have different DSL hashes). That lockstep coupling isn't worth
+  it for zero runtime gain, since the scan runs in the same Polars engine either way.
 - `src/dataframes/darwin_core.py` — TODO: schema + bbox filter + column select.
 - `src/dataframes/taxonomy.py` — Rust port ✅ exists (`build_taxonomy`: distinct
   (scientificName, gbifTaxonId) pairs restricted to known geocodes, each assigned a

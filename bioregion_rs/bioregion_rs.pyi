@@ -19,6 +19,17 @@ def filter_by_bounding_box(
     lat_col: str = "decimalLatitude",
     lng_col: str = "decimalLongitude",
 ) -> pl.DataFrame: ...
+def parse_darwin_core_meta(
+    meta_path: str,
+) -> tuple[
+    str,  # core_file
+    bool,  # has_header
+    str,  # separator
+    list[str],  # columns
+    str,  # quote_char
+    str,  # encoding
+    list[tuple[str, str]],  # default_fields (term, default_value) pairs
+]: ...
 def build_geocode(
     df: pl.DataFrame,
     precision: int,

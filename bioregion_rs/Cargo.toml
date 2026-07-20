@@ -24,20 +24,20 @@ h3o = "0.8"
 # which is subtle to get exactly right (see the module doc comment).
 kneed = "1.0"
 # We enable no polars features here (bare polars-core) because every function
-# uses only the eager DataFrame API. The `lazy` feature DOES compile with the
-# current stable toolchain when `temporal` is enabled alongside it — the
-# historical "lazy doesn't compile" note was a polars feature-unification bug
-# (enabling `strings` without `temporal` leaves `polars-expr`'s string dispatch
-# referencing the unlinked `polars_time` crate). We keep lazy off not because it
-# can't build, but because it buys nothing: the pure-Polars stages already run in
-# the Rust engine, so passing LazyFrames across the boundary would execute
-# identically. Revisit only if a stage needs plan-level interop.
+# uses only the eager DataFrame API. (Passing a LazyFrame scan plan across the
+# boundary via PyLazyFrame is not viable: pyo3-polars serializes the logical
+# plan, and its DSL_SCHEMA_HASH only matches when the Rust crate is built from
+# the exact same commit as the installed pip polars wheel — not merely the same
+# version number. So the Darwin Core scan stays in Python; only `meta.xml`
+# parsing is ported here.)
 polars = { version = "0.54.4", default-features = false }
 # `extension-module` is intentionally NOT set here: it suppresses libpython
 # linking, which breaks `cargo test`'s standalone test binary. maturin adds it at
 # wheel-build time (see [tool.maturin] features below).
 pyo3 = { version = "0.28", features = ["abi3-py313"] }
 pyo3-polars = "0.27"
+# XML parsing for Darwin Core archive meta.xml (port of _parse_meta).
+quick-xml = "0.37"
 # Already resolved transitively (polars depends on rand 0.9.5); pinned here to
 # match, for the PERMANOVA permutation test's Monte Carlo shuffling.
 rand = "0.9"
