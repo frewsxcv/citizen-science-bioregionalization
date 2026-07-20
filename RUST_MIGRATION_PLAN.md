@@ -166,16 +166,25 @@ Implemented in `bioregion_rs/` (see `bioregion_rs/README.md`).
   unit tests (`cargo test --lib`).
 
 **Findings that update the plan:**
-- **The `lazy`/streaming feature set of polars 0.54.4 does not compile on the current
-  nightly toolchain** (feature-unification bugs in `polars-ops` and `polars-stream`).
-  Phase 0 uses the **eager DataFrame API only**. This is fine: the robust interop path is
-  Arrow-FFI DataFrame transfer + the parquet boundary, both proven working. **LazyFrame
-  plan-passing (`PyLazyFrame`) is deferred** — consistent with it being the
-  version-sensitive path. Revisit when a polars/toolchain combo builds `lazy` cleanly, or
-  pin a fixed polars patch.
+- **The `lazy` feature compiles fine** on the current stable toolchain (rustc 1.93.1)
+  when `temporal` is enabled alongside it. The original Phase 0 note ("lazy doesn't
+  compile") was recorded on a nightly toolchain and was really a narrow polars
+  feature-unification bug, **not** a fundamental lazy limitation: enabling `strings`
+  (which the pipeline needs, for `scientificName` etc.) without `temporal` leaves
+  `polars-expr`'s string dispatch (`polars-expr-0.54.4/src/dispatch/strings.rs:13`,
+  `use polars_time::prelude::StringMethods`) referencing the unlinked `polars_time`
+  crate. Enabling `temporal` too resolves it; verified `bioregion_rs` `cargo check`s
+  cleanly with `features = ["lazy", "temporal"]`.
+- **We still use the eager DataFrame API only** — but for a different reason than
+  originally stated. It's not that lazy can't build; it's that lazy interop buys
+  nothing here. The pure-Polars stages (`taxonomy`, `geocode_taxa_counts`, the geocode
+  filters) already run in the Rust engine, so passing `PyLazyFrame` plans across the
+  boundary would execute identically (same memory, same speed). LazyFrame plan-passing
+  is deferred as **unnecessary**, not blocked. The robust interop path is Arrow-FFI
+  DataFrame transfer + the parquet boundary, both proven working.
 - Implication for migration: stages hand off via **parquet** (or eager DataFrames across
-  FFI), not lazy plans, until the lazy path is restored. Functions that are naturally lazy
-  in Python (`build_*_lf`) get a `.collect()` at the Rust boundary for now.
+  FFI), not lazy plans. Functions that are naturally lazy in Python (`build_*_lf`) get a
+  `.collect()` at the Rust boundary.
 
 Still TODO for the schema contract (carry into Phase 1): port each `dy.Schema` to a Rust
 struct describing column names/dtypes/nullability + validation rules so both sides agree
@@ -198,8 +207,9 @@ verified against Python in `bioregion_rs/harness.py`.
 - `src/types.py`, `src/constants.py`, `src/defaults.py`, `src/logging.py`,
   `src/country_bbox.py` (static bbox data) — TODO, trivial ports (done as needed).
 - `src/darwin_core_utils.py` — TODO: parquet/CSV scan + `meta.xml` parse + column renames.
-  `quick-xml` for meta; polars scan in Rust. **Note:** this is lazy/streaming + IO-bound and
-  the `lazy` feature is currently disabled (Phase 0 finding), so it stays in Python for now.
+  `quick-xml` for meta; polars scan in Rust. **Note:** this is lazy/streaming + IO-bound.
+  The `lazy` feature is currently off in the crate (though it does compile with `temporal`
+  enabled — see the corrected Phase 0 finding), so it stays in Python for now.
   (Also confirm the Rust polars build enables the cloud/object-store feature for `gs://`.)
 - `src/dataframes/darwin_core.py` — TODO: schema + bbox filter + column select.
 - `src/dataframes/taxonomy.py` — Rust port ✅ exists (`build_taxonomy`: distinct
