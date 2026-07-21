@@ -5,6 +5,7 @@ pub mod cluster_color;
 pub mod cluster_neighbors;
 pub mod cluster_significant_differences;
 pub mod cluster_taxa_statistics;
+pub mod darwin_core;
 pub mod geocode;
 pub mod geocode_cluster;
 pub mod geocode_cluster_metrics;

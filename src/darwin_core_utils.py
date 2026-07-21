@@ -1,11 +1,12 @@
 """Utility functions for working with Darwin Core data."""
 
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Union
 
 import polars as pl
+
+import bioregion_rs
 
 
 @dataclass
@@ -111,8 +112,10 @@ def cast_taxonomic_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
 def _parse_meta(meta_path: Path) -> _Meta:
     """Parse the meta.xml file and return metadata for reading the archive.
 
-    This method reads the Darwin Core archive's metafile (meta.xml) to extract
-    parameters needed to correctly parse the core data file.
+    Delegates the XML parsing to the Rust port
+    (`bioregion_rs.parse_darwin_core_meta`), which returns a tuple mirroring
+    `_Meta`'s fields, and reconstructs the `_Meta` dataclass. The scan itself
+    stays in Python (`scan_darwin_core_archive`) — only the parsing is ported.
 
     Args:
         meta_path: Path to the meta.xml file
@@ -120,100 +123,24 @@ def _parse_meta(meta_path: Path) -> _Meta:
     Returns:
         A _Meta instance containing the parsed metadata.
     """
-    tree = ET.parse(meta_path)
-    root = tree.getroot()
-
-    # Handle XML namespace if present
-    ns = {"dwc": "http://rs.tdwg.org/dwc/text/"}
-
-    # Try with namespace first, then without
-    core_elem = root.find("dwc:core", ns)
-    if core_elem is None:
-        core_elem = root.find(".//core")
-    if core_elem is None:
-        raise ValueError("meta.xml does not contain <core> element")
-
-    # file location – in <files><location>relative/path</location></files>
-    files_elem = core_elem.find(".//files")
-    if files_elem is None:
-        files_elem = core_elem.find("dwc:files", ns)
-    if files_elem is None:
-        raise ValueError("<core> missing <files>")
-
-    location_elem = files_elem.find(".//location")
-    if location_elem is None:
-        location_elem = files_elem.find("dwc:location", ns)
-    if location_elem is None or not location_elem.text:
-        raise ValueError("<files> missing <location>")
-    core_file = location_elem.text.strip()
-
-    # attributes from the <core> element, with defaults from the guide
-    separator = core_elem.get("fieldsTerminatedBy", ",")
-    if separator == "\\t":
-        separator = "\t"
-
-    quote_char = core_elem.get("fieldsEnclosedBy", '"')
-    encoding = core_elem.get("encoding", "utf-8")
-    ignore_header = int(core_elem.get("ignoreHeaderLines", "0"))
-    has_header = ignore_header >= 1
-
-    # fields and default values
-    fields: list[str] = []
-    default_fields: dict[str, str] = {}
-
-    field_elems = core_elem.findall(".//field")
-    if not field_elems:
-        field_elems = core_elem.findall("dwc:field", ns)
-
-    for field_elem in field_elems:
-        term_uri = field_elem.get("term")
-        if term_uri is None:
-            continue
-
-        term = term_uri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
-        index_str = field_elem.get("index")
-
-        if index_str is not None:
-            try:
-                idx = int(index_str)
-            except ValueError:
-                continue
-            if len(fields) <= idx:
-                fields.extend([""] * (idx - len(fields) + 1))
-            fields[idx] = term
-        else:
-            default_value = field_elem.get("default")
-            if default_value is not None:
-                default_fields[term] = default_value
-
-    # Handle <id index="0" /> element
-    id_elem = core_elem.find(".//id")
-    if id_elem is None:
-        id_elem = core_elem.find("dwc:id", ns)
-
-    if id_elem is not None:
-        idx2 = id_elem.get("index")
-        if idx2 is not None:
-            try:
-                idx = int(idx2)
-                if len(fields) <= idx:
-                    fields.extend([""] * (idx - len(fields) + 1))
-                if not fields[idx]:
-                    fields[idx] = "id"
-            except (ValueError, IndexError):
-                pass
-
-    # fill any empty column names with fallback names
-    final_fields = [name if name else f"col_{i}" for i, name in enumerate(fields)]
+    (
+        core_file,
+        has_header,
+        separator,
+        columns,
+        quote_char,
+        encoding,
+        default_fields,
+    ) = bioregion_rs.parse_darwin_core_meta(str(meta_path))
 
     return _Meta(
         core_file=core_file,
         has_header=has_header,
         separator=separator,
-        columns=final_fields,
+        columns=list(columns),
         quote_char=quote_char,
         encoding=encoding,
-        default_fields=default_fields,
+        default_fields=dict(default_fields),
     )
 
 
