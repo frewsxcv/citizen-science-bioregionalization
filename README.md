@@ -41,7 +41,10 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--max-clusters=N`: Maximum number of clusters to test (default: 20).
 - `--log-file=PATH`: Path to save the log file (default: run.log).
 - `--parquet-source-path=PATH`: Path to the parquet data source.
-- `--taxon-filter=NAME`: Optional filter for specific taxon.
+- `--scope=RANK:TAXON`: Optional taxonomic scope, e.g. `--scope=order:Coleoptera`.
+  Accepts a name resolved against the checked-in GBIF backbone key registry, or a
+  raw backbone key (`--scope=order:1470`). Omit for all taxa. See
+  [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
 - `--limit-results=N`: Limit number of results for testing.
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
@@ -70,6 +73,34 @@ uv run marimo export html notebook.py -o output/index.html -- \
   --parquet-source-path="gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*" \
   --no-stop
 ```
+
+### Taxonomic scoping
+
+Runs can be restricted to a clade with `--scope=RANK:TAXON`, where `RANK` is one
+of `kingdom`, `phylum`, `class`, `order`, `family`, `genus`:
+
+```bash
+uv run marimo run notebook.py -- --scope=class:Aves --no-stop
+uv run marimo run notebook.py -- --scope=order:1470 --no-stop   # raw backbone key
+```
+
+Filtering is done on GBIF's integer backbone keys rather than taxon names: keys
+are stable across backbone releases that rename taxa, and an integer equality
+predicate prunes parquet row groups far better than a string comparison.
+
+Names are resolved offline against `src/data/taxon_keys.json` so that runs and
+tests never need network access. To add a taxon, extend `CURATED` in
+`scripts/fetch_taxon_keys.py` and re-run it:
+
+```bash
+uv run python scripts/fetch_taxon_keys.py
+```
+
+Note that the GBIF backbone does not always match textbook taxonomy — `Squamata`
+and `Testudines` are backbone *classes* rather than orders, and `Reptilia` and
+`Actinopterygii` are absent entirely. The registry follows the backbone, and the
+generator script fails loudly on a rank mismatch rather than recording a wrong
+key.
 
 ### Outputs:
 

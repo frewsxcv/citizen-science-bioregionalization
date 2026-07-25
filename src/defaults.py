@@ -26,7 +26,9 @@ MIN_CLUSTERS = 2
 MAX_CLUSTERS = 20
 
 # Filtering defaults
-TAXON_FILTER = ""
+# Taxonomic scope as "rank:name" or "rank:key" (e.g. "order:Coleoptera").
+# Empty means no taxonomic scoping. See src/taxon_scope.py.
+TAXON_SCOPE = ""
 LIMIT_RESULTS: int | None = 1000
 LIMIT_RESULTS_ENABLED = True
 MAX_TAXA: int | None = 5000

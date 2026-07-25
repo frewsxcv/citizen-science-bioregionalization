@@ -7,6 +7,7 @@ from typing import Any, Union
 import polars as pl
 
 import bioregion_rs
+from src.types import TAXON_RANK_COLUMNS, TaxonScope
 
 
 @dataclass
@@ -35,6 +36,14 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     # Taxonomic metadata
     "scientificname": pl.String(),
     "taxonkey": pl.UInt32(),
+    # Backbone rank keys, used to scope a run to a clade (see src/taxon_scope.py).
+    # Nullable: an occurrence identified only to kingdom has no orderKey.
+    "kingdomkey": pl.UInt32(),
+    "phylumkey": pl.UInt32(),
+    "classkey": pl.UInt32(),
+    "orderkey": pl.UInt32(),
+    "familykey": pl.UInt32(),
+    "genuskey": pl.UInt32(),
     # Observation metadata
     "individualcount": pl.Int32(),
 }
@@ -102,6 +111,40 @@ def cast_taxonomic_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
         actual_col = lower_to_actual.get(col_lower)
         if actual_col is not None:
             cast_exprs.append(pl.col(actual_col).cast(target_type))
+
+    if cast_exprs:
+        lf = lf.with_columns(cast_exprs)
+
+    return lf
+
+
+def cast_rank_key_columns(lf: pl.LazyFrame) -> pl.LazyFrame:
+    """
+    Cast GBIF backbone rank key columns to UInt32.
+
+    The GBIF parquet snapshot stores backbone keys as strings, but scope
+    filtering compares them against integers, so normalize them at load time
+    rather than casting inside the filter expression (which would sit between
+    the scan and the predicate and hurt pushdown).
+
+    Only columns actually present are cast, since snapshots and archives carry
+    different subsets of the rank keys. The cast is non-strict: an unparseable
+    key becomes null and is therefore excluded from every scope, which is
+    preferable to failing an entire multi-billion-row scan over a handful of
+    malformed records.
+
+    Args:
+        lf: Input LazyFrame, possibly containing rank key columns
+
+    Returns:
+        LazyFrame with any present rank key columns cast to UInt32
+    """
+    present = set(lf.collect_schema().names())
+    cast_exprs = [
+        pl.col(col).cast(pl.UInt32, strict=False)
+        for col in TAXON_RANK_COLUMNS.values()
+        if col in present
+    ]
 
     if cast_exprs:
         lf = lf.with_columns(cast_exprs)
@@ -204,29 +247,23 @@ def get_parquet_to_darwin_core_column_mapping() -> dict[str, str]:
     return _LOWER_TO_CAMEL
 
 
-def build_taxon_filter(taxon_name: str) -> pl.Expr:
+def build_taxon_filter(scope: TaxonScope) -> pl.Expr:
     """
-    Build a Polars expression to filter observations by taxon name.
+    Build a Polars expression restricting observations to a taxonomic scope.
 
-    Checks if the taxon name matches any taxonomic rank column:
-    phylum, class, order, family, genus, or species.
+    The expression is a plain integer equality against the scope's rank key
+    column, which keeps it eligible for predicate pushdown into the parquet
+    scan. Records with a null key at that rank (identified only to a coarser
+    rank) are excluded, which is the intended semantics: such a record is not
+    known to belong to the scope.
 
     Args:
-        taxon_name: The taxon name to filter by
+        scope: The taxonomic scope to filter to
 
     Returns:
-        A Polars expression that matches observations where any taxonomic
-        rank column equals the given taxon name
+        A Polars expression matching observations within the scope
     """
-    raise NotImplementedError("Not currently implemented")
-    # return (
-    #     (pl.col("phylum") == taxon_name)
-    #     | (pl.col("class") == taxon_name)
-    #     | (pl.col("order") == taxon_name)
-    #     | (pl.col("family") == taxon_name)
-    #     | (pl.col("genus") == taxon_name)
-    #     | (pl.col("species") == taxon_name)
-    # )
+    return pl.col(scope.column) == scope.key
 
 
 def build_darwin_core_raw_lf(
@@ -267,6 +304,7 @@ def build_darwin_core_raw_lf(
             )
             # Cast taxonKey from String to UInt32 (GBIF parquet stores it as String)
             .with_columns(pl.col("taxonKey").cast(pl.UInt32))
+            .pipe(cast_rank_key_columns)
         )
 
     # Apply categorical casting (handles both lowercase and camelCase columns)
