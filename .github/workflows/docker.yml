@@ -1,0 +1,38 @@
+name: Docker
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: citizen-science-bioregionalization:ci
+          # The builder stage compiles bioregion_rs from source, so without a
+          # cache every push pays the full Rust build.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # Building is not sufficient: the runtime stage copies a virtualenv across
+      # stages, so the compiled extension module can fail to load even from an
+      # image that built cleanly. Exercise the pieces that would break.
+      - name: Smoke test the image
+        run: |
+          docker run --rm citizen-science-bioregionalization:ci python -c "
+          import bioregion_rs
+          from src.taxon_scope import parse_scope
+
+          # Confirms src/data/taxon_keys.json is actually present in the image,
+          # not just on the build host.
+          scope = parse_scope('order:Coleoptera')
+          assert scope is not None and scope.key == 1470, scope
+          print('ok: bioregion_rs loaded, taxon registry resolved', scope)
+          "

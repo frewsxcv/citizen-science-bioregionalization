@@ -42,7 +42,9 @@ htmlcov/
 
 # Documentation
 *.md
-README.md
+# ...except README.md, which [project].readme in pyproject.toml points at, so
+# dependency resolution fails without it.
+!README.md
 LICENSE
 
 # Output and temporary files
@@ -55,8 +57,11 @@ run.log
 node_modules/
 package-lock.json
 
-# Lock files (using requirements.txt instead)
-uv.lock
+# NOTE: uv.lock is deliberately NOT ignored -- the image builds with
+# `uv sync --frozen`, which requires it.
+
+# Rust build artifacts (large, and rebuilt inside the image anyway)
+bioregion_rs/target/
 
 # Test files
 test/
