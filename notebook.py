@@ -67,9 +67,9 @@ def _(cli_args, defaults, mo):
         label="Max clusters to test",
     )
 
-    taxon_filter_ui = mo.ui.text(
-        cli_args.get("taxon-filter", defaults.TAXON_FILTER),
-        label="Taxon filter (optional)",
+    taxon_scope_ui = mo.ui.text(
+        cli_args.get("scope", defaults.TAXON_SCOPE),
+        label="Taxonomic scope (optional), e.g. order:Coleoptera",
     )
     limit_results_enabled_ui = mo.ui.checkbox(
         value="limit-results" in cli_args or defaults.LIMIT_RESULTS_ENABLED,
@@ -132,7 +132,7 @@ def _(cli_args, defaults, mo):
         no_stop,
         parquet_source_path_ui,
         run_button_ui,
-        taxon_filter_ui,
+        taxon_scope_ui,
     )
 
 
@@ -175,8 +175,8 @@ def _(
 
 
 @app.cell(hide_code=True)
-def _(taxon_filter_ui):
-    taxon_filter_ui
+def _(taxon_scope_ui):
+    taxon_scope_ui
     return
 
 
@@ -293,8 +293,9 @@ def _(
     no_stop,
     parquet_source_path_ui,
     run_button_ui,
-    taxon_filter_ui,
+    taxon_scope_ui,
 ):
+    from src.taxon_scope import parse_scope
     from src.types import Bbox
 
     # Resolve final values from UI elements
@@ -307,7 +308,9 @@ def _(
     max_lat = max_lat_ui.value
     min_lon = min_lon_ui.value
     max_lon = max_lon_ui.value
-    taxon_filter = taxon_filter_ui.value
+    # Raises ValueError on an unparseable or unknown scope, which surfaces as a
+    # cell error rather than silently running unscoped.
+    taxon_scope = parse_scope(taxon_scope_ui.value)
     geocode_precision = geocode_precision_ui.value
     min_clusters_to_test = min_clusters_to_test_ui.value
     max_clusters_to_test = max_clusters_to_test_ui.value
@@ -331,7 +334,10 @@ def _(
             {"variable": "max_lat", "value": max_lat},
             {"variable": "min_lon", "value": min_lon},
             {"variable": "max_lon", "value": max_lon},
-            {"variable": "taxon_filter", "value": taxon_filter},
+            {
+                "variable": "taxon_scope",
+                "value": str(taxon_scope) if taxon_scope else "(all taxa)",
+            },
             {"variable": "geocode_precision", "value": geocode_precision},
             {"variable": "min_clusters_to_test", "value": min_clusters_to_test},
             {"variable": "max_clusters_to_test", "value": max_clusters_to_test},
@@ -361,7 +367,7 @@ def _(
         min_clusters_to_test,
         min_geocode_presence,
         parquet_source_path,
-        taxon_filter,
+        taxon_scope,
     )
 
 
@@ -396,14 +402,14 @@ def _(mo):
 
 
 @app.cell
-def _(bounding_box, limit_results, parquet_source_path, taxon_filter):
+def _(bounding_box, limit_results, parquet_source_path, taxon_scope):
     from src.dataframes.darwin_core import build_darwin_core_lf
 
     darwin_core_lf = build_darwin_core_lf(
         source_path=parquet_source_path,
         bounding_box=bounding_box,
         limit=limit_results,
-        taxon_filter=taxon_filter,
+        scope=taxon_scope,
     )
     return (darwin_core_lf,)
 

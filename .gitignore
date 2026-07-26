@@ -9,7 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
-data/
+# Runtime scratch dir created by the Dockerfile. Anchored to the repo root so it
+# does not also swallow checked-in package data such as src/data/.
+/data/
 *.log
 output/
 __marimo__/

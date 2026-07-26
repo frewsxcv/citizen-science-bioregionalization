@@ -5,7 +5,6 @@ import polars as pl
 
 from src.darwin_core_utils import (
     _parse_meta,
-    build_taxon_filter,
     get_parquet_to_darwin_core_column_mapping,
 )
 
