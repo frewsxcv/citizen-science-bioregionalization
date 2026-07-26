@@ -73,12 +73,44 @@ effort-matched null?*
 
 ### Known correctness issues to fix en route
 
-1. **Bray-Curtis on scaled data.** `geocode_distance.py:208` runs
-   `pdist(metric="braycurtis")` on a `RobustScaler`-transformed matrix (line
-   115). RobustScaler centers on the median and emits negatives; Bray-Curtis is
-   defined for non-negative abundances. The distortion is *fit per-facet*, so it
-   corrupts exactly the cross-facet comparability this feature depends on.
-   Blocking for Phase 1.
+1. **~~Bray-Curtis on scaled data.~~** ✅ ADDRESSED. `pdist(metric="braycurtis")`
+   ran on a `RobustScaler`-transformed matrix. RobustScaler centers on the
+   median and emits negatives; Bray-Curtis is defined for non-negative
+   abundances. The distortion is *fit per-facet*, so it corrupted exactly the
+   cross-facet comparability this feature depends on.
+
+   `GeocodeDistanceMatrix.build` now takes a `metric` argument
+   (`src/types.py:CompositionMetric`). `"abundance"` is the unchanged
+   historical path; `"presence"` binarizes to presence/absence and uses
+   Sorensen (scipy's `dice`), which is fit-free — a geocode's vector depends
+   only on which taxa it contains, never on the rest of the dataset. Euclidean
+   is used on the UMAP embedding for the presence path, which is also what Ward
+   linkage assumes.
+
+   Two latent defects surfaced while building this, both fixed:
+   - **UMAP severed maximal-distance edges.** UMAP defaults
+     `disconnection_distance` to 1.0 for bounded metrics including `dice`, and
+     Sorensen distance is *exactly* 1 whenever two geocodes share no taxa —
+     routine in sparse occurrence data. Left at the default, UMAP dropped those
+     edges, fully disconnected the affected geocodes, and emitted NaN
+     coordinates that propagated through `pdist` and Ward into the cluster
+     metrics **without raising**. Observed on the sample archive: 40 of 55
+     pairwise distances NaN, every silhouette score NaN. Now pinned to
+     infinity (a no-op for braycurtis, whose default is already infinite).
+   - **Unstable feature-matrix column order.** `pivot_taxon_counts` took its
+     column list from `.unique()`, which promises no ordering, so columns
+     shuffled between runs. Distances are permutation-invariant so results
+     stayed ~stable, but it made seeded runs irreproducible. Now sorted.
+
+   `random_state` is now plumbed through to UMAP. **Phase 1 step 4 needs
+   this**: without a pinned seed, run-to-run UMAP noise is indistinguishable
+   from the null-model variation being measured.
+
+   Harness: `scripts/compare_composition_metrics.py` builds everything upstream
+   of the distance matrix once, then clusters both metrics over it and reports
+   per-k ARI/AMI plus each metric's silhouette. **Still needs a real run** — it
+   has only been smoke-tested against the 11-hex sample archive, which is far
+   too small and too skewed to validate anything.
 2. **Dense distance matrix.** `pdist`/`squareform` is O(n²). Blocking for global
    extent (Phase 5), not for the Phase 1 continental spike.
 3. **~~`Dockerfile` COPY of a missing file~~ — the image could never build at
@@ -207,11 +239,19 @@ notebook-grade code is fine, throw it away afterward.
 US default bbox or widen to North America). Small enough that the dense distance
 matrix is not yet a problem.
 
-1. Fix the Bray-Curtis/RobustScaler conflict. Recommended: switch cross-facet
-   work to **presence/absence with Sørensen** rather than abundance Bray-Curtis.
-   Substantially less effort-sensitive; discards abundance information, which is
-   an acceptable trade for comparability. Validate against the existing pipeline
-   on a single facet before committing.
+1. ~~Fix the Bray-Curtis/RobustScaler conflict.~~ 🟡 CODE LANDED, VALIDATION
+   PENDING. Cross-facet work now runs **presence/absence with Sørensen** via
+   `metric="presence"`; see "Known correctness issues" above for what changed
+   and for two latent defects found en route. Substantially less
+   effort-sensitive; discards abundance information, which is an acceptable
+   trade for comparability.
+
+   **The validation itself has not been done.**
+   `scripts/compare_composition_metrics.py` is written and smoke-tested, but
+   only against the 11-hex sample archive. Answering "does Sørensen reproduce
+   the existing single-facet result?" needs a real GBIF run at r3 over a
+   continent. Do that before step 2 — if the two metrics disagree badly, every
+   later cross-facet number is reporting the metric switch rather than biology.
 2. Build the **comparison frame**:
    - **Common support** — cluster both facets only on hexes clearing a minimum
      observation threshold *in both*. Comparing over the union measures data

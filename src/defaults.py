@@ -25,6 +25,11 @@ MAX_LON = -66.0
 MIN_CLUSTERS = 2
 MAX_CLUSTERS = 20
 
+# How taxon counts become composition vectors: "abundance" or "presence".
+# See src/types.py CompositionMetric. Cross-facet comparison requires
+# "presence"; single-facet runs default to the historical abundance path.
+COMPOSITION_METRIC = "abundance"
+
 # Filtering defaults
 # Taxonomic scope as "rank:name" or "rank:key" (e.g. "order:Coleoptera").
 # Empty means no taxonomic scoping. See src/taxon_scope.py.

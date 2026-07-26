@@ -6,6 +6,24 @@ Geocode: TypeAlias = str
 
 TaxonRank: TypeAlias = Literal["kingdom", "phylum", "class", "order", "family", "genus"]
 
+#: How a geocode's taxon counts are turned into a composition vector.
+#:
+#: ``"abundance"`` keeps raw counts, rescales them per-taxon with RobustScaler,
+#: and measures dissimilarity with Bray-Curtis. ``"presence"`` reduces every
+#: count to a 0/1 presence bit and measures dissimilarity with Sorensen (the
+#: Dice coefficient on binary vectors).
+#:
+#: Only ``"presence"`` is valid for cross-facet comparison. The abundance path
+#: fits its scaler separately on each facet, so the same underlying composition
+#: maps to different vectors depending on which taxa the facet happens to
+#: contain — and RobustScaler centers on the median, emitting negatives that
+#: Bray-Curtis is not defined for. Both effects are per-facet, so they corrupt
+#: exactly the comparability a cross-facet metric depends on.
+CompositionMetric: TypeAlias = Literal["abundance", "presence"]
+
+#: All valid composition metrics.
+COMPOSITION_METRICS: tuple[CompositionMetric, ...] = get_args(CompositionMetric)
+
 #: Ranks that can be used to scope a run, coarsest first.
 TAXON_RANKS: tuple[TaxonRank, ...] = get_args(TaxonRank)
 

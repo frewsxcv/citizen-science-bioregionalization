@@ -13,10 +13,10 @@ def _():
     import numpy as np
     import polars as pl
 
-    from src import defaults
+    from src import defaults, types
     from src.cache_parquet import cache_parquet
 
-    return cache_parquet, defaults, folium, mo, np, pl
+    return cache_parquet, defaults, folium, mo, np, pl, types
 
 
 @app.cell
@@ -43,7 +43,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(cli_args, defaults, mo):
+def _(cli_args, defaults, mo, types):
     # Define Marimo input UI elements
     # CLI args override defaults when provided (e.g., marimo run notebook.py -- --geocode-precision=5)
 
@@ -70,6 +70,11 @@ def _(cli_args, defaults, mo):
     taxon_scope_ui = mo.ui.text(
         cli_args.get("scope", defaults.TAXON_SCOPE),
         label="Taxonomic scope (optional), e.g. order:Coleoptera",
+    )
+    composition_metric_ui = mo.ui.dropdown(
+        options=list(types.COMPOSITION_METRICS),
+        value=cli_args.get("composition-metric", defaults.COMPOSITION_METRIC),
+        label="Composition metric",
     )
     limit_results_enabled_ui = mo.ui.checkbox(
         value="limit-results" in cli_args or defaults.LIMIT_RESULTS_ENABLED,
@@ -115,6 +120,7 @@ def _(cli_args, defaults, mo):
     no_stop = "no-stop" in cli_args
     run_button_ui = mo.ui.run_button()
     return (
+        composition_metric_ui,
         geocode_precision_ui,
         limit_results_enabled_ui,
         limit_results_value_ui,
@@ -177,6 +183,23 @@ def _(
 @app.cell(hide_code=True)
 def _(taxon_scope_ui):
     taxon_scope_ui
+    return
+
+
+@app.cell(hide_code=True)
+def _(composition_metric_ui, mo):
+    mo.vstack(
+        [
+            composition_metric_ui,
+            mo.md(
+                "`abundance` scales raw counts and compares with Bray-Curtis. "
+                "`presence` reduces counts to presence/absence bits and compares "
+                "with Sorensen — required for comparing runs across taxonomic "
+                "facets, since it is fit-free and far less sensitive to observer "
+                "effort."
+            ),
+        ]
+    )
     return
 
 
@@ -615,12 +638,13 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_lf, mo, np):
+def _(composition_metric_ui, geocode_lf, geocode_taxa_counts_lf, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_lf,
         geocode_lf,
+        metric=composition_metric_ui.value,
     )
 
     mo.vstack(
