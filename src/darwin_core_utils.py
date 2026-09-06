@@ -306,6 +306,11 @@ def build_darwin_core_raw_lf(
                 get_parquet_to_darwin_core_column_mapping(),
                 strict=False,
             )
+            # GBIF has stored taxonKey as an integer and, in current snapshots,
+            # as an alphanumeric string ("3DTGL"). Normalize to String so that
+            # downstream stages -- and the Rust JSON writer, which reads the
+            # column at a fixed dtype -- see one type whatever the snapshot's age.
+            .with_columns(pl.col("taxonKey").cast(pl.String))
             .pipe(cast_rank_key_columns)
         )
 

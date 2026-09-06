@@ -127,10 +127,14 @@ uv run marimo run notebook.py -- \
   --geocode-precision=5 --no-limit --no-stop
 ```
 
-Filter rare taxa with `filter_sparse_taxa.py` rather than the notebook's
-`--max-taxa` / `--min-geocode-presence` flags. Those run after the geocode set has
-been derived, so any hexagon they empty desynchronises the feature matrix from
-`geocode_lf`; filtering the input keeps the two in agreement by construction.
+`filter_sparse_taxa.py` overlaps with the notebook's `--max-taxa` /
+`--min-geocode-presence` flags, which work fine — the notebook re-derives its
+geocode set from the filtered counts, so hexagons left with no taxa simply drop
+out of the run. The script is worth using when you want that filtering done once
+and cached across many runs, or when you want the threshold expressed as "seen in
+at least N hexagons at precision P" rather than as a fraction of the surviving
+hexagons. Either way, note that filtering removes hexagons from the map, and that
+a threshold aggressive enough to empty every hexagon fails the run outright.
 
 ### Outputs:
 

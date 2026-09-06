@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -7,6 +8,8 @@ from src.darwin_core_utils import (
     _parse_meta,
     get_parquet_to_darwin_core_column_mapping,
 )
+from src.dataframes.darwin_core import build_darwin_core_lf
+from src.types import Bbox
 
 SAMPLE_META = Path("test/sample-archive/meta.xml")
 
@@ -169,3 +172,40 @@ class TestParseMeta(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTaxonKeyNormalization(unittest.TestCase):
+    """GBIF has shipped taxonKey as both an integer and an alphanumeric string.
+
+    Ingestion normalizes both to String, because the Rust JSON writer reads
+    gbifTaxonId at a fixed dtype and would reject whichever form it was not
+    compiled for.
+    """
+
+    def _ingest(self, taxon_keys: list) -> pl.DataFrame:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "occurrence.parquet"
+            pl.DataFrame(
+                {
+                    "decimallatitude": [4.0] * len(taxon_keys),
+                    "decimallongitude": [-74.0] * len(taxon_keys),
+                    "scientificname": [f"Genus sp{i}" for i in range(len(taxon_keys))],
+                    "taxonkey": taxon_keys,
+                    "individualcount": [1] * len(taxon_keys),
+                }
+            ).write_parquet(path)
+            return build_darwin_core_lf(
+                str(path), Bbox.from_coordinates(-10.0, 20.0, -90.0, -60.0)
+            ).collect()
+
+    def test_alphanumeric_keys_are_preserved(self):
+        result = self._ingest(["3DTGL", "CRRW6"])
+
+        self.assertEqual(result.schema["taxonKey"], pl.String)
+        self.assertEqual(result["taxonKey"].to_list(), ["3DTGL", "CRRW6"])
+
+    def test_integer_keys_are_converted_rather_than_rejected(self):
+        result = self._ingest([5219404, 2482468])
+
+        self.assertEqual(result.schema["taxonKey"], pl.String)
+        self.assertEqual(result["taxonKey"].to_list(), ["5219404", "2482468"])
