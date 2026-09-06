@@ -46,7 +46,9 @@ uv run marimo run notebook.py -- [OPTIONS]
   raw backbone key (`--scope=order:1470`). Omit for all taxa. See
   [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
-- `--limit-results=N`: Limit number of results for testing.
+- `--limit-results=N`: Limit number of results for testing (defaults to on, at 1000).
+- `--no-limit`: Process every record. Required for a full run — `--limit-results`
+  can only change the cap, not remove it.
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
 - `--no-stop`: Bypass the run button when running from command line.
@@ -101,6 +103,34 @@ and `Testudines` are backbone *classes* rather than orders, and `Reptilia` and
 `Actinopterygii` are absent entirely. The registry follows the backbone, and the
 generator script fails loudly on a rank mismatch rather than recording a wrong
 key.
+
+### Working from a local country cache
+
+Pointing a run straight at a GBIF snapshot means a full pass over ~266 GiB every
+time, because each snapshot file is a single row group whose coordinate statistics
+span the globe — a geographic predicate prunes nothing. When iterating on one
+country, extract it once and run against the local copy instead:
+
+```bash
+# One full pass over the snapshot (~30 minutes), narrowed to a country code.
+# Reads GBIF's AWS mirror, which needs no credentials.
+uv run python scripts/extract_country_parquet.py \
+  --country=CO --snapshot=2026-09-01 --output=data/colombia.parquet
+
+# Optional: drop taxa seen in only a handful of hexagons.
+uv run python scripts/filter_sparse_taxa.py \
+  --input=data/colombia.parquet --output=data/colombia_res5.parquet \
+  --precision=5 --min-taxon-hexes=10
+
+uv run marimo run notebook.py -- \
+  --parquet-source-path=data/colombia_res5.parquet \
+  --geocode-precision=5 --no-limit --no-stop
+```
+
+Filter rare taxa with `filter_sparse_taxa.py` rather than the notebook's
+`--max-taxa` / `--min-geocode-presence` flags. Those run after the geocode set has
+been derived, so any hexagon they empty desynchronises the feature matrix from
+`geocode_lf`; filtering the input keeps the two in agreement by construction.
 
 ### Outputs:
 

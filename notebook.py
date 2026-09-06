@@ -14,9 +14,9 @@ def _():
     import polars as pl
 
     from src import defaults
-    from src.cache_parquet import cache_parquet
+    from src.materialize_parquet import materialize_parquet
 
-    return cache_parquet, defaults, folium, mo, np, pl
+    return materialize_parquet, defaults, folium, mo, np, pl
 
 
 @app.cell
@@ -71,8 +71,12 @@ def _(cli_args, defaults, mo):
         cli_args.get("scope", defaults.TAXON_SCOPE),
         label="Taxonomic scope (optional), e.g. order:Coleoptera",
     )
+    # --no-limit is the only way to ask for a full run from the command line:
+    # --limit-results can change how large the cap is but never switch it off,
+    # since the default has it enabled.
     limit_results_enabled_ui = mo.ui.checkbox(
-        value="limit-results" in cli_args or defaults.LIMIT_RESULTS_ENABLED,
+        value="no-limit" not in cli_args
+        and ("limit-results" in cli_args or defaults.LIMIT_RESULTS_ENABLED),
         label="Enable limit",
     )
     limit_results_value_ui = mo.ui.number(
@@ -415,10 +419,10 @@ def _(bounding_box, limit_results, parquet_source_path, taxon_scope):
 
 
 @app.cell
-def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
+def _(bounding_box, materialize_parquet, darwin_core_lf, geocode_precision):
     from src.dataframes.geocode import build_geocode_lf
 
-    geocode_lf_with_edges = cache_parquet(
+    geocode_lf_with_edges = materialize_parquet(
         build_geocode_lf(
             darwin_core_lf,
             geocode_precision,
@@ -430,10 +434,10 @@ def _(bounding_box, cache_parquet, darwin_core_lf, geocode_precision):
 
 
 @app.cell
-def _(cache_parquet, geocode_lf_with_edges):
+def _(materialize_parquet, geocode_lf_with_edges):
     from src.dataframes.geocode import build_geocode_no_edges_lf
 
-    geocode_unfiltered_lf = cache_parquet(
+    geocode_unfiltered_lf = materialize_parquet(
         build_geocode_no_edges_lf(
             geocode_lf_with_edges,
         ),
@@ -454,11 +458,11 @@ def _(geocode_lf_with_edges):
 
 
 @app.cell
-def _(cache_parquet, geocode_lf, geocode_neighbors_with_edges_df):
+def _(materialize_parquet, geocode_lf, geocode_neighbors_with_edges_df):
     from src.dataframes.geocode_neighbors import build_geocode_neighbors_no_edges_df
 
     # Build neighbors for filtered geocodes only
-    geocode_neighbors_df = cache_parquet(
+    geocode_neighbors_df = materialize_parquet(
         build_geocode_neighbors_no_edges_df(
             geocode_neighbors_with_edges_df,
             geocode_lf.collect(),
@@ -501,14 +505,14 @@ def _(folium, geocode_lf_with_edges, geocode_unfiltered_lf, pl):
 @app.cell
 def _(
     bounding_box,
-    cache_parquet,
+    materialize_parquet,
     darwin_core_lf,
     geocode_precision,
     geocode_unfiltered_lf,
 ):
     from src.dataframes.taxonomy import build_taxonomy_lf
 
-    taxonomy_lf = cache_parquet(
+    taxonomy_lf = materialize_parquet(
         build_taxonomy_lf(
             darwin_core_lf,
             geocode_precision,
@@ -529,7 +533,7 @@ def _(taxonomy_lf):
 @app.cell
 def _(
     bounding_box,
-    cache_parquet,
+    materialize_parquet,
     darwin_core_lf,
     geocode_precision,
     geocode_unfiltered_lf,
@@ -537,7 +541,7 @@ def _(
 ):
     from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
 
-    geocode_taxa_counts_unfiltered_lf = cache_parquet(
+    geocode_taxa_counts_unfiltered_lf = materialize_parquet(
         build_geocode_taxa_counts_lf(
             darwin_core_lf,
             geocode_precision,
@@ -650,7 +654,7 @@ def _(mo):
 
 @app.cell
 def _(
-    cache_parquet,
+    materialize_parquet,
     geocode_connectivity_matrix,
     geocode_distance_matrix,
     geocode_lf,
@@ -659,7 +663,7 @@ def _(
 ):
     from src.dataframes.geocode_cluster import build_geocode_cluster_multi_k_df
 
-    all_clusters_df = cache_parquet(
+    all_clusters_df = materialize_parquet(
         build_geocode_cluster_multi_k_df(
             geocode_lf,
             geocode_distance_matrix,
@@ -697,10 +701,10 @@ def _(
 
 
 @app.cell
-def _(all_cluster_metrics, cache_parquet):
+def _(all_cluster_metrics, materialize_parquet):
     # Cache the results
 
-    all_cluster_metrics_df = cache_parquet(
+    all_cluster_metrics_df = materialize_parquet(
         all_cluster_metrics,
         cache_key="GeocodeClusterMetricsSchema",
     ).collect(engine="streaming")
@@ -708,11 +712,11 @@ def _(all_cluster_metrics, cache_parquet):
 
 
 @app.cell
-def _(all_clusters_df, cache_parquet, optimal_num_clusters):
+def _(all_clusters_df, materialize_parquet, optimal_num_clusters):
     # Create base GeocodeClusterSchema (single k) for downstream use
     from src.dataframes.geocode_cluster import build_geocode_cluster_df
 
-    geocode_cluster_df = cache_parquet(
+    geocode_cluster_df = materialize_parquet(
         build_geocode_cluster_df(
             all_clusters_df,
             optimal_num_clusters,
@@ -791,10 +795,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_df, geocode_neighbors_df):
+def _(materialize_parquet, geocode_cluster_df, geocode_neighbors_df):
     from src.dataframes.cluster_neighbors import build_cluster_neighbors_df
 
-    cluster_neighbors_lf = cache_parquet(
+    cluster_neighbors_lf = materialize_parquet(
         build_cluster_neighbors_df(
             geocode_neighbors_df,
             geocode_cluster_df,
@@ -819,10 +823,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_df, geocode_taxa_counts_lf, taxonomy_lf):
+def _(materialize_parquet, geocode_cluster_df, geocode_taxa_counts_lf, taxonomy_lf):
     from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 
-    cluster_taxa_statistics_df = cache_parquet(
+    cluster_taxa_statistics_df = materialize_parquet(
         build_cluster_taxa_statistics_df(
             geocode_taxa_counts_lf,
             geocode_cluster_df.lazy(),
@@ -848,10 +852,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, cluster_neighbors_lf, cluster_taxa_statistics_df):
+def _(materialize_parquet, cluster_neighbors_lf, cluster_taxa_statistics_df):
     from src.dataframes.cluster_significant_differences import build_cluster_significant_differences_df
 
-    cluster_significant_differences_df = cache_parquet(
+    cluster_significant_differences_df = materialize_parquet(
         build_cluster_significant_differences_df(
             cluster_taxa_statistics_df,
             cluster_neighbors_lf,
@@ -876,10 +880,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_df, geocode_lf):
+def _(materialize_parquet, geocode_cluster_df, geocode_lf):
     from src.dataframes.cluster_boundary import build_cluster_boundary_df
 
-    cluster_boundary_df = cache_parquet(
+    cluster_boundary_df = materialize_parquet(
         build_cluster_boundary_df(
             geocode_cluster_df,
             geocode_lf,
@@ -957,14 +961,14 @@ def _(optimal_num_clusters):
 
 @app.cell
 def _(
-    cache_parquet,
+    materialize_parquet,
     cluster_neighbors_lf,
     cluster_taxa_statistics_df,
     color_method,
 ):
     from src.dataframes.cluster_color import build_cluster_color_df
 
-    cluster_colors_df = cache_parquet(
+    cluster_colors_df = materialize_parquet(
         build_cluster_color_df(
             cluster_neighbors_lf,
             cluster_taxa_statistics_df,
@@ -998,10 +1002,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, geocode_cluster_df, geocode_distance_matrix, geocode_lf):
+def _(materialize_parquet, geocode_cluster_df, geocode_distance_matrix, geocode_lf):
     from src.dataframes.permanova_results import build_permanova_results_df
 
-    permanova_results_df = cache_parquet(
+    permanova_results_df = materialize_parquet(
         build_permanova_results_df(
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_df=geocode_cluster_df,
@@ -1196,10 +1200,10 @@ def _(mo):
 
 
 @app.cell
-def _(cache_parquet, cluster_significant_differences_df, taxonomy_lf):
+def _(materialize_parquet, cluster_significant_differences_df, taxonomy_lf):
     from src.dataframes.significant_taxa_images import build_significant_taxa_images_df
 
-    significant_taxa_images_df = cache_parquet(
+    significant_taxa_images_df = materialize_parquet(
         build_significant_taxa_images_df(
             cluster_significant_differences_df,
             taxonomy_lf.collect(engine="streaming"),
