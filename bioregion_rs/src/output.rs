@@ -55,8 +55,9 @@ pub fn build_json_output(
     let colors_df: DataFrame = cluster_color_df.into();
     let images_df: DataFrame = significant_taxa_images_df.into();
 
-    // taxonId -> (scientificName, gbifTaxonId)
-    let taxonomy: HashMap<u32, (Option<String>, u32)> = {
+    // taxonId -> (scientificName, gbifTaxonId). GBIF taxon keys are alphanumeric
+    // (e.g. "3DTGL"), so this is a string, and it serializes as a JSON string.
+    let taxonomy: HashMap<u32, (Option<String>, Option<String>)> = {
         let taxon_id_ca = taxonomy_df
             .column("taxonId")
             .map_err(to_py)?
@@ -75,15 +76,21 @@ pub fn build_json_output(
             .column("gbifTaxonId")
             .map_err(to_py)?
             .as_materialized_series()
-            .u32()
+            .str()
             .map_err(to_py)?
             .clone();
         taxon_id_ca
             .into_no_null_iter()
             .zip(sci_name_ca.iter())
-            .zip(gbif_ca.into_no_null_iter())
+            .zip(gbif_ca.iter())
             .map(|((taxon_id, sci_name), gbif_id)| {
-                (taxon_id, (sci_name.map(|s| s.to_string()), gbif_id))
+                (
+                    taxon_id,
+                    (
+                        sci_name.map(|s| s.to_string()),
+                        gbif_id.map(|s| s.to_string()),
+                    ),
+                )
             })
             .collect()
     };

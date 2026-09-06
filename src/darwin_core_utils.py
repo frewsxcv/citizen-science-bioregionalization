@@ -35,7 +35,11 @@ _BASE_SCHEMA: dict[str, pl.DataType] = {
     "decimallongitude": pl.Float64(),
     # Taxonomic metadata
     "scientificname": pl.String(),
-    "taxonkey": pl.UInt32(),
+    # GBIF taxon keys are alphanumeric (e.g. "3DTGL"), not numbers. They are
+    # carried through the pipeline only as an identifier and for display; the
+    # key downstream stages join on is the synthetic integer `taxonId` assigned
+    # in dataframes/taxonomy.py.
+    "taxonkey": pl.String(),
     # Backbone rank keys, used to scope a run to a clade (see src/taxon_scope.py).
     # Nullable: an occurrence identified only to kingdom has no orderKey.
     "kingdomkey": pl.UInt32(),
@@ -302,8 +306,6 @@ def build_darwin_core_raw_lf(
                 get_parquet_to_darwin_core_column_mapping(),
                 strict=False,
             )
-            # Cast taxonKey from String to UInt32 (GBIF parquet stores it as String)
-            .with_columns(pl.col("taxonKey").cast(pl.UInt32))
             .pipe(cast_rank_key_columns)
         )
 

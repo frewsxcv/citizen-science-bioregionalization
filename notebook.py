@@ -117,6 +117,9 @@ def _(cli_args, defaults, mo):
     )
     # For boolean flags, presence of the key means True (--no-stop becomes {'no-stop': ''})
     no_stop = "no-stop" in cli_args
+    # Wikidata image lookup is the only network call after data loading; skipping
+    # it keeps a run entirely offline.
+    no_images = "no-images" in cli_args
     run_button_ui = mo.ui.run_button()
     return (
         geocode_precision_ui,
@@ -133,6 +136,7 @@ def _(cli_args, defaults, mo):
         min_geocode_presence_value_ui,
         min_lat_ui,
         min_lon_ui,
+        no_images,
         no_stop,
         parquet_source_path_ui,
         run_button_ui,
@@ -1200,13 +1204,19 @@ def _(mo):
 
 
 @app.cell
-def _(materialize_parquet, cluster_significant_differences_df, taxonomy_lf):
+def _(
+    materialize_parquet,
+    cluster_significant_differences_df,
+    no_images,
+    taxonomy_lf,
+):
     from src.dataframes.significant_taxa_images import build_significant_taxa_images_df
 
     significant_taxa_images_df = materialize_parquet(
         build_significant_taxa_images_df(
             cluster_significant_differences_df,
             taxonomy_lf.collect(engine="streaming"),
+            fetch_images=not no_images,
         ),
         cache_key="SignificantTaxaImagesSchema",
     ).collect(engine="streaming")
