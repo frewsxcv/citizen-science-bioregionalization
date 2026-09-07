@@ -129,6 +129,9 @@ def _(cli_args, defaults, mo):
     # Wikidata image lookup is the only network call after data loading; skipping
     # it keeps a run entirely offline.
     no_images = "no-images" in cli_args
+    # Country-code filtering includes the maritime zone, so coastal clusters can
+    # be driven by fish and seabirds rather than terrestrial biota.
+    terrestrial_only = "terrestrial-only" in cli_args
     run_button_ui = mo.ui.run_button()
     return (
         geocode_precision_ui,
@@ -153,6 +156,7 @@ def _(cli_args, defaults, mo):
         run_button_ui,
         seed_ui,
         taxon_scope_ui,
+        terrestrial_only,
     )
 
 
@@ -317,6 +321,7 @@ def _(
     run_button_ui,
     seed_ui,
     taxon_scope_ui,
+    terrestrial_only,
 ):
     from src.taxon_scope import parse_scope
     from src.types import Bbox
@@ -370,6 +375,7 @@ def _(
             {"variable": "min_geocode_presence", "value": min_geocode_presence},
             {"variable": "random_seed", "value": random_seed},
             {"variable": "min_hex_records", "value": min_hex_records},
+            {"variable": "terrestrial_only", "value": terrestrial_only},
         ],
     )
 
@@ -397,6 +403,7 @@ def _(
         parquet_source_path,
         random_seed,
         taxon_scope,
+        terrestrial_only,
     )
 
 
@@ -438,9 +445,10 @@ def _(
     min_hex_records,
     parquet_source_path,
     taxon_scope,
+    terrestrial_only,
 ):
     from src.dataframes.darwin_core import build_darwin_core_lf
-    from src.geocode import filter_sparse_geocodes_lf
+    from src.geocode import filter_sparse_geocodes_lf, filter_terrestrial_geocodes_lf
 
     darwin_core_lf = build_darwin_core_lf(
         source_path=parquet_source_path,
@@ -451,6 +459,10 @@ def _(
 
     # Applied here, upstream of the geocode set, so that the geocodes and the
     # taxa counts are both derived from the same rows.
+    if terrestrial_only:
+        darwin_core_lf = filter_terrestrial_geocodes_lf(
+            darwin_core_lf, geocode_precision
+        )
     if min_hex_records is not None:
         darwin_core_lf = filter_sparse_geocodes_lf(
             darwin_core_lf, geocode_precision, min_hex_records

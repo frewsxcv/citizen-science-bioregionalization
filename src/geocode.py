@@ -1,7 +1,15 @@
+import functools
+import json
+from pathlib import Path
+
+import numpy as np
 import polars as pl
 import polars_h3
+import shapely
 
 from src.types import Bbox
+
+LAND_GEOJSON_PATH = Path(__file__).parent / "data" / "ne_50m_land.geojson"
 
 
 def with_geocode_lf(lf: pl.LazyFrame, geocode_precision: int) -> pl.LazyFrame:
@@ -94,3 +102,72 @@ def filter_sparse_geocodes_lf(
         .select("_geocode")
     )
     return with_geocode.join(well_sampled, on="_geocode", how="semi").drop("_geocode")
+
+
+@functools.lru_cache(maxsize=1)
+def _land_index() -> "tuple[shapely.STRtree, list]":
+    """Load the coastline once and index it for point lookups.
+
+    Natural Earth 1:50m land polygons, checked in at src/data/ so that runs stay
+    offline. At that scale the coastline is generalised to roughly 50 km, which
+    is coarse relative to an H3 resolution-5 hexagon (~250 km²) -- expect
+    disagreement on individual coastal cells, not on whether a region is
+    offshore.
+    """
+    with open(LAND_GEOJSON_PATH) as f:
+        land = json.load(f)
+    polygons = [shapely.geometry.shape(f["geometry"]) for f in land["features"]]
+    return shapely.STRtree(polygons), polygons
+
+
+def filter_terrestrial_geocodes_lf(
+    lf: pl.LazyFrame,
+    geocode_precision: int,
+) -> pl.LazyFrame:
+    """Drop occurrences whose hexagon centroid falls in the sea.
+
+    Country-code filtering includes a country's maritime zone, so coastal
+    clusters can be driven by fish and seabirds rather than terrestrial biota.
+    The unit of the test is the hexagon centroid rather than the occurrence,
+    because the goal is to drop whole ocean hexagons, not marine records that
+    happen to sit in an otherwise terrestrial cell.
+
+    Args:
+        lf: Occurrence records with decimalLatitude/decimalLongitude.
+        geocode_precision: H3 resolution; must match the run's precision.
+
+    Returns:
+        The input restricted to hexagons centred on land.
+    """
+    geocode_expr = polars_h3.latlng_to_cell(
+        "decimalLatitude",
+        "decimalLongitude",
+        resolution=geocode_precision,
+        return_dtype=pl.UInt64,
+    )
+    with_geocode = lf.with_columns(geocode_expr.alias("_geocode"))
+
+    centroids = (
+        with_geocode.select("_geocode")
+        .unique()
+        .with_columns(
+            lat=polars_h3.cell_to_lat("_geocode"),
+            lng=polars_h3.cell_to_lng("_geocode"),
+        )
+        .collect(engine="streaming")
+    )
+
+    tree, polygons = _land_index()
+    points = shapely.points(centroids["lng"].to_numpy(), centroids["lat"].to_numpy())
+    # `intersects` is symmetric, so it does not depend on which side of the
+    # predicate the tree geometry lands on, and it counts a point exactly on the
+    # coastline as land.
+    hits = tree.query(points, predicate="intersects")
+    on_land = np.zeros(centroids.height, dtype=bool)
+    on_land[hits[0]] = True
+
+    terrestrial = centroids.filter(pl.Series(on_land)).select("_geocode")
+    return (
+        with_geocode.join(terrestrial.lazy(), on="_geocode", how="semi")
+        .drop("_geocode")
+    )

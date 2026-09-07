@@ -51,6 +51,13 @@ uv run marimo run notebook.py -- [OPTIONS]
   can only change the cap, not remove it.
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
+- `--min-hex-records=N`: Drop hexagons holding fewer than N occurrence records.
+  Off by default. A hexagon observed once yields a composition vector of a single
+  taxon, which says more about survey effort than about what lives there.
+- `--terrestrial-only`: Drop hexagons whose centre falls in the sea. Country-code
+  filtering includes the maritime zone, so coastal clusters can otherwise be driven
+  by fish and seabirds. Uses the checked-in Natural Earth 1:50m coastline, which is
+  generalised to ~50 km — small offshore islands are dropped along with the ocean.
 - `--seed=N`: Seed for UMAP and the PERMANOVA permutation test (default: 0).
   Runs are reproducible: the same seed and input produce byte-identical output.
 - `--no-seed`: Opt out of seeding for a faster, multithreaded UMAP, at the cost
