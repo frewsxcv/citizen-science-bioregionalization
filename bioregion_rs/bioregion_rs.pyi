@@ -91,6 +91,7 @@ def build_permanova_results(
     geocode_ids: list[int],
     geocode_cluster_df: pl.DataFrame,
     permutations: int = 999,
+    seed: int | None = None,
 ) -> pl.DataFrame: ...
 def build_geocode_cluster_metrics(
     condensed: list[float],

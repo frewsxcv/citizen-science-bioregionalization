@@ -25,6 +25,12 @@ MAX_LON = -66.0
 MIN_CLUSTERS = 2
 MAX_CLUSTERS = 20
 
+# Seed for UMAP's layout optimization and the PERMANOVA permutation test.
+# Seeded by default: unseeded runs can return a different number of clusters on
+# identical input, which makes results impossible to reproduce or regression-test.
+# Pass --no-seed to opt back into the faster, multithreaded UMAP path.
+RANDOM_SEED: int | None = 0
+
 # Filtering defaults
 # Taxonomic scope as "rank:name" or "rank:key" (e.g. "order:Coleoptera").
 # Empty means no taxonomic scoping. See src/taxon_scope.py.

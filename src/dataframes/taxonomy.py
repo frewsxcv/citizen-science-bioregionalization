@@ -46,6 +46,13 @@ def build_taxonomy_lf(
         .join(geocode_filter_lf, on="geocode", how="semi")
         .drop("geocode")
         .unique()
+        # Sorted before numbering because `unique()` promises no particular order
+        # and the streaming engine varies it between runs. taxonId is a positional
+        # index, so an unsorted input assigns a different id to the same taxon on
+        # every run; those ids become the feature-matrix columns, and UMAP's
+        # approximate nearest-neighbour search splits on feature indices, so the
+        # clustering changes even with a fixed seed.
+        .sort("scientificName", "gbifTaxonId")
         # Add a unique taxonId for each row
         .with_row_index("taxonId")
         .cast({"taxonId": pl.UInt32})

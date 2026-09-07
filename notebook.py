@@ -115,8 +115,13 @@ def _(cli_args, defaults, mo):
     max_lat_ui = mo.ui.number(
         value=cli_args.get("max-lat", defaults.MAX_LAT), label="Latitude"
     )
+    seed_ui = mo.ui.number(
+        value=cli_args.get("seed", defaults.RANDOM_SEED if defaults.RANDOM_SEED is not None else 0),
+        label="Random seed",
+    )
     # For boolean flags, presence of the key means True (--no-stop becomes {'no-stop': ''})
     no_stop = "no-stop" in cli_args
+    no_seed = "no-seed" in cli_args
     # Wikidata image lookup is the only network call after data loading; skipping
     # it keeps a run entirely offline.
     no_images = "no-images" in cli_args
@@ -137,9 +142,11 @@ def _(cli_args, defaults, mo):
         min_lat_ui,
         min_lon_ui,
         no_images,
+        no_seed,
         no_stop,
         parquet_source_path_ui,
         run_button_ui,
+        seed_ui,
         taxon_scope_ui,
     )
 
@@ -298,9 +305,11 @@ def _(
     min_lat_ui,
     min_lon_ui,
     mo,
+    no_seed,
     no_stop,
     parquet_source_path_ui,
     run_button_ui,
+    seed_ui,
     taxon_scope_ui,
 ):
     from src.taxon_scope import parse_scope
@@ -329,6 +338,7 @@ def _(
         else None
     )
     bounding_box = Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon)
+    random_seed = None if no_seed else int(seed_ui.value)
 
     inputs_table = mo.ui.table(
         label="Inputs",
@@ -351,6 +361,7 @@ def _(
             {"variable": "max_clusters_to_test", "value": max_clusters_to_test},
             {"variable": "max_taxa", "value": max_taxa},
             {"variable": "min_geocode_presence", "value": min_geocode_presence},
+            {"variable": "random_seed", "value": random_seed},
         ],
     )
 
@@ -375,6 +386,7 @@ def _(
         min_clusters_to_test,
         min_geocode_presence,
         parquet_source_path,
+        random_seed,
         taxon_scope,
     )
 
@@ -623,12 +635,13 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_lf, mo, np):
+def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_lf,
         geocode_lf,
+        random_state=random_seed,
     )
 
     mo.vstack(
@@ -1006,7 +1019,13 @@ def _(mo):
 
 
 @app.cell
-def _(materialize_parquet, geocode_cluster_df, geocode_distance_matrix, geocode_lf):
+def _(
+    materialize_parquet,
+    geocode_cluster_df,
+    geocode_distance_matrix,
+    geocode_lf,
+    random_seed,
+):
     from src.dataframes.permanova_results import build_permanova_results_df
 
     permanova_results_df = materialize_parquet(
@@ -1014,6 +1033,7 @@ def _(materialize_parquet, geocode_cluster_df, geocode_distance_matrix, geocode_
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_df=geocode_cluster_df,
             geocode_lf=geocode_lf,
+            seed=random_seed,
         ),
         cache_key="PermanovaResultsSchema",
     ).collect(engine="streaming")

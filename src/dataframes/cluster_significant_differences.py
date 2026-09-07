@@ -30,6 +30,12 @@ def build_cluster_significant_differences_df(
         all_stats, cluster_neighbors_df
     )
 
+    # Sorted so the JSON handed to the frontend is byte-reproducible between runs.
+    # The Rust implementation groups rows through a HashMap, whose iteration order
+    # is randomized per process, so without this the same clustering serializes its
+    # taxa in a different order each time.
+    df = df.sort("cluster", "taxonId")
+
     logger.info(
         f"build_cluster_significant_differences_df: Output has {df.height} rows"
     )

@@ -3,14 +3,12 @@
 //! PERMANOVA's pseudo-F statistic is a deterministic function of the distance
 //! matrix and group assignment, and is ported exactly (verified bit-for-bit
 //! against `skbio.stats.distance.permanova` with `permutations=0`). Its
-//! p-value, however, comes from a Monte Carlo permutation test that
-//! `skbio.stats.distance.permanova` runs with an *unseeded* random generator
-//! (`seed=None` in `build_permanova_results_df`) — so the p-value isn't
-//! bit-reproducible even between two separate Python runs, let alone between
-//! Python and Rust. This port uses the same algorithm (shuffle the group
-//! labels, recompute the statistic, `p = (1 + count(F_perm >= F_obs)) /
-//! (1 + permutations)`) with Rust's own RNG, which is the best "equivalence"
-//! achievable for an inherently randomized test.
+//! p-value, however, comes from a Monte Carlo permutation test. This port uses
+//! the same algorithm (shuffle the group labels, recompute the statistic,
+//! `p = (1 + count(F_perm >= F_obs)) / (1 + permutations)`), so its p-value is
+//! never bit-identical to skbio's — the RNGs differ. Passing a `seed` does make
+//! it reproducible across runs of *this* implementation, which is what the
+//! pipeline's `--seed` relies on; without one it is entropy-seeded, as skbio is.
 
 use std::collections::HashMap;
 
@@ -18,8 +16,9 @@ use polars::prelude::*;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3_polars::PyDataFrame;
-use rand::rng;
+use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
+use rand::{rng, SeedableRng};
 
 use crate::to_py;
 
@@ -76,12 +75,13 @@ fn dense_group_indices(cluster_ids: &[u32]) -> (Vec<usize>, usize) {
 /// object, since building that matrix involves UMAP (Phase 3, stays in
 /// Python) — this function only needs the already-computed distances.
 #[pyfunction]
-#[pyo3(signature = (condensed, geocode_ids, geocode_cluster_df, permutations = 999))]
+#[pyo3(signature = (condensed, geocode_ids, geocode_cluster_df, permutations = 999, seed = None))]
 pub fn build_permanova_results(
     condensed: Vec<f64>,
     geocode_ids: Vec<u64>,
     geocode_cluster_df: PyDataFrame,
     permutations: u64,
+    seed: Option<u64>,
 ) -> PyResult<PyDataFrame> {
     let geocode_cluster_df: DataFrame = geocode_cluster_df.into();
     let n = geocode_ids.len();
@@ -143,7 +143,13 @@ pub fn build_permanova_results(
     let test_statistic = permanova_f_stat(&condensed, n, &grouping, &group_sizes, num_groups);
 
     let p_value = if permutations > 0 {
-        let mut rng = rng();
+        // Seeded when the caller supplies one, so that a run's p-value is
+        // reproducible along with its clustering; otherwise entropy-seeded, as
+        // skbio does.
+        let mut rng: Box<dyn rand::RngCore> = match seed {
+            Some(seed) => Box::new(StdRng::seed_from_u64(seed)),
+            None => Box::new(rng()),
+        };
         let mut perm = grouping.clone();
         let mut count = 0u64;
         for _ in 0..permutations {

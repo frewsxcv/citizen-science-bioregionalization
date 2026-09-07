@@ -51,6 +51,12 @@ uv run marimo run notebook.py -- [OPTIONS]
   can only change the cap, not remove it.
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
+- `--seed=N`: Seed for UMAP and the PERMANOVA permutation test (default: 0).
+  Runs are reproducible: the same seed and input produce byte-identical output.
+- `--no-seed`: Opt out of seeding for a faster, multithreaded UMAP, at the cost
+  of results that vary between runs.
+- `--no-images`: Skip the Wikidata image lookup, the pipeline's only network call
+  after data loading.
 - `--no-stop`: Bypass the run button when running from command line.
 
 ### Example:
