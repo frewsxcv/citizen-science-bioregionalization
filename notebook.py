@@ -115,6 +115,10 @@ def _(cli_args, defaults, mo):
     max_lat_ui = mo.ui.number(
         value=cli_args.get("max-lat", defaults.MAX_LAT), label="Latitude"
     )
+    min_hex_records_ui = mo.ui.number(
+        value=cli_args.get("min-hex-records", defaults.MIN_HEX_RECORDS or 0),
+        label="Minimum records per hexagon (0 disables)",
+    )
     seed_ui = mo.ui.number(
         value=cli_args.get("seed", defaults.RANDOM_SEED if defaults.RANDOM_SEED is not None else 0),
         label="Random seed",
@@ -139,6 +143,7 @@ def _(cli_args, defaults, mo):
         min_clusters_to_test_ui,
         min_geocode_presence_enabled_ui,
         min_geocode_presence_value_ui,
+        min_hex_records_ui,
         min_lat_ui,
         min_lon_ui,
         no_images,
@@ -302,6 +307,7 @@ def _(
     min_clusters_to_test_ui,
     min_geocode_presence_enabled_ui,
     min_geocode_presence_value_ui,
+    min_hex_records_ui,
     min_lat_ui,
     min_lon_ui,
     mo,
@@ -339,6 +345,7 @@ def _(
     )
     bounding_box = Bbox.from_coordinates(min_lat, max_lat, min_lon, max_lon)
     random_seed = None if no_seed else int(seed_ui.value)
+    min_hex_records = int(min_hex_records_ui.value) or None
 
     inputs_table = mo.ui.table(
         label="Inputs",
@@ -362,6 +369,7 @@ def _(
             {"variable": "max_taxa", "value": max_taxa},
             {"variable": "min_geocode_presence", "value": min_geocode_presence},
             {"variable": "random_seed", "value": random_seed},
+            {"variable": "min_hex_records", "value": min_hex_records},
         ],
     )
 
@@ -385,6 +393,7 @@ def _(
         max_taxa,
         min_clusters_to_test,
         min_geocode_presence,
+        min_hex_records,
         parquet_source_path,
         random_seed,
         taxon_scope,
@@ -422,8 +431,16 @@ def _(mo):
 
 
 @app.cell
-def _(bounding_box, limit_results, parquet_source_path, taxon_scope):
+def _(
+    bounding_box,
+    geocode_precision,
+    limit_results,
+    min_hex_records,
+    parquet_source_path,
+    taxon_scope,
+):
     from src.dataframes.darwin_core import build_darwin_core_lf
+    from src.geocode import filter_sparse_geocodes_lf
 
     darwin_core_lf = build_darwin_core_lf(
         source_path=parquet_source_path,
@@ -431,6 +448,13 @@ def _(bounding_box, limit_results, parquet_source_path, taxon_scope):
         limit=limit_results,
         scope=taxon_scope,
     )
+
+    # Applied here, upstream of the geocode set, so that the geocodes and the
+    # taxa counts are both derived from the same rows.
+    if min_hex_records is not None:
+        darwin_core_lf = filter_sparse_geocodes_lf(
+            darwin_core_lf, geocode_precision, min_hex_records
+        )
     return (darwin_core_lf,)
 
 

@@ -38,6 +38,23 @@ fn permanova_f_stat(
     group_sizes: &[usize],
     num_groups: usize,
 ) -> f64 {
+    permanova_stats(condensed, n, grouping, group_sizes, num_groups).0
+}
+
+/// pseudo-F together with R², the share of total dispersion explained by the
+/// grouping (`SS_among / SS_total`).
+///
+/// R² is reported because at large n the p-value is close to meaningless: with
+/// thousands of geocodes, almost any partition clears p < 0.001, so a
+/// significant result says the groups differ, not that the partition is good.
+/// R² says how much it actually explains, and costs nothing extra to compute.
+fn permanova_stats(
+    condensed: &[f64],
+    n: usize,
+    grouping: &[usize],
+    group_sizes: &[usize],
+    num_groups: usize,
+) -> (f64, f64) {
     let mut s_t_doubled = 0.0;
     let mut s_w = 0.0;
     for i in 0..n {
@@ -51,7 +68,9 @@ fn permanova_f_stat(
     }
     let s_t = s_t_doubled / n as f64;
     let s_a = s_t - s_w;
-    (s_a / (num_groups - 1) as f64) / (s_w / (n - num_groups) as f64)
+    let f_stat = (s_a / (num_groups - 1) as f64) / (s_w / (n - num_groups) as f64);
+    let r_squared = if s_t > 0.0 { s_a / s_t } else { f64::NAN };
+    (f_stat, r_squared)
 }
 
 /// Relabel arbitrary group ids into dense `0..num_groups` indices, ordered by
@@ -140,7 +159,8 @@ pub fn build_permanova_results(
         group_sizes[g] += 1;
     }
 
-    let test_statistic = permanova_f_stat(&condensed, n, &grouping, &group_sizes, num_groups);
+    let (test_statistic, r_squared) =
+        permanova_stats(&condensed, n, &grouping, &group_sizes, num_groups);
 
     let p_value = if permutations > 0 {
         // Seeded when the caller supplies one, so that a run's p-value is
@@ -175,6 +195,7 @@ pub fn build_permanova_results(
             .into_column(),
             Float64Chunked::from_vec("test_statistic".into(), vec![test_statistic]).into_column(),
             Float64Chunked::from_vec("p_value".into(), vec![p_value]).into_column(),
+            Float64Chunked::from_vec("r_squared".into(), vec![r_squared]).into_column(),
             UInt64Chunked::from_vec("permutations".into(), vec![permutations]).into_column(),
         ],
     )
