@@ -11,7 +11,9 @@ use crate::geocode::{filter_by_bounding_box_df, with_geocode_df};
 use crate::to_py;
 
 /// Map (scientificName, gbifTaxonId) -> taxonId from a TaxonomySchema DataFrame.
-fn taxon_id_lookup(taxonomy_df: &DataFrame) -> PolarsResult<HashMap<(Option<String>, u32), u32>> {
+fn taxon_id_lookup(
+    taxonomy_df: &DataFrame,
+) -> PolarsResult<HashMap<(Option<String>, String), u32>> {
     let scientific_name = taxonomy_df
         .column("scientificName")?
         .as_materialized_series()
@@ -20,7 +22,7 @@ fn taxon_id_lookup(taxonomy_df: &DataFrame) -> PolarsResult<HashMap<(Option<Stri
     let gbif_taxon_id = taxonomy_df
         .column("gbifTaxonId")?
         .as_materialized_series()
-        .u32()?
+        .str()?
         .clone();
     let taxon_id = taxonomy_df
         .column("taxonId")?
@@ -35,7 +37,7 @@ fn taxon_id_lookup(taxonomy_df: &DataFrame) -> PolarsResult<HashMap<(Option<Stri
         .filter_map(|((name, gbif_id), tid)| {
             let gbif_id = gbif_id?;
             let tid = tid?;
-            Some(((name.map(str::to_string), gbif_id), tid))
+            Some(((name.map(str::to_string), gbif_id.to_string()), tid))
         })
         .collect())
 }
@@ -119,7 +121,7 @@ pub fn build_geocode_taxa_counts(
         .column("gbifTaxonId")
         .map_err(to_py)?
         .as_materialized_series()
-        .u32()
+        .str()
         .map_err(to_py)?
         .clone();
     let count_ca = df
@@ -144,7 +146,7 @@ pub fn build_geocode_taxa_counts(
         let (Some(geocode), Some(gbif_id)) = (geocode, gbif_id) else {
             continue;
         };
-        let key = (name.map(str::to_string), gbif_id);
+        let key = (name.map(str::to_string), gbif_id.to_string());
         if let Some(&taxon_id) = lookup.get(&key) {
             geocodes.push(geocode);
             taxon_ids.push(taxon_id);
