@@ -7,6 +7,18 @@ from sklearn.preprocessing import RobustScaler
 from src.dataframes import geocode_taxa_counts
 from src.logging import log_action, logger
 
+# Target dimensionality for the UMAP reduction.
+#
+# This used to default to `n_geocodes - 2`, which reduced almost nothing -- at
+# country scale that is thousands of components -- leaving UMAP's only real
+# effect the conversion of Bray-Curtis distances into Euclidean ones. It also
+# silently defeated seeding: at that size the embedding goes through an
+# iterative eigendecomposition that is not reproducible between processes, so
+# two seeded runs on byte-identical input returned different clusterings.
+# Verified at 2, 8 and 32 components a seeded run reproduces across processes;
+# at `height - 2` it does not.
+DEFAULT_UMAP_N_COMPONENTS = 32
+
 
 def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
     """
@@ -41,9 +53,18 @@ def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
     └─────────┴───────┴───────┴───────┴───┴───────┘
     ```
     """
-    # Get unique taxon IDs for the on_columns parameter (required for LazyFrame.pivot)
+    # Get unique taxon IDs for the on_columns parameter (required for LazyFrame.pivot).
+    # Sorted because `unique()` does not promise an order and the streaming engine
+    # varies it between runs. That order becomes the feature-matrix column order,
+    # and UMAP's approximate nearest-neighbour search splits on feature *indices*,
+    # so an unsorted pivot makes the embedding differ run to run even with a fixed
+    # seed -- which is how it defeated seeding entirely.
     unique_taxon_ids = (
-        taxon_counts.select("taxonId").unique().collect(engine="streaming").to_series()
+        taxon_counts.select("taxonId")
+        .unique()
+        .sort("taxonId")
+        .collect(engine="streaming")
+        .to_series()
     )
 
     return taxon_counts.pivot(
@@ -119,7 +140,10 @@ def scale_values(feature_matrix: pl.DataFrame) -> pl.DataFrame:
 
 
 def reduce_dimensions_umap(
-    X: pl.DataFrame, n_components: int, min_dist: float
+    X: pl.DataFrame,
+    n_components: int,
+    min_dist: float,
+    random_state: int | None = None,
 ) -> pl.DataFrame:
     """
     Reduces the dimensionality of the feature matrix using UMAP.
@@ -128,6 +152,11 @@ def reduce_dimensions_umap(
         X: The input feature matrix (Polars DataFrame).
         n_components: The number of dimensions to reduce to.
         min_dist: The minimum distance between points in the low-dimensional representation.
+        random_state: Seed for UMAP's layout optimization. Leaving this None makes
+            the whole pipeline nondeterministic -- the same input can yield a
+            different number of clusters between runs -- so callers should pass a
+            seed unless they have explicitly opted out. UMAP runs single-threaded
+            once a seed is set, which is the cost of reproducibility.
 
     Returns:
         A Polars DataFrame with reduced dimensions.
@@ -147,6 +176,7 @@ def reduce_dimensions_umap(
         metric="braycurtis",
         # Controls how tightly UMAP is allowed to pack points together.
         min_dist=min_dist,
+        random_state=random_state,
     )
     return pl.from_numpy(reducer.fit_transform(X.to_numpy()))  # type: ignore
 
@@ -176,7 +206,14 @@ class GeocodeDistanceMatrix:
         geocode_lf: pl.LazyFrame,
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
+        random_state: int | None = None,
     ) -> "GeocodeDistanceMatrix":
+        """
+        Args:
+            umap_n_components: Target dimensionality. Defaults to
+                DEFAULT_UMAP_N_COMPONENTS, clamped to fit the sample count.
+            random_state: Seed for UMAP. See reduce_dimensions_umap.
+        """
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
         scaled_feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
 
@@ -188,12 +225,17 @@ class GeocodeDistanceMatrix:
         )
 
         if umap_n_components is None:
-            umap_n_components = scaled_feature_matrix.height - 2
+            umap_n_components = min(
+                DEFAULT_UMAP_N_COMPONENTS, scaled_feature_matrix.height - 2
+            )
 
         reduced_feature_matrix = log_action(
             "Fitting UMAP",
             lambda: scaled_feature_matrix.pipe(
-                reduce_dimensions_umap, umap_n_components, umap_min_dist
+                reduce_dimensions_umap,
+                umap_n_components,
+                umap_min_dist,
+                random_state,
             ),
         )
         logger.info(

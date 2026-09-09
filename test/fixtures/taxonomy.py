@@ -16,7 +16,7 @@ def mock_taxonomy_lf() -> pl.LazyFrame:
             "genus": "Panthera",
             "species": "leo",
             "scientificName": "Panthera leo",
-            "gbifTaxonId": 5219404,
+            "gbifTaxonId": "5219404",
         },
         {
             "taxonId": 1,
@@ -27,7 +27,7 @@ def mock_taxonomy_lf() -> pl.LazyFrame:
             "genus": "Canis",
             "species": "lupus",
             "scientificName": "Canis lupus",
-            "gbifTaxonId": 5219243,
+            "gbifTaxonId": "5219243",
         },
         {
             "taxonId": 2,
@@ -38,7 +38,7 @@ def mock_taxonomy_lf() -> pl.LazyFrame:
             "genus": "Quercus",
             "species": "robur",
             "scientificName": "Quercus robur",
-            "gbifTaxonId": 2878688,
+            "gbifTaxonId": "2878688",
         },
         {
             "taxonId": 3,
@@ -49,7 +49,7 @@ def mock_taxonomy_lf() -> pl.LazyFrame:
             "genus": "",
             "species": "",
             "scientificName": "Anseriformes",
-            "gbifTaxonId": 711,
+            "gbifTaxonId": "3DTGL",
         },
     ]
     taxonomy_df = pl.DataFrame(taxonomy_data).with_columns(
@@ -59,6 +59,7 @@ def mock_taxonomy_lf() -> pl.LazyFrame:
         pl.col("order").cast(pl.Categorical),
         pl.col("family").cast(pl.Categorical),
         pl.col("genus").cast(pl.Categorical),
-        pl.col("gbifTaxonId").cast(pl.UInt32),
+        # GBIF taxon keys are alphanumeric (e.g. "3DTGL"), not numbers.
+        pl.col("gbifTaxonId").cast(pl.String),
     )
     return taxonomy_df.lazy()

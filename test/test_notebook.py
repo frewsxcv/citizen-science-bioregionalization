@@ -20,6 +20,9 @@ class TestNotebook(unittest.TestCase):
             "--max-lon=10",
             "--parquet-source-path=test/sample-archive/",
             "--no-stop",
+            # Keep the suite offline and deterministic: this is the only stage
+            # that would otherwise call out to Wikidata.
+            "--no-images",
         ]
 
         # Run the notebook script

@@ -148,7 +148,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "genus": ["Panthera", "Corvus"],
                 "species": ["leo", "corax"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
-                "gbifTaxonId": [5219404, 2482468],
+                "gbifTaxonId": ["5219404", "2482468"],
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
@@ -157,7 +157,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("order").cast(pl.Categorical),
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
-            pl.col("gbifTaxonId").cast(pl.UInt32),
+            pl.col("gbifTaxonId").cast(pl.String),
         )
         taxonomy_df = taxonomy_df
 
@@ -308,7 +308,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
                 "genus": ["Panthera", "Corvus"],
                 "species": ["leo", "corax"],
                 "scientificName": ["Panthera leo", "Corvus corax"],
-                "gbifTaxonId": [5219404, 2482468],
+                "gbifTaxonId": ["5219404", "2482468"],
             }
         ).with_columns(
             pl.col("taxonId").cast(pl.UInt32),
@@ -317,7 +317,7 @@ class TestClusterTaxaHeatmap(unittest.TestCase):
             pl.col("order").cast(pl.Categorical),
             pl.col("family").cast(pl.Categorical),
             pl.col("genus").cast(pl.Categorical),
-            pl.col("gbifTaxonId").cast(pl.UInt32),
+            pl.col("gbifTaxonId").cast(pl.String),
         )
         taxonomy_df = taxonomy_df
 

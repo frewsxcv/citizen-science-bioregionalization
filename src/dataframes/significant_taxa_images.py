@@ -1,37 +1,68 @@
 import logging
-from typing import Dict, List
 
 import polars as pl
 import requests
 
 logger = logging.getLogger(__name__)
 
+WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
+REQUEST_TIMEOUT_SECONDS = 60
 
 
-def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
+def canonical_name(scientific_name: str) -> str:
+    """Strip the authorship from a Darwin Core scientific name.
+
+    GBIF's `scientificName` carries the author and year ("Falco peregrinus
+    Tunstall, 1771"), while Wikidata's taxon name (P225) holds the bare name
+    ("Falco peregrinus"), so the two only match once authorship is removed.
+
+    The name part is the leading capitalised token followed by any purely
+    lowercase alphabetic tokens (the specific and infraspecific epithets).
+    Authorship always begins with something else — a capital, a parenthesis or a
+    digit — so the first such token ends the name:
+
+        "Falco peregrinus Tunstall, 1771"     -> "Falco peregrinus"
+        "Cybianthus marginatus (Benth.) Pipoly" -> "Cybianthus marginatus"
+        "Bacopa Aubl."                        -> "Bacopa"
     """
-    Fetches image URLs from Wikidata for a list of GBIF taxon IDs.
+    tokens = scientific_name.split()
+    if not tokens:
+        return ""
+    name = [tokens[0]]
+    for token in tokens[1:]:
+        if token.isalpha() and token.islower():
+            name.append(token)
+        else:
+            break
+    return " ".join(name)
+
+
+def _fetch_wikidata_images(scientific_names: list[str]) -> dict[str, str]:
+    """Fetch image URLs from Wikidata for a list of canonical taxon names.
+
+    Matches on taxon name (P225) rather than GBIF taxon id (P846): GBIF's keys
+    are now alphanumeric and no longer correspond to the numeric ids Wikidata
+    recorded, so a P846 lookup either finds nothing or — worse, when keys happen
+    to be numeric — silently resolves to an unrelated taxon.
 
     Args:
-        gbif_taxon_ids: List of GBIF taxon IDs as integers
+        scientific_names: Canonical taxon names, without authorship.
 
     Returns:
-        Dictionary mapping GBIF taxon ID (int) to image URL (str)
+        Mapping from canonical name to image URL, omitting taxa with no image.
     """
-    if not gbif_taxon_ids:
+    if not scientific_names:
         return {}
 
-    # Convert integers to strings for SPARQL query
-    gbif_ids_str = " ".join([f'"{id}"' for id in gbif_taxon_ids])
+    values = " ".join(f'"{name}"' for name in scientific_names)
     sparql_query = f"""
-        SELECT ?gbif_taxon_id (SAMPLE(?image) AS ?image) WHERE {{
-            VALUES ?gbif_taxon_id {{ {gbif_ids_str} }} .
-            ?item wdt:P846 ?gbif_taxon_id .
+        SELECT ?taxon_name (SAMPLE(?image) AS ?image) WHERE {{
+            VALUES ?taxon_name {{ {values} }} .
+            ?item wdt:P225 ?taxon_name .
             OPTIONAL {{ ?item wdt:P18 ?image }} .
-        }} GROUP BY ?gbif_taxon_id
+        }} GROUP BY ?taxon_name
     """
 
-    endpoint = "https://query.wikidata.org/sparql"
     data = {"query": sparql_query, "format": "json"}
     headers = {
         "Accept": "application/sparql-results+json",
@@ -39,63 +70,82 @@ def _fetch_wikidata_images(gbif_taxon_ids: List[int]) -> Dict[int, str]:
     }
 
     try:
-        response = requests.post(endpoint, data=data, headers=headers)
+        response = requests.post(
+            WIKIDATA_ENDPOINT,
+            data=data,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )
         response.raise_for_status()
         results = response.json()
-        image_map: Dict[int, str] = {}
-        for binding in results["results"]["bindings"]:
-            if "image" in binding:
-                # Convert string response back to int
-                gbif_id = int(binding["gbif_taxon_id"]["value"])
-                image_map[gbif_id] = binding["image"]["value"]
-        return image_map
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching from Wikidata: {e}")
+    except (requests.exceptions.RequestException, ValueError) as e:
+        # Images are decorative; a failed lookup must not fail the run.
+        logger.warning("Wikidata image lookup failed: %s", e)
         return {}
+
+    return {
+        binding["taxon_name"]["value"]: binding["image"]["value"]
+        for binding in results["results"]["bindings"]
+        if "image" in binding
+    }
+
 
 def build_significant_taxa_images_df(
     cluster_significant_differences_df: pl.DataFrame,
     taxonomy_df: pl.DataFrame,
+    fetch_images: bool = True,
 ) -> pl.DataFrame:
-    """Build a SignificantTaxaImagesSchema DataFrame with image URLs from Wikidata.
-
-    Fetches image URLs from Wikidata for taxa that have significant differences
-    between clusters.
+    """Attach a Wikidata image URL to each significant taxon, where one exists.
 
     Args:
-        cluster_significant_differences_df: DataFrame of significant taxa differences
-        taxonomy_df: DataFrame of taxonomy information with GBIF taxon IDs
+        cluster_significant_differences_df: Significant taxa per cluster.
+        taxonomy_df: Taxonomy, providing `scientificName` per `taxonId`.
+        fetch_images: When False, skip the network call and return null image
+            URLs. Keeps runs offline and reproducible.
 
     Returns:
-        A validated DataFrame conforming to SignificantTaxaImagesSchema
+        One row per significant taxon, with `taxonId` and a nullable `image_url`.
     """
     logger.info("build_significant_taxa_images_df: Starting")
 
     significant_taxa_df = cluster_significant_differences_df.select("taxonId").unique()
 
-    significant_taxa_with_gbif = significant_taxa_df.join(
-        taxonomy_df.select(["taxonId", "gbifTaxonId"]), on="taxonId"
+    def _without_images() -> pl.DataFrame:
+        return significant_taxa_df.with_columns(
+            image_url=pl.lit(None, dtype=pl.String)
+        ).select(["taxonId", "image_url"])
+
+    if not fetch_images:
+        logger.info("build_significant_taxa_images_df: image lookup disabled")
+        return _without_images()
+
+    named = significant_taxa_df.join(
+        taxonomy_df.select(["taxonId", "scientificName"]), on="taxonId"
+    ).with_columns(
+        pl.col("scientificName")
+        .map_elements(canonical_name, return_dtype=pl.String)
+        .alias("canonicalName")
     )
 
-    gbif_ids = significant_taxa_with_gbif.get_column("gbifTaxonId").unique().to_list()
-
-    image_map = _fetch_wikidata_images(gbif_ids)
+    image_map = _fetch_wikidata_images(
+        named.get_column("canonicalName").unique().drop_nulls().to_list()
+    )
+    logger.info(
+        "build_significant_taxa_images_df: %d of %d taxa have images",
+        len(image_map),
+        named.height,
+    )
 
     if not image_map:
-        return significant_taxa_df.with_columns(
-                image_url=pl.lit(None, dtype=pl.String)
-            ).select(["taxonId", "image_url"])
+        return _without_images()
 
     images_df = pl.DataFrame(
         {
-            "gbifTaxonId": list(image_map.keys()),
+            "canonicalName": list(image_map.keys()),
             "image_url": list(image_map.values()),
         }
     )
 
-    # Join images back to the significant taxa with gbifTaxonId
-    result_df = significant_taxa_with_gbif.join(
-        images_df, on="gbifTaxonId", how="left"
-    ).select(["taxonId", "image_url"])
-
-    return result_df
+    return named.join(images_df, on="canonicalName", how="left").select(
+        ["taxonId", "image_url"]
+    )

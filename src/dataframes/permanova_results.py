@@ -13,6 +13,7 @@ def build_permanova_results_df(
     geocode_cluster_df: pl.DataFrame,
     geocode_lf: pl.LazyFrame,
     permutations: int = 999,  # Default permutations
+    seed: int | None = None,
 ) -> pl.DataFrame:
     """
     Runs the PERMANOVA test and stores the results.
@@ -26,6 +27,8 @@ def build_permanova_results_df(
         geocode_lf: LazyFrame containing the ordered list of geocodes corresponding
                     to the distance matrix.
         permutations: Number of permutations for the test.
+        seed: Seed for the permutation test. None leaves the p-value varying
+            between runs on identical input.
 
     Returns:
         A validated DataFrame conforming to PermanovaResultsSchema.
@@ -43,6 +46,7 @@ def build_permanova_results_df(
         geocode_ids,
         geocode_cluster_df.select("geocode", "cluster"),
         permutations,
+        seed,
     )
 
     return df
