@@ -13,7 +13,6 @@ from src.dataframes.geocode_cluster_metrics import (
     build_geocode_cluster_metrics_df,
     get_metric_interpretations,
     get_metrics_summary,
-    select_optimal_k_multi_metric,
 )
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
@@ -204,61 +203,6 @@ class TestBuildGeocodeClusterMetricsDf(unittest.TestCase):
             sil_norm = row["silhouette_normalized"]
             # With 0.8 weight, combined should be within 0.2 of silhouette_normalized
             self.assertAlmostEqual(combined, sil_norm, delta=0.25)
-
-
-class TestSelectOptimalKMultiMetric(unittest.TestCase):
-    """Tests for select_optimal_k_multi_metric function."""
-
-    def create_metrics_df(
-        self, scores: list[dict[str, float]]
-    ) -> pl.DataFrame:
-        """Helper to create a metrics DataFrame from score dicts."""
-        df = pl.DataFrame(scores).with_columns(pl.col("num_clusters").cast(pl.UInt32))
-        return df
-
-    def test_returns_none_when_elbow_not_found(self):
-        """Test that None is returned when elbow method can't find a clear elbow."""
-        # Only 2 k values - not enough for elbow method
-        metrics_df = self.create_metrics_df(
-            [
-                {
-                    "num_clusters": 2,
-                    "silhouette_score": 0.3,
-                    "calinski_harabasz_score": 100.0,
-                    "davies_bouldin_score": 0.8,
-                    "inertia": 500.0,
-                    "silhouette_normalized": 0.65,
-                    "calinski_harabasz_normalized": 0.0,
-                    "davies_bouldin_normalized": 1.0,
-                    "inertia_normalized": 0.0,
-                    "combined_score": 0.5,
-                },
-                {
-                    "num_clusters": 3,
-                    "silhouette_score": 0.5,
-                    "calinski_harabasz_score": 150.0,
-                    "davies_bouldin_score": 0.6,
-                    "inertia": 300.0,
-                    "silhouette_normalized": 0.75,
-                    "calinski_harabasz_normalized": 1.0,
-                    "davies_bouldin_normalized": 0.5,
-                    "inertia_normalized": 1.0,
-                    "combined_score": 0.75,
-                },
-            ]
-        )
-
-        optimal_k = select_optimal_k_multi_metric(
-            metrics_df, min_silhouette_threshold=None, selection_method="elbow"
-        )
-
-        # With only 2 k values, elbow method can't find a knee
-        # The backwards compatibility wrapper should return None in this case
-        # (because it tries elbow method and fails, and elbow only returns None)
-        # However, with the wrapper, it should actually work and return something
-        # since it falls back. Let's test that it returns a valid k.
-        self.assertIsNotNone(optimal_k)
-        self.assertIn(optimal_k, [2, 3])
 
 
 class TestGetMetricsSummary(unittest.TestCase):

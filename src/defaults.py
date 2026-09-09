@@ -41,3 +41,7 @@ MAX_TAXA: int | None = 5000
 MAX_TAXA_ENABLED = False
 MIN_GEOCODE_PRESENCE: float | None = 0.05
 MIN_GEOCODE_PRESENCE_ENABLED = False
+# Minimum occurrence records a hexagon must hold to take part in the run.
+# Off by default: it discards data, and the right floor depends on how densely
+# the region has been surveyed.
+MIN_HEX_RECORDS: int | None = None

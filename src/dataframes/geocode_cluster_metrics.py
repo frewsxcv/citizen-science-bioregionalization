@@ -172,39 +172,6 @@ def select_optimal_k_elbow(
     return optimal_k
 
 
-# Backwards compatibility alias
-def select_optimal_k_multi_metric(
-    metrics_df: pl.DataFrame,
-    min_silhouette_threshold: float | None = 0.25,
-    selection_method: str = "elbow",
-    elbow_sensitivity: float = 1.0,
-) -> int | None:
-    """
-    Backwards compatibility wrapper for select_optimal_k_elbow.
-
-    Always uses the elbow method. If elbow method fails to find a clear elbow,
-    falls back to selecting k with the highest combined score.
-
-    Args:
-        metrics_df: DataFrame with cluster metrics for all k values
-        min_silhouette_threshold: Ignored (kept for compatibility)
-        selection_method: Ignored (kept for compatibility)
-        elbow_sensitivity: Kneedle algorithm sensitivity parameter
-
-    Returns:
-        Optimal k value, or None if metrics_df is empty
-    """
-    optimal_k = select_optimal_k_elbow(metrics_df, sensitivity=elbow_sensitivity)
-
-    if optimal_k is None and len(metrics_df) > 0:
-        # Fallback to highest combined score
-        logger.warning("Elbow method failed, falling back to highest combined score")
-        best_row = metrics_df.sort("combined_score", descending=True).head(1)
-        optimal_k = int(best_row["num_clusters"][0])
-
-    return optimal_k
-
-
 def _find_elbow_point(
     metrics_df: pl.DataFrame,
     sensitivity: float = 1.0,

@@ -49,4 +49,15 @@ def build_permanova_results_df(
         seed,
     )
 
+    # Report R² alongside the p-value. At this n the p-value is close to
+    # uninformative -- with thousands of geocodes almost any partition clears
+    # p < 0.001 -- so the share of dispersion actually explained is the number
+    # worth reading.
+    logger.info(
+        "build_permanova_results_df: pseudo-F=%.2f p=%.4f R2=%.4f",
+        df["test_statistic"][0],
+        df["p_value"][0],
+        df["r_squared"][0],
+    )
+
     return df
