@@ -75,4 +75,13 @@ def materialize_parquet(
         logger.info(f"Writing data from {cache_key} DataFrame to {output_path}")
         data.write_parquet(output_path)
 
-    return pl.scan_parquet(output_path)
+    result = pl.scan_parquet(output_path)
+
+    # Read from the parquet footer rather than by scanning, so this is cheap.
+    # Worth logging at every stage: until now nothing reported how many records
+    # a run actually ingested, which left --limit-results unfalsifiable -- there
+    # was no way to tell a cap that bound from one that never came near binding.
+    row_count = result.select(pl.len()).collect().item()
+    logger.info(f"Materialized {cache_key}: {row_count} rows at {output_path}")
+
+    return result

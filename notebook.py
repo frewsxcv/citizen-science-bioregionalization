@@ -442,6 +442,7 @@ def _(
     bounding_box,
     geocode_precision,
     limit_results,
+    materialize_parquet,
     min_hex_records,
     parquet_source_path,
     taxon_scope,
@@ -467,6 +468,14 @@ def _(
         darwin_core_lf = filter_sparse_geocodes_lf(
             darwin_core_lf, geocode_precision, min_hex_records
         )
+
+    # Spill once, here, rather than letting three downstream stages each re-read
+    # the source. Snapshot scans cannot be pruned, so every consumer of this
+    # frame -- build_geocode_lf, build_taxonomy_lf, build_geocode_taxa_counts_lf
+    # -- otherwise pays for a full pass. On the published East Coast run that
+    # was roughly 17 of the notebook's 28 minutes, against about one minute for
+    # all the clustering downstream of it.
+    darwin_core_lf = materialize_parquet(darwin_core_lf, cache_key="DarwinCoreSchema")
     return (darwin_core_lf,)
 
 
