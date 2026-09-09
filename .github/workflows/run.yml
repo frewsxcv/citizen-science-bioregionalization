@@ -25,7 +25,21 @@ jobs:
             max_lat: 47
             min_lon: -87
             max_lon: -66
+            # Kept as-is, and deliberately not switched to --no-limit. Removing
+            # the cap alongside the land mask starved the runner: the job ran
+            # 70 minutes against a 26-minute baseline and was killed for memory
+            # before it finished ingesting. Whether this cap actually binds on
+            # the East Coast bbox -- the most heavily surveyed region in GBIF --
+            # is a separate question from the mask, and needs its own run.
             limit_results: 300000000
+            # This bbox is 58% open water -- the US East Coast runs diagonally
+            # across it, so no rectangle excludes the Atlantic and the Gulf.
+            # Without the mask the run just rediscovers the coastline: the two
+            # published regions were mesopelagic fish (Cyclothone, tuna,
+            # swordfish) against North American landbirds and waterfowl, and k
+            # bottomed out at the low end of the range because that one split
+            # consumed the whole signal.
+            terrestrial_only: true
             geocode_precision: 4
             min_clusters: 2
             max_clusters: 15
@@ -74,7 +88,7 @@ jobs:
             --max-lat=${{ matrix.max_lat }} \
             --min-lon=${{ matrix.min_lon }} \
             --max-lon=${{ matrix.max_lon }} \
-            --selection-method=elbow \
+            ${{ matrix.terrestrial_only && '--terrestrial-only' || '' }} \
             ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
             ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
             ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
