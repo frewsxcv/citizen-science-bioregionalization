@@ -139,3 +139,56 @@ class TestFilterTopTaxaLf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMaxTaxaTieBreaking(unittest.TestCase):
+    """The top-N cut must not depend on the order rows arrive in.
+
+    Regression test for a real change in the published map. Two runs on
+    identical input kept the same count of taxa (10000 of 21432) but a
+    different *set* of them -- 1598202 rows against 1598224 -- because the cut
+    at max_taxa landed among taxa tied on total_count, and `sort` on that one
+    key left their relative order to whatever group_by emitted. Silhouette
+    moved from 0.3264 to 0.3374 on nothing but hash order.
+    """
+
+    def _tied_data(self, taxon_order: list[int]) -> pl.LazyFrame:
+        """One clear winner plus four taxa deliberately tied at the cut."""
+        rows = [{"geocode": 1000, "taxonId": 1, "count": 100}]
+        for taxon_id in taxon_order:
+            rows.append({"geocode": 2000, "taxonId": taxon_id, "count": 5})
+        df = pl.DataFrame(rows).with_columns(
+            pl.col("geocode").cast(pl.UInt64),
+            pl.col("taxonId").cast(pl.UInt32),
+            pl.col("count").cast(pl.UInt32),
+        )
+        return df.lazy()
+
+    def _top_taxa(self, taxon_order: list[int]) -> list[int]:
+        result = filter_top_taxa_lf(
+            self._tied_data(taxon_order), max_taxa=3, min_geocode_presence=None
+        ).collect()
+        return sorted(result["taxonId"].unique().to_list())
+
+    def test_ties_broken_by_taxon_id(self):
+        """Among equals, the lowest taxonIds win -- a defined answer, not a race."""
+        # taxonId 1 leads on count (100). Ten, 11, 12 and 13 all total 5, and
+        # max_taxa=3 admits exactly two of them.
+        self.assertEqual(self._top_taxa([10, 11, 12, 13]), [1, 10, 11])
+
+    def test_row_order_does_not_change_the_selection(self):
+        """Permuting the input must not change which taxa survive."""
+        orders = [
+            [10, 11, 12, 13],
+            [13, 12, 11, 10],
+            [12, 10, 13, 11],
+            [11, 13, 10, 12],
+        ]
+        selections = [self._top_taxa(order) for order in orders]
+        for order, selection in zip(orders, selections):
+            self.assertEqual(
+                selection,
+                selections[0],
+                f"input order {order} produced {selection}, "
+                f"but {orders[0]} produced {selections[0]}",
+            )

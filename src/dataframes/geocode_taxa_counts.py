@@ -187,7 +187,14 @@ def filter_top_taxa_lf(
         top_taxa = (
             lf.group_by("taxonId")
             .agg(pl.col("count").sum().alias("total_count"))
-            .sort("total_count", descending=True)
+            # taxonId breaks ties on total_count. Without it the cut at max_taxa
+            # lands among tied taxa in whatever order group_by happened to emit,
+            # so two runs on identical input keep a different top N. Seen on the
+            # published East Coast run: same 21432 taxa in and same 10000 out,
+            # but 1598202 rows one run against 1598224 the next, which moved
+            # silhouette from 0.3264 to 0.3374 -- a real change in the map for
+            # no reason but hash order.
+            .sort(["total_count", "taxonId"], descending=[True, False])
             .head(max_taxa)
             .select("taxonId")
         )
