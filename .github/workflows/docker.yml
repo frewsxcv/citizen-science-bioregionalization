@@ -28,11 +28,17 @@ jobs:
         run: |
           docker run --rm citizen-science-bioregionalization:ci python -c "
           import bioregion_rs
+          from src.geocode import _land_index
           from src.taxon_scope import parse_scope
 
-          # Confirms src/data/taxon_keys.json is actually present in the image,
-          # not just on the build host.
           scope = parse_scope('order:Coleoptera')
-          assert scope is not None and scope.key == 1470, scope
-          print('ok: bioregion_rs loaded, taxon registry resolved', scope)
+          assert scope is not None and scope.name == 'Coleoptera', scope
+
+          # Confirms src/data/ ships in the image and not just on the build
+          # host. This used to be covered by resolving a name against
+          # taxon_keys.json; scoping no longer reads a registry, so the
+          # coastline is now the only checked-in data file a run depends on.
+          tree, polygons = _land_index()
+          assert len(polygons) > 0, 'coastline missing from image'
+          print('ok: bioregion_rs loaded, scope parsed, coastline present', scope)
           "
