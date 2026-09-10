@@ -146,11 +146,19 @@ spatially coherent).
 
 **Goal:** `taxon_filter` actually filters. No comparison logic yet.
 
-**Delivered:** `TaxonScope` (`src/types.py`), offline key registry
-(`src/data/taxon_keys.json` + `scripts/fetch_taxon_keys.py`), scope parsing
-(`src/taxon_scope.py`), key-based filtering wired through
-`build_darwin_core_lf`, and `--scope=rank:name` on the CLI/notebook. 24 new tests
-in `test/test_taxon_scope.py`; full suite (98) green, pyright clean.
+**Delivered:** `TaxonScope` (`src/types.py`), scope parsing
+(`src/taxon_scope.py`), filtering wired through `build_darwin_core_lf`, and
+`--scope=rank:name` on the CLI/notebook.
+
+> **Superseded.** As delivered this filtered on the per-rank backbone key
+> columns, backed by an offline registry (`src/data/taxon_keys.json` +
+> `scripts/fetch_taxon_keys.py`). Current GBIF snapshots do not carry
+> `kingdomKey`…`genusKey` at all — of the backbone keys only `taxonkey` and
+> `specieskey` remain — so that scope could not run against the project's own
+> default source. It passed CI only because the sample archive carries both the
+> key columns and the name columns, unlike the real data. Scoping now matches
+> the rank *name* columns and the registry is deleted. The plan below still
+> describes the key-based design; read step 1 as historical.
 
 **Verified:** over the sample archive at r9, `kingdom:Animalia` yields 240 hexes
 and `kingdom:Plantae` 45, sharing only 34 — different data and different cluster
@@ -173,8 +181,10 @@ boundaries, as required.
   than 0`. Selective scopes hit this routinely. Phase 2's validity floor should
   reject such facets up front with a clear message instead.
 
-1. Add rank keys to `_BASE_SCHEMA` (`src/darwin_core_utils.py`): `kingdomKey`,
-   `phylumKey`, `classKey`, `orderKey`, `familyKey` as `pl.UInt32`.
+1. ~~Add rank keys to `_BASE_SCHEMA` (`src/darwin_core_utils.py`): `kingdomKey`,
+   `phylumKey`, `classKey`, `orderKey`, `familyKey` as `pl.UInt32`.~~ Not
+   possible: current snapshots do not carry these columns. `_BASE_SCHEMA` holds
+   the rank *name* columns as `pl.String` instead.
 2. Replace `build_taxon_filter(taxon_name: str)` with a typed scope:
    ```python
    @dataclass(frozen=True)

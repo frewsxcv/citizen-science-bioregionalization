@@ -51,8 +51,8 @@ ENV PATH="/app/.venv/bin:${PATH}"
 # Copy application files
 COPY notebook.py .
 
-# Copy src directory with all modules (includes src/data/taxon_keys.json, the
-# offline GBIF backbone key registry used for taxonomic scoping)
+# Copy src directory with all modules (includes src/data/ne_50m_land.geojson,
+# the checked-in coastline used by --terrestrial-only)
 COPY src/ ./src/
 
 # Create necessary directories
