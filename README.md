@@ -42,8 +42,7 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--log-file=PATH`: Path to save the log file (default: run.log).
 - `--parquet-source-path=PATH`: Path to the parquet data source.
 - `--scope=RANK:TAXON`: Optional taxonomic scope, e.g. `--scope=order:Coleoptera`.
-  Accepts a name resolved against the checked-in GBIF backbone key registry, or a
-  raw backbone key (`--scope=order:1470`). Omit for all taxa. See
+  Matches the taxon name, case-sensitively. Omit for all taxa. See
   [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
 - `--limit-results=N`: Limit number of results for testing (defaults to on, at 1000).
@@ -96,26 +95,35 @@ of `kingdom`, `phylum`, `class`, `order`, `family`, `genus`:
 
 ```bash
 uv run marimo run notebook.py -- --scope=class:Aves --no-stop
-uv run marimo run notebook.py -- --scope=order:1470 --no-stop   # raw backbone key
 ```
 
-Filtering is done on GBIF's integer backbone keys rather than taxon names: keys
-are stable across backbone releases that rename taxa, and an integer equality
-predicate prunes parquet row groups far better than a string comparison.
+Filtering matches the Darwin Core rank *name* column (`class`, `order`, ...).
+Matching is case-sensitive; GBIF capitalises names at every rank above species,
+so `class:Aves` matches and `class:aves` does not.
 
-Names are resolved offline against `src/data/taxon_keys.json` so that runs and
-tests never need network access. To add a taxon, extend `CURATED` in
-`scripts/fetch_taxon_keys.py` and re-run it:
+Scoping used to filter on GBIF's integer backbone keys (`classKey` and friends),
+which was the better predicate — keys survive backbone releases that rename
+taxa, and integer equality prunes parquet row groups better than string
+comparison. Current snapshots no longer carry those columns at all: of the
+backbone keys only `taxonkey` and `specieskey` remain. A key-based scope could
+not run against this project's own default data source, so `--scope=order:1470`
+is no longer accepted and fails with an explanatory error.
 
-```bash
-uv run python scripts/fetch_taxon_keys.py
-```
+Names are not validated against a list of known taxa. The data is the authority,
+and a name absent from it simply matches nothing, which surfaces as "More than
+one geocode is required to cluster" rather than as a curated registry that has
+to be kept in step with the backbone.
 
-Note that the GBIF backbone does not always match textbook taxonomy — `Squamata`
-and `Testudines` are backbone *classes* rather than orders, and `Reptilia` and
-`Actinopterygii` are absent entirely. The registry follows the backbone, and the
-generator script fails loudly on a rank mismatch rather than recording a wrong
-key.
+Two consequences worth knowing:
+
+- **Homonyms.** Names are unique only within a kingdom, so `genus:Oenanthe`
+  matches both the wheatears (birds) and the water dropworts (plants). A
+  backbone key would not have. There is no way around this while the keys are
+  absent from the data; pair the scope with a coarser rank if it matters.
+- **The GBIF backbone does not always match textbook taxonomy.** `Squamata` and
+  `Testudines` are backbone *classes* rather than orders, and `Reptilia` and
+  `Actinopterygii` are absent entirely. Scope to what the backbone calls things,
+  not to what a field guide does.
 
 ### Working from a local country cache
 

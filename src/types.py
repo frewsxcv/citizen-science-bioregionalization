@@ -9,33 +9,40 @@ TaxonRank: TypeAlias = Literal["kingdom", "phylum", "class", "order", "family", 
 #: Ranks that can be used to scope a run, coarsest first.
 TAXON_RANKS: tuple[TaxonRank, ...] = get_args(TaxonRank)
 
-#: Darwin Core column holding the GBIF backbone key for each rank.
+#: Darwin Core column holding the taxon name at each rank. The column is named
+#: for the rank itself, so this mapping is an identity -- it exists to keep the
+#: column names in one place and to document that the name column, not the
+#: backbone key column, is what scoping reads.
 TAXON_RANK_COLUMNS: dict[TaxonRank, str] = {
-    "kingdom": "kingdomKey",
-    "phylum": "phylumKey",
-    "class": "classKey",
-    "order": "orderKey",
-    "family": "familyKey",
-    "genus": "genusKey",
+    "kingdom": "kingdom",
+    "phylum": "phylum",
+    "class": "class",
+    "order": "order",
+    "family": "family",
+    "genus": "genus",
 }
 
 
 @dataclass(frozen=True)
 class TaxonScope:
-    """A taxonomic slice of the occurrence data, identified by GBIF backbone key.
+    """A taxonomic slice of the occurrence data, identified by taxon name.
 
-    Scoping is done on the integer backbone key rather than the taxon name
-    because keys are stable across backbone releases that rename taxa, and
-    because an integer equality predicate pushes down into the parquet scan for
-    row-group pruning far better than a string comparison does.
+    Scoping used to filter on the integer GBIF backbone key (`classKey` and
+    friends), which was the better predicate: keys survive backbone releases
+    that rename taxa, and integer equality prunes row groups more effectively
+    than string comparison. Current GBIF snapshots no longer carry those columns
+    at all -- of the backbone keys only `taxonkey` and `specieskey` remain -- so
+    a key-based scope cannot run against the project's own default source. The
+    rank *name* columns are still present and populated, so scoping reads those.
 
-    `label` is carried for display and logging only; it never participates in
-    filtering.
+    The cost is homonyms. Names are only unique within a kingdom, so
+    `genus:Oenanthe` matches both the wheatears and the water dropworts. A
+    backbone key would not have. There is no way around this while the keys are
+    absent from the data; pair the scope with a coarser rank if it matters.
     """
 
     rank: TaxonRank
-    key: int
-    label: str
+    name: str
 
     @property
     def column(self) -> str:
@@ -43,7 +50,7 @@ class TaxonScope:
         return TAXON_RANK_COLUMNS[self.rank]
 
     def __str__(self) -> str:
-        return f"{self.rank}:{self.label}({self.key})"
+        return f"{self.rank}:{self.name}"
 
 
 class LatLng(NamedTuple):
