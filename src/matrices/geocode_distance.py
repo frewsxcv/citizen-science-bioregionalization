@@ -5,7 +5,7 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import RobustScaler
 
 from src.dataframes import geocode_taxa_counts
-from src.logging import log_action, logger
+from src.logging import log_action, log_array_digest, logger
 
 # Target dimensionality for the UMAP reduction.
 #
@@ -15,9 +15,37 @@ from src.logging import log_action, logger
 # silently defeated seeding: at that size the embedding goes through an
 # iterative eigendecomposition that is not reproducible between processes, so
 # two seeded runs on byte-identical input returned different clusterings.
-# Verified at 2, 8 and 32 components a seeded run reproduces across processes;
-# at `height - 2` it does not.
+# 32 is not by itself sufficient, and an earlier version of this comment
+# claimed it was. What matters is n_components relative to the sample count --
+# see MAX_UMAP_COMPONENT_RATIO -- because it is the spectral initialisation that
+# loses reproducibility as the number of requested eigenvectors approaches the
+# size of the graph. On thousands of geocodes 32 is a negligible fraction and a
+# seeded run does reproduce; on 42 it is not, and does not.
 DEFAULT_UMAP_N_COMPONENTS = 32
+
+#: Largest share of the sample count that `n_components` may occupy.
+#:
+#: Reproducibility depends on the *ratio*, not on the absolute value. Measured
+#: on the 42-geocode sample archive with a fixed seed, in one process: at 2, 4,
+#: 8 and 16 components two consecutive reductions agree, and at 24 and 32 they
+#: do not. 16/42 is 38% and 24/42 is 57%, so a quarter leaves margin.
+#:
+#: This is the same failure the old `n_samples - 2` default had, at a lower
+#: threshold than "keep it small, 32" implies -- 32 is only small relative to a
+#: large sample count. At country scale (thousands of geocodes) the cap binds
+#: and nothing changes; on a small extent the ratio binds instead.
+MAX_UMAP_COMPONENT_RATIO = 0.25
+
+
+def default_umap_n_components(n_samples: int) -> int:
+    """Target dimensionality for `n_samples` geocodes.
+
+    Kept to DEFAULT_UMAP_N_COMPONENTS or a quarter of the sample count,
+    whichever is smaller, and never below 2 (UMAP needs at least a plane, and
+    `reduce_dimensions_umap` requires n_components < n_samples).
+    """
+    ratio_cap = int(n_samples * MAX_UMAP_COMPONENT_RATIO)
+    return max(2, min(DEFAULT_UMAP_N_COMPONENTS, ratio_cap, n_samples - 2))
 
 
 def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
@@ -225,9 +253,12 @@ class GeocodeDistanceMatrix:
         )
 
         if umap_n_components is None:
-            umap_n_components = min(
-                DEFAULT_UMAP_N_COMPONENTS, scaled_feature_matrix.height - 2
-            )
+            umap_n_components = default_umap_n_components(scaled_feature_matrix.height)
+
+        # Digest either side of UMAP, so that a run which disagrees with another
+        # on the final map can be localised. Matching input and differing output
+        # puts the cause in UMAP; differing input puts it upstream.
+        log_array_digest("umap_input", scaled_feature_matrix.to_numpy())
 
         reduced_feature_matrix = log_action(
             "Fitting UMAP",
@@ -241,6 +272,7 @@ class GeocodeDistanceMatrix:
         logger.info(
             f"Reduced dimensions with UMAP. Output shape: {reduced_feature_matrix.shape}"
         )
+        log_array_digest("umap_output", reduced_feature_matrix.to_numpy())
 
         # Calculate pairwise distances between geocodes in the reduced space
         # Using 'braycurtis' distance again, consistent with the UMAP metric.
