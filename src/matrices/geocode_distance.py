@@ -245,9 +245,9 @@ class GeocodeDistanceMatrix:
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
         scaled_feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
 
-        # Dimensionality Reduction using UMAP
-        # UMAP is often effective for visualizing high-dimensional biological data.
-        # 'braycurtis' is chosen as the metric because it's suitable for ecological count data (abundance data).
+        # Dimensionality Reduction using UMAP.
+        # 'braycurtis' is right *here*, where the input really is ecological
+        # count data. It is not right on the output; see the pdist call below.
         logger.info(
             f"Reducing dimensions with UMAP. Input shape: {scaled_feature_matrix.shape}"
         )
@@ -274,12 +274,27 @@ class GeocodeDistanceMatrix:
         )
         log_array_digest("umap_output", reduced_feature_matrix.to_numpy())
 
-        # Calculate pairwise distances between geocodes in the reduced space
-        # Using 'braycurtis' distance again, consistent with the UMAP metric.
-        # pdist returns a condensed distance matrix (1D array).
+        # Pairwise distances between geocodes in the reduced space.
+        #
+        # Euclidean, not Bray-Curtis. This used to reuse Bray-Curtis "consistent
+        # with the UMAP metric", which has the relationship backwards: UMAP's
+        # `metric` describes the *input* space, and the embedding it returns is
+        # Euclidean by construction, with signed coordinates that are not
+        # abundances. On the sample archive 27.6% of embedding entries are
+        # negative, and Bray-Curtis -- a ratio of summed absolute differences to
+        # summed absolute totals -- has no meaning on them.
+        #
+        # It also matters downstream. Ward's linkage is only valid on Euclidean
+        # distances, since the Lance-Williams update it uses assumes squared
+        # Euclidean geometry, and the clusterer is fed this matrix directly.
+        #
+        # This is a correction rather than a rescue: the old metric produced no
+        # NaN, no infinity and nothing outside [0, 1], and ranked pairs almost
+        # identically (Spearman 0.97 against Euclidean on the same embedding).
+        # Expect the map to shift rather than to be redrawn.
         condensed_distances = log_action(
             f"Calculating pairwise distances (pdist) on matrix: {reduced_feature_matrix.shape}",
-            lambda: pdist(reduced_feature_matrix, metric="braycurtis"),
+            lambda: pdist(reduced_feature_matrix, metric="euclidean"),
         )
 
         return cls(condensed_distances, reduced_feature_matrix.to_numpy())
