@@ -95,11 +95,7 @@ def build_permanova_results(
 ) -> pl.DataFrame: ...
 def build_geocode_cluster_metrics(
     condensed: list[float],
-    features: list[list[float]],
     geocode_cluster_df: pl.DataFrame,
-    weight_silhouette: float = 0.4,
-    weight_calinski_harabasz: float = 0.3,
-    weight_davies_bouldin: float = 0.3,
 ) -> pl.DataFrame: ...
 def select_optimal_k_elbow(
     num_clusters: list[int],
@@ -118,15 +114,6 @@ def build_geocode_silhouette_score(
     condensed: list[float],
     geocode_cluster_df: pl.DataFrame,
 ) -> pl.DataFrame: ...
-def optimize_num_clusters(
-    condensed: list[float],
-    features: list[list[float]],
-    geocode_cluster_df: pl.DataFrame,
-    elbow_sensitivity: float = 1.0,
-    weight_silhouette: float = 0.4,
-    weight_calinski_harabasz: float = 0.3,
-    weight_davies_bouldin: float = 0.3,
-) -> tuple[int, pl.DataFrame]: ...
 def build_geojson_feature_collection(
     cluster_boundary_df: pl.DataFrame,
     cluster_colors_df: pl.DataFrame,

@@ -1,52 +1,10 @@
 import numpy as np
 import polars as pl
-import umap
 from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import RobustScaler
 
 from src.dataframes import geocode_taxa_counts
 from src.logging import log_action, log_array_digest, logger
-
-# Target dimensionality for the UMAP reduction.
-#
-# This used to default to `n_geocodes - 2`, which reduced almost nothing -- at
-# country scale that is thousands of components -- leaving UMAP's only real
-# effect the conversion of Bray-Curtis distances into Euclidean ones. It also
-# silently defeated seeding: at that size the embedding goes through an
-# iterative eigendecomposition that is not reproducible between processes, so
-# two seeded runs on byte-identical input returned different clusterings.
-# 32 is not by itself sufficient, and an earlier version of this comment
-# claimed it was. What matters is n_components relative to the sample count --
-# see MAX_UMAP_COMPONENT_RATIO -- because it is the spectral initialisation that
-# loses reproducibility as the number of requested eigenvectors approaches the
-# size of the graph. On thousands of geocodes 32 is a negligible fraction and a
-# seeded run does reproduce; on 42 it is not, and does not.
-DEFAULT_UMAP_N_COMPONENTS = 32
-
-#: Largest share of the sample count that `n_components` may occupy.
-#:
-#: Reproducibility depends on the *ratio*, not on the absolute value. Measured
-#: on the 42-geocode sample archive with a fixed seed, in one process: at 2, 4,
-#: 8 and 16 components two consecutive reductions agree, and at 24 and 32 they
-#: do not. 16/42 is 38% and 24/42 is 57%, so a quarter leaves margin.
-#:
-#: This is the same failure the old `n_samples - 2` default had, at a lower
-#: threshold than "keep it small, 32" implies -- 32 is only small relative to a
-#: large sample count. At country scale (thousands of geocodes) the cap binds
-#: and nothing changes; on a small extent the ratio binds instead.
-MAX_UMAP_COMPONENT_RATIO = 0.25
-
-
-def default_umap_n_components(n_samples: int) -> int:
-    """Target dimensionality for `n_samples` geocodes.
-
-    Kept to DEFAULT_UMAP_N_COMPONENTS or a quarter of the sample count,
-    whichever is smaller, and never below 2 (UMAP needs at least a plane, and
-    `reduce_dimensions_umap` requires n_components < n_samples).
-    """
-    ratio_cap = int(n_samples * MAX_UMAP_COMPONENT_RATIO)
-    return max(2, min(DEFAULT_UMAP_N_COMPONENTS, ratio_cap, n_samples - 2))
-
 
 def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
     """
@@ -191,52 +149,6 @@ def scale_values(feature_matrix: pl.DataFrame) -> pl.DataFrame:
     return pl.from_numpy(scaler.fit_transform(feature_matrix.to_numpy()))
 
 
-def reduce_dimensions_umap(
-    X: pl.DataFrame,
-    n_components: int,
-    min_dist: float,
-    random_state: int | None = None,
-) -> pl.DataFrame:
-    """
-    Reduces the dimensionality of the feature matrix using UMAP.
-
-    Args:
-        X: The input feature matrix (Polars DataFrame).
-        n_components: The number of dimensions to reduce to.
-        min_dist: The minimum distance between points in the low-dimensional representation.
-        random_state: Seed for UMAP's layout optimization. Leaving this None makes
-            the whole pipeline nondeterministic -- the same input can yield a
-            different number of clusters between runs -- so callers should pass a
-            seed unless they have explicitly opted out. UMAP runs single-threaded
-            once a seed is set, which is the cost of reproducibility.
-
-    Returns:
-        A Polars DataFrame with reduced dimensions.
-    """
-    # UMAP requires n_components to be less than the number of samples (X.height).
-    # See: https://github.com/lmcinnes/umap/issues/201
-    assert n_components < X.height, (
-        f"UMAP requires n_components ({n_components}) to be less than "
-        f"the number of samples ({X.height}). "
-        f"Either reduce n_components or provide more geocodes."
-    )
-
-    reducer = umap.UMAP(
-        # Target number of dimensions. Must be < number of samples.
-        n_components=n_components,
-        # Metric suitable for ecological count/abundance data.
-        metric="braycurtis",
-        # Controls how tightly UMAP is allowed to pack points together.
-        min_dist=min_dist,
-        random_state=random_state,
-    )
-    # ascontiguousarray for the same reason as in GeocodeDistanceMatrix.build:
-    # Polars returns column-major and UMAP reads rows.
-    return pl.from_numpy(
-        reducer.fit_transform(np.ascontiguousarray(X.to_numpy()))  # type: ignore
-    )
-
-
 class GeocodeDistanceMatrix:
     """
     A distance matrix where each column and row is a geocode, and the cell at the intersection of a
@@ -244,116 +156,71 @@ class GeocodeDistanceMatrix:
     as a condensed distance matrix, which is a one-dimensional array containing the upper triangular
     part of the distance matrix.
 
-    Also stores the UMAP-reduced feature matrix for computing cluster validation metrics
-    like Calinski-Harabasz and Davies-Bouldin scores.
+    Also stores the feature matrix the distances were computed from, which
+    Calinski-Harabasz and Davies-Bouldin need; those two are defined on a
+    feature space rather than on pairwise distances.
     """
 
     _condensed: np.ndarray
-    _reduced_features: np.ndarray
-    _abundance_condensed: np.ndarray | None
+    _features: np.ndarray
 
-    def __init__(
-        self,
-        condensed: np.ndarray,
-        reduced_features: np.ndarray,
-        abundance_condensed: np.ndarray | None = None,
-    ):
+    def __init__(self, condensed: np.ndarray, features: np.ndarray):
         self._condensed = condensed
-        self._reduced_features = reduced_features
-        self._abundance_condensed = abundance_condensed
+        self._features = features
 
     @classmethod
     def build(
         cls,
         geocode_taxa_counts_lf: pl.LazyFrame,
         geocode_lf: pl.LazyFrame,
-        umap_n_components: int | None = None,
-        umap_min_dist: float = 0.5,
         random_state: int | None = None,
     ) -> "GeocodeDistanceMatrix":
         """
         Args:
-            umap_n_components: Target dimensionality. Defaults to
-                DEFAULT_UMAP_N_COMPONENTS, clamped to fit the sample count.
-            random_state: Seed for UMAP. See reduce_dimensions_umap.
+            random_state: Unused. Kept so callers need not know that this stage
+                stopped being random when UMAP was removed; the seed still
+                matters to PERMANOVA's permutations.
         """
+        del random_state
         # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
         scaled_feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
 
-        # Dimensionality Reduction using UMAP.
-        # 'braycurtis' is right *here*, where the input really is ecological
-        # count data. It is not right on the output; see the pdist call below.
-        logger.info(
-            f"Reducing dimensions with UMAP. Input shape: {scaled_feature_matrix.shape}"
-        )
-
-        if umap_n_components is None:
-            umap_n_components = default_umap_n_components(scaled_feature_matrix.height)
-
-        # Digest either side of UMAP, so that a run which disagrees with another
-        # on the final map can be localised. Matching input and differing output
-        # puts the cause in UMAP; differing input puts it upstream.
-        log_array_digest("umap_input", scaled_feature_matrix.to_numpy())
-
-        reduced_feature_matrix = log_action(
-            "Fitting UMAP",
-            lambda: scaled_feature_matrix.pipe(
-                reduce_dimensions_umap,
-                umap_n_components,
-                umap_min_dist,
-                random_state,
-            ),
-        )
-        logger.info(
-            f"Reduced dimensions with UMAP. Output shape: {reduced_feature_matrix.shape}"
-        )
-        log_array_digest("umap_output", reduced_feature_matrix.to_numpy())
-
-        # Pairwise distances between geocodes in the reduced space.
+        # Distances straight on the counts. UMAP used to sit here, reducing to
+        # 32 components before the distances were taken, and it was removed for
+        # four reasons measured on real data:
         #
-        # Euclidean, not Bray-Curtis. This used to reuse Bray-Curtis "consistent
-        # with the UMAP metric", which has the relationship backwards: UMAP's
-        # `metric` describes the *input* space, and the embedding it returns is
-        # Euclidean by construction, with signed coordinates that are not
-        # abundances. On the sample archive 27.6% of embedding entries are
-        # negative, and Bray-Curtis -- a ratio of summed absolute differences to
-        # summed absolute totals -- has no meaning on them.
+        #  - it explained less. Scored against these same Bray-Curtis distances,
+        #    the partitions it produced had lower PERMANOVA R2 at every k above
+        #    2 -- at k=4, 0.0198 against 0.0312.
+        #  - it inflated the headline metric. A partition scoring silhouette
+        #    0.3897 on the embedding scored 0.0564 here; across six
+        #    configurations the ratio ran 3.4x to 24x, and twice the honest
+        #    figure was negative while the reported one was positive.
+        #  - it was the pipeline's only nondeterministic stage. Five CI runs on a
+        #    byte-identical input matrix produced two different embeddings and
+        #    both k=2 and k=3. Not machine-keyed, so not fixable by pinning: the
+        #    digests varied between runs on one runner image.
+        #  - it was not even saving time at the scale that ships. At 1155
+        #    geocodes and 10000 taxa this pdist takes about 4s against UMAP's
+        #    ~16s.
         #
-        # It also matters downstream. Ward's linkage is only valid on Euclidean
-        # distances, since the Lance-Williams update it uses assumes squared
-        # Euclidean geometry, and the clusterer is fed this matrix directly.
-        #
-        # This is a correction rather than a rescue: the old metric produced no
-        # NaN, no infinity and nothing outside [0, 1], and ranked pairs almost
-        # identically (Spearman 0.97 against Euclidean on the same embedding).
-        # Expect the map to shift rather than to be redrawn.
-        condensed_distances = log_action(
-            f"Calculating pairwise distances (pdist) on matrix: {reduced_feature_matrix.shape}",
-            lambda: pdist(reduced_feature_matrix, metric="euclidean"),
-        )
-
-        # Distances on the abundances themselves, before any reduction. Nothing
-        # in the pipeline clusters on these; they exist so the reported
-        # silhouette can be checked against one measured in the space the data
-        # actually lives in. The two disagree by a lot -- see
-        # cluster_optimization, which logs both.
-        # ascontiguousarray because Polars returns column-major and pdist walks
-        # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
-        # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
-        # this call went from 586s to 74s.
-        unscaled = np.ascontiguousarray(
+        # UMAP is still used for the ordination plots in src/plot, where an
+        # embedding is what is actually wanted.
+        counts = np.ascontiguousarray(
             build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
         )
-        abundance_condensed = log_action(
-            f"Calculating reference distances (braycurtis) on abundances: {unscaled.shape}",
-            lambda: pdist(unscaled, metric="braycurtis"),
-        )
+        logger.info(f"Computing distances on abundances. Shape: {counts.shape}")
+        log_array_digest("distance_input", counts)
 
-        return cls(
-            condensed_distances,
-            reduced_feature_matrix.to_numpy(),
-            abundance_condensed,
+        # ascontiguousarray above because Polars returns column-major and pdist
+        # walks rows: on Colombia that was 586s as given against 74s once copied.
+        condensed_distances = log_action(
+            f"Calculating pairwise distances (braycurtis) on: {counts.shape}",
+            lambda: pdist(counts, metric="braycurtis"),
         )
+        log_array_digest("distance_output", condensed_distances)
+
+        return cls(condensed_distances, counts)
 
     def condensed(self) -> np.ndarray:
         return self._condensed
@@ -361,23 +228,12 @@ class GeocodeDistanceMatrix:
     def squareform(self) -> np.ndarray:
         return squareform(self._condensed)
 
-    def abundance_condensed(self) -> np.ndarray | None:
-        """Condensed Bray-Curtis distances on the pre-reduction abundance matrix.
+    def features(self) -> np.ndarray:
+        """The matrix the distances were computed from: counts per geocode.
 
-        None when the matrix was constructed directly rather than via `build`,
-        which is how the tests build fixtures.
+        Calinski-Harabasz and Davies-Bouldin are defined on a feature space
+        rather than on pairwise distances, and this is that space. It used to be
+        a 32-column UMAP embedding; it is now the counts themselves, so the
+        metrics and the distances describe the same thing.
         """
-        return self._abundance_condensed
-
-    def reduced_features(self) -> np.ndarray:
-        """
-        Returns the UMAP-reduced feature matrix.
-
-        This is needed for computing cluster validation metrics like
-        Calinski-Harabasz and Davies-Bouldin scores, which require
-        the feature matrix rather than the distance matrix.
-
-        Returns:
-            numpy array of shape (n_geocodes, n_components)
-        """
-        return self._reduced_features
+        return self._features

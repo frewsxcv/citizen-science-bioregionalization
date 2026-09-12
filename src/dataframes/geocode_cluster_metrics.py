@@ -24,6 +24,7 @@ from typing import TypedDict
 
 import numpy as np
 import polars as pl
+from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
 from kneed import KneeLocator  # typed: ignore
 
 import bioregion_rs
@@ -90,14 +91,18 @@ def build_geocode_cluster_metrics_df(
         f"Computing cluster metrics for {len(k_values)} k values: {k_values[0]} to {k_values[-1]}"
     )
 
+    # Silhouette and inertia are defined on pairwise distances, so Rust computes
+    # them from the condensed matrix. Calinski-Harabasz and Davies-Bouldin need a
+    # feature matrix, and the feature matrix is now the raw count matrix rather
+    # than a 32-column embedding -- marshalling that into Rust peaked at 5.3 GB
+    # on a country-scale run, so they are computed here, on the numpy array,
+    # where no copy is needed.
     df = bioregion_rs.build_geocode_cluster_metrics(
         distance_matrix.condensed().tolist(),
-        distance_matrix.reduced_features().tolist(),
         geocode_cluster_df,
-        weights["silhouette"],
-        weights["calinski_harabasz"],
-        weights["davies_bouldin"],
     )
+    df = _add_feature_space_metrics(df, distance_matrix, geocode_cluster_df)
+    df = _add_combined_score(df, weights)
 
     logger.info(
         f"Computed cluster metrics. Best combined score at k="
@@ -390,3 +395,85 @@ def get_metric_interpretations() -> dict[str, str]:
             "  • Balances all three metrics for robust selection"
         ),
     }
+
+
+def _normalize_min_max(values: np.ndarray, lower_is_better: bool) -> np.ndarray:
+    """Scale to [0, 1], flipping first when a lower raw value is the better one.
+
+    A constant column maps to all-ones: every k is equally good on that metric,
+    so it should not tip the combined score either way.
+    """
+    if lower_is_better:
+        values = -values
+    lo, hi = float(np.min(values)), float(np.max(values))
+    if hi - lo < 1e-12:
+        return np.ones_like(values)
+    return (values - lo) / (hi - lo)
+
+
+def _add_feature_space_metrics(
+    metrics_df: pl.DataFrame,
+    distance_matrix: GeocodeDistanceMatrix,
+    geocode_cluster_df: pl.DataFrame,
+) -> pl.DataFrame:
+    """Calinski-Harabasz and Davies-Bouldin, computed on the feature matrix.
+
+    Both need a feature space rather than pairwise distances. Since the pipeline
+    no longer builds an embedding, the feature space is the count matrix itself
+    -- the same rows the distances are computed from.
+    """
+    features = distance_matrix.features()
+    ch: list[float] = []
+    db: list[float] = []
+    for k in metrics_df["num_clusters"].to_list():
+        labels = (
+            geocode_cluster_df.filter(pl.col("num_clusters") == k)
+            .sort("geocode")["cluster"]
+            .to_numpy()
+        )
+        # Both are undefined for a single group, and sklearn raises rather than
+        # returning a sentinel.
+        if len(np.unique(labels)) < 2:
+            ch.append(0.0)
+            db.append(0.0)
+            continue
+        ch.append(float(calinski_harabasz_score(features, labels)))
+        db.append(float(davies_bouldin_score(features, labels)))
+    return metrics_df.with_columns(
+        calinski_harabasz_score=pl.Series(ch, dtype=pl.Float64),
+        davies_bouldin_score=pl.Series(db, dtype=pl.Float64),
+    )
+
+
+def _add_combined_score(
+    metrics_df: pl.DataFrame, weights: dict[str, float]
+) -> pl.DataFrame:
+    """Normalise each metric across k, then weight them into one score.
+
+    Moved here from Rust along with the two metrics it combines, so that the
+    weighting lives next to the weights rather than a language boundary away.
+    """
+    total = sum(weights[k] for k in ("silhouette", "calinski_harabasz", "davies_bouldin"))
+    sil = metrics_df["silhouette_score"].to_numpy()
+    ch = metrics_df["calinski_harabasz_score"].to_numpy()
+    db = metrics_df["davies_bouldin_score"].to_numpy()
+    ine = metrics_df["inertia"].to_numpy()
+
+    # Silhouette is already on a fixed [-1, 1], so it is mapped rather than
+    # min-max scaled; the others have no fixed range.
+    sil_norm = (sil + 1.0) / 2.0
+    ch_norm = _normalize_min_max(ch, lower_is_better=False)
+    db_norm = _normalize_min_max(db, lower_is_better=True)
+    ine_norm = _normalize_min_max(ine, lower_is_better=True)
+    combined = (
+        weights["silhouette"] * sil_norm
+        + weights["calinski_harabasz"] * ch_norm
+        + weights["davies_bouldin"] * db_norm
+    ) / total
+    return metrics_df.with_columns(
+        silhouette_normalized=pl.Series(sil_norm, dtype=pl.Float64),
+        calinski_harabasz_normalized=pl.Series(ch_norm, dtype=pl.Float64),
+        davies_bouldin_normalized=pl.Series(db_norm, dtype=pl.Float64),
+        inertia_normalized=pl.Series(ine_norm, dtype=pl.Float64),
+        combined_score=pl.Series(combined, dtype=pl.Float64),
+    )

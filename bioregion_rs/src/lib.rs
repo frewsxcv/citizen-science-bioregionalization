@@ -10,7 +10,6 @@ use polars::prelude::PolarsError;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-mod cluster_optimization;
 mod colors;
 mod dataframes;
 mod geocode;
@@ -94,10 +93,6 @@ fn bioregion_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     m.add_function(wrap_pyfunction!(
         dataframes::geocode_silhouette_score::build_geocode_silhouette_score,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        cluster_optimization::optimize_num_clusters,
         m
     )?)?;
     m.add_function(wrap_pyfunction!(

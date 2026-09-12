@@ -17,6 +17,7 @@ import unittest
 
 import numpy as np
 import polars as pl
+from scipy.spatial.distance import pdist
 
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.geocode import build_geocode_lf, build_geocode_no_edges_lf
@@ -28,12 +29,9 @@ from src.dataframes.geocode import build_geocode_lf, build_geocode_no_edges_lf
 from src.dataframes.darwin_core import build_darwin_core_lf
 from src.dataframes.taxonomy import build_taxonomy_lf
 from src.matrices.geocode_distance import (
-    DEFAULT_UMAP_N_COMPONENTS,
     pivot_taxon_counts,
-    MAX_UMAP_COMPONENT_RATIO,
-    default_umap_n_components,
+    GeocodeDistanceMatrix,
     build_X,
-    reduce_dimensions_umap,
 )
 from src.types import Bbox
 
@@ -95,77 +93,33 @@ class TestTaxonIdAssignment(unittest.TestCase):
         )
 
 
-class TestUmapDefaults(unittest.TestCase):
-    def test_default_component_count_is_small(self):
-        # The old default was n_samples - 2, which is not reproducible across
-        # processes. Any small fixed value is; 32 is the chosen one.
-        self.assertEqual(DEFAULT_UMAP_N_COMPONENTS, 32)
+class TestDistanceStage(unittest.TestCase):
+    def test_distances_are_bray_curtis_on_the_counts(self):
+        """No embedding sits between the counts and the distances any more.
 
-    def test_seeded_reduction_is_repeatable(self):
+        UMAP used to, and it was the pipeline's only nondeterministic stage:
+        five CI runs on a byte-identical input matrix produced two different
+        embeddings and both k=2 and k=3, on the same runner image.
+        """
         rng = np.random.default_rng(0)
-        X = pl.from_numpy(rng.random((40, 12)))
-
-        first = reduce_dimensions_umap(X, 4, 0.5, random_state=0).to_numpy()
-        second = reduce_dimensions_umap(X, 4, 0.5, random_state=0).to_numpy()
-
-        np.testing.assert_allclose(first, second)
-
-    def test_component_count_stays_a_small_share_of_the_samples(self):
-        """Reproducibility depends on the ratio, not on 32 being "small".
-
-        This test is the one the old assertion should have been. Asserting
-        DEFAULT_UMAP_N_COMPONENTS == 32 passes happily while the pipeline is
-        nonreproducible on a small extent, because 32 of 42 geocodes is 76% of
-        the graph and the spectral initialisation stops converging to a single
-        answer.
-        """
-        for n_samples in (10, 42, 100, 128, 1155, 4066):
-            n_components = default_umap_n_components(n_samples)
-            self.assertLess(n_components, n_samples)
-            self.assertGreaterEqual(n_components, 2)
-            if n_components > 2:
-                self.assertLessEqual(
-                    n_components / n_samples,
-                    MAX_UMAP_COMPONENT_RATIO,
-                    f"{n_components} of {n_samples} samples exceeds the ratio cap",
-                )
-
-    def test_large_runs_keep_the_flat_default(self):
-        """The ratio only binds on small extents; country scale is unchanged."""
-        for n_samples in (128, 1155, 4066):
-            self.assertEqual(default_umap_n_components(n_samples), 32)
-
-    def test_seeded_reduction_repeats_at_the_default_on_the_real_fixture(self):
-        """Regression test for a map that changed on every run.
-
-        At the sample archive's 42 geocodes the previous default was
-        min(32, height - 2) = 32, and two seeded reductions of a byte-identical
-        matrix disagreed: five consecutive pipeline runs produced five different
-        embeddings, k of 5, 6 and 10, and five different output.geojson files.
-
-        This uses the real fixture matrix rather than random data on purpose.
-        Synthetic counts of the same shape reduce reproducibly even at 32
-        components, so they cannot stand in for it -- the instability depends on
-        the structure of the real matrix (404 taxa over 42 hexagons, mostly
-        zeros, with duplicate rows), not merely on its dimensions.
-        """
-        bbox = Bbox.from_coordinates(40.0, 50.0, 5.0, 10.0)
-        dc = build_darwin_core_lf(
-            "test/sample-archive/", bounding_box=bbox, limit=1000, scope=None
+        geocodes = [f"8a{i:010d}" for i in range(30)]
+        rows = [
+            {"geocode": g, "taxonId": int(t), "count": int(c)}
+            for g in geocodes
+            for t, c in enumerate(rng.integers(0, 20, 25))
+            if c > 0
+        ]
+        counts = pl.DataFrame(rows).with_columns(
+            pl.col("taxonId").cast(pl.UInt32), pl.col("count").cast(pl.UInt32)
         )
-        geocodes = (
-            build_geocode_no_edges_lf(build_geocode_lf(dc, 9, bounding_box=bbox))
-            .collect()
-            .lazy()
-        )
-        taxa = build_taxonomy_lf(dc, 9, geocodes, bbox).collect().lazy()
-        counts = (
-            build_geocode_taxa_counts_lf(dc, 9, taxa, geocodes, bbox).collect().lazy()
-        )
-        X = build_X(counts, geocodes)
+        present = counts.select("geocode").unique().sort("geocode")
 
-        n_components = default_umap_n_components(X.height)
-        first = reduce_dimensions_umap(X, n_components, 0.5, random_state=0).to_numpy()
-        second = reduce_dimensions_umap(X, n_components, 0.5, random_state=0).to_numpy()
+        first = GeocodeDistanceMatrix.build(counts.lazy(), present.lazy())
+        second = GeocodeDistanceMatrix.build(counts.lazy(), present.lazy())
 
-        np.testing.assert_array_equal(first, second)
+        np.testing.assert_array_equal(first.condensed(), second.condensed())
+        np.testing.assert_array_equal(
+            first.condensed(), pdist(first.features(), metric="braycurtis")
+        )
+
+

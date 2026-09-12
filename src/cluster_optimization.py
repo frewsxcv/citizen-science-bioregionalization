@@ -10,7 +10,6 @@ routinely disagreed with every other metric.
 import logging
 from typing import Tuple
 
-import bioregion_rs
 import polars as pl
 
 from src.dataframes.geocode_cluster_metrics import (
@@ -90,13 +89,15 @@ def optimize_num_clusters(
     silhouette = selected_metrics["silhouette_score"][0]
     logger.info(
         f"Optimal k={optimal_k} selected via {selection_method}:\n"
+        # Measured on Bray-Curtis distances over the counts themselves. It used
+        # to be measured on the UMAP embedding and read far higher -- 0.3897
+        # against 0.0564 for the same partition on the published dataset -- so
+        # figures from before UMAP was removed are not comparable with these.
         f"  Silhouette: {silhouette:.4f}\n"
         f"  Calinski-Harabasz: {selected_metrics['calinski_harabasz_score'][0]:.2f}\n"
         f"  Davies-Bouldin: {selected_metrics['davies_bouldin_score'][0]:.4f}\n"
         f"  Inertia: {selected_metrics['inertia'][0]:.2f}"
     )
-
-    _log_abundance_silhouette(distance_matrix, geocode_cluster_df, optimal_k, silhouette)
 
     # A silhouette this low means the partition is not supported by the data,
     # whatever k was chosen. Say so rather than presenting it as a finding.
@@ -113,60 +114,3 @@ def optimize_num_clusters(
 
 # Alias for backwards compatibility
 optimize_num_clusters_multi_metric = optimize_num_clusters
-
-
-def _log_abundance_silhouette(
-    distance_matrix: GeocodeDistanceMatrix,
-    geocode_cluster_df: pl.DataFrame,
-    optimal_k: int,
-    reported_silhouette: float,
-) -> None:
-    """Log the chosen partition's silhouette in the abundance space too.
-
-    The silhouette reported above is measured on the UMAP embedding, which is
-    the space the clustering happened in but not the space the data lives in.
-    Measured instead on Bray-Curtis distances over the abundances themselves the
-    same partition scores very differently, and always lower. Across six
-    configurations the reported figure ran 3.4x to 24x the abundance-space one,
-    and twice the latter was negative -- geocodes closer on average to a
-    neighbouring cluster than to their own -- while the reported value was 0.0966
-    and 0.4400. The second of those sits above MIN_SILHOUETTE_THRESHOLD, so no
-    warning fired for a partition with no support at all.
-
-    Logged rather than acted on. It is a second reading, offered so the first one
-    is not taken at face value.
-    """
-    abundance_condensed = distance_matrix.abundance_condensed()
-    if abundance_condensed is None:
-        return
-
-    scores = bioregion_rs.build_geocode_silhouette_score(
-        abundance_condensed.tolist(), geocode_cluster_df
-    )
-    at_k = scores.filter(pl.col("num_clusters") == optimal_k)
-    if at_k.height == 0:
-        return
-    mean_score = at_k["silhouette_score"].mean()
-    if mean_score is None:
-        return
-    abundance_silhouette = float(mean_score)  # type: ignore[arg-type]
-
-    # A ratio only means something when both readings share a sign; across a
-    # sign change it is noise dressed as a number.
-    if abundance_silhouette > 1e-9:
-        comparison = f"reported is {reported_silhouette / abundance_silhouette:.1f}x this"
-    else:
-        comparison = f"reported is {reported_silhouette:.4f}, of the opposite sign"
-    logger.info(
-        f"  Silhouette on abundances (Bray-Curtis, pre-UMAP): "
-        f"{abundance_silhouette:.4f} ({comparison}). "
-        f"The reported figure measures the embedding; this one measures the data."
-    )
-    if abundance_silhouette < 0:
-        logger.warning(
-            f"Silhouette on the abundance metric is negative "
-            f"({abundance_silhouette:.4f}) for k={optimal_k}: on average a geocode "
-            f"sits closer to a neighbouring cluster than to its own. This "
-            f"partition is not supported by the composition data, whatever the "
-            f"embedding-space score says."
-        )
