@@ -19,12 +19,13 @@ use crate::to_py;
 /// Mirrors `optimize_num_clusters`. Returns `(optimal_k, metrics_df)`.
 #[pyfunction]
 #[pyo3(signature = (
-    condensed, geocode_cluster_df, elbow_sensitivity = 1.0,
+    condensed, features, geocode_cluster_df, elbow_sensitivity = 1.0,
     weight_silhouette = 0.4, weight_calinski_harabasz = 0.3, weight_davies_bouldin = 0.3,
 ))]
 #[allow(clippy::too_many_arguments)]
 pub fn optimize_num_clusters(
     condensed: Vec<f64>,
+    features: Vec<Vec<f64>>,
     geocode_cluster_df: PyDataFrame,
     elbow_sensitivity: f64,
     weight_silhouette: f64,
@@ -33,6 +34,7 @@ pub fn optimize_num_clusters(
 ) -> PyResult<(u32, PyDataFrame)> {
     let metrics_df: DataFrame = build_geocode_cluster_metrics(
         condensed,
+        features,
         geocode_cluster_df,
         weight_silhouette,
         weight_calinski_harabasz,
