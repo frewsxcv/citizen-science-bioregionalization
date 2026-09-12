@@ -155,6 +155,30 @@ def build_X(
     return scaled_feature_matrix
 
 
+def build_unscaled_X(
+    geocode_taxa_counts_lf: pl.LazyFrame,
+    geocode_lf: pl.LazyFrame,
+) -> pl.DataFrame:
+    """The feature matrix before scaling: raw per-geocode taxon counts.
+
+    `build_X` centres its output with RobustScaler, which on data whose medians
+    are non-zero produces negative entries -- and Bray-Curtis, a ratio of summed
+    absolute differences to summed absolute totals, is only bounded on [0, 1]
+    for non-negative input. On real occurrence data most taxa are absent from
+    most hexagons, so the medians are zero and nothing goes negative; that is
+    luck rather than a guarantee, and the reference metric should not depend on
+    it.
+    """
+    feature_matrix = geocode_taxa_counts_lf.pipe(pivot_taxon_counts).collect(
+        engine="streaming"
+    )
+    feature_matrix = feature_matrix.fill_null(np.uint32(0))
+    assert feature_matrix["geocode"].equals(
+        geocode_lf.collect(engine="streaming")["geocode"]
+    ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
+    return feature_matrix.drop("geocode").cast(pl.Float64)
+
+
 def scale_values(feature_matrix: pl.DataFrame) -> pl.DataFrame:
     """
     Scales the feature matrix using RobustScaler.
@@ -206,7 +230,11 @@ def reduce_dimensions_umap(
         min_dist=min_dist,
         random_state=random_state,
     )
-    return pl.from_numpy(reducer.fit_transform(X.to_numpy()))  # type: ignore
+    # ascontiguousarray for the same reason as in GeocodeDistanceMatrix.build:
+    # Polars returns column-major and UMAP reads rows.
+    return pl.from_numpy(
+        reducer.fit_transform(np.ascontiguousarray(X.to_numpy()))  # type: ignore
+    )
 
 
 class GeocodeDistanceMatrix:
@@ -222,10 +250,17 @@ class GeocodeDistanceMatrix:
 
     _condensed: np.ndarray
     _reduced_features: np.ndarray
+    _abundance_condensed: np.ndarray | None
 
-    def __init__(self, condensed: np.ndarray, reduced_features: np.ndarray):
+    def __init__(
+        self,
+        condensed: np.ndarray,
+        reduced_features: np.ndarray,
+        abundance_condensed: np.ndarray | None = None,
+    ):
         self._condensed = condensed
         self._reduced_features = reduced_features
+        self._abundance_condensed = abundance_condensed
 
     @classmethod
     def build(
@@ -297,13 +332,42 @@ class GeocodeDistanceMatrix:
             lambda: pdist(reduced_feature_matrix, metric="euclidean"),
         )
 
-        return cls(condensed_distances, reduced_feature_matrix.to_numpy())
+        # Distances on the abundances themselves, before any reduction. Nothing
+        # in the pipeline clusters on these; they exist so the reported
+        # silhouette can be checked against one measured in the space the data
+        # actually lives in. The two disagree by a lot -- see
+        # cluster_optimization, which logs both.
+        # ascontiguousarray because Polars returns column-major and pdist walks
+        # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
+        # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
+        # this call went from 586s to 74s.
+        unscaled = np.ascontiguousarray(
+            build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
+        )
+        abundance_condensed = log_action(
+            f"Calculating reference distances (braycurtis) on abundances: {unscaled.shape}",
+            lambda: pdist(unscaled, metric="braycurtis"),
+        )
+
+        return cls(
+            condensed_distances,
+            reduced_feature_matrix.to_numpy(),
+            abundance_condensed,
+        )
 
     def condensed(self) -> np.ndarray:
         return self._condensed
 
     def squareform(self) -> np.ndarray:
         return squareform(self._condensed)
+
+    def abundance_condensed(self) -> np.ndarray | None:
+        """Condensed Bray-Curtis distances on the pre-reduction abundance matrix.
+
+        None when the matrix was constructed directly rather than via `build`,
+        which is how the tests build fixtures.
+        """
+        return self._abundance_condensed
 
     def reduced_features(self) -> np.ndarray:
         """
