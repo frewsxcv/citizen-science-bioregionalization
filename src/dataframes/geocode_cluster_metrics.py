@@ -66,9 +66,14 @@ def build_geocode_cluster_metrics_df(
         DataFrame with validation metrics for all k values tested
 
     Notes:
-        - Silhouette uses precomputed distance matrix directly
-        - Calinski-Harabasz and Davies-Bouldin use the squareform distance matrix
-          as a feature representation (each row = distances to all other points)
+        - Silhouette uses the precomputed distance matrix directly, which is
+          standard for a metric defined on pairwise distances
+        - Calinski-Harabasz and Davies-Bouldin use the UMAP embedding, the space
+          the clustering actually happened in. They used to be handed the
+          squareform distance matrix as a stand-in feature representation (each
+          row = distances to all other points), which made the feature dimension
+          equal to the number of geocodes, so the dispersion ratio moved with
+          dataset size
         - Davies-Bouldin is inverted for normalization (since lower is better)
         - Inertia is computed as within-cluster sum of squared distances
         - Combined score provides a single metric for ranking k values
@@ -87,6 +92,7 @@ def build_geocode_cluster_metrics_df(
 
     df = bioregion_rs.build_geocode_cluster_metrics(
         distance_matrix.condensed().tolist(),
+        distance_matrix.reduced_features().tolist(),
         geocode_cluster_df,
         weights["silhouette"],
         weights["calinski_harabasz"],

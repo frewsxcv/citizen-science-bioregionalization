@@ -23,6 +23,7 @@ use kneed::knee_locator::{
     InterpMethod, KneeLocator, KneeLocatorParams, ValidCurve, ValidDirection,
 };
 use polars::prelude::*;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3_polars::PyDataFrame;
 
@@ -40,12 +41,6 @@ pub(crate) fn condensed_dist(condensed: &[f64], n: usize, i: usize, j: usize) ->
     condensed[lo * n - lo * (lo + 1) / 2 + hi - lo - 1]
 }
 
-/// Row `i` of the square distance matrix (distances from `i` to every point,
-/// including itself as 0.0) — used as a "feature vector" for
-/// Calinski-Harabasz / Davies-Bouldin, matching the Python source.
-fn feature_row(condensed: &[f64], n: usize, i: usize) -> Vec<f64> {
-    (0..n).map(|j| condensed_dist(condensed, n, i, j)).collect()
-}
 
 /// Relabel arbitrary group ids into dense `0..num_groups` indices, ordered by
 /// sorted distinct values (matches sklearn's `LabelEncoder`).
@@ -119,16 +114,21 @@ fn silhouette_score_mean(condensed: &[f64], n: usize, labels: &[usize], num_grou
     total / n as f64
 }
 
-/// Mirrors `calinski_harabasz_score(X=dm_square, labels)`.
-fn calinski_harabasz(condensed: &[f64], n: usize, labels: &[usize], num_groups: usize) -> f64 {
-    let features: Vec<Vec<f64>> = (0..n).map(|i| feature_row(condensed, n, i)).collect();
-    let global_mean = mean_of(&features, &(0..n).collect::<Vec<_>>());
+/// Mirrors `calinski_harabasz_score(X=features, labels)`.
+///
+/// `features` is the UMAP embedding, not the squareform distance matrix. Those
+/// rows were standing in for a feature matrix, which made the feature dimension
+/// equal to the number of geocodes -- so the dispersion ratio moved with dataset
+/// size -- and measured a different space from the one Ward clustered in.
+fn calinski_harabasz(features: &[Vec<f64>], labels: &[usize], num_groups: usize) -> f64 {
+    let n = features.len();
+    let global_mean = mean_of(features, &(0..n).collect::<Vec<_>>());
 
     let mut extra_disp = 0.0;
     let mut intra_disp = 0.0;
     for k in 0..num_groups {
         let idx = cluster_indices(labels, k);
-        let mean_k = mean_of(&features, &idx);
+        let mean_k = mean_of(features, &idx);
         extra_disp += idx.len() as f64 * squared_dist(&mean_k, &global_mean);
         for &i in &idx {
             intra_disp += squared_dist(&features[i], &mean_k);
@@ -142,15 +142,15 @@ fn calinski_harabasz(condensed: &[f64], n: usize, labels: &[usize], num_groups: 
     }
 }
 
-/// Mirrors `davies_bouldin_score(X=dm_square, labels)`.
-fn davies_bouldin(condensed: &[f64], n: usize, labels: &[usize], num_groups: usize) -> f64 {
-    let features: Vec<Vec<f64>> = (0..n).map(|i| feature_row(condensed, n, i)).collect();
-
+/// Mirrors `davies_bouldin_score(X=features, labels)`.
+///
+/// Takes the UMAP embedding for the same reason as `calinski_harabasz`.
+fn davies_bouldin(features: &[Vec<f64>], labels: &[usize], num_groups: usize) -> f64 {
     let mut centroids: Vec<Vec<f64>> = Vec::with_capacity(num_groups);
     let mut intra_dists = vec![0.0; num_groups];
     for k in 0..num_groups {
         let idx = cluster_indices(labels, k);
-        let centroid = mean_of(&features, &idx);
+        let centroid = mean_of(features, &idx);
         intra_dists[k] = idx
             .iter()
             .map(|&i| euclidean_dist(&features[i], &centroid))
@@ -230,11 +230,12 @@ fn normalize_min_max(values: &[f64], invert: bool) -> Vec<f64> {
 /// since building it involves UMAP (Phase 3, stays in Python).
 #[pyfunction]
 #[pyo3(signature = (
-    condensed, geocode_cluster_df,
+    condensed, features, geocode_cluster_df,
     weight_silhouette = 0.4, weight_calinski_harabasz = 0.3, weight_davies_bouldin = 0.3,
 ))]
 pub fn build_geocode_cluster_metrics(
     condensed: Vec<f64>,
+    features: Vec<Vec<f64>>,
     geocode_cluster_df: PyDataFrame,
     weight_silhouette: f64,
     weight_calinski_harabasz: f64,
@@ -250,6 +251,18 @@ pub fn build_geocode_cluster_metrics(
 
     let n_squared_2 = 1.0 + 8.0 * condensed.len() as f64;
     let n = ((1.0 + n_squared_2.sqrt()) / 2.0).round() as usize;
+
+    // The two inputs describe the same geocodes in the same order; a mismatch
+    // means a caller paired a distance matrix with someone else's embedding,
+    // which would otherwise surface as quietly wrong metrics rather than an
+    // error.
+    if features.len() != n {
+        return Err(PyValueError::new_err(format!(
+            "feature matrix has {} rows but the condensed distance matrix implies {} geocodes",
+            features.len(),
+            n
+        )));
+    }
 
     let num_clusters_ca = geocode_cluster_df
         .column("num_clusters")
@@ -287,9 +300,12 @@ pub fn build_geocode_cluster_metrics(
             .collect();
         let (labels, num_groups) = dense_labels(&raw_labels);
 
+        // Silhouette stays on the precomputed distances, which is standard and
+        // correct. Only the two metrics that genuinely want a feature matrix
+        // are moved onto the embedding.
         sil.push(silhouette_score_mean(&condensed, n, &labels, num_groups));
-        ch.push(calinski_harabasz(&condensed, n, &labels, num_groups));
-        db.push(davies_bouldin(&condensed, n, &labels, num_groups));
+        ch.push(calinski_harabasz(&features, &labels, num_groups));
+        db.push(davies_bouldin(&features, &labels, num_groups));
         ine.push(inertia(&condensed, n, &labels, num_groups));
     }
 
@@ -386,20 +402,39 @@ mod tests {
     #[test]
     fn davies_bouldin_matches_sklearn_docstring_example() {
         // sklearn.metrics.davies_bouldin_score([[0,1],[1,1],[3,4]], [0,0,1])
-        // == 0.12803687993289598 (verified directly against sklearn while
-        // porting). Reproduced here using the 2D points directly as
-        // "features" (n=3, no distance-matrix indirection needed to
-        // sanity-check the formula).
-        let features = [vec![0.0, 1.0], vec![1.0, 1.0], vec![3.0, 4.0]];
-        let centroid0 = mean_of(&features, &[0, 1]);
-        let centroid1 = mean_of(&features, &[2]);
-        let intra0 = (euclidean_dist(&features[0], &centroid0)
-            + euclidean_dist(&features[1], &centroid0))
-            / 2.0;
-        let intra1 = 0.0;
-        let cd = euclidean_dist(&centroid0, &centroid1);
-        let expected = ((intra0 + intra1) / cd + (intra1 + intra0) / cd) / 2.0;
-        assert!((expected - 0.12803687993289598).abs() < 1e-9);
+        // == 0.12803687993289598. Calls the real function now that it takes a
+        // feature matrix; it previously took a condensed distance matrix, so
+        // this test could only re-derive the formula by hand and never
+        // exercised the code path.
+        let features = vec![vec![0.0, 1.0], vec![1.0, 1.0], vec![3.0, 4.0]];
+        let got = davies_bouldin(&features, &[0, 0, 1], 2);
+        assert!((got - 0.12803687993289598).abs() < 1e-9, "got {got}");
+    }
+
+    #[test]
+    fn calinski_harabasz_matches_sklearn() {
+        // sklearn.metrics.calinski_harabasz_score([[0,1],[1,1],[3,4]], [0,0,1])
+        // == 20.333333333333336
+        let features = vec![vec![0.0, 1.0], vec![1.0, 1.0], vec![3.0, 4.0]];
+        let got = calinski_harabasz(&features, &[0, 0, 1], 2);
+        assert!((got - 20.333333333333336).abs() < 1e-9, "got {got}");
+    }
+
+    #[test]
+    fn metrics_match_sklearn_on_two_well_separated_clusters() {
+        let features = vec![
+            vec![1.0, 2.0],
+            vec![1.0, 4.0],
+            vec![1.0, 0.0],
+            vec![10.0, 2.0],
+            vec![10.0, 4.0],
+            vec![10.0, 0.0],
+        ];
+        let labels = [0, 0, 0, 1, 1, 1];
+        let db = davies_bouldin(&features, &labels, 2);
+        let ch = calinski_harabasz(&features, &labels, 2);
+        assert!((db - 0.2962962962962963).abs() < 1e-9, "db {db}");
+        assert!((ch - 30.375).abs() < 1e-9, "ch {ch}");
     }
 
     #[test]

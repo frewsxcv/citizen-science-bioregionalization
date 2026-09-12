@@ -95,6 +95,7 @@ def build_permanova_results(
 ) -> pl.DataFrame: ...
 def build_geocode_cluster_metrics(
     condensed: list[float],
+    features: list[list[float]],
     geocode_cluster_df: pl.DataFrame,
     weight_silhouette: float = 0.4,
     weight_calinski_harabasz: float = 0.3,
@@ -119,6 +120,7 @@ def build_geocode_silhouette_score(
 ) -> pl.DataFrame: ...
 def optimize_num_clusters(
     condensed: list[float],
+    features: list[list[float]],
     geocode_cluster_df: pl.DataFrame,
     elbow_sensitivity: float = 1.0,
     weight_silhouette: float = 0.4,
