@@ -51,8 +51,12 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
 - `--min-hex-records=N`: Drop hexagons holding fewer than N occurrence records.
-  Off by default. A hexagon observed once yields a composition vector of a single
-  taxon, which says more about survey effort than about what lives there.
+  Omit it and a floor is derived from the data — a tenth of what the median
+  hexagon holds, never below 20. Pass `--no-hex-floor` to keep every hexagon.
+  A hexagon observed once yields a composition vector of a single taxon, which
+  says more about survey effort than about what lives there. See
+  [Why there is a sampling floor](#why-there-is-a-sampling-floor).
+- `--no-hex-floor`: Keep every hexagon, however sparsely surveyed.
 - `--terrestrial-only`: Drop hexagons whose centre falls in the sea. Country-code
   filtering includes the maritime zone, so coastal clusters can otherwise be driven
   by fish and seabirds. Uses the checked-in Natural Earth 1:50m coastline, which is
@@ -124,6 +128,44 @@ Two consequences worth knowing:
   `Testudines` are backbone *classes* rather than orders, and `Reptilia` and
   `Actinopterygii` are absent entirely. Scope to what the backbone calls things,
   not to what a field guide does.
+
+
+### Why there is a sampling floor
+
+A hexagon with three records has a three-taxon composition vector that is
+maximally distant from everything else, so Ward peels it off as a cluster of its
+own. On a country-scale run that is not hypothetical: hiding 1% of Colombia's
+records turned a partition of 1538/1545/790/193 hexagons into 2460/1604/1/1 —
+two of the four regions became single hexagons.
+
+Measured as the mean adjusted Rand index between a partition and the same
+partition after hiding 5% of observed records, three draws each, at k=4:
+
+| region | median records/hexagon | no floor | fixed 50 | derived |
+|---|---|---|---|---|
+| Alps / Central Europe | 250 | 0.975 | 0.926 | **0.984** |
+| California | 25 | −0.000 | 0.911 | 0.903 |
+| SE Australia | 163 | −0.001 | 0.619 | **0.716** |
+| Colombia | 340 | −0.000 | 0.509 | **0.517** |
+
+Without a floor, three of the four regions collapse to chance agreement — the
+partition carries no information that survives a 5% perturbation. The Alps do
+not, because they are evenly surveyed and have no tail of sparse hexagons, which
+is also why a fixed floor of 50 *degrades* them: it discards data that was doing
+no harm.
+
+Deriving the floor from each region's own median handles both cases, and keeps
+more hexagons than the fixed floor in every region measured (Colombia 3000
+against 2860; California 1367 against 891). The absolute term matters where the
+whole extent is thin: California's median hexagon holds 25 records, so a purely
+relative floor would come out at 2 and filter nothing.
+
+Two caveats on those numbers. Only Colombia is a full-density extract; the other
+three are 8.4% subsamples of the GBIF snapshot, so their hexagons are roughly
+twelve times sparser than a complete extract would be, and the absolute
+thresholds do not transfer even though the pattern does. And the measurement is
+noisy — the same Colombia configuration scored 0.934 on one draw and 0.319 on
+another, which is why the table reports means over three.
 
 ### Working from a local country cache
 

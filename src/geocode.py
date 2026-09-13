@@ -171,3 +171,54 @@ def filter_terrestrial_geocodes_lf(
         with_geocode.join(terrestrial.lazy(), on="_geocode", how="semi")
         .drop("_geocode")
     )
+
+
+def adaptive_min_hex_records(
+    lf: pl.LazyFrame,
+    geocode_precision: int,
+    absolute_floor: int,
+    median_fraction: float,
+) -> int:
+    """Derive a sampling floor from how densely this region was surveyed.
+
+    A fixed floor cannot serve every extent. Measured across four regions, a
+    flat 50 records repaired Colombia, California and southeast Australia but
+    made the Alps worse: the Alps are evenly surveyed, have no tail of
+    under-sampled hexagons, and a floor there only discards data. Scaling with
+    the region's own median handles both, and keeps more hexagons than the flat
+    floor everywhere it was measured.
+
+    The absolute term matters where the whole extent is thin. California's
+    median hexagon held 25 records, so a purely relative floor came out at 2 and
+    filtered nothing, leaving the partition at chance agreement under
+    perturbation.
+
+    Args:
+        lf: Occurrence records with decimalLatitude/decimalLongitude.
+        geocode_precision: H3 resolution; must match the run's precision.
+        absolute_floor: Never return less than this.
+        median_fraction: Share of the median hexagon's record count to require.
+
+    Returns:
+        The record count a hexagon must reach to be kept.
+    """
+    per_hexagon = (
+        lf.select(
+            polars_h3.latlng_to_cell(
+                "decimalLatitude",
+                "decimalLongitude",
+                resolution=geocode_precision,
+                return_dtype=pl.UInt64,
+            ).alias("_geocode")
+        )
+        .group_by("_geocode")
+        .len()
+        .collect(engine="streaming")["len"]
+    )
+    median = per_hexagon.median()
+    if median is None:
+        return absolute_floor
+    return max(
+        absolute_floor,
+        int(round(median_fraction * float(median))),  # type: ignore[arg-type]
+    )
