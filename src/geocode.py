@@ -171,3 +171,62 @@ def filter_terrestrial_geocodes_lf(
         with_geocode.join(terrestrial.lazy(), on="_geocode", how="semi")
         .drop("_geocode")
     )
+
+
+def adaptive_min_hex_records(
+    lf: pl.LazyFrame,
+    geocode_precision: int,
+    absolute_floor: int,
+    median_fraction: float,
+    ceiling: int,
+) -> int:
+    """Derive a sampling floor from how densely this region was surveyed.
+
+    A fixed floor cannot serve every extent. Measured across four regions, a
+    flat 50 records repaired Colombia, California and southeast Australia but
+    made the Alps worse: the Alps are evenly surveyed, have no tail of
+    under-sampled hexagons, and a floor there only discards data. Scaling with
+    the region's own median handles both, and keeps more hexagons than the flat
+    floor everywhere it was measured.
+
+    The absolute term matters where the whole extent is thin. California's
+    median hexagon held 25 records, so a purely relative floor came out at 2 and
+    filtered nothing, leaving the partition at chance agreement under
+    perturbation.
+
+    The ceiling matters at the other end, and was found the hard way: the
+    published East Coast run is at H3 resolution 4, where a hexagon covers seven
+    times the area of a resolution-5 one, and its median holds around 73,000
+    records. A tenth of that is 7,274 -- a "sparse hexagon" filter discarding
+    hexagons with thousands of observations, which is not what this is for.
+    Every region measured while choosing the rule derived a floor between 20 and
+    34, so the ceiling bounds the failure without touching any of them.
+
+    Args:
+        lf: Occurrence records with decimalLatitude/decimalLongitude.
+        geocode_precision: H3 resolution; must match the run's precision.
+        absolute_floor: Never return less than this.
+        median_fraction: Share of the median hexagon's record count to require.
+        ceiling: Never return more than this, however dense the region.
+
+    Returns:
+        The record count a hexagon must reach to be kept.
+    """
+    per_hexagon = (
+        lf.select(
+            polars_h3.latlng_to_cell(
+                "decimalLatitude",
+                "decimalLongitude",
+                resolution=geocode_precision,
+                return_dtype=pl.UInt64,
+            ).alias("_geocode")
+        )
+        .group_by("_geocode")
+        .len()
+        .collect(engine="streaming")["len"]
+    )
+    median = per_hexagon.median()
+    if median is None:
+        return absolute_floor
+    scaled = int(round(median_fraction * float(median)))  # type: ignore[arg-type]
+    return min(ceiling, max(absolute_floor, scaled))

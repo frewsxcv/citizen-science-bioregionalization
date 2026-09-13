@@ -117,8 +117,10 @@ def _(cli_args, defaults, mo):
     )
     min_hex_records_ui = mo.ui.number(
         value=cli_args.get("min-hex-records", defaults.MIN_HEX_RECORDS or 0),
-        label="Minimum records per hexagon (0 disables)",
+        label="Minimum records per hexagon (0 derives one from the data)",
     )
+    # Opting out entirely, as distinct from pinning a value.
+    no_hex_floor = "no-hex-floor" in cli_args
     seed_ui = mo.ui.number(
         value=cli_args.get("seed", defaults.RANDOM_SEED if defaults.RANDOM_SEED is not None else 0),
         label="Random seed",
@@ -157,6 +159,7 @@ def _(cli_args, defaults, mo):
         seed_ui,
         taxon_scope_ui,
         terrestrial_only,
+        no_hex_floor,
     )
 
 
@@ -322,6 +325,7 @@ def _(
     seed_ui,
     taxon_scope_ui,
     terrestrial_only,
+    no_hex_floor,
 ):
     from src.taxon_scope import parse_scope
     from src.types import Bbox
@@ -376,6 +380,7 @@ def _(
             {"variable": "random_seed", "value": random_seed},
             {"variable": "min_hex_records", "value": min_hex_records},
             {"variable": "terrestrial_only", "value": terrestrial_only},
+            {"variable": "no_hex_floor", "value": no_hex_floor},
         ],
     )
 
@@ -404,6 +409,7 @@ def _(
         random_seed,
         taxon_scope,
         terrestrial_only,
+        no_hex_floor,
     )
 
 
@@ -440,6 +446,7 @@ def _(mo):
 @app.cell
 def _(
     bounding_box,
+    defaults,
     geocode_precision,
     limit_results,
     materialize_parquet,
@@ -447,9 +454,15 @@ def _(
     parquet_source_path,
     taxon_scope,
     terrestrial_only,
+    no_hex_floor,
 ):
     from src.dataframes.darwin_core import build_darwin_core_lf
-    from src.geocode import filter_sparse_geocodes_lf, filter_terrestrial_geocodes_lf
+    from src.geocode import (
+        adaptive_min_hex_records,
+        filter_sparse_geocodes_lf,
+        filter_terrestrial_geocodes_lf,
+    )
+    from src.logging import logger
 
     darwin_core_lf = build_darwin_core_lf(
         source_path=parquet_source_path,
@@ -464,10 +477,6 @@ def _(
         darwin_core_lf = filter_terrestrial_geocodes_lf(
             darwin_core_lf, geocode_precision
         )
-    if min_hex_records is not None:
-        darwin_core_lf = filter_sparse_geocodes_lf(
-            darwin_core_lf, geocode_precision, min_hex_records
-        )
 
     # Spill once, here, rather than letting three downstream stages each re-read
     # the source. Snapshot scans cannot be pruned, so every consumer of this
@@ -476,6 +485,35 @@ def _(
     # was roughly 17 of the notebook's 28 minutes, against about one minute for
     # all the clustering downstream of it.
     darwin_core_lf = materialize_parquet(darwin_core_lf, cache_key="DarwinCoreSchema")
+
+    # The sampling floor is derived and applied *after* the spill, deliberately.
+    # Both steps read every row -- one to find the median hexagon, one to drop
+    # the hexagons below it -- and doing that upstream put two more full passes
+    # over the source in front of the spill that exists to prevent exactly that.
+    # On the published run it took the job from about 30 minutes to 55 and then
+    # the runner was killed for memory. Downstream of the spill both passes read
+    # a local parquet.
+    #
+    # Without a floor, Ward peels under-sampled hexagons off as singleton
+    # clusters and the partition stops surviving perturbation: hiding 5% of
+    # records took three of four test regions to chance agreement.
+    if not no_hex_floor:
+        floor = min_hex_records
+        if floor is None:
+            floor = adaptive_min_hex_records(
+                darwin_core_lf,
+                geocode_precision,
+                defaults.MIN_HEX_RECORDS_ABSOLUTE_FLOOR,
+                defaults.MIN_HEX_RECORDS_MEDIAN_FRACTION,
+                defaults.MIN_HEX_RECORDS_CEILING,
+            )
+            logger.info(
+                f"Sampling floor derived from the data: {floor} records per hexagon"
+            )
+        darwin_core_lf = materialize_parquet(
+            filter_sparse_geocodes_lf(darwin_core_lf, geocode_precision, floor),
+            cache_key="DarwinCoreFilteredSchema",
+        )
     return (darwin_core_lf,)
 
 
