@@ -477,10 +477,26 @@ def _(
         darwin_core_lf = filter_terrestrial_geocodes_lf(
             darwin_core_lf, geocode_precision
         )
-    # A sampling floor, derived from this region's own density unless pinned.
-    # Without one, Ward peels under-sampled hexagons off as singleton clusters
-    # and the partition stops surviving perturbation: hiding 5% of records took
-    # three of four test regions to chance agreement.
+
+    # Spill once, here, rather than letting three downstream stages each re-read
+    # the source. Snapshot scans cannot be pruned, so every consumer of this
+    # frame -- build_geocode_lf, build_taxonomy_lf, build_geocode_taxa_counts_lf
+    # -- otherwise pays for a full pass. On the published East Coast run that
+    # was roughly 17 of the notebook's 28 minutes, against about one minute for
+    # all the clustering downstream of it.
+    darwin_core_lf = materialize_parquet(darwin_core_lf, cache_key="DarwinCoreSchema")
+
+    # The sampling floor is derived and applied *after* the spill, deliberately.
+    # Both steps read every row -- one to find the median hexagon, one to drop
+    # the hexagons below it -- and doing that upstream put two more full passes
+    # over the source in front of the spill that exists to prevent exactly that.
+    # On the published run it took the job from about 30 minutes to 55 and then
+    # the runner was killed for memory. Downstream of the spill both passes read
+    # a local parquet.
+    #
+    # Without a floor, Ward peels under-sampled hexagons off as singleton
+    # clusters and the partition stops surviving perturbation: hiding 5% of
+    # records took three of four test regions to chance agreement.
     if not no_hex_floor:
         floor = min_hex_records
         if floor is None:
@@ -494,17 +510,10 @@ def _(
             logger.info(
                 f"Sampling floor derived from the data: {floor} records per hexagon"
             )
-        darwin_core_lf = filter_sparse_geocodes_lf(
-            darwin_core_lf, geocode_precision, floor
+        darwin_core_lf = materialize_parquet(
+            filter_sparse_geocodes_lf(darwin_core_lf, geocode_precision, floor),
+            cache_key="DarwinCoreFilteredSchema",
         )
-
-    # Spill once, here, rather than letting three downstream stages each re-read
-    # the source. Snapshot scans cannot be pruned, so every consumer of this
-    # frame -- build_geocode_lf, build_taxonomy_lf, build_geocode_taxa_counts_lf
-    # -- otherwise pays for a full pass. On the published East Coast run that
-    # was roughly 17 of the notebook's 28 minutes, against about one minute for
-    # all the clustering downstream of it.
-    darwin_core_lf = materialize_parquet(darwin_core_lf, cache_key="DarwinCoreSchema")
     return (darwin_core_lf,)
 
 
