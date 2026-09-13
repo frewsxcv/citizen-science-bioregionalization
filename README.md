@@ -52,7 +52,8 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
 - `--min-hex-records=N`: Drop hexagons holding fewer than N occurrence records.
   Omit it and a floor is derived from the data — a tenth of what the median
-  hexagon holds, never below 20. Pass `--no-hex-floor` to keep every hexagon.
+  hexagon holds, bounded to between 20 and 100. Pass `--no-hex-floor` to keep
+  every hexagon.
   A hexagon observed once yields a composition vector of a single taxon, which
   says more about survey effort than about what lives there. See
   [Why there is a sampling floor](#why-there-is-a-sampling-floor).
@@ -159,6 +160,14 @@ more hexagons than the fixed floor in every region measured (Colombia 3000
 against 2860; California 1367 against 891). The absolute term matters where the
 whole extent is thin: California's median hexagon holds 25 records, so a purely
 relative floor would come out at 2 and filter nothing.
+
+The derived floor is bounded at both ends. The lower bound is for thin extents,
+as above. The upper bound is for dense ones, and was found in CI rather than in
+testing: the published run is at H3 resolution 4, where a hexagon covers seven
+times the area of a resolution-5 one and its median holds around 73,000 records.
+A tenth of that derived a floor of 7,274 — discarding hexagons with thousands of
+observations, which is not what the floor is for. All four regions above are
+resolution 5 and derive between 20 and 34, so none of them exposed it.
 
 Two caveats on those numbers. Only Colombia is a full-density extract; the other
 three are 8.4% subsamples of the GBIF snapshot, so their hexagons are roughly

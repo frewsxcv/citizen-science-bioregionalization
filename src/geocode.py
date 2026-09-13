@@ -178,6 +178,7 @@ def adaptive_min_hex_records(
     geocode_precision: int,
     absolute_floor: int,
     median_fraction: float,
+    ceiling: int,
 ) -> int:
     """Derive a sampling floor from how densely this region was surveyed.
 
@@ -193,11 +194,20 @@ def adaptive_min_hex_records(
     filtered nothing, leaving the partition at chance agreement under
     perturbation.
 
+    The ceiling matters at the other end, and was found the hard way: the
+    published East Coast run is at H3 resolution 4, where a hexagon covers seven
+    times the area of a resolution-5 one, and its median holds around 73,000
+    records. A tenth of that is 7,274 -- a "sparse hexagon" filter discarding
+    hexagons with thousands of observations, which is not what this is for.
+    Every region measured while choosing the rule derived a floor between 20 and
+    34, so the ceiling bounds the failure without touching any of them.
+
     Args:
         lf: Occurrence records with decimalLatitude/decimalLongitude.
         geocode_precision: H3 resolution; must match the run's precision.
         absolute_floor: Never return less than this.
         median_fraction: Share of the median hexagon's record count to require.
+        ceiling: Never return more than this, however dense the region.
 
     Returns:
         The record count a hexagon must reach to be kept.
@@ -218,7 +228,5 @@ def adaptive_min_hex_records(
     median = per_hexagon.median()
     if median is None:
         return absolute_floor
-    return max(
-        absolute_floor,
-        int(round(median_fraction * float(median))),  # type: ignore[arg-type]
-    )
+    scaled = int(round(median_fraction * float(median)))  # type: ignore[arg-type]
+    return min(ceiling, max(absolute_floor, scaled))

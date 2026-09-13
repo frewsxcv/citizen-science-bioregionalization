@@ -64,5 +64,11 @@ MIN_HEX_RECORDS: int | None = None
 # fixed 50 repairs those three but degrades the Alps, which are evenly sampled
 # and need no floor. Deriving it from each region's own median does both, and
 # discards fewer hexagons everywhere.
+# The ceiling exists because the relative term has no natural upper bound. The
+# published run is at H3 resolution 4, whose median hexagon holds roughly 73,000
+# records, and a tenth of that derived a floor of 7,274 -- discarding hexagons
+# with thousands of observations. Every region measured above derived between 20
+# and 34, so 100 bounds that failure without changing any measured result.
 MIN_HEX_RECORDS_ABSOLUTE_FLOOR = 20
 MIN_HEX_RECORDS_MEDIAN_FRACTION = 0.10
+MIN_HEX_RECORDS_CEILING = 100

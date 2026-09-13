@@ -109,7 +109,7 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
     def test_scales_with_the_median_when_sampling_is_dense(self):
         floor = adaptive_min_hex_records(
             self._records([1000, 800, 1200, 900]), 5, absolute_floor=20,
-            median_fraction=0.10,
+            median_fraction=0.10, ceiling=100,
         )
         self.assertEqual(floor, 95)  # median 950, a tenth of it
 
@@ -118,7 +118,7 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
         floor came out at 2 and filtered nothing."""
         floor = adaptive_min_hex_records(
             self._records([25, 30, 20, 25]), 5, absolute_floor=20,
-            median_fraction=0.10,
+            median_fraction=0.10, ceiling=100,
         )
         self.assertEqual(floor, 20)
 
@@ -129,7 +129,7 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
         dense = [500] * 10
         tail = [1] * 9
         floor = adaptive_min_hex_records(
-            self._records(dense + tail), 5, absolute_floor=20, median_fraction=0.10,
+            self._records(dense + tail), 5, absolute_floor=20, median_fraction=0.10, ceiling=100,
         )
         self.assertEqual(floor, 50)
 
@@ -139,6 +139,20 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
             schema={"decimalLatitude": pl.Float64, "decimalLongitude": pl.Float64},
         ).lazy()
         self.assertEqual(
-            adaptive_min_hex_records(empty, 5, absolute_floor=20, median_fraction=0.10),
+            adaptive_min_hex_records(
+                empty, 5, absolute_floor=20, median_fraction=0.10, ceiling=100
+            ),
             20,
         )
+
+    def test_ceiling_caps_a_densely_surveyed_region(self):
+        """Found in CI, not in testing. The published run is at H3 resolution 4,
+        whose median hexagon holds around 73,000 records; a tenth of that derived
+        a floor of 7,274, which discards hexagons holding thousands of
+        observations. All four regions used to choose the rule were resolution 5
+        and derived 20 to 34, so none of them exposed it."""
+        floor = adaptive_min_hex_records(
+            self._records([73000, 70000, 75000]), 4, absolute_floor=20,
+            median_fraction=0.10, ceiling=100,
+        )
+        self.assertEqual(floor, 100)

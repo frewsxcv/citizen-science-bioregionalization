@@ -489,6 +489,7 @@ def _(
                 geocode_precision,
                 defaults.MIN_HEX_RECORDS_ABSOLUTE_FLOOR,
                 defaults.MIN_HEX_RECORDS_MEDIAN_FRACTION,
+                defaults.MIN_HEX_RECORDS_CEILING,
             )
             logger.info(
                 f"Sampling floor derived from the data: {floor} records per hexagon"
