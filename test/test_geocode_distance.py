@@ -112,3 +112,110 @@ class TestAbundanceReferenceDistances(unittest.TestCase):
         """Test fixtures build the matrix directly; that must stay possible."""
         matrix = GeocodeDistanceMatrix(np.array([1.0]), np.zeros((2, 2)))
         self.assertIsNone(matrix.abundance_condensed())
+
+
+class TestCompositionMetric(unittest.TestCase):
+    """Presence reduces each count to whether the taxon was seen at all.
+
+    Counts are not trustworthy here: individualCount has a median of 2 and a
+    maximum of 35,182,100, and 19% of records carry none and are filled with 1.
+    Measured at k=4 against Bray-Curtis over raw counts, presence raised
+    explained variance from 0.0351 to 0.0591 on Colombia and 0.0468 to 0.1114 on
+    southeast Australia, with the best separation of seven representations
+    tried.
+    """
+
+    def _counts(self):
+        rng = np.random.default_rng(0)
+        geocodes = [f"8a{i:010d}" for i in range(30)]
+        rows = []
+        for g in geocodes:
+            for t, c in enumerate(rng.integers(1, 30, 25)):
+                rows.append({"geocode": g, "taxonId": int(t), "count": int(c)})
+        # One cell carries an absurd count, as the real data does: individualCount
+        # has a median of 2 and a maximum of 35,182,100.
+        rows[0]["count"] = 35_000_000
+        counts = pl.DataFrame(rows).with_columns(
+            pl.col("taxonId").cast(pl.UInt32), pl.col("count").cast(pl.UInt32)
+        )
+        return counts, counts.select("geocode").unique().sort("geocode")
+
+    def _reference(self, counts, present, metric):
+        """The pre-UMAP distances, which are taken over the composition vectors
+        and so reveal what the metric did without storing the matrix itself."""
+        matrix = GeocodeDistanceMatrix.build(
+            counts.lazy(), present.lazy(), metric=metric
+        )
+        ref = matrix.abundance_condensed()
+        assert ref is not None
+        return ref
+
+    def test_presence_measures_sorensen_over_bits(self):
+        """Bray-Curtis over presence bits is Sorensen, so the reference
+        distances must equal those from an explicitly binarised matrix."""
+        counts, present = self._counts()
+        wide = (
+            counts.pivot(on="taxonId", index="geocode", values="count")
+            .sort("geocode")
+            .drop("geocode")
+            .fill_null(0)
+        )
+        binary = (wide.to_numpy() > 0).astype(np.float64)
+        np.testing.assert_allclose(
+            self._reference(counts, present, "presence"),
+            pdist(binary, metric="braycurtis"),
+            rtol=1e-9,
+            atol=1e-9,
+        )
+
+    def test_presence_distances_stay_within_the_bound(self):
+        """RobustScaler on a binary column whose median is 1 maps it to 0 and
+        -1, handing Bray-Curtis the negatives it is not defined for. Presence
+        skips scaling, so the distances stay on [0, 1]."""
+        counts, present = self._counts()
+        ref = self._reference(counts, present, "presence")
+        self.assertGreaterEqual(ref.min(), 0.0)
+        self.assertLessEqual(ref.max(), 1.0)
+
+    def test_presence_ignores_an_absurd_count(self):
+        """A single nine-million record must not move a presence vector at all."""
+        counts, present = self._counts()
+        inflated = counts.with_columns(
+            pl.when(pl.int_range(pl.len()) == 1)
+            .then(pl.lit(9_000_000, dtype=pl.UInt32))
+            .otherwise(pl.col("count"))
+            .alias("count")
+        )
+        np.testing.assert_array_equal(
+            self._reference(counts, present, "presence"),
+            self._reference(inflated, present, "presence"),
+        )
+
+    def test_abundance_does_not_ignore_it(self):
+        """The same spike must move the abundance vectors, or the two metrics
+        are not actually different."""
+        counts, present = self._counts()
+        inflated = counts.with_columns(
+            pl.when(pl.int_range(pl.len()) == 1)
+            .then(pl.lit(9_000_000, dtype=pl.UInt32))
+            .otherwise(pl.col("count"))
+            .alias("count")
+        )
+        self.assertFalse(
+            np.array_equal(
+                self._reference(counts, present, "abundance"),
+                self._reference(inflated, present, "abundance"),
+            )
+        )
+
+    def test_presence_is_the_default(self):
+        from src import defaults
+
+        self.assertEqual(defaults.COMPOSITION_METRIC, "presence")
+        counts, present = self._counts()
+        np.testing.assert_array_equal(
+            self._reference(counts, present, "presence"),
+            GeocodeDistanceMatrix.build(
+                counts.lazy(), present.lazy()
+            ).abundance_condensed(),
+        )

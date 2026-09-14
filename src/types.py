@@ -6,6 +6,19 @@ Geocode: TypeAlias = str
 
 TaxonRank: TypeAlias = Literal["kingdom", "phylum", "class", "order", "family", "genus"]
 
+#: How a hexagon's composition is represented before distances are taken.
+#:
+#: "presence" records only whether a taxon was seen, "abundance" keeps the
+#: counts. Presence is the default because the counts are not trustworthy:
+#: `individualCount` has a median of 2 and a maximum of 35,182,100, and 19% of
+#: records carry none at all and are filled with 1. A single record claiming 35
+#: million individuals can dominate a hexagon's profile, which is how a moss
+#: reached the top of a Colombian region's indicator taxa with 140 million.
+#:
+#: Bray-Curtis over presence bits is Sorensen dissimilarity, so the metric
+#: itself does not change -- only what it is given.
+CompositionMetric: TypeAlias = Literal["presence", "abundance"]
+
 #: Ranks that can be used to scope a run, coarsest first.
 TAXON_RANKS: tuple[TaxonRank, ...] = get_args(TaxonRank)
 

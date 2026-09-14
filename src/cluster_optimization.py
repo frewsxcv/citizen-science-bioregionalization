@@ -121,11 +121,12 @@ def _log_abundance_silhouette(
     optimal_k: int,
     reported_silhouette: float,
 ) -> None:
-    """Log the chosen partition's silhouette in the abundance space too.
+    """Log the chosen partition's silhouette in the composition space too.
 
     The silhouette reported above is measured on the UMAP embedding, which is
     the space the clustering happened in but not the space the data lives in.
-    Measured instead on Bray-Curtis distances over the abundances themselves the
+    Measured instead on Bray-Curtis distances over the composition vectors --
+    presence bits or counts, whichever the run used -- the
     same partition scores very differently, and always lower. Across six
     configurations the reported figure ran 3.4x to 24x the abundance-space one,
     and twice the latter was negative -- geocodes closer on average to a
@@ -158,7 +159,7 @@ def _log_abundance_silhouette(
     else:
         comparison = f"reported is {reported_silhouette:.4f}, of the opposite sign"
     logger.info(
-        f"  Silhouette on abundances (Bray-Curtis, pre-UMAP): "
+        f"  Silhouette in the composition space (pre-UMAP): "
         f"{abundance_silhouette:.4f} ({comparison}). "
         f"The reported figure measures the embedding; this one measures the data."
     )

@@ -5,6 +5,7 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import RobustScaler
 
 from src.dataframes import geocode_taxa_counts
+from src.types import CompositionMetric
 from src.logging import log_action, log_array_digest, logger
 
 # Target dimensionality for the UMAP reduction.
@@ -270,15 +271,36 @@ class GeocodeDistanceMatrix:
         umap_n_components: int | None = None,
         umap_min_dist: float = 0.5,
         random_state: int | None = None,
+        metric: CompositionMetric = "presence",
     ) -> "GeocodeDistanceMatrix":
         """
         Args:
             umap_n_components: Target dimensionality. Defaults to
                 DEFAULT_UMAP_N_COMPONENTS, clamped to fit the sample count.
             random_state: Seed for UMAP. See reduce_dimensions_umap.
+            metric: "presence" reduces each count to whether the taxon was seen
+                at all; "abundance" keeps the counts. See CompositionMetric.
         """
-        # Build the initial scaled feature matrix (rows=geocodes, columns=scaled taxon counts)
-        scaled_feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
+        if metric == "presence":
+            # Presence deliberately skips RobustScaler. Scaling a binary column
+            # is not merely pointless: for a taxon present in most hexagons the
+            # median is 1, so centring maps its column to 0 and -1 -- handing
+            # Bray-Curtis the negative values it is not defined for. There are
+            # also no magnitudes left to normalise.
+            counts = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf)
+            feature_matrix = pl.from_numpy(
+                (counts.to_numpy() > 0).astype(np.float64)
+            )
+            logger.info(
+                f"Composition metric: presence/absence over {feature_matrix.width} taxa "
+                f"(Bray-Curtis over presence bits is Sorensen)"
+            )
+        else:
+            feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
+            logger.info(
+                f"Composition metric: abundance over {feature_matrix.width} taxa"
+            )
+        scaled_feature_matrix = feature_matrix
 
         # Dimensionality Reduction using UMAP.
         # 'braycurtis' is right *here*, where the input really is ecological
@@ -341,11 +363,14 @@ class GeocodeDistanceMatrix:
         # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
         # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
         # this call went from 586s to 74s.
-        unscaled = np.ascontiguousarray(
-            build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
-        )
+        reference = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
+        if metric == "presence":
+            reference = (reference > 0).astype(np.float64)
+        unscaled = np.ascontiguousarray(reference)
+        reference_space = "presence bits" if metric == "presence" else "abundances"
         abundance_condensed = log_action(
-            f"Calculating reference distances (braycurtis) on abundances: {unscaled.shape}",
+            f"Calculating reference distances (braycurtis) on "
+            f"{reference_space}: {unscaled.shape}",
             lambda: pdist(unscaled, metric="braycurtis"),
         )
 

@@ -58,6 +58,9 @@ uv run marimo run notebook.py -- [OPTIONS]
   says more about survey effort than about what lives there. See
   [Why there is a sampling floor](#why-there-is-a-sampling-floor).
 - `--no-hex-floor`: Keep every hexagon, however sparsely surveyed.
+- `--composition-metric=presence|abundance`: How a hexagon's composition is
+  represented. Defaults to `presence`. See
+  [Presence or abundance](#presence-or-abundance).
 - `--terrestrial-only`: Drop hexagons whose centre falls in the sea. Country-code
   filtering includes the maritime zone, so coastal clusters can otherwise be driven
   by fish and seabirds. Uses the checked-in Natural Earth 1:50m coastline, which is
@@ -130,6 +133,45 @@ Two consequences worth knowing:
   `Actinopterygii` are absent entirely. Scope to what the backbone calls things,
   not to what a field guide does.
 
+
+
+### Presence or abundance
+
+By default a hexagon is described by *which* taxa were seen there, not how many
+of each — every count becomes a 1 or a 0. Bray-Curtis over presence bits is
+Sørensen dissimilarity, so the metric is unchanged; only what it is given
+changes. Pass `--composition-metric=abundance` for the counts.
+
+Presence is the default because the counts are not trustworthy. In a Colombian
+extract, `individualCount` has a **median of 2** and a **maximum of
+35,182,100**, and **19% of records carry no count at all** and are filled with
+1. A single record claiming 35 million individuals can dominate a hexagon's
+entire profile — which is how a moss once reached the top of a region's
+indicator taxa with 140 million individuals.
+
+Measured at k=4 against Bray-Curtis over raw counts, with the sampling floor
+applied:
+
+| representation | Colombia R² | SE Australia R² | best silhouette |
+|---|---|---|---|
+| abundance (counts) | 0.0351 | 0.0468 | 0.0170 |
+| **presence/absence** | **0.0591** | **0.1114** | **0.0298** |
+
+That is +68% and +138% explained variance, and the best separation of seven
+representations tried — the others being `RobustScaler` (the previous default),
+column-max scaling, `log1p`, Hellinger, and Wisconsin double standardisation.
+
+Presence also makes per-taxon scaling moot, which matters because the scaling
+that was there did very little: `RobustScaler` divides by the interquartile
+range, and 99.4% of taxa appear in under 25% of hexagons, so their IQR is zero
+and scikit-learn silently falls back to a scale of 1.0. It altered 0.27% of
+cells. Note that it is *not* skipped by accident on the presence path but
+deliberately: on a binary column whose median is 1, centring maps the column to
+0 and −1, handing Bray-Curtis the negative values it is not defined for.
+
+What this does not fix is separation. The best silhouette across every
+representation tested is 0.0298, which is close to none. Explained variance
+improves; the regions do not become distinct.
 
 ### Why there is a sampling floor
 
