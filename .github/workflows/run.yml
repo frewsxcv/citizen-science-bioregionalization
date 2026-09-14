@@ -40,6 +40,11 @@ jobs:
             # bottomed out at the low end of the range because that one split
             # consumed the whole signal.
             terrestrial_only: true
+            # EXPERIMENT ONLY -- do not merge. Measuring what scoping to a
+            # single well-sampled clade does to separation on the real dataset.
+            # On southeast Australia at precision 4 it raised silhouette from
+            # 0.1273 to 0.2021; this checks whether that holds here.
+            scope: class:Aves
             geocode_precision: 4
             min_clusters: 2
             max_clusters: 15
@@ -89,6 +94,7 @@ jobs:
             --min-lon=${{ matrix.min_lon }} \
             --max-lon=${{ matrix.max_lon }} \
             ${{ matrix.terrestrial_only && '--terrestrial-only' || '' }} \
+            ${{ matrix.scope != null && format('--scope={0}', matrix.scope) || '' }} \
             ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
             ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
             ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
