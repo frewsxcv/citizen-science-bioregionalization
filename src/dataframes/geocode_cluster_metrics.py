@@ -27,6 +27,7 @@ import polars as pl
 from kneed import KneeLocator  # typed: ignore
 
 import bioregion_rs
+from src import defaults
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
 logger = logging.getLogger(__name__)
@@ -79,11 +80,7 @@ def build_geocode_cluster_metrics_df(
         - Combined score provides a single metric for ranking k values
     """
     if weights is None:
-        weights = {
-            "silhouette": 0.4,
-            "calinski_harabasz": 0.3,
-            "davies_bouldin": 0.3,
-        }
+        weights = dict(defaults.METRIC_WEIGHTS)
 
     k_values = geocode_cluster_df["num_clusters"].unique().sort().to_list()
     logger.info(

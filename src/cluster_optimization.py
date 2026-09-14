@@ -31,6 +31,8 @@ def optimize_num_clusters(
     distance_matrix: GeocodeDistanceMatrix,
     geocode_cluster_df: pl.DataFrame,
     elbow_sensitivity: float = 1.0,
+    weights: dict[str, float] | None = None,
+    pinned_k: int | None = None,
 ) -> Tuple[int, pl.DataFrame]:
     """
     Find optimal number of clusters using the elbow method (Kneedle algorithm).
@@ -65,6 +67,7 @@ def optimize_num_clusters(
     metrics_df = build_geocode_cluster_metrics_df(
         distance_matrix,
         geocode_cluster_df,
+        weights=weights,
     )
 
     # Select k on the combined score, which aggregates silhouette,
@@ -76,7 +79,30 @@ def optimize_num_clusters(
     best_row = metrics_df.sort("combined_score", descending=True).head(1)
     optimal_k = int(best_row["num_clusters"][0])
 
-    if metrics_df["combined_score"].n_unique() <= 1:
+    # Pinning is a stated preference, not a discovery, and is logged as one.
+    # No metric here favours more regions: measured on Colombia at presence and
+    # k from 2 to 12, the silhouette the selector sees falls monotonically from
+    # 0.4300 to 0.1159, Calinski-Harabasz falls and Davies-Bouldin rises. Every
+    # criterion prefers the smallest k in range, so a larger one can only be
+    # asked for.
+    if pinned_k is not None:
+        available = metrics_df["num_clusters"].to_list()
+        if pinned_k not in available:
+            raise ValueError(
+                f"--num-clusters={pinned_k} is outside the range tested "
+                f"({min(available)}..{max(available)}). Widen --min-clusters/"
+                f"--max-clusters, or pick a k inside it."
+            )
+        if pinned_k != optimal_k:
+            logger.info(
+                f"k pinned to {pinned_k}; the combined score preferred "
+                f"{optimal_k}. This is a choice about how many regions to draw, "
+                f"not a claim that {pinned_k} fits the data better."
+            )
+        optimal_k = pinned_k
+        selection_method = "pinned via --num-clusters"
+
+    if pinned_k is None and metrics_df["combined_score"].n_unique() <= 1:
         selection_method = "elbow method"
         logger.warning(
             "Combined score is constant across k; falling back to the elbow method."

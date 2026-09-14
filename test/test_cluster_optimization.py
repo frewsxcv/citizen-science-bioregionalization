@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import polars as pl
@@ -352,3 +353,60 @@ class TestElbowIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPinnedK(unittest.TestCase):
+    """`--num-clusters` asks for a number of regions rather than deriving one.
+
+    It exists because nothing here prefers more regions. Measured on Colombia at
+    presence/absence, k from 2 to 12: the silhouette the selector sees falls
+    monotonically from 0.4300 to 0.1159, Calinski-Harabasz falls, and
+    Davies-Bouldin rises. Every criterion prefers the smallest k in range, so a
+    larger one can only be requested -- and the run says so in the log rather
+    than presenting it as a finding.
+    """
+
+    def _metrics(self):
+        """A metrics frame whose combined score is maximised at the smallest k,
+        as it is on real data."""
+        return pl.DataFrame(
+            {
+                "num_clusters": pl.Series([2, 3, 4, 5], dtype=pl.UInt32),
+                "silhouette_score": [0.43, 0.40, 0.28, 0.22],
+                "calinski_harabasz_score": [109.4, 64.2, 54.1, 44.6],
+                "davies_bouldin_score": [4.03, 4.89, 5.72, 5.40],
+                "inertia": [1340.0, 1331.0, 1316.0, 1308.0],
+                "combined_score": [0.90, 0.61, 0.40, 0.22],
+            }
+        )
+
+    def _run(self, pinned):
+        # abundance_condensed() must be None: the composition-space silhouette
+        # is logged from it, and a MagicMock would send a mock into Rust.
+        distance_matrix = MagicMock()
+        distance_matrix.abundance_condensed.return_value = None
+        with patch(
+            "src.cluster_optimization.build_geocode_cluster_metrics_df",
+            return_value=self._metrics(),
+        ):
+            return optimize_num_clusters(
+                distance_matrix, pl.DataFrame(), pinned_k=pinned
+            )
+
+    def test_unpinned_follows_the_combined_score(self):
+        k, _ = self._run(None)
+        self.assertEqual(k, 2)
+
+    def test_pinning_overrides_the_combined_score(self):
+        k, _ = self._run(4)
+        self.assertEqual(k, 4)
+
+    def test_pinning_to_the_preferred_k_is_a_no_op(self):
+        k, _ = self._run(2)
+        self.assertEqual(k, 2)
+
+    def test_a_k_outside_the_tested_range_is_rejected(self):
+        """Silently clamping would hand back a different map than was asked
+        for, with nothing in the output saying so."""
+        with self.assertRaisesRegex(ValueError, "outside the range tested"):
+            self._run(9)

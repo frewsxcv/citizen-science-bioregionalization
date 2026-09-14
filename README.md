@@ -58,6 +58,10 @@ uv run marimo run notebook.py -- [OPTIONS]
   says more about survey effort than about what lives there. See
   [Why there is a sampling floor](#why-there-is-a-sampling-floor).
 - `--no-hex-floor`: Keep every hexagon, however sparsely surveyed.
+- `--num-clusters=N`: Draw exactly N regions instead of choosing a number. See
+  [Asking for more regions](#asking-for-more-regions).
+- `--metric-weights=S,C,D`: Weights for the combined score — silhouette,
+  Calinski-Harabasz, Davies-Bouldin. Defaults to `0.7,0.15,0.15`.
 - `--composition-metric=presence|abundance`: How a hexagon's composition is
   represented. Defaults to `presence`. See
   [Presence or abundance](#presence-or-abundance).
@@ -134,6 +138,47 @@ Two consequences worth knowing:
   not to what a field guide does.
 
 
+
+
+### Asking for more regions
+
+Nothing in the selection metrics prefers more regions. Measured on Colombia at
+presence/absence with the sampling floor, k from 2 to 12:
+
+| k | silhouette (as the selector sees it) | Calinski-Harabasz | Davies-Bouldin |
+|---|---|---|---|
+| 2 | 0.4300 | 109.39 | 4.03 |
+| 6 | 0.1865 | 41.86 | 5.35 |
+| 12 | 0.1159 | 27.06 | 5.83 |
+
+All three are monotone: silhouette and Calinski-Harabasz fall as k rises,
+Davies-Bouldin rises. Every criterion prefers the smallest k in range, so
+`--min-clusters=2` reliably yields two regions and no reweighting changes that.
+
+If you want more regions, ask for them: `--num-clusters=6`. The run logs that it
+was asked rather than derived —
+
+```
+k pinned to 6; the combined score preferred 2. This is a choice about how many
+regions to draw, not a claim that 6 fits the data better.
+```
+
+— and still reports every metric for the k it drew, so the cost is visible. On
+Colombia, k=6 scores 0.1865 against k=2's 0.4300.
+
+This is defensible rather than merely indulgent, because separation is weak at
+*every* k: the best composition-space silhouette on the published dataset is
+0.1262, well under the 0.25 threshold. The selector is choosing between options
+that are all poorly separated, so its preference for k=2 is not a strong signal
+about the data. Six regions is not less true than two; it is a finer partition
+of the same gradient.
+
+`--metric-weights` is also available and now does what it says. Silhouette used
+to be normalised onto its theoretical [-1, 1] range while the other two were
+min-max normalised across the k values tested, so on real data silhouette's
+whole range after normalisation was 0.0113 and a weight of 0.4 could move the
+combined score by at most 0.0045 — against 0.3 for Calinski-Harabasz. The
+weights were decorative. All three are now normalised the same way.
 
 ### Presence or abundance
 
