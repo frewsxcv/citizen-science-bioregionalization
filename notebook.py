@@ -121,6 +121,40 @@ def _(cli_args, defaults, mo):
     )
     # Opting out entirely, as distinct from pinning a value.
     no_hex_floor = "no-hex-floor" in cli_args
+    # Comma-separated silhouette,calinski_harabasz,davies_bouldin. Raising the
+    # silhouette share raises the k chosen, because it is the only one of the
+    # three with an interior optimum; the other two are monotone in k on real
+    # data and simply vote for the end of the range.
+    _raw_weights = cli_args.get("metric-weights")
+    if _raw_weights:
+        _parts = [p.strip() for p in str(_raw_weights).split(",")]
+        if len(_parts) != 3:
+            raise ValueError(
+                f"--metric-weights={_raw_weights!r} needs three comma-separated "
+                f"numbers: silhouette,calinski_harabasz,davies_bouldin."
+            )
+        try:
+            _values = [float(p) for p in _parts]
+        except ValueError as exc:
+            raise ValueError(
+                f"--metric-weights={_raw_weights!r} is not three numbers."
+            ) from exc
+        if any(v < 0 for v in _values) or sum(_values) <= 0:
+            raise ValueError(
+                f"--metric-weights={_raw_weights!r} must be non-negative and "
+                f"not all zero."
+            )
+        metric_weights = dict(
+            zip(("silhouette", "calinski_harabasz", "davies_bouldin"), _values)
+        )
+    else:
+        metric_weights = dict(defaults.METRIC_WEIGHTS)
+
+    # Ask for a specific number of regions. No metric here favours more of
+    # them, so a larger k has to be requested rather than discovered.
+    _pinned = cli_args.get("num-clusters")
+    num_clusters_pinned = int(_pinned) if _pinned not in (None, "") else None
+
     composition_metric = cli_args.get(
         "composition-metric", defaults.COMPOSITION_METRIC
     )
@@ -169,6 +203,8 @@ def _(cli_args, defaults, mo):
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        metric_weights,
+        num_clusters_pinned,
     )
 
 
@@ -336,6 +372,8 @@ def _(
     terrestrial_only,
     no_hex_floor,
     composition_metric,
+    metric_weights,
+    num_clusters_pinned,
 ):
     from src.taxon_scope import parse_scope
     from src.types import Bbox
@@ -392,6 +430,8 @@ def _(
             {"variable": "terrestrial_only", "value": terrestrial_only},
             {"variable": "no_hex_floor", "value": no_hex_floor},
             {"variable": "composition_metric", "value": composition_metric},
+            {"variable": "metric_weights", "value": str(metric_weights)},
+            {"variable": "num_clusters_pinned", "value": num_clusters_pinned},
         ],
     )
 
@@ -422,6 +462,8 @@ def _(
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        metric_weights,
+        num_clusters_pinned,
     )
 
 
@@ -801,12 +843,16 @@ def _(mo):
 def _(
     all_clusters_df,
     geocode_distance_matrix,
+    metric_weights,
+    num_clusters_pinned,
 ):
     from src.cluster_optimization import optimize_num_clusters
 
     optimal_num_clusters, all_cluster_metrics = optimize_num_clusters(
         geocode_distance_matrix,
         all_clusters_df,
+        weights=metric_weights,
+        pinned_k=num_clusters_pinned,
     )
 
     all_cluster_metrics

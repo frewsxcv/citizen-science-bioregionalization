@@ -231,7 +231,7 @@ fn normalize_min_max(values: &[f64], invert: bool) -> Vec<f64> {
 #[pyfunction]
 #[pyo3(signature = (
     condensed, features, geocode_cluster_df,
-    weight_silhouette = 0.4, weight_calinski_harabasz = 0.3, weight_davies_bouldin = 0.3,
+    weight_silhouette = 0.7, weight_calinski_harabasz = 0.15, weight_davies_bouldin = 0.15,
 ))]
 pub fn build_geocode_cluster_metrics(
     condensed: Vec<f64>,
@@ -309,7 +309,19 @@ pub fn build_geocode_cluster_metrics(
         ine.push(inertia(&condensed, n, &labels, num_groups));
     }
 
-    let sil_norm: Vec<f64> = sil.iter().map(|&s| (s + 1.0) / 2.0).collect();
+    // Min-max across k, the same as the other two. Silhouette used to be mapped
+    // (s + 1) / 2 onto its theoretical [-1, 1] range while Calinski-Harabasz and
+    // Davies-Bouldin were min-max normalised across the k values actually seen.
+    // That made the weights decorative: on a real run silhouette spanned 0.0060
+    // to 0.0183, so after the fixed map its whole range was 0.0113 and a weight
+    // of 0.4 could move the combined score by at most 0.0045 -- against 0.3 for
+    // Calinski-Harabasz, sixty-seven times more influence than the weights say.
+    // Silhouette was in effect ignored whatever weight it was given.
+    //
+    // The cost of min-max is that the best k always normalises to 1.0 even when
+    // every k is poor. That was already true of the other two, and the absolute
+    // figure is still logged and still warned on below MIN_SILHOUETTE_THRESHOLD.
+    let sil_norm = normalize_min_max(&sil, false);
     let ch_norm = normalize_min_max(&ch, false);
     let db_norm = normalize_min_max(&db, true);
     let ine_norm = normalize_min_max(&ine, true);

@@ -83,6 +83,26 @@ MIN_HEX_RECORDS: int | None = None
 # per-taxon scaling moot: there are no magnitudes left to normalise.
 COMPOSITION_METRIC: CompositionMetric = "presence"
 
+# Weights for the combined score that selects k, as (silhouette,
+# Calinski-Harabasz, Davies-Bouldin). Silhouette dominates because it is the
+# only one of the three that expresses a preference at all.
+#
+# Measured on Colombia at presence/absence with the sampling floor, k from 2
+# to 12: Calinski-Harabasz falls monotonically (109.39 down to 27.06) and
+# Davies-Bouldin rises monotonically (4.03 up to 5.97). A monotone criterion
+# carries no information about the right k -- it votes for the end of the
+# range, which is why k=2 was chosen every time despite silhouette peaking at
+# k=6 and turning negative by k=11.
+#
+# With these weights and the normalisation fixed, Colombia selects k=6. Any
+# silhouette weight at or above 0.6 does; below that the two monotone metrics
+# win again.
+METRIC_WEIGHTS: dict[str, float] = {
+    "silhouette": 0.7,
+    "calinski_harabasz": 0.15,
+    "davies_bouldin": 0.15,
+}
+
 MIN_HEX_RECORDS_ABSOLUTE_FLOOR = 20
 MIN_HEX_RECORDS_MEDIAN_FRACTION = 0.10
 MIN_HEX_RECORDS_CEILING = 100
