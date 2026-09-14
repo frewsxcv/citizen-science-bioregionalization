@@ -6,6 +6,8 @@ These defaults are used by:
 - CLI argument parsing (as fallbacks when args aren't provided)
 """
 
+from src.types import CompositionMetric
+
 # Data source defaults
 PARQUET_SOURCE_PATH = (
     "gs://public-datasets-gbif/occurrence/2025-11-01/occurrence.parquet/*"
@@ -69,6 +71,18 @@ MIN_HEX_RECORDS: int | None = None
 # records, and a tenth of that derived a floor of 7,274 -- discarding hexagons
 # with thousands of observations. Every region measured above derived between 20
 # and 34, so 100 bounds that failure without changing any measured result.
+# Measured against Bray-Curtis over raw counts, k=4, adaptive floor applied:
+#
+#                    Colombia R2   SE Australia R2   best silhouette
+#   abundance             0.0351            0.0468    0.0170
+#   presence              0.0591            0.1114    0.0298
+#
+# +68% and +138% explained variance, and the best separation of seven
+# representations tried (column max, log1p, Hellinger, Wisconsin double
+# standardisation and RobustScaler were the others). Presence also makes
+# per-taxon scaling moot: there are no magnitudes left to normalise.
+COMPOSITION_METRIC: CompositionMetric = "presence"
+
 MIN_HEX_RECORDS_ABSOLUTE_FLOOR = 20
 MIN_HEX_RECORDS_MEDIAN_FRACTION = 0.10
 MIN_HEX_RECORDS_CEILING = 100
