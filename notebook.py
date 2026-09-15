@@ -83,6 +83,16 @@ def _(cli_args, defaults, mo):
         value=cli_args.get("limit-results", defaults.LIMIT_RESULTS or 1000),
         label="Limit results",
     )
+    # Distinct from --limit-results, which takes the head of the scan. At
+    # snapshot scale the head is a sample of whichever source datasets sort
+    # earliest, so a run that must cap its input for memory should cap it this
+    # way instead. The head is still what the 1000-record interactive default
+    # wants: it is there to make a run quick, and a uniform sample costs a
+    # counting pass over the whole source to draw.
+    sample_records_ui = mo.ui.number(
+        value=cli_args.get("sample-records", defaults.SAMPLE_RECORDS or 0),
+        label="Sample N records uniformly (0 = off)",
+    )
     max_taxa_enabled_ui = mo.ui.checkbox(
         value="max-taxa" in cli_args or defaults.MAX_TAXA_ENABLED,
         label="Limit to top N taxa",
@@ -181,6 +191,7 @@ def _(cli_args, defaults, mo):
         geocode_precision_ui,
         limit_results_enabled_ui,
         limit_results_value_ui,
+        sample_records_ui,
         log_file_ui,
         max_clusters_to_test_ui,
         max_lat_ui,
@@ -350,6 +361,7 @@ def _(
     geocode_precision_ui,
     limit_results_enabled_ui,
     limit_results_value_ui,
+    sample_records_ui,
     log_file_ui,
     max_clusters_to_test_ui,
     max_lat_ui,
@@ -379,9 +391,15 @@ def _(
     from src.types import Bbox
 
     # Resolve final values from UI elements
+    sample_records = int(sample_records_ui.value) or None
     limit_results = (
         limit_results_value_ui.value if limit_results_enabled_ui.value else None
     )
+    # A uniform sample supersedes the scan-order cap rather than stacking with
+    # it; --limit-results is on by default, so without this a --sample-records
+    # run would draw its sample from the first 1000 rows.
+    if sample_records is not None:
+        limit_results = None
     log_file = log_file_ui.value
     parquet_source_path = parquet_source_path_ui.value
     min_lat = min_lat_ui.value
@@ -458,6 +476,7 @@ def _(
         min_hex_records,
         parquet_source_path,
         random_seed,
+        sample_records,
         taxon_scope,
         terrestrial_only,
         no_hex_floor,
@@ -506,6 +525,8 @@ def _(
     materialize_parquet,
     min_hex_records,
     parquet_source_path,
+    random_seed,
+    sample_records,
     taxon_scope,
     terrestrial_only,
     no_hex_floor,
@@ -523,6 +544,10 @@ def _(
         bounding_box=bounding_box,
         limit=limit_results,
         scope=taxon_scope,
+        sample_records=sample_records,
+        # --no-seed leaves random_seed None; that opts out of seeding UMAP for
+        # the sake of threading, not out of knowing which records a run read.
+        seed=random_seed if random_seed is not None else 0,
     )
 
     # Applied here, upstream of the geocode set, so that the geocodes and the

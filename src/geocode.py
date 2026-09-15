@@ -11,6 +11,10 @@ from src.types import Bbox
 
 LAND_GEOJSON_PATH = Path(__file__).parent / "data" / "ne_50m_land.geojson"
 
+#: Column `filter_terrestrial_geocodes_lf` adds to identify rows for sampling.
+#: Prefixed so it cannot collide with a Darwin Core term.
+_ROW_INDEX = "_row_index"
+
 
 def with_geocode_lf(lf: pl.LazyFrame, geocode_precision: int) -> pl.LazyFrame:
     """Geocodes a lazy frame with decimalLatitude and decimalLongitude columns."""
@@ -95,13 +99,24 @@ def filter_sparse_geocodes_lf(
             return_dtype=pl.UInt64,
         ).alias("_geocode")
     )
+    # Collected rather than left lazy, which is not a stylistic choice. Leaving
+    # it lazy makes `with_geocode` appear twice in one plan -- once under the
+    # aggregation, once as the join's left side -- and polars answers that by
+    # caching the shared subplan, which here is every record in the run. On the
+    # published bounding box uncapped that cost 19.8 GB against a 16 GB runner,
+    # and was what killed it; collecting the surviving geocodes first costs a
+    # second pass over the records and holds 6.5 GB. The result is one row per
+    # hexagon -- 1,271 on that run -- so the frame itself is trivial.
     well_sampled = (
         with_geocode.group_by("_geocode")
         .len()
         .filter(pl.col("len") >= min_records)
         .select("_geocode")
+        .collect(engine="streaming")
     )
-    return with_geocode.join(well_sampled, on="_geocode", how="semi").drop("_geocode")
+    return with_geocode.join(well_sampled.lazy(), on="_geocode", how="semi").drop(
+        "_geocode"
+    )
 
 
 @functools.lru_cache(maxsize=1)
@@ -151,13 +166,31 @@ def filter_terrestrial_geocodes_lf(
 
     Records are sampled rather than all tested, because the published run
     carries hundreds of millions of them and the answer does not need that
-    precision. The sample is shuffled with a fixed seed rather than taken from
-    the head, which matters more than it sounds: the snapshot is ordered by
-    source dataset, so a cell's first records all come from whichever dataset
-    happens to appear earliest. On Manhattan the first 2,000 records are 45.8%
-    on land against a true 88.9%, which is the difference between dropping the
-    cell and keeping it. Seeded shuffling is both deterministic and
-    representative; ordering alone is only the former.
+    precision. The sample must be representative rather than merely
+    deterministic: the snapshot is ordered by source dataset, so a cell's first
+    records all come from whichever dataset appears earliest. On Manhattan the
+    first 2,000 records are 45.8% on land against a true 88.9%, which is the
+    difference between dropping the cell and keeping it.
+
+    The sample is drawn by keeping each record with probability
+    `sample_per_hexagon / n`, where `n` is its hexagon's record count, decided
+    by a seeded hash of the row index. That is a stateless per-row test, which
+    is what keeps the memory bounded: an earlier version aggregated each
+    hexagon's records and took a seeded shuffle of them, which is correct but
+    buffers every row of every group. Measured on the published bounding box,
+    that cost 11.6 GB at 100M records and 13.9 GB at the 300M cap -- against a
+    16 GB runner -- and extrapolated to roughly 79 GB uncapped. Sampling by
+    probability instead holds 7.7 GB on the full 658M records, which is what
+    makes `--no-limit` possible at all.
+
+    Two passes, then: one to count records per hexagon, one to sample. Both are
+    streaming aggregations whose state is one row per hexagon.
+
+    The hash is taken over the row index rather than over the coordinates,
+    because coordinates repeat -- a heavily visited park is thousands of records
+    at one point. Hashing those would sample locations rather than records and
+    admit them all-or-nothing, which on measurement put 39,976 records into a
+    2,000-record sample.
 
     Args:
         lf: Occurrence records with decimalLatitude/decimalLongitude.
@@ -174,22 +207,28 @@ def filter_terrestrial_geocodes_lf(
         resolution=geocode_precision,
         return_dtype=pl.UInt64,
     )
-    with_geocode = lf.with_columns(geocode_expr.alias("_geocode"))
+    # The row index is assigned before anything is dropped, so it is a stable
+    # identity for the sampling hash rather than a position in a filtered frame.
+    indexed = lf.with_row_index(_ROW_INDEX).with_columns(geocode_expr.alias("_geocode"))
+    with_geocode = indexed.drop(_ROW_INDEX)
 
+    counts = (
+        indexed.group_by("_geocode").agg(pl.len().alias("_n")).collect(engine="streaming")
+    )
+    if counts.height == 0:
+        return with_geocode.drop("_geocode")
+
+    keep_prob = counts.select(
+        "_geocode",
+        pl.min_horizontal(pl.lit(1.0), sample_per_hexagon / pl.col("_n")).alias("_p"),
+    )
     sampled = (
-        with_geocode.select("_geocode", "decimalLatitude", "decimalLongitude")
-        .group_by("_geocode")
-        .agg(
-            # As a struct so the coordinate pair survives the shuffle together;
-            # shuffling the two columns separately would pair each latitude with
-            # somebody else's longitude.
-            pl.struct(["decimalLatitude", "decimalLongitude"])
-            .shuffle(seed=0)
-            .head(sample_per_hexagon)
-            .alias("_sample")
-        )
-        .explode("_sample")
-        .unnest("_sample")
+        indexed.select(_ROW_INDEX, "_geocode", "decimalLatitude", "decimalLongitude")
+        .join(keep_prob.lazy(), on="_geocode", how="left")
+        # hash() is uniform over u64, so dividing by 2**64 gives a value in
+        # [0, 1) that is fixed for a given row and independent between rows.
+        .filter((pl.col(_ROW_INDEX).hash(seed=0) / pl.lit(2.0**64)) < pl.col("_p"))
+        .select("_geocode", "decimalLatitude", "decimalLongitude")
         .collect(engine="streaming")
     )
     if sampled.height == 0:

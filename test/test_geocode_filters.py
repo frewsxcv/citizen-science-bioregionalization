@@ -231,3 +231,69 @@ class TestTerrestrialUsesLandShare(unittest.TestCase):
         self.assertEqual(kept.height, 0)
 
 
+
+
+class TestTerrestrialSamplingIsBounded(unittest.TestCase):
+    """The sample is drawn per record, deterministically, without buffering.
+
+    The previous implementation aggregated each hexagon's records and took a
+    seeded shuffle of them. That is correct but holds every row of every group,
+    which measured 13.9 GB at the run's old 300M-record cap -- against a 16 GB
+    runner -- and is why removing the cap starved it. Sampling by a per-row
+    probability instead is stateless, and holds 8.3 GB on the full 658M records.
+    """
+
+    MANHATTAN = (40.7812, -73.9665)
+    EAST_RIVER = (40.7787, -73.9327)
+
+    def _records(self, points):
+        return pl.DataFrame(
+            {
+                "decimalLatitude": [p[0] for p in points],
+                "decimalLongitude": [p[1] for p in points],
+            }
+        ).lazy()
+
+    def test_sampling_is_reproducible(self):
+        """Determinism is load-bearing: two runs on one input must agree
+        byte-for-byte, and the sample feeds the hexagon set."""
+        points = [self.MANHATTAN] * 700 + [self.EAST_RIVER] * 300
+        runs = [
+            filter_terrestrial_geocodes_lf(
+                self._records(points), 4, sample_per_hexagon=50
+            ).collect()
+            for _ in range(2)
+        ]
+        self.assertTrue(runs[0].equals(runs[1]))
+
+    def test_samples_records_not_distinct_locations(self):
+        """Hashing coordinates rather than rows would admit a repeated point
+        all-or-nothing. Here one marine location carries most of the records:
+        sampled per record it is a 90% marine cell and must be dropped, while
+        sampling distinct locations would see a 2-point cell that is half land.
+        """
+        points = [self.MANHATTAN] * 100 + [self.EAST_RIVER] * 900
+        kept = filter_terrestrial_geocodes_lf(
+            self._records(points), 4, sample_per_hexagon=100
+        ).collect()
+        self.assertEqual(kept.height, 0)
+
+    def test_a_hexagon_smaller_than_the_sample_is_fully_used(self):
+        """With n below the target the keep probability is 1, so no record is
+        discarded and the share is exact rather than estimated."""
+        points = [self.MANHATTAN] * 6 + [self.EAST_RIVER] * 4
+        kept = filter_terrestrial_geocodes_lf(
+            self._records(points), 4, sample_per_hexagon=1000
+        ).collect()
+        self.assertEqual(kept.height, 10)
+
+    def test_the_sample_does_not_follow_scan_order(self):
+        """The snapshot is ordered by source dataset, so a cell's leading
+        records are one dataset's. Here the first 200 are marine and the
+        remaining 800 terrestrial: a head-of-frame sample sees 0% land and drops
+        the cell, an order-independent one sees 80% and keeps it."""
+        points = [self.EAST_RIVER] * 200 + [self.MANHATTAN] * 800
+        kept = filter_terrestrial_geocodes_lf(
+            self._records(points), 4, sample_per_hexagon=100
+        ).collect()
+        self.assertEqual(kept.height, 1000)

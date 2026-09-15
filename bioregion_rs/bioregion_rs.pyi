@@ -31,8 +31,7 @@ def parse_darwin_core_meta(
     list[tuple[str, str]],  # default_fields (term, default_value) pairs
 ]: ...
 def build_geocode(
-    df: pl.DataFrame,
-    precision: int,
+    geocode_df: pl.DataFrame,
     min_lat: float,
     max_lat: float,
     min_lng: float,

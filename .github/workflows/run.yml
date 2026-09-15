@@ -25,13 +25,19 @@ jobs:
             max_lat: 47
             min_lon: -87
             max_lon: -66
-            # Kept as-is, and deliberately not switched to --no-limit. Removing
-            # the cap alongside the land mask starved the runner: the job ran
-            # 70 minutes against a 26-minute baseline and was killed for memory
-            # before it finished ingesting. Whether this cap actually binds on
-            # the East Coast bbox -- the most heavily surveyed region in GBIF --
-            # is a separate question from the mask, and needs its own run.
-            limit_results: 300000000
+            # Capped at the same volume as before, but sampled rather than
+            # truncated. This bbox holds 657,577,409 records; --limit-results
+            # kept the first 300M in scan order, and a GBIF snapshot's file
+            # order is grouped by source dataset, so what survived was a sample
+            # of whichever datasets sort earliest rather than of the region.
+            #
+            # The cap itself has to stay. --no-limit does not fit: measured end
+            # to end against a local extract of this bbox, with three separate
+            # unbounded stages fixed, the uncapped run peaks at 15.3 GB against
+            # a 16 GB runner -- reading a local file, where CI reads from GCS.
+            # Several stages each take their own full pass over 601.8M records
+            # at 10-15 GB, so no single further fix closes the gap.
+            sample_records: 300000000
             # This bbox is 58% open water -- the US East Coast runs diagonally
             # across it, so no rectangle excludes the Atlantic and the Gulf.
             # Without the mask the run just rediscovers the coastline: the two
@@ -89,10 +95,21 @@ jobs:
             --min-lon=${{ matrix.min_lon }} \
             --max-lon=${{ matrix.max_lon }} \
             ${{ matrix.terrestrial_only && '--terrestrial-only' || '' }} \
+            ${{ matrix.sample_records != null && format('--sample-records={0}', matrix.sample_records) || '' }} \
             ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
             ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
             ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
             --parquet-source-path="${{ matrix.source_path }}"
+      - name: Report disk usage
+        if: always() && matrix.name == 'gbif-snapshot'
+        # materialize_parquet spills each stage and only prunes at process
+        # exit, so the intermediates coexist -- uncapped, the two Darwin Core
+        # spills are ~6.8 GB each. A first run reported 107 GB free, so this is
+        # reporting rather than a constraint, and there is nothing to clear: an
+        # earlier version of this step freed the runner's toolchains and took
+        # uv out with them.
+        run: df -h /
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

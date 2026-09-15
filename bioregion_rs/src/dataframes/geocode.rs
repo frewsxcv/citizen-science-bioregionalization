@@ -6,7 +6,6 @@ use polars::prelude::*;
 use pyo3::prelude::*;
 use pyo3_polars::PyDataFrame;
 
-use crate::geocode::{latlng_columns, latlng_to_geocode, resolution_from_u8};
 use crate::{to_py, wkb};
 
 /// Closed boundary ring of an H3 cell as (lng, lat) coordinates.
@@ -19,28 +18,34 @@ fn cell_ring(cell: CellIndex) -> Vec<(f64, f64)> {
     ring
 }
 
-/// Build a GeocodeSchema DataFrame from occurrence coordinates.
+/// Build a GeocodeSchema DataFrame from a set of H3 cells.
 ///
-/// Mirrors `src/dataframes/geocode.py::build_geocode_lf`: geocode the input
-/// coordinates, keep the unique non-null cells sorted ascending, and for each
-/// emit its center point, boundary polygon (both WKB), and whether it is an
-/// "edge" cell (its boundary intersects the bounding-box boundary).
+/// Mirrors `src/dataframes/geocode.py::build_geocode_lf`: for each cell emit its
+/// center point, boundary polygon (both WKB), and whether it is an "edge" cell
+/// (its boundary intersects the bounding-box boundary).
+///
+/// Takes the cells rather than the occurrence coordinates they came from. It
+/// used to take the coordinates and reduce them here, which meant the caller had
+/// to collect every record in the run into memory to make the call -- 16.4 GB on
+/// the published bounding box uncapped, against a 16 GB runner. Geocoding and
+/// deduplicating stream fine in polars, and what reaches this function is then
+/// one row per hexagon: 2,902 on that same run.
+///
+/// The input need not be unique or sorted; this still reduces it, so the
+/// contract does not depend on the caller having done so.
 ///
 /// Output columns match GeocodeSchema order: geocode, center, boundary, is_edge.
 #[pyfunction]
-#[pyo3(signature = (df, precision, min_lat, max_lat, min_lng, max_lng))]
+#[pyo3(signature = (geocode_df, min_lat, max_lat, min_lng, max_lng))]
 pub fn build_geocode(
-    df: PyDataFrame,
-    precision: u8,
+    geocode_df: PyDataFrame,
     min_lat: f64,
     max_lat: f64,
     min_lng: f64,
     max_lng: f64,
 ) -> PyResult<PyDataFrame> {
-    let df: DataFrame = df.into();
-    let res = resolution_from_u8(precision).map_err(to_py)?;
-    let (lat, lng) = latlng_columns(&df, "decimalLatitude", "decimalLongitude").map_err(to_py)?;
-    let geocodes = latlng_to_geocode(lat, lng, res).map_err(to_py)?;
+    let df: DataFrame = geocode_df.into();
+    let geocodes = df.column("geocode").map_err(to_py)?;
 
     // Unique, non-null, sorted ascending — matches `.filter(is_not_null).unique().sort()`.
     let mut cells: Vec<u64> = geocodes.u64().map_err(to_py)?.iter().flatten().collect();
@@ -101,6 +106,9 @@ fn binary_column(name: &str, values: &[Vec<u8>]) -> Column {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // `build_geocode` no longer geocodes coordinates, so the module itself does
+    // not need this; the test still constructs a cell to exercise `cell_ring`.
+    use crate::geocode::resolution_from_u8;
 
     #[test]
     fn ring_is_closed() {
