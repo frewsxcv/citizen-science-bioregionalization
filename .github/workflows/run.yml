@@ -25,18 +25,19 @@ jobs:
             max_lat: 47
             min_lon: -87
             max_lon: -66
-            # The cap is off: it bound, and it bound unevenly. This bbox holds
-            # 657,577,409 records, so 300M discarded 54.4% of them -- and
-            # `limit` takes the first N in scan order, which for a GBIF snapshot
-            # is grouped by source dataset. The retained half was therefore a
-            # sample of whichever datasets sort earliest, not of the region.
+            # Still capped, and the cap is still a biased sample: this bbox
+            # holds 657,577,409 records, so 300M discards 54.4% of them, and
+            # `limit` takes the first N in scan order -- which for a GBIF
+            # snapshot is grouped by source dataset. Fixing that bias is worth
+            # doing and is not what this cap is for.
             #
-            # Removing it starved the runner once before. The cause was the land
-            # mask buffering every record of every hexagon to draw its sample;
-            # that is now a stateless per-row test (see
-            # filter_terrestrial_geocodes_lf), measured at 8.3 GB on the full
-            # 658M records against 13.9 GB for the old code at the 300M cap.
-            no_limit: true
+            # --no-limit does not fit. Measured end to end against a local
+            # extract of this bbox, after three separate unbounded stages were
+            # fixed, the uncapped run peaks at 15.3 GB against a 16 GB runner --
+            # and that is reading a local file, where CI reads from GCS. Several
+            # stages each take a full pass over 601.8M records at 10-15 GB, so
+            # no single further fix closes the gap.
+            limit_results: 300000000
             # This bbox is 58% open water -- the US East Coast runs diagonally
             # across it, so no rectangle excludes the Atlantic and the Gulf.
             # Without the mask the run just rediscovers the coastline: the two
@@ -94,7 +95,6 @@ jobs:
             --min-lon=${{ matrix.min_lon }} \
             --max-lon=${{ matrix.max_lon }} \
             ${{ matrix.terrestrial_only && '--terrestrial-only' || '' }} \
-            ${{ matrix.no_limit && '--no-limit' || '' }} \
             ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
             ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
             ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
