@@ -39,6 +39,11 @@ RANDOM_SEED: int | None = 0
 TAXON_SCOPE = ""
 LIMIT_RESULTS: int | None = 1000
 LIMIT_RESULTS_ENABLED = True
+
+#: Approximate number of records to keep, chosen uniformly rather than by scan
+#: order. Off by default: drawing a uniform sample costs a counting pass over
+#: the source, which is not what the 1000-record interactive default is for.
+SAMPLE_RECORDS: int | None = None
 MAX_TAXA: int | None = 5000
 MAX_TAXA_ENABLED = False
 MIN_GEOCODE_PRESENCE: float | None = 0.05

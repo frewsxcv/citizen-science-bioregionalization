@@ -46,6 +46,14 @@ uv run marimo run notebook.py -- [OPTIONS]
   [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
 - `--limit-results=N`: Limit number of results for testing (defaults to on, at 1000).
+  Takes the first N records in scan order, which is fine for a quick run and
+  wrong for a representative one: a GBIF snapshot's file order is grouped by
+  source dataset, so the head is whichever datasets sort earliest.
+- `--sample-records=N`: Keep approximately N records, chosen uniformly rather
+  than by scan order. Costs one counting pass over the source. Use this, not
+  `--limit-results`, when a run has to cap its input for memory but the result
+  is meant to describe the region. Supersedes `--limit-results` when both are
+  given.
 - `--no-limit`: Process every record. Required for a full run — `--limit-results`
   can only change the cap, not remove it.
 - `--max-taxa=N`: Keep only top N taxa by occurrence count.
