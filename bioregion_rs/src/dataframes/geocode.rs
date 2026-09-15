@@ -106,6 +106,9 @@ fn binary_column(name: &str, values: &[Vec<u8>]) -> Column {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // `build_geocode` no longer geocodes coordinates, so the module itself does
+    // not need this; the test still constructs a cell to exercise `cell_ring`.
+    use crate::geocode::resolution_from_u8;
 
     #[test]
     fn ring_is_closed() {
