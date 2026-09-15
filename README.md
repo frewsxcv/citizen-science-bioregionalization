@@ -218,6 +218,29 @@ What this does not fix is separation. The best silhouette across every
 representation tested is 0.0298, which is close to none. Explained variance
 improves; the regions do not become distinct.
 
+### Why the land mask counts records
+
+`--terrestrial-only` keeps a hexagon when a majority of its own records fall on
+land. Two earlier versions tested a single synthetic point instead, and both
+failed the same way — a point derived from the data need not sit where the data
+is:
+
+- **The hexagon's geometric centre.** At H3 resolution 4 a cell spans roughly
+  1,770 km², so its midpoint can be 18 km from the records. Manhattan's cell
+  centres in Long Island Sound, 17.7 km from Central Park, so one of the most
+  intensively recorded hexagons on the map was discarded.
+- **The marginal median of the records.** Median latitude and median longitude
+  are taken independently, so the resulting point need not be near any actual
+  record. On Manhattan — a narrow island between two rivers — it lands in the
+  East River, while **88.0% of that cell's ten million records are on land**.
+
+A share has no such failure mode. Records are sampled rather than all tested,
+and the sample is **shuffled with a fixed seed rather than taken from the head**,
+which matters more than it sounds: the snapshot is ordered by source dataset, so
+a cell's first records all come from whichever dataset appears earliest. On
+Manhattan the first 2,000 records are 45.8% on land against a true 88.9% — the
+difference between dropping the cell and keeping it.
+
 ### Why there is a sampling floor
 
 A hexagon with three records has a three-taxon composition vector that is
