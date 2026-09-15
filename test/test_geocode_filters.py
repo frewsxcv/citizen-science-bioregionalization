@@ -7,8 +7,10 @@ the geocodes and the taxa counts are derived from the same rows.
 import unittest
 
 import polars as pl
+import shapely
+import polars_h3
 
-from src.geocode import adaptive_min_hex_records, filter_sparse_geocodes_lf, filter_terrestrial_geocodes_lf
+from src.geocode import _land_index, adaptive_min_hex_records, filter_sparse_geocodes_lf, filter_terrestrial_geocodes_lf
 
 PRECISION = 5
 
@@ -156,3 +158,85 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
             median_fraction=0.10, ceiling=100,
         )
         self.assertEqual(floor, 100)
+
+
+class TestTerrestrialUsesRecordPositions(unittest.TestCase):
+    """The mask represents a hexagon by its records, not its geometric centre.
+
+    The centre was the original test. At H3 resolution 4 a cell spans roughly
+    1,770 km2, so its midpoint can sit 18 km from the records -- and Manhattan's
+    cell centres at 40.8584, -73.7819, out in Long Island Sound. One of the most
+    intensively recorded hexagons on the published map was being discarded, and
+    107 land-containing cells with it, 8.2% of them, biased toward the coast
+    where recording is densest.
+    """
+
+    MANHATTAN = (40.7812, -73.9665)   # Central Park
+    OPEN_ATLANTIC = (39.70, -71.53)   # south of Long Island, genuinely at sea
+
+    def _records(self, points: list[tuple[float, float]]) -> pl.LazyFrame:
+        return pl.DataFrame(
+            {
+                "decimalLatitude": [p[0] for p in points],
+                "decimalLongitude": [p[1] for p in points],
+            }
+        ).lazy()
+
+    def test_manhattan_survives_though_its_cell_centre_is_at_sea(self):
+        kept = filter_terrestrial_geocodes_lf(
+            self._records([self.MANHATTAN] * 20), 4
+        ).collect()
+        self.assertEqual(kept.height, 20, "Manhattan's hexagon was dropped again")
+
+    def test_the_cell_centre_really_is_at_sea(self):
+        """Pins the premise. If this ever fails the case above proves nothing,
+        because the cell would be passing for the trivial reason."""
+        cell = (
+            pl.DataFrame({"lat": [self.MANHATTAN[0]], "lng": [self.MANHATTAN[1]]})
+            .with_columns(
+                polars_h3.latlng_to_cell(
+                    "lat", "lng", resolution=4, return_dtype=pl.UInt64
+                ).alias("c")
+            )
+            .with_columns(
+                clat=polars_h3.cell_to_lat("c"), clng=polars_h3.cell_to_lng("c")
+            )
+        )
+        tree, _ = _land_index()
+        centre = shapely.points([cell["clng"][0]], [cell["clat"][0]])
+        self.assertEqual(
+            len(tree.query(centre, predicate="intersects")[0]),
+            0,
+            "the cell centre is on land, so this no longer tests anything",
+        )
+
+    def test_open_ocean_is_still_dropped(self):
+        """The mask exists to keep marine biota out; it must still do that."""
+        kept = filter_terrestrial_geocodes_lf(
+            self._records([self.OPEN_ATLANTIC] * 20), 4
+        ).collect()
+        self.assertEqual(kept.height, 0)
+
+    def test_a_cell_is_judged_by_where_most_of_its_records_are(self):
+        """A median, not a mean, so a cell holding a dense city plus some
+        offshore records resolves to the city rather than to a midpoint that is
+        in neither. The offshore points are Manhattan's own cell centre, which
+        is in Long Island Sound, so they are certain to share its hexagon."""
+        offshore = (40.8584, -73.7819)
+        mostly_city = [self.MANHATTAN] * 18 + [offshore] * 2
+        records = self._records(mostly_city)
+        cells = (
+            records.with_columns(
+                polars_h3.latlng_to_cell(
+                    "decimalLatitude", "decimalLongitude",
+                    resolution=4, return_dtype=pl.UInt64,
+                ).alias("c")
+            )
+            .select("c")
+            .unique()
+            .collect()
+        )
+        self.assertEqual(cells.height, 1, "the fixture spans more than one hexagon")
+
+        kept = filter_terrestrial_geocodes_lf(records, 4).collect()
+        self.assertEqual(kept.height, 20)
