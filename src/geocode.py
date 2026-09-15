@@ -99,13 +99,24 @@ def filter_sparse_geocodes_lf(
             return_dtype=pl.UInt64,
         ).alias("_geocode")
     )
+    # Collected rather than left lazy, which is not a stylistic choice. Leaving
+    # it lazy makes `with_geocode` appear twice in one plan -- once under the
+    # aggregation, once as the join's left side -- and polars answers that by
+    # caching the shared subplan, which here is every record in the run. On the
+    # published bounding box uncapped that cost 19.8 GB against a 16 GB runner,
+    # and was what killed it; collecting the surviving geocodes first costs a
+    # second pass over the records and holds 6.5 GB. The result is one row per
+    # hexagon -- 1,271 on that run -- so the frame itself is trivial.
     well_sampled = (
         with_geocode.group_by("_geocode")
         .len()
         .filter(pl.col("len") >= min_records)
         .select("_geocode")
+        .collect(engine="streaming")
     )
-    return with_geocode.join(well_sampled, on="_geocode", how="semi").drop("_geocode")
+    return with_geocode.join(well_sampled.lazy(), on="_geocode", how="semi").drop(
+        "_geocode"
+    )
 
 
 @functools.lru_cache(maxsize=1)

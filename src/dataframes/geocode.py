@@ -1,4 +1,5 @@
 import polars as pl
+import polars_h3
 
 import bioregion_rs
 from src.types import Bbox
@@ -18,12 +19,28 @@ def build_geocode_lf(
     Returns:
         A validated LazyFrame conforming to GeocodeSchema
     """
-    darwin_core_df = darwin_core_lf.select(
-        "decimalLatitude", "decimalLongitude"
-    ).collect(engine="streaming")
+    # Reduced to distinct cells here rather than in Rust, which used to take the
+    # coordinates and geocode them itself. That required collecting every record
+    # in the run to make the call: 16.4 GB on the published bounding box
+    # uncapped, against a 16 GB runner, and the largest single allocation in the
+    # pipeline. Geocoding and deduplicating stream, and the frame that crosses
+    # into Rust is then one row per hexagon.
+    geocode_df = (
+        darwin_core_lf.select(
+            polars_h3.latlng_to_cell(
+                "decimalLatitude",
+                "decimalLongitude",
+                resolution=geocode_precision,
+                return_dtype=pl.UInt64,
+            ).alias("geocode")
+        )
+        .drop_nulls()
+        .unique()
+        .sort("geocode")
+        .collect(engine="streaming")
+    )
     df = bioregion_rs.build_geocode(
-        darwin_core_df,
-        geocode_precision,
+        geocode_df,
         bounding_box.min_lat,
         bounding_box.max_lat,
         bounding_box.min_lng,
