@@ -123,46 +123,50 @@ def _land_index() -> "tuple[shapely.STRtree, list]":
 def filter_terrestrial_geocodes_lf(
     lf: pl.LazyFrame,
     geocode_precision: int,
+    sample_per_hexagon: int = 2000,
+    min_land_share: float = 0.5,
 ) -> pl.LazyFrame:
-    """Drop hexagons whose occurrences are at sea.
+    """Drop hexagons whose records are mostly at sea.
 
-    Country-code filtering includes a country's maritime zone, so coastal
-    clusters can otherwise be driven by fish and seabirds rather than
-    terrestrial biota. The unit of the test is the hexagon, not the individual
-    record: the goal is to drop whole ocean cells, not marine records that
-    happen to sit in an otherwise terrestrial one.
+    Country-code and bounding-box filtering both include a country's maritime
+    zone, so coastal clusters can otherwise be driven by fish and seabirds
+    rather than terrestrial biota.
 
-    The hexagon is represented by the median position of its records, not by its
-    geometric centre. The centre was the original test and it was wrong. At H3
-    resolution 4 a cell spans roughly 1,770 km2 with 25 km edges, so its
-    midpoint can sit 18 km from where the records actually are -- and if that
-    midpoint lands in water the entire cell was discarded however much land it
-    covered.
+    The test is the share of a hexagon's own records that fall on land. Two
+    earlier versions instead tested a single synthetic point, and both were
+    wrong for the same reason -- a point derived from the data need not sit
+    where the data is:
 
-    Manhattan is the case that exposed it. Its cell centres at 40.8584,
-    -73.7819, out in Long Island Sound, so one of the most intensively recorded
-    hexagons on the map was being thrown away. Across the published bounding box
-    107 cells containing land were dropped this way, 8.2% of them, and the bias
-    is not random: it falls hardest on coastal cells, which is exactly where
-    citizen-science recording is densest.
+    - the hexagon's geometric centre. At H3 resolution 4 a cell spans roughly
+      1,770 km2, so its midpoint can be 18 km from the records. Manhattan's
+      cell centres in Long Island Sound, 17.7 km from Central Park.
+    - the marginal median of the records. Median latitude and median longitude
+      are computed independently, so the resulting point need not be near any
+      actual record. On Manhattan -- a narrow island between two rivers -- it
+      lands in the East River, while 88.0% of the cell's ten million records
+      are on land.
 
-    Using the records instead asks the question that actually matters -- is this
-    cell's biota terrestrial? -- rather than a proxy for it. Manhattan's records
-    sit in the city, so the cell is kept; a pelagic cell's records are at sea, so
-    it is still dropped. Verified against real occurrences off New York: of the
-    eight densest cells there, the centre test kept three and the record test
-    keeps five, and the three it still rejects are open Atlantic.
+    The share has no such failure mode: 88% on land keeps the cell whatever
+    shape it is. It also states the question directly rather than proxying it.
 
-    The median is used rather than the mean so that a cell split between a dense
-    coastal city and open water resolves to whichever holds more records, rather
-    than to a midpoint that may be in neither.
+    Records are sampled rather than all tested, because the published run
+    carries hundreds of millions of them and the answer does not need that
+    precision. The sample is shuffled with a fixed seed rather than taken from
+    the head, which matters more than it sounds: the snapshot is ordered by
+    source dataset, so a cell's first records all come from whichever dataset
+    happens to appear earliest. On Manhattan the first 2,000 records are 45.8%
+    on land against a true 88.9%, which is the difference between dropping the
+    cell and keeping it. Seeded shuffling is both deterministic and
+    representative; ordering alone is only the former.
 
     Args:
         lf: Occurrence records with decimalLatitude/decimalLongitude.
         geocode_precision: H3 resolution; must match the run's precision.
+        sample_per_hexagon: Records per hexagon to test against the coastline.
+        min_land_share: Share that must be on land for the hexagon to be kept.
 
     Returns:
-        The input restricted to hexagons whose records are on land.
+        The input restricted to hexagons whose records are mostly on land.
     """
     geocode_expr = polars_h3.latlng_to_cell(
         "decimalLatitude",
@@ -172,28 +176,45 @@ def filter_terrestrial_geocodes_lf(
     )
     with_geocode = lf.with_columns(geocode_expr.alias("_geocode"))
 
-    centroids = (
-        with_geocode.group_by("_geocode")
+    sampled = (
+        with_geocode.select("_geocode", "decimalLatitude", "decimalLongitude")
+        .group_by("_geocode")
         .agg(
-            pl.col("decimalLatitude").median().alias("lat"),
-            pl.col("decimalLongitude").median().alias("lng"),
+            # As a struct so the coordinate pair survives the shuffle together;
+            # shuffling the two columns separately would pair each latitude with
+            # somebody else's longitude.
+            pl.struct(["decimalLatitude", "decimalLongitude"])
+            .shuffle(seed=0)
+            .head(sample_per_hexagon)
+            .alias("_sample")
         )
+        .explode("_sample")
+        .unnest("_sample")
         .collect(engine="streaming")
     )
+    if sampled.height == 0:
+        return with_geocode.drop("_geocode")
 
-    tree, polygons = _land_index()
-    points = shapely.points(centroids["lng"].to_numpy(), centroids["lat"].to_numpy())
+    tree, _polygons = _land_index()
+    points = shapely.points(
+        sampled["decimalLongitude"].to_numpy(), sampled["decimalLatitude"].to_numpy()
+    )
     # `intersects` is symmetric, so it does not depend on which side of the
     # predicate the tree geometry lands on, and it counts a point exactly on the
     # coastline as land.
     hits = tree.query(points, predicate="intersects")
-    on_land = np.zeros(centroids.height, dtype=bool)
-    on_land[hits[0]] = True
+    on_land = np.zeros(sampled.height, dtype=bool)
+    on_land[np.unique(hits[0])] = True
 
-    terrestrial = centroids.filter(pl.Series(on_land)).select("_geocode")
-    return (
-        with_geocode.join(terrestrial.lazy(), on="_geocode", how="semi")
-        .drop("_geocode")
+    terrestrial = (
+        sampled.with_columns(_on_land=pl.Series(on_land))
+        .group_by("_geocode")
+        .agg(pl.col("_on_land").mean().alias("_land_share"))
+        .filter(pl.col("_land_share") >= min_land_share)
+        .select("_geocode")
+    )
+    return with_geocode.join(terrestrial.lazy(), on="_geocode", how="semi").drop(
+        "_geocode"
     )
 
 

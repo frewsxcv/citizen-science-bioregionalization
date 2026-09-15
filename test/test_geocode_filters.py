@@ -160,21 +160,22 @@ class TestAdaptiveMinHexRecords(unittest.TestCase):
         self.assertEqual(floor, 100)
 
 
-class TestTerrestrialUsesRecordPositions(unittest.TestCase):
-    """The mask represents a hexagon by its records, not its geometric centre.
+class TestTerrestrialUsesLandShare(unittest.TestCase):
+    """The mask tests the share of a hexagon's records that are on land.
 
-    The centre was the original test. At H3 resolution 4 a cell spans roughly
-    1,770 km2, so its midpoint can sit 18 km from the records -- and Manhattan's
-    cell centres at 40.8584, -73.7819, out in Long Island Sound. One of the most
-    intensively recorded hexagons on the published map was being discarded, and
-    107 land-containing cells with it, 8.2% of them, biased toward the coast
-    where recording is densest.
+    Two earlier versions tested a single synthetic point and both failed the
+    same way. The hexagon's geometric centre is 17.7 km from Central Park, out
+    in Long Island Sound. The marginal median of the records -- median latitude
+    and median longitude taken independently -- lands in the East River, because
+    Manhattan is a narrow island between two rivers. Meanwhile 88.0% of that
+    cell's ten million records are on land.
     """
 
     MANHATTAN = (40.7812, -73.9665)   # Central Park
-    OPEN_ATLANTIC = (39.70, -71.53)   # south of Long Island, genuinely at sea
+    EAST_RIVER = (40.7787, -73.9327)  # where the marginal median landed
+    OPEN_ATLANTIC = (39.70, -71.53)
 
-    def _records(self, points: list[tuple[float, float]]) -> pl.LazyFrame:
+    def _records(self, points):
         return pl.DataFrame(
             {
                 "decimalLatitude": [p[0] for p in points],
@@ -182,15 +183,16 @@ class TestTerrestrialUsesRecordPositions(unittest.TestCase):
             }
         ).lazy()
 
-    def test_manhattan_survives_though_its_cell_centre_is_at_sea(self):
+    def test_manhattan_is_kept(self):
         kept = filter_terrestrial_geocodes_lf(
-            self._records([self.MANHATTAN] * 20), 4
+            self._records([self.MANHATTAN] * 50), 4
         ).collect()
-        self.assertEqual(kept.height, 20, "Manhattan's hexagon was dropped again")
+        self.assertEqual(kept.height, 50)
 
-    def test_the_cell_centre_really_is_at_sea(self):
-        """Pins the premise. If this ever fails the case above proves nothing,
-        because the cell would be passing for the trivial reason."""
+    def test_neither_synthetic_point_is_on_land(self):
+        """Pins the premise. If either of these ever lands on soil, the case
+        above would pass for a reason that has nothing to do with the fix."""
+        tree, _ = _land_index()
         cell = (
             pl.DataFrame({"lat": [self.MANHATTAN[0]], "lng": [self.MANHATTAN[1]]})
             .with_columns(
@@ -202,41 +204,30 @@ class TestTerrestrialUsesRecordPositions(unittest.TestCase):
                 clat=polars_h3.cell_to_lat("c"), clng=polars_h3.cell_to_lng("c")
             )
         )
-        tree, _ = _land_index()
-        centre = shapely.points([cell["clng"][0]], [cell["clat"][0]])
-        self.assertEqual(
-            len(tree.query(centre, predicate="intersects")[0]),
-            0,
-            "the cell centre is on land, so this no longer tests anything",
-        )
+        for label, lat, lng in (
+            ("cell centre", cell["clat"][0], cell["clng"][0]),
+            ("marginal median", self.EAST_RIVER[0], self.EAST_RIVER[1]),
+        ):
+            with self.subTest(point=label):
+                hit = tree.query(shapely.points([lng], [lat]), predicate="intersects")
+                self.assertEqual(len(hit[0]), 0, f"{label} is on land")
 
-    def test_open_ocean_is_still_dropped(self):
-        """The mask exists to keep marine biota out; it must still do that."""
+    def test_a_mostly_terrestrial_cell_survives_some_marine_records(self):
+        """88% on land keeps the cell, which is Manhattan's real proportion."""
+        points = [self.MANHATTAN] * 88 + [self.EAST_RIVER] * 12
+        kept = filter_terrestrial_geocodes_lf(self._records(points), 4).collect()
+        self.assertEqual(kept.height, 100)
+
+    def test_a_mostly_marine_cell_is_dropped(self):
+        """The mask still has to keep marine biota out, which is why it exists."""
+        points = [self.MANHATTAN] * 20 + [self.EAST_RIVER] * 80
+        kept = filter_terrestrial_geocodes_lf(self._records(points), 4).collect()
+        self.assertEqual(kept.height, 0)
+
+    def test_open_ocean_is_dropped(self):
         kept = filter_terrestrial_geocodes_lf(
-            self._records([self.OPEN_ATLANTIC] * 20), 4
+            self._records([self.OPEN_ATLANTIC] * 50), 4
         ).collect()
         self.assertEqual(kept.height, 0)
 
-    def test_a_cell_is_judged_by_where_most_of_its_records_are(self):
-        """A median, not a mean, so a cell holding a dense city plus some
-        offshore records resolves to the city rather than to a midpoint that is
-        in neither. The offshore points are Manhattan's own cell centre, which
-        is in Long Island Sound, so they are certain to share its hexagon."""
-        offshore = (40.8584, -73.7819)
-        mostly_city = [self.MANHATTAN] * 18 + [offshore] * 2
-        records = self._records(mostly_city)
-        cells = (
-            records.with_columns(
-                polars_h3.latlng_to_cell(
-                    "decimalLatitude", "decimalLongitude",
-                    resolution=4, return_dtype=pl.UInt64,
-                ).alias("c")
-            )
-            .select("c")
-            .unique()
-            .collect()
-        )
-        self.assertEqual(cells.height, 1, "the fixture spans more than one hexagon")
 
-        kept = filter_terrestrial_geocodes_lf(records, 4).collect()
-        self.assertEqual(kept.height, 20)
