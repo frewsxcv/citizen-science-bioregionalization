@@ -168,11 +168,17 @@ def _(cli_args, defaults, mo):
     composition_metric = cli_args.get(
         "composition-metric", defaults.COMPOSITION_METRIC
     )
-    if composition_metric not in ("presence", "abundance"):
+    if composition_metric not in ("presence", "abundance", "betasim"):
         raise ValueError(
             f"Unknown --composition-metric={composition_metric!r}. "
-            f"Expected 'presence' or 'abundance'."
+            f"Expected 'presence', 'abundance' or 'betasim'."
         )
+    linkage = cli_args.get("linkage", defaults.LINKAGE)
+    if linkage not in ("average", "ward"):
+        raise ValueError(
+            f"Unknown --linkage={linkage!r}. Expected 'average' or 'ward'."
+        )
+
     reduction = cli_args.get("reduction", defaults.REDUCTION)
     if reduction not in ("umap", "pcoa"):
         raise ValueError(
@@ -219,6 +225,7 @@ def _(cli_args, defaults, mo):
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        linkage,
         reduction,
         metric_weights,
         num_clusters_pinned,
@@ -390,6 +397,7 @@ def _(
     terrestrial_only,
     no_hex_floor,
     composition_metric,
+    linkage,
     reduction,
     metric_weights,
     num_clusters_pinned,
@@ -455,6 +463,7 @@ def _(
             {"variable": "terrestrial_only", "value": terrestrial_only},
             {"variable": "no_hex_floor", "value": no_hex_floor},
             {"variable": "composition_metric", "value": composition_metric},
+            {"variable": "linkage", "value": linkage},
             {"variable": "reduction", "value": reduction},
             {"variable": "metric_weights", "value": str(metric_weights)},
             {"variable": "num_clusters_pinned", "value": num_clusters_pinned},
@@ -489,6 +498,7 @@ def _(
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        linkage,
         reduction,
         metric_weights,
         num_clusters_pinned,
@@ -848,6 +858,7 @@ def _(
     geocode_connectivity_matrix,
     geocode_distance_matrix,
     geocode_lf,
+    linkage,
     max_clusters_to_test,
     min_clusters_to_test,
 ):
@@ -860,6 +871,7 @@ def _(
             geocode_connectivity_matrix,
             min_k=min_clusters_to_test,
             max_k=max_clusters_to_test,
+            linkage=linkage,
         ),
         cache_key="GeocodeClusterMultiKSchema",
     ).collect(engine="streaming")

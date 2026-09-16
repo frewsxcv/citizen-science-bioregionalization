@@ -4,7 +4,7 @@ import numpy as np
 import polars as pl
 from scipy.spatial.distance import pdist
 
-from src.matrices.geocode_distance import GeocodeDistanceMatrix
+from src.matrices.geocode_distance import build_unscaled_X, GeocodeDistanceMatrix
 
 
 class TestEmbeddingDistanceIsEuclidean(unittest.TestCase):
@@ -208,14 +208,33 @@ class TestCompositionMetric(unittest.TestCase):
             )
         )
 
-    def test_presence_is_the_default(self):
+    def test_betasim_is_the_default(self):
+        """Not presence/absence Bray-Curtis, which is Sorensen, and which Kreft
+        & Jetz (2010) argue against for regionalisation because it is "strongly
+        affected by differences in species richness" -- here largely a record of
+        sampling effort rather than of biota."""
         from src import defaults
+        from src.matrices.geocode_distance import betasim_condensed
 
-        self.assertEqual(defaults.COMPOSITION_METRIC, "presence")
+        self.assertEqual(defaults.COMPOSITION_METRIC, "betasim")
+        counts, present = self._counts()
+        built = GeocodeDistanceMatrix.build(
+            counts.lazy(), present.lazy(), metric="betasim"
+        )
+        presence_matrix = (
+            build_unscaled_X(counts.lazy(), present.lazy()).to_numpy() > 0
+        ).astype(float)
+        reference = built.abundance_condensed()
+        # Typed Optional because the abundance path can skip it; the betasim
+        # path always sets it, which is the thing being asserted.
+        assert reference is not None
+        np.testing.assert_allclose(reference, betasim_condensed(presence_matrix))
+
+    def test_presence_still_gives_sorensen(self):
         counts, present = self._counts()
         np.testing.assert_array_equal(
             self._reference(counts, present, "presence"),
             GeocodeDistanceMatrix.build(
-                counts.lazy(), present.lazy()
+                counts.lazy(), present.lazy(), metric="presence"
             ).abundance_condensed(),
         )
