@@ -6,7 +6,7 @@ These defaults are used by:
 - CLI argument parsing (as fallbacks when args aren't provided)
 """
 
-from src.types import CompositionMetric, Reduction
+from src.types import CompositionMetric, Linkage, Reduction
 
 # Data source defaults
 PARQUET_SOURCE_PATH = (
@@ -86,7 +86,19 @@ MIN_HEX_RECORDS: int | None = None
 # representations tried (column max, log1p, Hellinger, Wisconsin double
 # standardisation and RobustScaler were the others). Presence also makes
 # per-taxon scaling moot: there are no magnitudes left to normalise.
-COMPOSITION_METRIC: CompositionMetric = "presence"
+#: How hexagon composition is compared.
+#:
+#: betasim (Simpson turnover) rather than presence/absence Bray-Curtis, which is
+#: Sorensen. Kreft & Jetz (2010) recommend it for regionalisation specifically,
+#: against Sorensen/Bray-Curtis, Jaccard and Kulczynski, because those "are
+#: strongly affected by differences in species richness". Here richness is
+#: largely sampling effort -- the two correlate at Spearman 0.975 -- so a
+#: richness-sensitive index reports hexagons as different because one was
+#: visited more often. See matrices.geocode_distance.betasim_condensed.
+COMPOSITION_METRIC: CompositionMetric = "betasim"
+
+#: Agglomerative linkage rule. See types.Linkage.
+LINKAGE: Linkage = "ward"
 
 #: How the composition matrix becomes Euclidean coordinates for Ward.
 #:
@@ -97,6 +109,7 @@ COMPOSITION_METRIC: CompositionMetric = "presence"
 #: pipeline is used to look for. Three PCoA runs at different seeds agree
 #: exactly.
 REDUCTION: Reduction = "pcoa"
+
 
 # Weights for the combined score that selects k, as (silhouette,
 # Calinski-Harabasz, Davies-Bouldin). Silhouette dominates because it is the

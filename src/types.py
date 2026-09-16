@@ -17,7 +17,7 @@ TaxonRank: TypeAlias = Literal["kingdom", "phylum", "class", "order", "family", 
 #:
 #: Bray-Curtis over presence bits is Sorensen dissimilarity, so the metric
 #: itself does not change -- only what it is given.
-CompositionMetric: TypeAlias = Literal["presence", "abundance"]
+CompositionMetric: TypeAlias = Literal["presence", "abundance", "betasim"]
 
 #: How the composition matrix is turned into Euclidean coordinates for Ward.
 #:
@@ -25,6 +25,13 @@ CompositionMetric: TypeAlias = Literal["presence", "abundance"]
 #: Bray-Curtis matrix. Only the second is reproducible across machines -- see
 #: matrices.geocode_distance.reduce_dimensions_pcoa.
 Reduction: TypeAlias = Literal["umap", "pcoa"]
+
+#: Agglomerative linkage rule.
+#:
+#: "average" is UPGMA, which Kreft & Jetz (2010) found best of nine methods and
+#: which works directly on a dissimilarity matrix. "ward" needs Euclidean input,
+#: which is the only reason this pipeline embeds the composition at all.
+Linkage: TypeAlias = Literal["average", "ward"]
 
 #: Ranks that can be used to scope a run, coarsest first.
 TAXON_RANKS: tuple[TaxonRank, ...] = get_args(TaxonRank)

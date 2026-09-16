@@ -45,6 +45,13 @@ uv run marimo run notebook.py -- [OPTIONS]
   Matches the taxon name, case-sensitively. Omit for all taxa. See
   [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
+- `--composition-metric=betasim|presence|abundance`: How hexagon composition is
+  compared. Defaults to `betasim` (Simpson turnover), which is independent of
+  species richness — and richness here is largely sampling effort. `presence`
+  gives Sørensen, `abundance` gives Bray-Curtis over counts.
+- `--linkage=ward|average`: Agglomerative linkage. Defaults to `ward`. `average`
+  is UPGMA, standard in the literature, but chains badly under this pipeline's
+  spatial contiguity constraint.
 - `--reduction=umap|pcoa`: How the composition matrix becomes Euclidean
   coordinates for Ward. Defaults to `pcoa`, which is reproducible across
   machines; `umap` is the historical behaviour and is not.

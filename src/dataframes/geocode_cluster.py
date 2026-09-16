@@ -7,7 +7,7 @@ import polars as pl
 import bioregion_rs
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
 from src.matrices.geocode_distance import GeocodeDistanceMatrix
-from src.types import ClusterId, Geocode
+from src.types import ClusterId, Geocode, Linkage
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,7 @@ def build_geocode_cluster_multi_k_df(
     connectivity_matrix: GeocodeConnectivityMatrix,
     min_k: int,
     max_k: int,
+    linkage: Linkage = "ward",
 ) -> pl.DataFrame:
     """Build clustering results for all k values from min_k to max_k.
 
@@ -57,6 +58,8 @@ def build_geocode_cluster_multi_k_df(
         connectivity_matrix: Spatial connectivity constraints for clustering
         min_k: Minimum number of clusters to test
         max_k: Maximum number of clusters to test
+        linkage: "average" is UPGMA on the dissimilarities directly; "ward"
+            requires Euclidean input and so requires a reduction upstream.
 
     Returns:
         DataFrame with clustering results for all k values tested
@@ -92,6 +95,46 @@ def build_geocode_cluster_multi_k_df(
     logger.info(
         f"Testing {max_k - min_k + 1} cluster configurations (k={min_k} to k={max_k})"
     )
+
+    if linkage == "average":
+        # UPGMA, straight onto the dissimilarity matrix. Kreft & Jetz (2010)
+        # found it best of nine hierarchical methods for regionalisation, and
+        # unlike Ward it does not require Euclidean input -- so the composition
+        # is clustered as measured rather than after a reduction.
+        #
+        # sklearn's own tree is used rather than the Rust one, which implements
+        # Ward specifically: it carries each leaf's row of the squareform matrix
+        # as a feature vector and minimises inertia over it, which is meaningful
+        # only under squared Euclidean geometry.
+        from sklearn.cluster import AgglomerativeClustering
+
+        square = distance_matrix.squareform()
+        connectivity = connectivity_matrix._connectivity_matrix
+        rows: list[dict[str, object]] = []
+        for k in range(min_k, max_k + 1):
+            labels = AgglomerativeClustering(
+                n_clusters=k,
+                metric="precomputed",
+                linkage="average",
+                connectivity=connectivity,
+            ).fit_predict(square)
+            rows.extend(
+                {
+                    "geocode": geocode,
+                    "num_clusters": np.uint32(k),
+                    "cluster": np.uint32(label),
+                }
+                for geocode, label in zip(geocodes.to_list(), labels)
+            )
+        df = pl.DataFrame(rows).cast(
+            {"geocode": pl.UInt64, "num_clusters": pl.UInt32, "cluster": pl.UInt32}
+        )
+        logger.info(
+            f"build_geocode_cluster_multi_k_df: Final output has {df.height} rows "
+            f"({df.select('geocode').unique().height} unique geocodes, "
+            f"{df.select('num_clusters').unique().height} k values)"
+        )
+        return df
 
     # Connectivity-constrained Ward agglomerative clustering, delegated to Rust
     # (bioregion_rs.build_geocode_cluster_multi_k). It reproduces sklearn's
