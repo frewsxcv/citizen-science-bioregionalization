@@ -19,6 +19,13 @@ TaxonRank: TypeAlias = Literal["kingdom", "phylum", "class", "order", "family", 
 #: itself does not change -- only what it is given.
 CompositionMetric: TypeAlias = Literal["presence", "abundance"]
 
+#: How the composition matrix is turned into Euclidean coordinates for Ward.
+#:
+#: "umap" fits a manifold embedding; "pcoa" takes principal coordinates of the
+#: Bray-Curtis matrix. Only the second is reproducible across machines -- see
+#: matrices.geocode_distance.reduce_dimensions_pcoa.
+Reduction: TypeAlias = Literal["umap", "pcoa"]
+
 #: Ranks that can be used to scope a run, coarsest first.
 TAXON_RANKS: tuple[TaxonRank, ...] = get_args(TaxonRank)
 
