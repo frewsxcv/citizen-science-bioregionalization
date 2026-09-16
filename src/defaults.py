@@ -97,6 +97,11 @@ MIN_HEX_RECORDS: int | None = None
 #: visited more often. See matrices.geocode_distance.betasim_condensed.
 COMPOSITION_METRIC: CompositionMetric = "betasim"
 
+#: Cuts of the merge tree to emit, comma-separated, or None for just the one the
+#: selector chose. A regionalization is conventionally reported as a nesting;
+#: see src/hierarchy.py for what the levels agree with.
+HIERARCHY_LEVELS: str | None = None
+
 #: Agglomerative linkage rule. See types.Linkage.
 LINKAGE: Linkage = "ward"
 
