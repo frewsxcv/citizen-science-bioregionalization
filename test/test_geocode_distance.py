@@ -224,9 +224,11 @@ class TestCompositionMetric(unittest.TestCase):
         presence_matrix = (
             build_unscaled_X(counts.lazy(), present.lazy()).to_numpy() > 0
         ).astype(float)
-        np.testing.assert_allclose(
-            built.abundance_condensed(), betasim_condensed(presence_matrix)
-        )
+        reference = built.abundance_condensed()
+        # Typed Optional because the abundance path can skip it; the betasim
+        # path always sets it, which is the thing being asserted.
+        assert reference is not None
+        np.testing.assert_allclose(reference, betasim_condensed(presence_matrix))
 
     def test_presence_still_gives_sorensen(self):
         counts, present = self._counts()
