@@ -5,7 +5,7 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import RobustScaler
 
 from src.dataframes import geocode_taxa_counts
-from src.types import CompositionMetric
+from src.types import CompositionMetric, Reduction
 from src.logging import log_action, log_array_digest, logger
 
 # Target dimensionality for the UMAP reduction.
@@ -238,6 +238,70 @@ def reduce_dimensions_umap(
     )
 
 
+def reduce_dimensions_pcoa(
+    condensed: np.ndarray,
+    n_components: int,
+) -> np.ndarray:
+    """Principal coordinates analysis (classical MDS) of a distance matrix.
+
+    An alternative to `reduce_dimensions_umap` with the same job -- turn an
+    ecological dissimilarity into Euclidean coordinates that Ward can cluster --
+    and two properties UMAP does not have.
+
+    It is deterministic. UMAP's layout is a stochastic optimisation, and a fixed
+    seed only pins it within one machine: measured on the published run, two
+    processes on different machines produced byte-identical `umap_input`
+    digests and different embeddings, moving the reported R2 between 0.4591 and
+    0.5641 and the composition silhouette between 0.1174 and 0.1338. That
+    variance is larger than most effects worth measuring here, which makes any
+    single-run comparison of a pipeline change unreliable.
+
+    It is also the ordination this field already uses. PCoA on Bray-Curtis is
+    the standard treatment of a community matrix, where UMAP is a general
+    manifold method whose reduction in this pipeline is close to vestigial --
+    its real contribution was converting Bray-Curtis into something Euclidean,
+    which is exactly what PCoA does, from an explicit eigendecomposition rather
+    than a fitted layout.
+
+    Negative eigenvalues are dropped. Bray-Curtis is not a Euclidean metric, so
+    some always appear; the axes they carry have no real coordinates and are
+    conventionally discarded rather than corrected.
+
+    Args:
+        condensed: Condensed pairwise dissimilarities, as returned by `pdist`.
+        n_components: Maximum number of axes to keep. Fewer are returned when
+            the dissimilarity supports fewer positive eigenvalues.
+
+    Returns:
+        An (n_samples, k) array of coordinates, k <= n_components.
+    """
+    distances = squareform(condensed)
+    n = distances.shape[0]
+
+    # Gower's double centring: B = -1/2 J D^2 J, whose eigenvectors scaled by
+    # the square roots of its eigenvalues reproduce the distances.
+    centering = np.eye(n) - np.ones((n, n)) / n
+    gram = centering @ (-0.5 * distances**2) @ centering
+    # eigh rather than eig: the matrix is symmetric, and eigh returns real
+    # values in ascending order.
+    eigenvalues, eigenvectors = np.linalg.eigh(gram)
+
+    order = np.argsort(eigenvalues)[::-1][:n_components]
+    eigenvalues, eigenvectors = eigenvalues[order], eigenvectors[:, order]
+    keep = eigenvalues > 0
+    eigenvalues, eigenvectors = eigenvalues[keep], eigenvectors[:, keep]
+
+    # An eigenvector's sign is arbitrary, and LAPACK need not choose the same
+    # one on every platform. Distances are unaffected, but the digests this
+    # pipeline logs are not, so fix it: make each axis's largest-magnitude
+    # entry positive.
+    signs = np.sign(eigenvectors[np.argmax(np.abs(eigenvectors), axis=0), np.arange(eigenvectors.shape[1])])
+    signs[signs == 0] = 1
+    eigenvectors = eigenvectors * signs
+
+    return eigenvectors * np.sqrt(eigenvalues)
+
+
 class GeocodeDistanceMatrix:
     """
     A distance matrix where each column and row is a geocode, and the cell at the intersection of a
@@ -272,6 +336,7 @@ class GeocodeDistanceMatrix:
         umap_min_dist: float = 0.5,
         random_state: int | None = None,
         metric: CompositionMetric = "presence",
+        reduction: Reduction = "umap",
     ) -> "GeocodeDistanceMatrix":
         """
         Args:
@@ -280,6 +345,10 @@ class GeocodeDistanceMatrix:
             random_state: Seed for UMAP. See reduce_dimensions_umap.
             metric: "presence" reduces each count to whether the taxon was seen
                 at all; "abundance" keeps the counts. See CompositionMetric.
+            reduction: "umap" fits a manifold embedding; "pcoa" takes principal
+                coordinates of the Bray-Curtis matrix. See
+                reduce_dimensions_pcoa for why the second is reproducible and
+                the first is not.
         """
         if metric == "presence":
             # Presence deliberately skips RobustScaler. Scaling a binary column
@@ -302,32 +371,66 @@ class GeocodeDistanceMatrix:
             )
         scaled_feature_matrix = feature_matrix
 
-        # Dimensionality Reduction using UMAP.
-        # 'braycurtis' is right *here*, where the input really is ecological
-        # count data. It is not right on the output; see the pdist call below.
-        logger.info(
-            f"Reducing dimensions with UMAP. Input shape: {scaled_feature_matrix.shape}"
-        )
-
         if umap_n_components is None:
             umap_n_components = default_umap_n_components(scaled_feature_matrix.height)
 
-        # Digest either side of UMAP, so that a run which disagrees with another
-        # on the final map can be localised. Matching input and differing output
-        # puts the cause in UMAP; differing input puts it upstream.
+        # Distances on the composition itself, before any reduction. These serve
+        # two purposes: they are the reference the reported silhouette is
+        # checked against (see cluster_optimization, which logs both), and under
+        # --reduction=pcoa they are also what the reduction is taken of, so they
+        # are computed here rather than after it.
+        # ascontiguousarray because Polars returns column-major and pdist walks
+        # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
+        # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
+        # this call went from 586s to 74s.
+        reference = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
+        if metric == "presence":
+            reference = (reference > 0).astype(np.float64)
+        unscaled = np.ascontiguousarray(reference)
+        reference_space = "presence bits" if metric == "presence" else "abundances"
+        abundance_condensed = log_action(
+            f"Calculating reference distances (braycurtis) on "
+            f"{reference_space}: {unscaled.shape}",
+            lambda: pdist(unscaled, metric="braycurtis"),
+        )
+
+        # Digest either side of the reduction, so that a run which disagrees
+        # with another on the final map can be localised. Matching input and
+        # differing output puts the cause in the reduction; differing input puts
+        # it upstream.
         log_array_digest("umap_input", scaled_feature_matrix.to_numpy())
 
-        reduced_feature_matrix = log_action(
-            "Fitting UMAP",
-            lambda: scaled_feature_matrix.pipe(
-                reduce_dimensions_umap,
-                umap_n_components,
-                umap_min_dist,
-                random_state,
-            ),
-        )
+        if reduction == "pcoa":
+            logger.info(
+                f"Reducing dimensions with PCoA. Input: {unscaled.shape} "
+                f"({reference_space}, Bray-Curtis)"
+            )
+            reduced_feature_matrix = pl.from_numpy(
+                log_action(
+                    "Taking principal coordinates",
+                    lambda: reduce_dimensions_pcoa(
+                        abundance_condensed, umap_n_components
+                    ),
+                )
+            )
+        else:
+            # 'braycurtis' is right *here*, where the input really is ecological
+            # count data. It is not right on the output; see the pdist call
+            # below.
+            logger.info(
+                f"Reducing dimensions with UMAP. Input shape: {scaled_feature_matrix.shape}"
+            )
+            reduced_feature_matrix = log_action(
+                "Fitting UMAP",
+                lambda: scaled_feature_matrix.pipe(
+                    reduce_dimensions_umap,
+                    umap_n_components,
+                    umap_min_dist,
+                    random_state,
+                ),
+            )
         logger.info(
-            f"Reduced dimensions with UMAP. Output shape: {reduced_feature_matrix.shape}"
+            f"Reduced dimensions with {reduction}. Output shape: {reduced_feature_matrix.shape}"
         )
         log_array_digest("umap_output", reduced_feature_matrix.to_numpy())
 
@@ -352,26 +455,6 @@ class GeocodeDistanceMatrix:
         condensed_distances = log_action(
             f"Calculating pairwise distances (pdist) on matrix: {reduced_feature_matrix.shape}",
             lambda: pdist(reduced_feature_matrix, metric="euclidean"),
-        )
-
-        # Distances on the abundances themselves, before any reduction. Nothing
-        # in the pipeline clusters on these; they exist so the reported
-        # silhouette can be checked against one measured in the space the data
-        # actually lives in. The two disagree by a lot -- see
-        # cluster_optimization, which logs both.
-        # ascontiguousarray because Polars returns column-major and pdist walks
-        # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
-        # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
-        # this call went from 586s to 74s.
-        reference = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
-        if metric == "presence":
-            reference = (reference > 0).astype(np.float64)
-        unscaled = np.ascontiguousarray(reference)
-        reference_space = "presence bits" if metric == "presence" else "abundances"
-        abundance_condensed = log_action(
-            f"Calculating reference distances (braycurtis) on "
-            f"{reference_space}: {unscaled.shape}",
-            lambda: pdist(unscaled, metric="braycurtis"),
         )
 
         return cls(

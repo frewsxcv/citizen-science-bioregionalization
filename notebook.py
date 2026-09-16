@@ -173,6 +173,11 @@ def _(cli_args, defaults, mo):
             f"Unknown --composition-metric={composition_metric!r}. "
             f"Expected 'presence' or 'abundance'."
         )
+    reduction = cli_args.get("reduction", defaults.REDUCTION)
+    if reduction not in ("umap", "pcoa"):
+        raise ValueError(
+            f"Unknown --reduction={reduction!r}. Expected 'umap' or 'pcoa'."
+        )
     seed_ui = mo.ui.number(
         value=cli_args.get("seed", defaults.RANDOM_SEED if defaults.RANDOM_SEED is not None else 0),
         label="Random seed",
@@ -214,6 +219,7 @@ def _(cli_args, defaults, mo):
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        reduction,
         metric_weights,
         num_clusters_pinned,
     )
@@ -384,6 +390,7 @@ def _(
     terrestrial_only,
     no_hex_floor,
     composition_metric,
+    reduction,
     metric_weights,
     num_clusters_pinned,
 ):
@@ -448,6 +455,7 @@ def _(
             {"variable": "terrestrial_only", "value": terrestrial_only},
             {"variable": "no_hex_floor", "value": no_hex_floor},
             {"variable": "composition_metric", "value": composition_metric},
+            {"variable": "reduction", "value": reduction},
             {"variable": "metric_weights", "value": str(metric_weights)},
             {"variable": "num_clusters_pinned", "value": num_clusters_pinned},
         ],
@@ -481,6 +489,7 @@ def _(
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        reduction,
         metric_weights,
         num_clusters_pinned,
     )
@@ -797,7 +806,7 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed, composition_metric):
+def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed, composition_metric, reduction):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
@@ -805,6 +814,7 @@ def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed, composition_metri
         geocode_lf,
         random_state=random_seed,
         metric=composition_metric,
+        reduction=reduction,
     )
 
     mo.vstack(
