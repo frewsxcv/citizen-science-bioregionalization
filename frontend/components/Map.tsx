@@ -2,30 +2,12 @@ import React, { useRef, useEffect } from "react";
 import type { FeatureCollection, Position } from "geojson";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { FeatureCollection as FC } from "geojson";
-import { Aggregations, ClusterData } from "../types";
+import { ClusterData } from "../types";
 import dataImport from "../aggregations.json";
 
 import { useStore } from "../store/useStore";
 
-const aggregations = dataImport as unknown as Aggregations;
-
-const clustersAt = (k: number): ClusterData[] =>
-  aggregations.levels.find((level) => level.k === k)?.clusters ?? [];
-
-const toFeatureCollection = (clusters: ClusterData[]): FC => ({
-  type: "FeatureCollection",
-  features: clusters.map((cluster) => ({
-    type: "Feature",
-    geometry: cluster.boundary,
-    properties: {
-      cluster: cluster.cluster,
-      significant_taxa: cluster.significant_taxa,
-      color: cluster.color,
-      darkened_color: cluster.darkened_color,
-    },
-  })),
-});
+const data = dataImport as ClusterData[];
 
 const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -35,30 +17,11 @@ const Map: React.FC = () => {
   const setMapInstance = useStore((state) => state.setMapInstance);
   const setClusterData = useStore((state) => state.setClusterData);
   const selectedCluster = useStore((state) => state.selectedCluster);
-  const level = useStore((state) => state.level);
-  const setLevel = useStore((state) => state.setLevel);
-  const setAvailableLevels = useStore((state) => state.setAvailableLevels);
 
   useEffect(() => {
-    setAvailableLevels(aggregations.levels.map((l) => l.k));
-    setLevel(aggregations.default_level);
-  }, []); // store setters are stable from Zustand
-
-  useEffect(() => {
-    setClusterData(clustersAt(level));
-  }, [level]);
-
-  // Redraw on a level change. The source is replaced rather than the layers
-  // rebuilt, so the viewport and layer styling survive the switch.
-  useEffect(() => {
-    if (!map.current || !level) return;
-    const source = map.current.getSource("clusters");
-    if (source && "setData" in source) {
-      (source as maplibregl.GeoJSONSource).setData(
-        toFeatureCollection(clustersAt(level)) as never,
-      );
-    }
-  }, [level]);
+    // Load cluster data into the store
+    setClusterData(data);
+  }, []); // setClusterData is stable from Zustand
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return; // initialize map only once
@@ -81,12 +44,19 @@ const Map: React.FC = () => {
       // Store the map instance in the global store
       setMapInstance(map.current);
 
-      // Bounds are fitted from the coarsest level, whose clusters cover the
-      // same ground as every other level -- they are cuts of one tree -- so the
-      // viewport does not jump when the level changes.
-      const geojson: FeatureCollection = toFeatureCollection(
-        clustersAt(aggregations.default_level),
-      ) as FeatureCollection;
+      const geojson: FeatureCollection = {
+        type: "FeatureCollection",
+        features: data.map((cluster) => ({
+          type: "Feature",
+          geometry: cluster.boundary,
+          properties: {
+            cluster: cluster.cluster,
+            significant_taxa: cluster.significant_taxa,
+            color: cluster.color,
+            darkened_color: cluster.darkened_color,
+          },
+        })),
+      };
 
       map.current.addSource("clusters", {
         type: "geojson",

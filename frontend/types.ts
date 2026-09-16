@@ -20,18 +20,6 @@ export interface ClusterData {
   darkened_color: string;
 }
 
-/** One cut of the merge tree. Levels are nested: a cluster at k=8 lies inside
- * exactly one cluster at k=4, because they come from the same tree. */
-export interface HierarchyLevel {
-  k: number;
-  clusters: ClusterData[];
-}
-
-export interface Aggregations {
-  default_level: number;
-  levels: HierarchyLevel[];
-}
-
 export interface SelectedCluster {
   clusterId: number;
   significantTaxa: SignificantTaxa[];

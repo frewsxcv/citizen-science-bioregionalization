@@ -30,12 +30,6 @@ interface AppState {
   clusterData: ClusterData[];
   setClusterData: (data: ClusterData[]) => void;
 
-  // Which cut of the merge tree is shown
-  level: number;
-  setLevel: (k: number) => void;
-  availableLevels: number[];
-  setAvailableLevels: (levels: number[]) => void;
-
   // Image load queue state
   imageQueue: QueueItem[];
   isProcessingQueue: boolean;
@@ -90,16 +84,6 @@ export const useStore = create<AppState>()(
         set({ isLoading: loading }, false, "setIsLoading");
       },
 
-      level: 0,
-      availableLevels: [],
-      setLevel: (k) => {
-        // Changing the cut invalidates the selection: cluster ids are per
-        // level, so id 3 at k=4 is not id 3 at k=8.
-        set({ level: k, selectedCluster: null }, false, "setLevel");
-      },
-      setAvailableLevels: (levels) => {
-        set({ availableLevels: levels }, false, "setAvailableLevels");
-      },
       setClusterData: (data) => {
         set({ clusterData: data }, false, "setClusterData");
       },

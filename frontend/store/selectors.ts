@@ -95,7 +95,3 @@ export const useTaxaWithImages = () =>
       (taxa) => taxa.image_url !== null,
     );
   });
-
-export const useLevel = () => useStore((state) => state.level);
-export const useSetLevel = () => useStore((state) => state.setLevel);
-export const useAvailableLevels = () => useStore((state) => state.availableLevels);

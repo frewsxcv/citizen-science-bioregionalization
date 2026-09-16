@@ -1,7 +1,6 @@
 import React from "react";
 import Map from "./Map";
 import Sidebar from "./Sidebar";
-import LevelSelector from "./LevelSelector";
 import { useSidebarOpen, useToggleSidebar } from "../store/selectors";
 
 const App: React.FC = () => {
@@ -11,7 +10,6 @@ const App: React.FC = () => {
   return (
     <>
       <Map />
-      <LevelSelector />
       <Sidebar />
       <button
         onClick={toggleSidebar}
