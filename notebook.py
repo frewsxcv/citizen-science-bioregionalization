@@ -179,6 +179,12 @@ def _(cli_args, defaults, mo):
             f"Unknown --linkage={linkage!r}. Expected 'average' or 'ward'."
         )
 
+    _levels = cli_args.get("hierarchy-levels", defaults.HIERARCHY_LEVELS)
+    hierarchy_levels = (
+        [int(x) for x in str(_levels).split(",") if x.strip()]
+        if _levels not in (None, "")
+        else None
+    )
     reduction = cli_args.get("reduction", defaults.REDUCTION)
     if reduction not in ("umap", "pcoa"):
         raise ValueError(
@@ -225,6 +231,8 @@ def _(cli_args, defaults, mo):
         terrestrial_only,
         no_hex_floor,
         composition_metric,
+        hierarchy_levels,
+        hierarchy_levels,
         linkage,
         reduction,
         metric_weights,
@@ -397,6 +405,7 @@ def _(
     terrestrial_only,
     no_hex_floor,
     composition_metric,
+    hierarchy_levels,
     linkage,
     reduction,
     metric_weights,
@@ -463,6 +472,7 @@ def _(
             {"variable": "terrestrial_only", "value": terrestrial_only},
             {"variable": "no_hex_floor", "value": no_hex_floor},
             {"variable": "composition_metric", "value": composition_metric},
+            {"variable": "hierarchy_levels", "value": hierarchy_levels},
             {"variable": "linkage", "value": linkage},
             {"variable": "reduction", "value": reduction},
             {"variable": "metric_weights", "value": str(metric_weights)},
@@ -1448,33 +1458,42 @@ def _(mo):
 
 @app.cell
 def _(
-    cluster_boundary_df,
-    cluster_colors_df,
-    cluster_significant_differences_df,
-    significant_taxa_images_df,
+    all_clusters_df,
+    geocode_lf,
+    geocode_neighbors_df,
+    geocode_taxa_counts_lf,
+    hierarchy_levels,
+    max_clusters_to_test,
+    min_clusters_to_test,
+    no_images,
+    optimal_num_clusters,
     taxonomy_lf,
 ):
-    from src.output import write_json_output
+    from src.hierarchy import build_hierarchy_json, resolve_levels
+    from src.output import prepare_file_path
 
-    taxonomy_df = taxonomy_lf.collect(engine="streaming")
-
-    # write_json_output(
-    #     cluster_significant_differences_df,
-    #     cluster_boundary_df,
-    #     taxonomy_df,
-    #     cluster_colors_df,
-    #     significant_taxa_images_df,
-    #     "/dev/stdout",
-    # )
-
-    write_json_output(
-        cluster_significant_differences_df,
-        cluster_boundary_df,
-        taxonomy_df,
-        cluster_colors_df,
-        significant_taxa_images_df,
-        "frontend/aggregations.json",
+    # Every level reruns the chain the cells above ran for the selected one, so
+    # the selected level's entry is what the single-level writer produced; the
+    # others are the remaining cuts of the same tree. The cells above are kept
+    # because they are what the notebook displays.
+    _levels = resolve_levels(
+        hierarchy_levels,
+        optimal_num_clusters,
+        min_clusters_to_test,
+        max_clusters_to_test,
     )
+    _json = build_hierarchy_json(
+        all_clusters_df,
+        geocode_lf,
+        geocode_neighbors_df,
+        geocode_taxa_counts_lf,
+        taxonomy_lf,
+        levels=_levels,
+        default_level=optimal_num_clusters,
+        fetch_images=not no_images,
+    )
+    with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
+        _writer.write(_json)
     return
 
 
