@@ -45,6 +45,9 @@ uv run marimo run notebook.py -- [OPTIONS]
   Matches the taxon name, case-sensitively. Omit for all taxa. See
   [Taxonomic scoping](#taxonomic-scoping).
 - `--min-lat=N`, `--max-lat=N`, `--min-lon=N`, `--max-lon=N`: Bounding box coordinates.
+- `--reduction=umap|pcoa`: How the composition matrix becomes Euclidean
+  coordinates for Ward. Defaults to `pcoa`, which is reproducible across
+  machines; `umap` is the historical behaviour and is not.
 - `--limit-results=N`: Limit number of results for testing (defaults to on, at 1000).
   Takes the first N records in scan order, which is fine for a quick run and
   wrong for a representative one: a GBIF snapshot's file order is grouped by

@@ -6,7 +6,7 @@ These defaults are used by:
 - CLI argument parsing (as fallbacks when args aren't provided)
 """
 
-from src.types import CompositionMetric
+from src.types import CompositionMetric, Reduction
 
 # Data source defaults
 PARQUET_SOURCE_PATH = (
@@ -87,6 +87,16 @@ MIN_HEX_RECORDS: int | None = None
 # standardisation and RobustScaler were the others). Presence also makes
 # per-taxon scaling moot: there are no magnitudes left to normalise.
 COMPOSITION_METRIC: CompositionMetric = "presence"
+
+#: How the composition matrix becomes Euclidean coordinates for Ward.
+#:
+#: PCoA, because UMAP's layout is a stochastic optimisation whose seed only
+#: binds within one machine. Measured on the published run, two machines
+#: produced byte-identical inputs and different embeddings, moving the reported
+#: R2 between 0.4591 and 0.5641 -- a spread wider than most effects this
+#: pipeline is used to look for. Three PCoA runs at different seeds agree
+#: exactly.
+REDUCTION: Reduction = "pcoa"
 
 # Weights for the combined score that selects k, as (silhouette,
 # Calinski-Harabasz, Davies-Bouldin). Silhouette dominates because it is the
