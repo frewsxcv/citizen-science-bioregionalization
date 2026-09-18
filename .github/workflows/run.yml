@@ -99,6 +99,7 @@ jobs:
             ${{ matrix.limit_results != null && format('--limit-results={0}', matrix.limit_results) || '' }} \
             ${{ matrix.max_taxa != null && format('--max-taxa={0}', matrix.max_taxa) || '' }} \
             ${{ matrix.min_geocode_presence != null && format('--min-geocode-presence={0}', matrix.min_geocode_presence) || '' }} \
+            --findings-output=${{ matrix.output_dir }}/findings.html \
             --parquet-source-path="${{ matrix.source_path }}"
       - name: Report disk usage
         if: always() && matrix.name == 'gbif-snapshot'

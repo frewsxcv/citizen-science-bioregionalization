@@ -131,6 +131,17 @@ def _(cli_args, defaults, mo):
     )
     # Opting out entirely, as distinct from pinning a value.
     no_hex_floor = "no-hex-floor" in cli_args
+    # The findings page re-clusters each clade on its own, which is the run's
+    # heaviest stage repeated twice over subsets. Worth it -- it is the only way
+    # the congruence result gets recomputed rather than transcribed -- but a
+    # run that just wants the map can skip it.
+    no_findings = "no-findings" in cli_args
+    # Where the findings page goes. Defaults into the gitignored output
+    # directory; CI points it at whichever directory it uploads as the Pages
+    # artifact, which differs per matrix entry.
+    findings_output = str(
+        cli_args.get("findings-output", defaults.FINDINGS_OUTPUT_PATH)
+    )
     # Comma-separated silhouette,calinski_harabasz,davies_bouldin. Raising the
     # silhouette share raises the k chosen, because it is the only one of the
     # three with an interior optimum; the other two are monotone in k on real
@@ -230,6 +241,8 @@ def _(cli_args, defaults, mo):
         taxon_scope_ui,
         terrestrial_only,
         no_hex_floor,
+        no_findings,
+        findings_output,
         composition_metric,
         hierarchy_levels,
         hierarchy_levels,
@@ -729,6 +742,22 @@ def _(
         cache_key="TaxonomySchema",
     )
     return (taxonomy_lf,)
+
+
+@app.cell
+def _(materialize_parquet, darwin_core_lf, taxonomy_lf):
+    from src.dataframes.taxon_clade import build_taxon_clade_lf
+
+    # One row per taxon, so it is small enough to spill and hold. `None` when
+    # the source carried no rank columns; the findings page then says the clade
+    # questions were not answered rather than guessing at them.
+    _clade_lf = build_taxon_clade_lf(darwin_core_lf, taxonomy_lf)
+    taxon_clade_lf = (
+        None
+        if _clade_lf is None
+        else materialize_parquet(_clade_lf, cache_key="TaxonCladeSchema")
+    )
+    return (taxon_clade_lf,)
 
 
 @app.cell
@@ -1575,6 +1604,96 @@ def _(
     )
     with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
         _writer.write(_json)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Findings
+
+    The same numbers as the charts above, plus the two this run has to work for
+    -- clade congruence and agreement with a published framework -- written to
+    a standalone page beside the other outputs.
+    """)
+    return
+
+
+@app.cell
+def _(
+    all_clusters_df,
+    bounding_box,
+    composition_metric,
+    geocode_lf,
+    geocode_precision,
+    geocode_taxa_counts_lf,
+    max_clusters_to_test,
+    min_clusters_to_test,
+    findings_output,
+    mo,
+    no_findings,
+    optimal_num_clusters,
+    parquet_source_path,
+    random_seed,
+    reduction,
+    taxon_clade_lf,
+    taxonomy_lf,
+):
+    import polars as _pl
+
+    # Aliased: marimo requires each global to be defined in exactly one cell,
+    # and the hierarchy cell above already imports this name.
+    from src.findings import build_findings_data as _build_findings_data
+    from src.findings_page import RunContext as _RunContext
+    from src.findings_page import findings_summary_json as _findings_summary_json
+    from src.findings_page import write_findings_page as _write_findings_page
+    from src.output import prepare_file_path as _prepare_file_path
+
+    if no_findings:
+        _out = mo.md("_Findings page skipped (`--no-findings`)._")
+    else:
+        _context = _RunContext(
+            source=str(parquet_source_path),
+            bbox=(
+                f"{bounding_box.sw.lat:g}-{bounding_box.ne.lat:g}N, "
+                f"{bounding_box.sw.lng:g}-{bounding_box.ne.lng:g}E"
+            ),
+            geocode_precision=geocode_precision,
+            hexagons=geocode_lf.select(_pl.len()).collect().item(),
+            taxa=taxonomy_lf.select(_pl.len()).collect().item(),
+            records=geocode_taxa_counts_lf.select(_pl.col("count").sum())
+            .collect(engine="streaming")
+            .item(),
+            chosen_k=optimal_num_clusters,
+            composition_metric=composition_metric,
+            seed=random_seed,
+        )
+        _data = _build_findings_data(
+            _context,
+            geocode_taxa_counts_lf,
+            geocode_lf,
+            all_clusters_df,
+            taxon_clade_lf,
+            min_k=min_clusters_to_test,
+            max_k=max_clusters_to_test,
+            seed=random_seed,
+            metric=composition_metric,
+            reduction=reduction,
+        )
+        _write_findings_page(_data, _prepare_file_path(findings_output))
+        # The same numbers as JSON, so a reader who wants to check one does not
+        # have to scrape the page for it.
+        _json_path = findings_output.removesuffix(".html") + ".json"
+        with open(_prepare_file_path(_json_path), "w") as _writer:
+            _writer.write(_findings_summary_json(_data))
+        _out = mo.md(
+            f"Wrote `{findings_output}`. "
+            f"{len(_data.congruence)} congruence points, "
+            f"{len(_data.reference_by_k)} reference cuts, "
+            f"{len(_data.clade_shares)} clade shares"
+            + (f", {len(_data.skipped)} section(s) skipped." if _data.skipped else ".")
+        )
+    _out
     return
 
 

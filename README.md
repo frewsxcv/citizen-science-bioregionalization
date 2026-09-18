@@ -94,6 +94,12 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--no-images`: Skip the Wikidata image lookup, the pipeline's only network call
   after data loading.
 - `--no-stop`: Bypass the run button when running from command line.
+- `--findings-output=PATH`: Where to write the findings page
+  (default: `output/findings.html`), with a `.json` of the same numbers beside
+  it. See "Findings" below.
+- `--no-findings`: Skip the findings page. It re-clusters each clade on its
+  own, which is the run's heaviest stage repeated over two subsets, so a run
+  that only wants the map can leave it out.
 
 ### Example:
 
@@ -341,7 +347,37 @@ a threshold aggressive enough to empty every hexagon fails the run outright.
 All outputs are saved to the `output/` directory:
 - GeoJSON file: `output/output.geojson`
 - HTML report: `output/output.html`
+- Findings page: `output/findings.html`, with `output/findings.json` beside it
 - Log file: depends on the path provided in `--log-file` option, but defaults to the output directory
+
+
+## Findings
+
+Every run writes `findings.html` beside its other outputs: what the run found,
+as opposed to what it computed. It is generated, never committed, and every
+number on it comes from the run that emitted it — a section with nothing to
+show says so rather than carrying a number from an earlier run.
+
+Three things it reports:
+
+- **Congruence.** Birds and plants are clustered separately, over the hexagons
+  each occupies, and the two partitions compared at every cut with the Adjusted
+  Rand Index. Two clades that share a landscape and little else agreeing on
+  where the boundary falls is evidence the boundary is a property of the
+  landscape rather than of whichever taxa dominate the records.
+- **The record/taxon split.** What share of the records and of the distinct
+  species each clade contributes. These are not the same number, and the gap is
+  what the composition metric has to see past.
+- **Validation.** The partition scored against EPA/CEC Level II ecoregions,
+  which the pipeline is never shown, by Adjusted Rand and V-measure at several
+  cuts. The reference is checked in at `src/data/epa_l2_east_coast.geojson`, so
+  runs stay offline; regenerate it with `scripts/build_epa_reference.py` if the
+  framework or the bounding box changes. It covers the US East Coast only, and
+  a run outside that extent reports no agreement rather than a zero.
+
+Level II is the grain that can answer the question: Level I puts the whole
+eastern United States in one region, so it cannot agree or disagree with a
+north/south split.
 
 ## License
 
