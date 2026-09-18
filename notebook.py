@@ -1456,6 +1456,87 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Findings
+
+    What this run found, as opposed to what it computed. Every figure below is
+    derived from this run's own outputs, so it stays honest when the parameters
+    change.
+
+    Two results this project has established are **not** here, because neither can
+    be computed from a single run: clade congruence needs one run per clade, and
+    the Sorensen/betasim comparison needs one run per index.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(geocode_taxa_counts_lf, mo):
+    from src.plot.findings import effort_vs_richness
+
+    _chart, _rho = effort_vs_richness(geocode_taxa_counts_lf)
+    # Rendered bare rather than through mo.ui.altair_chart. The wrapper exists
+    # to send selections back to Python, which a static export has no kernel to
+    # receive, and on the bar chart below it drops the marks entirely -- axes
+    # and titles draw, the bars do not.
+    mo.vstack([
+        _chart,
+        mo.md(
+            f"Records and taxa correlate at **{_rho:.3f}**. The closer this is to 1, "
+            "the more a hexagon's apparent richness is a record of visits rather than "
+            "of biota — and the more the composition metric has to do to see past it."
+        ),
+    ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(geocode_distance_matrix, geocode_taxa_counts_lf, mo):
+    from src.plot.findings import dissimilarity_vs_effort
+
+    # The composition distances, not the ones clustering ran on: this asks what
+    # the *index* does with uneven sampling, before any reduction.
+    _composition = geocode_distance_matrix.abundance_condensed()
+    if _composition is None:
+        _out = mo.md("_No composition distances retained for this metric._")
+    else:
+        _chart, _rho = dissimilarity_vs_effort(_composition, geocode_taxa_counts_lf)
+        if _chart is None:
+            _out = mo.md(
+                "_Too few hexagons to bin by sampling effort — this run cannot "
+                "answer whether the index is tracking it._"
+            )
+        else:
+            _out = mo.vstack([
+                _chart,
+                mo.md(
+                    f"Dissimilarity tracks the effort gap at **{_rho:.3f}**. Rising "
+                    "bars mean hexagons are being called different partly because "
+                    "one was visited more often than the other."
+                ),
+            ])
+    _out
+    return
+
+
+@app.cell(hide_code=True)
+def _(all_cluster_metrics_df, mo, optimal_num_clusters):
+    from src.plot.findings import metrics_by_k
+
+    metrics_by_k(all_cluster_metrics_df, optimal_num_clusters)
+    return
+
+
+@app.cell(hide_code=True)
+def _(cluster_colors_df, geocode_cluster_df, geocode_lf, mo):
+    from src.plot.findings import cluster_geography
+
+    cluster_geography(geocode_cluster_df, geocode_lf, cluster_colors_df)
+    return
+
+
 @app.cell
 def _(
     all_clusters_df,
