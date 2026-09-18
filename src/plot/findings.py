@@ -187,9 +187,18 @@ def metrics_by_k(
     the measures separately makes that visible rather than leaving the choice
     to look inevitable.
     """
+    # These are the column names build_cluster_metrics_df emits -- three of the
+    # four carry a `_score` suffix. Getting them wrong is silent: the measure
+    # just never appears, and the colour scale below still lists it in the
+    # legend, so the chart claims to show four lines and draws one.
     keep = [
         c
-        for c in ("silhouette", "calinski_harabasz", "davies_bouldin", "combined_score")
+        for c in (
+            "silhouette_score",
+            "calinski_harabasz_score",
+            "davies_bouldin_score",
+            "combined_score",
+        )
         if c in all_cluster_metrics_df.columns
     ]
     long = (
@@ -206,6 +215,26 @@ def metrics_by_k(
         )
     )
 
+    # Assigned by measure and never recycled, so a run missing one measure does
+    # not repaint the others. The domain is drawn from `keep` rather than from a
+    # fixed list, so the legend can only name a line the chart actually draws.
+    palette = {
+        "silhouette_score": ACCENT,
+        "calinski_harabasz_score": GOOD,
+        "davies_bouldin_score": WARN,
+        "combined_score": "#CC79A7",
+    }
+    labels = {
+        "silhouette_score": "silhouette",
+        "calinski_harabasz_score": "Calinski-Harabasz",
+        # Lower is better for this one, so its normalised curve runs opposite to
+        # the others. Said in the legend rather than silently inverted, which
+        # would put a number in the tooltip that is not the measure.
+        "davies_bouldin_score": "Davies-Bouldin (lower is better)",
+        "combined_score": "combined score",
+    }
+    long = long.with_columns(pl.col("metric").replace(labels))
+
     base = alt.Chart(long.to_pandas())
     lines = base.mark_line(strokeWidth=2, point=alt.OverlayMarkDef(size=45)).encode(
         x=alt.X("num_clusters:Q", title="Number of regions", axis=alt.Axis(tickMinStep=1)),
@@ -214,8 +243,8 @@ def metrics_by_k(
             "metric:N",
             title="Measure",
             scale=alt.Scale(
-                domain=["silhouette", "calinski_harabasz", "davies_bouldin", "combined_score"],
-                range=[ACCENT, GOOD, WARN, "#CC79A7"],
+                domain=[labels[c] for c in keep],
+                range=[palette[c] for c in keep],
             ),
         ),
         tooltip=[
@@ -267,7 +296,14 @@ def cluster_geography(
     )
     joined = geo.join(geocode_cluster_df.select("geocode", "cluster"), on="geocode")
     # See effort_vs_richness: u64 cell ids overflow JavaScript's number type.
-    joined = joined.with_columns(pl.col("geocode").cast(pl.Utf8))
+    #
+    # `cluster` is cast for a different reason: the scale domain below is built
+    # from strings, and a numeric datum does not match a string domain. The
+    # legend still draws -- it reads the domain, not the data -- so the failure
+    # is a chart with a full legend and no points.
+    joined = joined.with_columns(
+        pl.col("geocode").cast(pl.Utf8), pl.col("cluster").cast(pl.Utf8)
+    )
 
     color = alt.Color("cluster:N", title="Region")
     if cluster_colors_df is not None and "color" in cluster_colors_df.columns:

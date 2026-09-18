@@ -1477,8 +1477,12 @@ def _(geocode_taxa_counts_lf, mo):
     from src.plot.findings import effort_vs_richness
 
     _chart, _rho = effort_vs_richness(geocode_taxa_counts_lf)
+    # Rendered bare rather than through mo.ui.altair_chart. The wrapper exists
+    # to send selections back to Python, which a static export has no kernel to
+    # receive, and on the bar chart below it drops the marks entirely -- axes
+    # and titles draw, the bars do not.
     mo.vstack([
-        mo.ui.altair_chart(_chart),
+        _chart,
         mo.md(
             f"Records and taxa correlate at **{_rho:.3f}**. The closer this is to 1, "
             "the more a hexagon's apparent richness is a record of visits rather than "
@@ -1506,7 +1510,7 @@ def _(geocode_distance_matrix, geocode_taxa_counts_lf, mo):
             )
         else:
             _out = mo.vstack([
-                mo.ui.altair_chart(_chart),
+                _chart,
                 mo.md(
                     f"Dissimilarity tracks the effort gap at **{_rho:.3f}**. Rising "
                     "bars mean hexagons are being called different partly because "
@@ -1521,7 +1525,7 @@ def _(geocode_distance_matrix, geocode_taxa_counts_lf, mo):
 def _(all_cluster_metrics_df, mo, optimal_num_clusters):
     from src.plot.findings import metrics_by_k
 
-    mo.ui.altair_chart(metrics_by_k(all_cluster_metrics_df, optimal_num_clusters))
+    metrics_by_k(all_cluster_metrics_df, optimal_num_clusters)
     return
 
 
@@ -1529,7 +1533,7 @@ def _(all_cluster_metrics_df, mo, optimal_num_clusters):
 def _(cluster_colors_df, geocode_cluster_df, geocode_lf, mo):
     from src.plot.findings import cluster_geography
 
-    mo.ui.altair_chart(cluster_geography(geocode_cluster_df, geocode_lf, cluster_colors_df))
+    cluster_geography(geocode_cluster_df, geocode_lf, cluster_colors_df)
     return
 
 
