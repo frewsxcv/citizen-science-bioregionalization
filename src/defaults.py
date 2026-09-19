@@ -102,6 +102,32 @@ COMPOSITION_METRIC: CompositionMetric = "betasim"
 #: see src/hierarchy.py for what the levels agree with.
 HIERARCHY_LEVELS: str | None = None
 
+#: The cut a consumer opens on, which is deliberately not the one the selector
+#: chose.
+#:
+#: The selector maximises a combined score in which silhouette dominates, and
+#: silhouette falls monotonically with k on saturated ecological distances, so
+#: the selector takes the bottom of the range by construction. On the published
+#: East Coast run it took k=2, and the two independent checks the run computes
+#: both put that cut last:
+#:
+#:   - Aves and Plantae, clustered separately, agree at ARI -0.005 at k=2 --
+#:     no better than chance -- peaking at 0.548 at k=5. Aves at k=2 splits
+#:     1182/4 hexagons, which is Ward peeling a handful off rather than
+#:     regionalizing anything.
+#:   - Agreement with EPA Level II is ARI 0.152 at k=2, its lowest, peaking at
+#:     0.315 at k=4.
+#:
+#: Four rather than five because it is where agreement with the published
+#: framework peaks, and the framework is the reference the pipeline is never
+#: shown; five wins the clade comparison but the two clades are not independent
+#: of the run's own choices the way EPA is.
+#:
+#: This is a presentation default, not a change to the clustering: every level
+#: is still emitted and the selector's k is still computed and reported. Runs on
+#: a different extent may want a different level -- `--default-level`.
+DEFAULT_DISPLAY_LEVEL = 4
+
 #: Agglomerative linkage rule. See types.Linkage.
 LINKAGE: Linkage = "ward"
 

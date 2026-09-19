@@ -73,11 +73,21 @@ class RunContext:
     bbox: str
     geocode_precision: int
     hexagons: int
+    #: Taxa in the taxonomy, before the run's taxa filters.
     taxa: int
+    #: Taxa that survived `filter_top_taxa_lf` and so were actually clustered.
+    #: Reported separately because the clade shares below are fractions of
+    #: *this* number, not of `taxa`. Showing only the larger one invites the
+    #: reader to divide by it and get a different answer -- on the published
+    #: run, 671 Aves taxa is 6.7% of the 10,000 analysed and 0.3% of the
+    #: 208,296 in the taxonomy.
+    taxa_analysed: int
     records: Optional[int]
     chosen_k: int
     composition_metric: str
     seed: Optional[int]
+    #: The cut the page's figures describe, which is not always `chosen_k`.
+    display_k: Optional[int] = None
 
 
 @dataclass
@@ -320,12 +330,18 @@ def render_findings_page(data: FindingsData) -> str:
         "this page. A section with nothing to show says so rather than carrying "
         "a number from an earlier run.</p>"
         '<div class="note">'
-        f"<strong>{_esc(c.hexagons):s} hexagons</strong> at H3 resolution "
-        f"{c.geocode_precision}, <strong>{c.taxa:,} taxa</strong>"
-        + (f", <strong>{c.records:,} records</strong>" if c.records else "")
+        f"<strong>{c.hexagons:,} hexagons</strong> at H3 resolution "
+        f"{c.geocode_precision}, <strong>{c.taxa_analysed:,} taxa</strong> "
+        f"clustered out of {c.taxa:,} in the taxonomy"
+        + (f", from <strong>{c.records:,} records</strong>" if c.records else "")
         + f". Composition measured with <code>{_esc(c.composition_metric)}</code>; "
-        f"the selector chose <strong>{c.chosen_k} regions</strong>."
-        f"<br>Extent {_esc(c.bbox)} · source <code>{_esc(c.source)}</code>"
+        f"the selector chose <strong>{c.chosen_k} regions</strong>"
+        + (
+            f", and this page opens on <strong>{c.display_k}</strong>."
+            if c.display_k is not None and c.display_k != c.chosen_k
+            else "."
+        )
+        + f"<br>Extent {_esc(c.bbox)} · source <code>{_esc(c.source)}</code>"
         + (f" · seed {c.seed}" if c.seed is not None else " · unseeded")
         + "</div>"
     )
@@ -418,8 +434,16 @@ def render_findings_page(data: FindingsData) -> str:
             "past.</p>"
             "<figure>"
             + _share_chart(data.clade_shares)
-            + "<figcaption>Share of records against share of distinct taxa, per "
-            "clade, after this run's filters.</figcaption>"
+            + (
+                "<figcaption>Share of records against share of distinct taxa, "
+                f"per clade, as fractions of the {c.records:,} records and "
+                f"{c.taxa_analysed:,} taxa that were actually clustered — not "
+                f"of the {c.taxa:,} taxa in the taxonomy.</figcaption>"
+                if c.records
+                else "<figcaption>Share of records against share of distinct "
+                f"taxa, per clade, as fractions of the {c.taxa_analysed:,} "
+                f"taxa that were actually clustered.</figcaption>"
+            )
             + _table(
                 ["Clade", "Records", "% of records", "Taxa", "% of taxa"],
                 [

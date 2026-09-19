@@ -97,6 +97,9 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--findings-output=PATH`: Where to write the findings page
   (default: `output/findings.html`), with a `.json` of the same numbers beside
   it. See "Findings" below.
+- `--default-level=N`: Which cut of the hierarchy the map opens on (default: 4).
+  Always emitted, so the level shown is always one of the levels present. This
+  is deliberately not the level the selector chose — see below.
 - `--no-findings`: Skip the findings page. It re-clusters each clade on its
   own, which is the run's heaviest stage repeated over two subsets, so a run
   that only wants the map can leave it out.
@@ -378,6 +381,31 @@ Three things it reports:
 Level II is the grain that can answer the question: Level I puts the whole
 eastern United States in one region, so it cannot agree or disagree with a
 north/south split.
+
+### Why the map does not open on the level the selector chose
+
+The selector maximises a combined score in which silhouette dominates, and
+silhouette falls monotonically with k on saturated ecological distances, so it
+takes the bottom of the range by construction. On the published East Coast run
+(2.71B records, 1,187 hexagons at resolution 4) it took k=2, and both checks
+the run computes put that cut last:
+
+| Cut | Aves vs Plantae (ARI) | vs EPA Level II (ARI) | vs EPA (V-measure) |
+|---|---|---|---|
+| 2 | −0.005 | 0.152 | 0.315 |
+| 4 | 0.290 | **0.315** | 0.452 |
+| 5 | **0.548** | — | — |
+| 8 | 0.324 | 0.313 | 0.473 |
+| 12 | 0.358 | 0.281 | 0.474 |
+
+At k=2 the two clades agree no better than chance, because Aves at that cut
+splits 1182/4 hexagons — Ward peeling a handful off rather than regionalizing
+anything. Plantae at k=2 does give the expected north/south split, so the
+boundary is real; k=2 is simply the wrong grain to express it.
+
+The map therefore opens on four, where agreement with the published framework
+peaks. This is a presentation default: the clustering is unchanged, every level
+is still emitted, and the selector's k is still computed and reported.
 
 ## License
 

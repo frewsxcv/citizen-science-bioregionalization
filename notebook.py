@@ -196,6 +196,11 @@ def _(cli_args, defaults, mo):
         if _levels not in (None, "")
         else None
     )
+    # Which emitted cut the frontend opens on. Not the selector's k; see
+    # defaults.DEFAULT_DISPLAY_LEVEL.
+    default_display_level = int(
+        cli_args.get("default-level", defaults.DEFAULT_DISPLAY_LEVEL)
+    )
     reduction = cli_args.get("reduction", defaults.REDUCTION)
     if reduction not in ("umap", "pcoa"):
         raise ValueError(
@@ -244,6 +249,7 @@ def _(cli_args, defaults, mo):
         no_findings,
         findings_output,
         composition_metric,
+        default_display_level,
         hierarchy_levels,
         hierarchy_levels,
         linkage,
@@ -1569,6 +1575,7 @@ def _(cluster_colors_df, geocode_cluster_df, geocode_lf, mo):
 @app.cell
 def _(
     all_clusters_df,
+    default_display_level,
     geocode_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
@@ -1579,7 +1586,11 @@ def _(
     optimal_num_clusters,
     taxonomy_lf,
 ):
-    from src.hierarchy import build_hierarchy_json, resolve_levels
+    from src.hierarchy import (
+        build_hierarchy_json,
+        resolve_default_level,
+        resolve_levels,
+    )
     from src.output import prepare_file_path
 
     # Every level reruns the chain the cells above ran for the selected one, so
@@ -1591,6 +1602,7 @@ def _(
         optimal_num_clusters,
         min_clusters_to_test,
         max_clusters_to_test,
+        display=default_display_level,
     )
     _json = build_hierarchy_json(
         all_clusters_df,
@@ -1599,7 +1611,9 @@ def _(
         geocode_taxa_counts_lf,
         taxonomy_lf,
         levels=_levels,
-        default_level=optimal_num_clusters,
+        default_level=resolve_default_level(
+            default_display_level, optimal_num_clusters, _levels
+        ),
         fetch_images=not no_images,
     )
     with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
@@ -1624,6 +1638,7 @@ def _(
     all_clusters_df,
     bounding_box,
     composition_metric,
+    default_display_level,
     geocode_lf,
     geocode_precision,
     geocode_taxa_counts_lf,
@@ -1661,12 +1676,21 @@ def _(
             geocode_precision=geocode_precision,
             hexagons=geocode_lf.select(_pl.len()).collect().item(),
             taxa=taxonomy_lf.select(_pl.len()).collect().item(),
+            # The clade shares are fractions of this, not of the taxonomy: the
+            # taxa filters run before clustering, so most of the taxonomy is
+            # not in the map at all.
+            taxa_analysed=geocode_taxa_counts_lf.select(
+                _pl.col("taxonId").n_unique()
+            )
+            .collect(engine="streaming")
+            .item(),
             records=geocode_taxa_counts_lf.select(_pl.col("count").sum())
             .collect(engine="streaming")
             .item(),
             chosen_k=optimal_num_clusters,
             composition_metric=composition_metric,
             seed=random_seed,
+            display_k=default_display_level,
         )
         _data = _build_findings_data(
             _context,
