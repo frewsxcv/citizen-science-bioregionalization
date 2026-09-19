@@ -178,14 +178,18 @@ def dissimilarity_vs_effort(
 
 def metrics_by_k(
     all_cluster_metrics_df: pl.DataFrame,
-    chosen_k: int,
+    published_k: int,
+    selector_k: Optional[int] = None,
 ) -> alt.LayerChart:
-    """Every cut the tree was scored at, and the one the selector took.
+    """Every cut the tree was scored at, which one is published, which one the
+    selector's score peaked at, and why those are not the same.
 
-    The cut is chosen on a weighted score in which silhouette dominates, and
-    silhouette falls with k almost by construction on data like this. Showing
+    The selector maximises a weighted score in which silhouette dominates, and
+    silhouette falls with k almost by construction on data like this -- so its
+    argmax is the bottom of the tested range whatever the data says. Showing
     the measures separately makes that visible rather than leaving the choice
-    to look inevitable.
+    to look inevitable, and marking both cuts keeps the published one from
+    being mistaken for the selector's.
     """
     # These are the column names build_cluster_metrics_df emits -- three of the
     # four carry a `_score` suffix. Getting them wrong is silent: the measure
@@ -253,90 +257,52 @@ def metrics_by_k(
             alt.Tooltip("value:Q", title="Value", format=".4f"),
         ],
     )
-    marker = (
-        alt.Chart(pl.DataFrame({"num_clusters": [chosen_k]}).to_pandas())
-        .mark_rule(strokeDash=[4, 3], color="#888888", opacity=0.9)
-        .encode(x="num_clusters:Q")
-    )
+    # Both cuts, so a reader cannot take the selector's peak for the answer.
+    # Solid for what is published, dashed for what the score happened to
+    # maximise.
+    #
+    # Coloured literally rather than through an encoding: a second `color`
+    # encoding on the same channel merges with the measures' scale, which puts
+    # "published" in the measure legend and paints the rules from the measure
+    # palette. Labelled in place instead, which is less to read than a legend.
+    marks = [(published_k, "published", "#1a1a19", [])]
+    if selector_k is not None and selector_k != published_k:
+        marks.append((selector_k, "selector's peak", "#918f86", [5, 4]))
+
+    marker_layers = []
+    for value, label, color, dash in marks:
+        frame = pl.DataFrame({"num_clusters": [value], "what": [label]}).to_pandas()
+        marker_layers.append(
+            alt.Chart(frame)
+            .mark_rule(strokeWidth=2, opacity=0.9, color=color, strokeDash=dash)
+            .encode(
+                x="num_clusters:Q",
+                tooltip=[alt.Tooltip("what:N", title="Cut"), "num_clusters:Q"],
+            )
+        )
+        marker_layers.append(
+            alt.Chart(frame)
+            .mark_text(
+                align="left", dx=5, dy=3, baseline="top", fontSize=11, color=color
+            )
+            .encode(x="num_clusters:Q", y=alt.value(0), text="what:N")
+        )
+    marker = alt.layer(*marker_layers)
     return (
         (lines + marker)
         .properties(
             height=300,
             title=alt.Title(
-                f"The selector chose {chosen_k} regions",
-                subtitle="Silhouette falls with k on saturated ecological distances,"
-                " and it carries the most weight in the combined score"
-            ),
-        )
-        .interactive()
-    )
-
-
-def cluster_geography(
-    geocode_cluster_df: pl.DataFrame,
-    geocode_lf: pl.LazyFrame,
-    cluster_colors_df: Optional[pl.DataFrame] = None,
-) -> alt.Chart:
-    """Where each region sits, as a latitude distribution rather than a map.
-
-    The map itself is the frontend's job. This answers a different question --
-    whether the split is north/south, coastal/inland, or something with no
-    geographic coherence at all, which is what a partition driven by sampling
-    rather than biogeography tends to look like.
-    """
-    import polars_h3
-
-    geo = (
-        geocode_lf.select("geocode")
-        .with_columns(
-            lat=polars_h3.cell_to_lat("geocode"),
-            lng=polars_h3.cell_to_lng("geocode"),
-        )
-        .collect(engine="streaming")
-    )
-    joined = geo.join(geocode_cluster_df.select("geocode", "cluster"), on="geocode")
-    # See effort_vs_richness: u64 cell ids overflow JavaScript's number type.
-    #
-    # `cluster` is cast for a different reason: the scale domain below is built
-    # from strings, and a numeric datum does not match a string domain. The
-    # legend still draws -- it reads the domain, not the data -- so the failure
-    # is a chart with a full legend and no points.
-    joined = joined.with_columns(
-        pl.col("geocode").cast(pl.Utf8), pl.col("cluster").cast(pl.Utf8)
-    )
-
-    color = alt.Color("cluster:N", title="Region")
-    if cluster_colors_df is not None and "color" in cluster_colors_df.columns:
-        pairs = cluster_colors_df.select("cluster", "color").sort("cluster")
-        color = alt.Color(
-            "cluster:N",
-            title="Region",
-            scale=alt.Scale(
-                domain=[str(c) for c in pairs["cluster"].to_list()],
-                range=pairs["color"].to_list(),
-            ),
-        )
-
-    return (
-        alt.Chart(joined.to_pandas())
-        .mark_circle(size=26, opacity=0.5)
-        .encode(
-            x=alt.X("lng:Q", title="Longitude", scale=alt.Scale(zero=False)),
-            y=alt.Y("lat:Q", title="Latitude", scale=alt.Scale(zero=False)),
-            color=color,
-            tooltip=[
-                alt.Tooltip("cluster:N", title="Region"),
-                alt.Tooltip("geocode:N", title="Hexagon"),
-                alt.Tooltip("lat:Q", title="Latitude", format=".2f"),
-                alt.Tooltip("lng:Q", title="Longitude", format=".2f"),
-            ],
-        )
-        .properties(
-            height=380,
-            title=alt.Title(
-                "Where the regions fall",
-                subtitle="One point per hexagon centre; a partition driven by"
-                " sampling rather than biogeography looks spatially incoherent"
+                f"Published: {published_k} regions"
+                + (
+                    f" — the selector's score peaked at {selector_k}"
+                    if selector_k is not None and selector_k != published_k
+                    else ""
+                ),
+                subtitle="Silhouette falls with k on saturated ecological"
+                " distances and carries the most weight in the combined score,"
+                " so the selector's peak is the bottom of the tested range"
+                " whatever the data says"
             ),
         )
         .interactive()

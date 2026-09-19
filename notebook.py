@@ -926,7 +926,10 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Find Optimal K
+    ### Score every cut
+
+    The score below is a diagnostic, not the decision. Which cut is published
+    is settled in the next cell.
     """)
     return
 
@@ -990,6 +993,41 @@ def _(
         default_display_level, optimal_num_clusters, hierarchy_level_list
     )
     return hierarchy_level_list, published_level
+
+
+@app.cell(hide_code=True)
+def _(hierarchy_level_list, mo, optimal_num_clusters, published_level):
+    # Stated before the metric plots below, which mark the selector's peak.
+    # Without this the notebook shows the selector's k in four places and the
+    # published level in none, so a reader reasonably concludes the run
+    # published the selector's cut. It does not.
+    mo.md(
+        f"""
+    ### Publishing {published_level} regions
+
+    Levels emitted: **{", ".join(str(k) for k in hierarchy_level_list)}**.
+    Everything built for a single cut below — the GeoJSON, the per-cluster taxa
+    statistics, the cluster colours, the PERMANOVA — describes
+    **{published_level}**.
+
+    The selector's combined score peaked at **{optimal_num_clusters}**, which is
+    reported as a diagnostic and does not decide anything. It maximises a score
+    silhouette dominates, and silhouette falls monotonically with k on saturated
+    ecological distances, so its peak is the bottom of the tested range whatever
+    the data says. On the published run that cut scored last against both
+    references this notebook computes: the two clades agreed no better than
+    chance there, and agreement with EPA Level II was its lowest. See the
+    Findings section.
+    """
+        if published_level != optimal_num_clusters
+        else f"""
+    ### Publishing {published_level} regions
+
+    Levels emitted: **{", ".join(str(k) for k in hierarchy_level_list)}**.
+    The selector's combined score also peaked here.
+    """
+    )
+    return
 
 
 @app.cell
@@ -1587,18 +1625,14 @@ def _(geocode_distance_matrix, geocode_taxa_counts_lf, mo):
 
 
 @app.cell(hide_code=True)
-def _(all_cluster_metrics_df, mo, optimal_num_clusters):
+def _(all_cluster_metrics_df, mo, optimal_num_clusters, published_level):
     from src.plot.findings import metrics_by_k
 
-    metrics_by_k(all_cluster_metrics_df, optimal_num_clusters)
-    return
-
-
-@app.cell(hide_code=True)
-def _(cluster_colors_df, geocode_cluster_df, geocode_lf, mo):
-    from src.plot.findings import cluster_geography
-
-    cluster_geography(geocode_cluster_df, geocode_lf, cluster_colors_df)
+    metrics_by_k(
+        all_cluster_metrics_df,
+        published_k=published_level,
+        selector_k=optimal_num_clusters,
+    )
     return
 
 
