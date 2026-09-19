@@ -101,6 +101,24 @@ def reference_agreement_by_k(
     return out
 
 
+def choose_span_cut(published_k: int, available_ks: set[int]) -> int:
+    """Which of a clade's cuts to draw the latitude spans at.
+
+    The published one when the clade was fit at it. A clade occupying few
+    hexagons may not have been -- `cluster_clade` caps its range at the number
+    of hexagons it holds -- so the nearest available cut is used instead, which
+    keeps the chart describing roughly the grain the rest of the page does.
+
+    Drawing this at the selector's k instead put a chart describing one
+    partition beside figures describing another: on the published run it showed
+    the degenerate Aves 1182/4 split from k=2 while everything else described
+    k=4.
+    """
+    if published_k in available_ks:
+        return published_k
+    return min(available_ks, key=lambda k: (abs(k - published_k), k))
+
+
 def build_findings_data(
     context: RunContext,
     geocode_taxa_counts_lf: pl.LazyFrame,
@@ -126,11 +144,13 @@ def build_findings_data(
 
     data.clade_shares = clade_shares(geocode_taxa_counts_lf, taxon_clade_lf)
 
-    # Cuts to score. The chosen one always, plus a spread across the range, so
-    # the page can show that agreement depends on grain rather than asserting it
-    # from a single number.
+    # Cuts to score. The published one always -- scoring every cut but the one
+    # the run actually publishes would be a strange page -- plus the selector's,
+    # so the two can be compared, plus a spread across the range, so the page
+    # can show that agreement depends on grain rather than asserting it from a
+    # single number.
     candidate_ks = sorted(
-        {context.chosen_k}
+        {context.published_k, context.chosen_k}
         | {k for k in (2, 4, 8, 12, 16) if min_k <= k <= max_k}
         | {min_k, max_k}
     )
@@ -195,8 +215,9 @@ def build_findings_data(
                 partition.multi_k_df, reference_lf, [k for k in ks if k in clade_ks]
             )
         ]
-        at_k = context.chosen_k if context.chosen_k in clade_ks else min(clade_ks)
-        spans = latitude_spans(partition, at_k, centres)
+        spans = latitude_spans(
+            partition, choose_span_cut(context.published_k, clade_ks), centres
+        )
         data.latitude_spans[name] = [
             (int(r["cluster"]), float(r["min_lat"]), float(r["max_lat"]), int(r["hexagons"]))
             for r in spans.iter_rows(named=True)
