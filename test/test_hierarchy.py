@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.hierarchy import resolve_default_level, resolve_levels
+from src.hierarchy import default_ladder, resolve_default_level, resolve_levels
 
 
 class TestResolveLevels(unittest.TestCase):
@@ -60,3 +60,32 @@ class TestDefaultLevel(unittest.TestCase):
     def test_display_level_does_not_displace_requested_levels(self) -> None:
         levels = resolve_levels([2, 8], optimal=3, min_k=2, max_k=15, display=4)
         self.assertEqual(levels, [2, 3, 4, 8])
+
+
+class TestDefaultLadder(unittest.TestCase):
+    """The nesting emitted when no levels are asked for.
+
+    Before this the default was the selector's k alone, so the published
+    aggregations.json carried exactly one level and the level selector had
+    nothing to select from.
+    """
+
+    def test_doubles_rather_than_stepping_by_one(self) -> None:
+        """Consecutive cuts differ by one split, which is not a change of grain."""
+        self.assertEqual(default_ladder(2, 15), [2, 4, 8])
+
+    def test_stays_inside_the_range_the_tree_was_cut_at(self) -> None:
+        self.assertEqual(default_ladder(2, 10), [2, 4, 8])
+        self.assertEqual(default_ladder(3, 20), [3, 6, 12])
+
+    def test_never_returns_nothing(self) -> None:
+        """A range too narrow to double in still has to yield a level."""
+        self.assertEqual(default_ladder(2, 3), [2])
+        self.assertEqual(default_ladder(5, 5), [5])
+
+    def test_combines_with_the_display_level(self) -> None:
+        levels = resolve_levels(
+            default_ladder(2, 15), optimal=2, min_k=2, max_k=15, display=4
+        )
+        self.assertEqual(levels, [2, 4, 8])
+        self.assertEqual(resolve_default_level(4, 2, levels), 4)
