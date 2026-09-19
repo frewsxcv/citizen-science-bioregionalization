@@ -139,3 +139,8 @@ METRIC_WEIGHTS: dict[str, float] = {
 MIN_HEX_RECORDS_ABSOLUTE_FLOOR = 20
 MIN_HEX_RECORDS_MEDIAN_FRACTION = 0.10
 MIN_HEX_RECORDS_CEILING = 100
+
+#: Where the findings page is written. Inside the gitignored output directory,
+#: because it is an artifact of a run rather than a document -- every number on
+#: it is recomputed, so a committed copy would go stale silently.
+FINDINGS_OUTPUT_PATH = "output/findings.html"

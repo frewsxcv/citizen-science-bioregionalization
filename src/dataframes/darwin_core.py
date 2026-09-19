@@ -21,6 +21,10 @@ from src.types import Bbox, TaxonScope
 #: a Darwin Core term.
 _ROW_INDEX = "_sample_row_index"
 
+#: Rank columns carried through to the taxonomy so the findings section can
+#: split a run by clade. See `build_darwin_core_lf` for why these two.
+CLADE_COLUMNS = ("kingdom", "class")
+
 
 def sample_records_lf(
     lf: pl.LazyFrame, target: int, seed: int = 0
@@ -130,15 +134,35 @@ def build_darwin_core_lf(
     elif limit is not None:
         lf = lf.limit(limit)
 
-    # Select only the columns we need. The rank key column is deliberately not
-    # carried forward: it has served its purpose as a filter, and keeping the
-    # downstream schema fixed means no consumer needs to know about scoping.
-    lf = lf.select(
+    # Select only the columns we need. The rank column a *scope* filtered on is
+    # deliberately not carried forward: it has served its purpose as a filter,
+    # and keeping the downstream schema fixed means no consumer needs to know
+    # about scoping.
+    #
+    # `kingdom` and `class` are carried anyway, for a different purpose: the
+    # findings section reports each clade's share of the records and of the
+    # taxa, and clusters the clades separately to ask whether they draw the same
+    # map. Both need a clade per taxon, and deriving one later would mean
+    # another pass over the source. They cost little here -- two low-cardinality
+    # strings that parquet dictionary-encodes to almost nothing in the spill --
+    # and `build_taxon_clade_lf` reduces them to one row per taxon immediately.
+    #
+    # A source that lacks them is fine; it just cannot answer the clade
+    # questions, and `build_taxon_clade_lf` says so rather than failing.
+    available = lf.collect_schema().names()
+    columns = [
         "decimalLatitude",
         "decimalLongitude",
         "scientificName",
         "taxonKey",
         "individualCount",
-    )
+    ]
+    missing = [c for c in CLADE_COLUMNS if c not in available]
+    if missing:
+        logger.info(
+            f"build_darwin_core_lf: source has no {missing} column(s); "
+            f"clade findings will be skipped"
+        )
+    lf = lf.select(*columns, *[c for c in CLADE_COLUMNS if c in available])
 
     return lf
