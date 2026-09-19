@@ -29,7 +29,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Citizen Science Bioregionalization
+    # 🌿 Citizen Science Bioregionalization
+
+    This notebook processes species occurrence records from citizen science datasets (e.g. GBIF Darwin Core Parquet sources), aggregates observations into H3 hexagonal geocodes, computes ecological dissimilarity matrices (e.g., Simpson turnover $\beta_{\text{sim}}$), and clusters geographic regions using spatially-constrained agglomerative hierarchical clustering.
     """)
     return
 
@@ -251,7 +253,6 @@ def _(cli_args, defaults, mo):
         composition_metric,
         default_display_level,
         hierarchy_levels,
-        hierarchy_levels,
         linkage,
         reduction,
         metric_weights,
@@ -260,132 +261,92 @@ def _(cli_args, defaults, mo):
 
 
 @app.cell(hide_code=True)
-def _(log_file_ui):
-    log_file_ui
-    return
-
-
-@app.cell(hide_code=True)
-def _(parquet_source_path_ui):
-    parquet_source_path_ui
-    return
-
-
-@app.cell(hide_code=True)
-def _(geocode_precision_ui):
-    geocode_precision_ui
-    return
-
-
-@app.cell(hide_code=True)
 def _(
+    folium,
+    geocode_precision_ui,
+    limit_results_enabled_ui,
+    limit_results_value_ui,
+    log_file_ui,
     max_clusters_to_test_ui,
-    min_clusters_to_test_ui,
-    mo,
-):
-    _description = mo.md(
-        "**Cluster Configuration:** Number of clusters will be automatically optimized using the elbow method (Kneedle algorithm)."
-    )
-
-    mo.vstack(
-        [
-            _description,
-            min_clusters_to_test_ui,
-            max_clusters_to_test_ui,
-        ]
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(taxon_scope_ui):
-    taxon_scope_ui
-    return
-
-
-@app.cell(hide_code=True)
-def _(limit_results_enabled_ui, limit_results_value_ui, mo):
-    mo.vstack(
-        [
-            limit_results_enabled_ui,
-            limit_results_value_ui,
-        ]
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(
+    max_lat_ui,
+    max_lon_ui,
     max_taxa_enabled_ui,
     max_taxa_value_ui,
+    min_clusters_to_test_ui,
     min_geocode_presence_enabled_ui,
     min_geocode_presence_value_ui,
+    min_hex_records_ui,
+    min_lat_ui,
+    min_lon_ui,
     mo,
+    parquet_source_path_ui,
+    sample_records_ui,
+    seed_ui,
+    taxon_scope_ui,
 ):
-    _description = mo.md(
-        "**Taxa Filtering:** Reduce dimensionality before pivoting by filtering to most informative taxa. "
-        "This significantly speeds up distance matrix computation for large datasets."
-    )
-
-    _max_taxa_description = mo.md(
-        "_Keep only the N most abundant taxa (by total occurrence count). "
-        "Recommended: 5,000–10,000 for large datasets._"
-    )
-
-    _min_presence_description = mo.md(
-        "_Remove rare taxa that appear in too few hexagons. "
-        "Taxa seen in very few locations add noise but don't help distinguish bioregions. "
-        "For example, 0.05 means a taxon must appear in at least 5% of hexagons to be included. "
-        "Recommended: 0.02–0.05 (2–5%)._"
-    )
-
-    mo.vstack(
-        [
-            _description,
-            mo.hstack([max_taxa_enabled_ui, max_taxa_value_ui]),
-            _max_taxa_description,
-            mo.hstack([min_geocode_presence_enabled_ui, min_geocode_presence_value_ui]),
-            _min_presence_description,
-        ]
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(folium, max_lat_ui, max_lon_ui, min_lat_ui, min_lon_ui, mo):
     def build_map():
-        map = folium.Map(
+        m = folium.Map(
             tiles="Esri.WorldGrayCanvas",
         )
-
         bounds = [
             [min_lat_ui.value, min_lon_ui.value],
             [max_lat_ui.value, max_lon_ui.value],
         ]
+        folium.Rectangle(bounds=bounds).add_to(m)
+        m.fit_bounds(bounds, padding=[20, 20])
+        return m
 
-        folium.Rectangle(bounds=bounds).add_to(map)
-
-        map.fit_bounds(bounds, padding=[20, 20])
-
-        return map
-
-    mo.hstack(
-        [
-            mo.vstack(
-                [
-                    mo.md("**Minimum**"),
+    data_source_box = mo.vstack([
+        mo.md("### 📁 Data Source & Spatial Resolution"),
+        mo.hstack([parquet_source_path_ui, log_file_ui], widths="equal"),
+        mo.hstack([geocode_precision_ui, min_hex_records_ui], widths="equal"),
+        mo.md("#### Geographic Extent & Interactive Preview"),
+        mo.hstack(
+            [
+                mo.vstack([
+                    mo.md("**Minimum Coordinates**"),
                     min_lat_ui,
                     min_lon_ui,
-                    mo.md("**Maximum**"),
+                    mo.md("**Maximum Coordinates**"),
                     max_lat_ui,
                     max_lon_ui,
-                ]
-            ),
-            build_map(),
-        ],
-        widths="equal",
-    )
-    return
+                ]),
+                build_map(),
+            ],
+            widths="equal",
+        ),
+    ])
+
+    sampling_taxa_box = mo.vstack([
+        mo.md("### 🔬 Taxonomic Scope & Record Sampling"),
+        taxon_scope_ui,
+        mo.md("**Record Capping & Uniform Sampling:**"),
+        mo.hstack([limit_results_enabled_ui, limit_results_value_ui, sample_records_ui]),
+        mo.md("---"),
+        mo.md(
+            "**Taxa Filtering:** Filter uninformative or rare taxa to improve performance "
+            "and reduce noise before calculating ecological dissimilarity."
+        ),
+        mo.hstack([max_taxa_enabled_ui, max_taxa_value_ui]),
+        mo.md("_Keep top N taxa by occurrence count (recommended: 5,000–10,000)._"),
+        mo.hstack([min_geocode_presence_enabled_ui, min_geocode_presence_value_ui]),
+        mo.md("_Minimum fraction of hexagons a taxon must appear in (e.g., 0.05 = 5%)._"),
+    ])
+
+    clustering_box = mo.vstack([
+        mo.md("### 🧩 Clustering Optimization Range"),
+        mo.md(
+            "Configure the range of cluster counts ($k$) to evaluate. Metrics "
+            "(Silhouette, Calinski-Harabasz, Davies-Bouldin) will be calculated for each $k$."
+        ),
+        mo.hstack([min_clusters_to_test_ui, max_clusters_to_test_ui, seed_ui]),
+    ])
+
+    return mo.accordion({
+        "📁 Data Source & Spatial Extent": data_source_box,
+        "🔬 Taxonomic Scope & Sampling": sampling_taxa_box,
+        "🧩 Clustering Parameters": clustering_box,
+    })
 
 
 @app.cell(hide_code=True)
@@ -559,7 +520,14 @@ def _(log_file):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Step 1. Fetch data
+    # Step 1. Fetch & Preprocess Data
+
+    In this step, species occurrence records are loaded and filtered:
+    1. **Darwin Core Ingestion**: Reads occurrence records filtered by bounding box and optional taxonomic scope.
+    2. **Terrestrial Masking**: (Optional) Drops marine hexagons using Natural Earth coastline polygons.
+    3. **Parquet Materialization**: Intermediate LazyFrames are materialized to local disk cache to prevent redundant scans over raw GBIF files.
+    4. **Sampling Floor Filtering**: Discard under-sampled hexagons (below a data-derived threshold) to prevent Ward linkage from peeling sparse cells off as singleton clusters.
+    5. **Taxa Frequency Filtering**: Filters rare or uninformative taxa to accelerate downstream matrix operations.
     """)
     return
 
@@ -829,7 +797,13 @@ def _(geocode_taxa_counts_lf, geocode_unfiltered_lf, pl):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Step 2. Cluster
+    # Step 2. Build Matrices & Perform Clustering
+
+    In this step, spatial graph connectivity and ecological dissimilarity matrices are constructed for all valid H3 hexagons:
+    1. **Spatial Connectivity Matrix (`GeocodeConnectivityMatrix`)**: Constructs spatial adjacency graphs across H3 hexagons to enforce spatial contiguity during agglomeration.
+    2. **Ecological Distance Matrix (`GeocodeDistanceMatrix`)**: Calculates species turnover ($\beta_{\text{sim}}$, Sørensen, or Bray-Curtis) reduced via PCoA or UMAP for Euclidean compatibility.
+    3. **Agglomerative Spatial Clustering**: Performs Ward linkage clustering constrained by spatial contiguity across a range of cluster counts $k \in [k_{\min}, k_{\max}]$.
+    4. **Multi-Metric Cluster Evaluation**: Scores candidate partitions using Silhouette, Calinski-Harabasz, and Davies-Bouldin indices.
     """)
     return
 
@@ -837,7 +811,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `GeocodeConnectivity`
+    ## Spatial Graph Connectivity (`GeocodeConnectivityMatrix`)
     """)
     return
 
@@ -855,7 +829,7 @@ def _(geocode_neighbors_df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `GeocodeDistance`
+    ## Ecological Composition Distance (`GeocodeDistanceMatrix`)
     """)
     return
 
@@ -884,7 +858,7 @@ def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed, composition_metri
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Cluster Optimization
+    ## Cluster Hierarchy & Optimization
     """)
     return
 
@@ -892,7 +866,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Build Clustering for All K Values
+    ### 1. Compute Agglomerative Hierarchy Across $k \in [k_{\min}, k_{\max}]$
     """)
     return
 
@@ -1307,7 +1281,11 @@ def _(cluster_colors_df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Step 3. Analyze
+    # Step 3. Region Diagnostics & Validation Analyses
+
+    In this step, the quality, distinctiveness, and spatial coherence of the derived bioregions are evaluated:
+    1. **PERMANOVA**: Permutational Multivariate Analysis of Variance tests whether species composition differs significantly across the identified bioregions.
+    2. **Hexagon Silhouette Analysis**: Measures how strongly each individual hexagon belongs to its assigned bioregion relative to neighboring clusters.
     """)
     return
 
@@ -1315,7 +1293,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `PermanovaResults`
+    ## PERMANOVA Compositional Significance Test (`PermanovaResults`)
     """)
     return
 
@@ -1351,7 +1329,7 @@ def _(permanova_results_df):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## `GeocodeSilhouetteScore`
+    ## Hexagon Silhouette Score Analysis (`GeocodeSilhouetteScore`)
     """)
     return
 
@@ -1396,7 +1374,13 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Step 4. Export
+    # Step 4. Export Outputs & Interactive Visualizations
+
+    In this final step, the spatial boundaries, ordination plots, representative species images, and analytical findings are exported:
+    1. **GeoJSON Boundaries**: Polygons with cluster properties and colors for interactive web maps.
+    2. **Ordination Plot**: Ordination scatter plot showing cluster separation in reduced composition space.
+    3. **Representative Species Images**: Significant indicator taxa with species images retrieved from Wikidata.
+    4. **Analytical Findings Page**: Detailed evaluation report including sampling effort bias, clade congruence, and ecoregion framework comparisons.
     """)
     return
 
@@ -1404,7 +1388,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Build and plot GeoJSON feature collection
+    ## 1. GeoJSON Feature Collection Generation
     """)
     return
 
@@ -1487,34 +1471,43 @@ def _(cluster_colors_df, geocode_cluster_df, geocode_distance_matrix):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Clustermap visualization
+    ## Clustermap Visualization (Indicator Taxa)
     """)
     return
 
 
 @app.cell
-def _():
-    # from src.plot.cluster_taxa import create_cluster_taxa_heatmap
+def _(
+    cluster_colors_df,
+    cluster_significant_differences_df,
+    cluster_taxa_statistics_df,
+    geocode_cluster_df,
+    geocode_distance_matrix,
+    geocode_lf,
+    geocode_taxa_counts_lf,
+    mo,
+    taxonomy_lf,
+):
+    from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
-    # heatmap = create_cluster_taxa_heatmap(
-    #     geocode_lf=geocode_lf,
-    #     geocode_cluster_df=geocode_cluster_df,
-    #     cluster_colors_df=cluster_colors_df,
-    #     geocode_distance_matrix=geocode_distance_matrix,
-    #     cluster_significant_differences_df=cluster_significant_differences_df,
-    #     taxonomy_df=taxonomy_lf.collect(engine="streaming"),
-    #     geocode_taxa_counts_lf=geocode_taxa_counts_lf,
-    #     cluster_taxa_statistics_df=cluster_taxa_statistics_df,
-    #     limit_species=5,
-    # )
+    heatmap = create_cluster_taxa_heatmap(
+        geocode_lf=geocode_lf,
+        geocode_cluster_df=geocode_cluster_df,
+        cluster_colors_df=cluster_colors_df,
+        geocode_distance_matrix=geocode_distance_matrix,
+        cluster_significant_differences_df=cluster_significant_differences_df,
+        taxonomy_df=taxonomy_lf.collect(engine="streaming"),
+        geocode_taxa_counts_lf=geocode_taxa_counts_lf,
+        cluster_taxa_statistics_df=cluster_taxa_statistics_df,
+        limit_species=5,
+    )
 
-    # if heatmap is None:
-    #     result = mo.md("No significant differences found between clusters.")
-    # else:
-    #     result = heatmap.figure
+    if heatmap is None:
+        result = mo.md("_No significant indicator taxa differences found between clusters._")
+    else:
+        result = heatmap.figure
 
-    # result
-    return
+    result
 
 
 @app.cell(hide_code=True)
