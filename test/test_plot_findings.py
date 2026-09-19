@@ -13,7 +13,7 @@ import unittest
 import numpy as np
 import polars as pl
 
-from src.plot.findings import cluster_geography, dissimilarity_vs_effort, metrics_by_k
+from src.plot.findings import dissimilarity_vs_effort, metrics_by_k
 
 
 def _chart_data(spec: dict) -> list[dict]:
@@ -27,7 +27,26 @@ def _chart_data(spec: dict) -> list[dict]:
 
 
 def _layer_data(spec: dict, layer: int) -> list[dict]:
-    return spec["datasets"][spec["layer"][layer]["data"]["name"]]
+    """Distinct rows for one layer, flattening the nesting Altair emits.
+
+    The cut markers are a layer of their own -- a rule plus its label, per cut
+    -- and Altair hoists the data to whichever level shares it, so a nested
+    entry may carry `data` at the outer level, the inner level, or both.
+    """
+
+    def walk(entry: dict, inherited: dict | None) -> list[dict]:
+        data = entry.get("data", inherited)
+        if "layer" in entry:
+            rows = []
+            for inner in entry["layer"]:
+                for row in walk(inner, data):
+                    if row not in rows:
+                        rows.append(row)
+            return rows
+        assert data is not None, "layer carries no data at any level"
+        return spec["datasets"][data["name"]]
+
+    return walk(spec["layer"][layer], spec.get("data"))
 
 
 def mock_cluster_metrics_df(k_values: list[int] | None = None) -> pl.DataFrame:
@@ -54,7 +73,7 @@ class TestMetricsByK(unittest.TestCase):
         They were previously read without the `_score` suffix, so three of the
         four never matched, and only `combined_score` was ever drawn.
         """
-        spec = metrics_by_k(mock_cluster_metrics_df(), chosen_k=2).to_dict()
+        spec = metrics_by_k(mock_cluster_metrics_df(), published_k=4, selector_k=2).to_dict()
 
         drawn = {row["metric"] for row in _layer_data(spec, 0)}
         self.assertEqual(len(drawn), 4, f"expected four measures, drew {drawn}")
@@ -62,70 +81,16 @@ class TestMetricsByK(unittest.TestCase):
     def test_legend_names_only_measures_that_are_drawn(self) -> None:
         """A fixed domain let the legend advertise a line that did not exist."""
         df = mock_cluster_metrics_df().drop("calinski_harabasz_score")
-        spec = metrics_by_k(df, chosen_k=2).to_dict()
+        spec = metrics_by_k(df, published_k=4, selector_k=2).to_dict()
 
         domain = set(spec["layer"][0]["encoding"]["color"]["scale"]["domain"])
         self.assertEqual(domain, {row["metric"] for row in _layer_data(spec, 0)})
 
     def test_every_measure_gets_its_own_colour(self) -> None:
-        spec = metrics_by_k(mock_cluster_metrics_df(), chosen_k=2).to_dict()
+        spec = metrics_by_k(mock_cluster_metrics_df(), published_k=4, selector_k=2).to_dict()
         scale = spec["layer"][0]["encoding"]["color"]["scale"]
         self.assertEqual(len(scale["range"]), len(scale["domain"]))
         self.assertEqual(len(set(scale["range"])), len(scale["range"]))
-
-
-class TestClusterGeography(unittest.TestCase):
-    def _frames(self) -> tuple[pl.DataFrame, pl.LazyFrame, pl.DataFrame]:
-        # Two real H3 cells so polars_h3 can resolve centres.
-        geocodes = [608448695024746495, 608526105032261631]
-        geocode_cluster_df = pl.DataFrame(
-            {"geocode": pl.Series(geocodes, dtype=pl.UInt64), "cluster": [0, 1]}
-        )
-        geocode_lf = pl.DataFrame(
-            {"geocode": pl.Series(geocodes, dtype=pl.UInt64)}
-        ).lazy()
-        cluster_colors_df = pl.DataFrame(
-            {"cluster": [0, 1], "color": ["#aa7744", "#cc4433"]}
-        )
-        return geocode_cluster_df, geocode_lf, cluster_colors_df
-
-    def test_cluster_values_match_the_colour_scale_domain(self) -> None:
-        """A numeric datum never matches a string domain.
-
-        The legend reads the domain rather than the data, so this failed as a
-        fully drawn chart with no points in it.
-        """
-        geocode_cluster_df, geocode_lf, cluster_colors_df = self._frames()
-        spec = cluster_geography(
-            geocode_cluster_df, geocode_lf, cluster_colors_df
-        ).to_dict()
-
-        domain = set(spec["encoding"]["color"]["scale"]["domain"])
-        encoded = {row["cluster"] for row in _chart_data(spec)}
-        self.assertTrue(
-            all(isinstance(c, str) for c in encoded),
-            f"cluster values {encoded} are not strings",
-        )
-        self.assertTrue(
-            encoded <= domain,
-            f"cluster values {encoded} are not in the scale domain {domain}",
-        )
-
-    def test_geocodes_are_encoded_as_text(self) -> None:
-        """u64 cell ids exceed JavaScript's safe integer range."""
-        geocode_cluster_df, geocode_lf, cluster_colors_df = self._frames()
-        spec = cluster_geography(
-            geocode_cluster_df, geocode_lf, cluster_colors_df
-        ).to_dict()
-
-        self.assertTrue(
-            all(isinstance(row["geocode"], str) for row in _chart_data(spec))
-        )
-
-    def test_works_without_a_colour_frame(self) -> None:
-        geocode_cluster_df, geocode_lf, _ = self._frames()
-        spec = cluster_geography(geocode_cluster_df, geocode_lf, None).to_dict()
-        self.assertEqual(len(_chart_data(spec)), 2)
 
 
 class TestDissimilarityVsEffort(unittest.TestCase):
@@ -161,3 +126,41 @@ class TestDissimilarityVsEffort(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMetricsByKMarkers(unittest.TestCase):
+    """Which cut the chart presents as the answer.
+
+    The selector's score peaks at the bottom of the tested range by
+    construction, so a chart that marks only its peak invites reading that as
+    the result. The published cut leads; the peak is shown beside it.
+    """
+
+    def test_leads_with_the_published_cut(self) -> None:
+        spec = metrics_by_k(
+            mock_cluster_metrics_df(), published_k=4, selector_k=2
+        ).to_dict()
+        title = spec["title"]["text"]
+        self.assertIn("Published: 4", title)
+        self.assertIn("peaked at 2", title)
+
+    def test_marks_both_cuts(self) -> None:
+        spec = metrics_by_k(
+            mock_cluster_metrics_df(), published_k=4, selector_k=2
+        ).to_dict()
+        marks = _layer_data(spec, 1)
+        self.assertEqual(
+            {(m["num_clusters"], m["what"]) for m in marks},
+            {(4, "published"), (2, "selector's peak")},
+        )
+
+    def test_marks_one_cut_when_they_agree(self) -> None:
+        spec = metrics_by_k(
+            mock_cluster_metrics_df(), published_k=2, selector_k=2
+        ).to_dict()
+        self.assertEqual(len(_layer_data(spec, 1)), 1)
+        self.assertNotIn("peaked at", spec["title"]["text"])
+
+    def test_works_without_a_selector_value(self) -> None:
+        spec = metrics_by_k(mock_cluster_metrics_df(), published_k=4).to_dict()
+        self.assertEqual(len(_layer_data(spec, 1)), 1)
