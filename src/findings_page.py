@@ -89,6 +89,17 @@ class RunContext:
     #: The cut the page's figures describe, which is not always `chosen_k`.
     display_k: Optional[int] = None
 
+    @property
+    def published_k(self) -> int:
+        """The cut the run publishes, which is what every figure describes.
+
+        A property rather than two fields read at the call site, because the
+        distinction has now been got wrong twice: `chosen_k` is what the
+        selector's score peaked at and decides nothing, while this is what the
+        outputs are built at. Anything picking a cut to describe wants this.
+        """
+        return self.display_k if self.display_k is not None else self.chosen_k
+
 
 @dataclass
 class CladeShare:
@@ -410,7 +421,8 @@ def render_findings_page(data: FindingsData) -> str:
         out.append(
             "<figure>"
             + _span_chart(data.latitude_spans)
-            + "<figcaption>Latitude range of every cluster at the chosen cut. "
+            + f"<figcaption>Latitude range of every cluster at {c.published_k} "
+            "regions, the cut this run publishes. "
             "Disjoint ranges mean a north/south split; clusters that all span "
             "the extent mean the partition is not geographic.</figcaption>"
             + _table(
@@ -468,20 +480,31 @@ def render_findings_page(data: FindingsData) -> str:
     # --- Validation against the framework ---------------------------------
     out.append("<h2>Validation — does this agree with a framework somebody drew?</h2>")
     if data.reference_by_k:
-        chosen = next(
-            (a for k, a in data.reference_by_k if k == c.chosen_k),
-            None,
-        )
+        by_k = dict(data.reference_by_k)
         best_k, best_a = max(data.reference_by_k, key=lambda x: x[1].adjusted_rand)
+        published = by_k.get(c.published_k)
+        selector = by_k.get(c.chosen_k)
         out.append(
             "<p>The combined partition scored against EPA/CEC Level II "
             "ecoregions, which the pipeline is never shown. Agreement peaks at "
             f"<strong>{best_k} regions</strong> (ARI {best_a.adjusted_rand:.3f})"
             + (
-                f", against {chosen.adjusted_rand:.3f} at the "
-                f"{c.chosen_k} the selector chose."
-                if chosen is not None and best_k != c.chosen_k
-                else ", which is the cut the selector chose."
+                ", which is the cut this run publishes."
+                if best_k == c.published_k
+                else (
+                    f"; this run publishes {c.published_k}"
+                    + (
+                        f" (ARI {published.adjusted_rand:.3f})."
+                        if published is not None
+                        else "."
+                    )
+                )
+            )
+            + (
+                f" The selector's {c.chosen_k} scores "
+                f"{selector.adjusted_rand:.3f}."
+                if selector is not None and c.chosen_k != c.published_k
+                else ""
             )
             + "</p>"
             "<figure>"

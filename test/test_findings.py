@@ -15,7 +15,12 @@ import polars_h3
 
 from src.clade_congruence import Congruence, clade_taxon_ids, congruence_by_k
 from src.epa_reference import reference_region_lf, score_against_reference
-from src.findings import clade_shares, reference_agreement_by_k
+from src.findings import (
+    build_findings_data,
+    choose_span_cut,
+    clade_shares,
+    reference_agreement_by_k,
+)
 from src.findings_page import (
     CladeShare,
     FindingsData,
@@ -253,3 +258,100 @@ class TestRendering(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPublishedCut(unittest.TestCase):
+    """Which cut the page's figures describe.
+
+    This was wrong once already: the latitude-span chart was drawn at the
+    selector's k while every other figure and every artifact described the
+    published level, so the deployed page showed the degenerate Aves 1182/4
+    split from k=2 beside numbers for k=4.
+    """
+
+    def test_published_cut_is_the_display_level_when_there_is_one(self) -> None:
+        self.assertEqual(a_context(chosen_k=2, display_k=4).published_k, 4)
+
+    def test_published_cut_falls_back_to_the_selector(self) -> None:
+        """A run that never set a display level publishes the selector's."""
+        self.assertEqual(a_context(chosen_k=3, display_k=None).published_k, 3)
+
+    def test_scores_the_cut_it_publishes(self) -> None:
+        """A published level outside the fixed spread must still be scored."""
+        df = geocodes_for(
+            TestReferenceScoring.SOUTH + TestReferenceScoring.NORTH
+        )
+        reference = reference_region_lf(df.lazy()).collect().lazy()
+        multi_k = pl.concat(
+            [
+                df.with_columns(
+                    cluster=pl.Series([0, 0, 0, 0, 1, 1, 1, 1]),
+                    num_clusters=pl.lit(k, dtype=pl.Int64),
+                )
+                for k in (2, 5)
+            ]
+        )
+        data = build_findings_data(
+            a_context(chosen_k=2, display_k=5),
+            pl.DataFrame({"geocode": [], "taxonId": [], "count": []}).lazy(),
+            df.lazy(),
+            multi_k,
+            None,
+            min_k=2,
+            max_k=6,
+            seed=0,
+            metric="betasim",
+            reduction="pcoa",
+        )
+
+        scored = [k for k, _ in data.reference_by_k]
+        self.assertIn(5, scored, "the published cut was never scored")
+        self.assertIn(2, scored, "the selector's cut is kept for comparison")
+
+    def test_spans_are_drawn_at_the_published_cut(self) -> None:
+        self.assertEqual(choose_span_cut(4, {2, 3, 4, 5, 8}), 4)
+
+    def test_spans_fall_back_to_the_nearest_cut_the_clade_was_fit_at(self) -> None:
+        """A sparse clade may not have been fit at the published level."""
+        self.assertEqual(choose_span_cut(8, {2, 3, 4}), 4)
+        self.assertEqual(choose_span_cut(4, {2, 6}), 2)
+
+    def test_validation_prose_leads_with_the_published_cut(self) -> None:
+        from src.epa_reference import ReferenceAgreement
+
+        data = FindingsData(
+            context=a_context(chosen_k=2, display_k=4),
+            reference_by_k=[
+                (k, ReferenceAgreement(a, v, 1071, 116))
+                for k, a, v in [(2, 0.152, 0.315), (4, 0.315, 0.452)]
+            ],
+        )
+        page = render_findings_page(data)
+
+        self.assertIn("which is the cut this run publishes", page)
+        self.assertIn("The selector's 2 scores 0.152", page)
+
+    def test_validation_prose_when_the_peak_is_not_published(self) -> None:
+        from src.epa_reference import ReferenceAgreement
+
+        data = FindingsData(
+            context=a_context(chosen_k=2, display_k=4),
+            reference_by_k=[
+                (k, ReferenceAgreement(a, v, 1071, 116))
+                for k, a, v in [(2, 0.152, 0.315), (4, 0.290, 0.452), (8, 0.315, 0.473)]
+            ],
+        )
+        page = render_findings_page(data)
+
+        self.assertIn("this run publishes 4 (ARI 0.290)", page)
+
+    def test_caption_names_the_cut(self) -> None:
+        page = render_findings_page(
+            FindingsData(
+                context=a_context(chosen_k=2, display_k=4),
+                latitude_spans={"Aves": [(0, 31.4, 47.0, 1200)]},
+            )
+        )
+        self.assertIn("at 4 regions, the cut this run publishes", page)
+
+
