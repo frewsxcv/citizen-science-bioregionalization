@@ -44,6 +44,32 @@ from src.dataframes.significant_taxa_images import build_significant_taxa_images
 logger = logging.getLogger(__name__)
 
 
+def default_ladder(min_k: int, max_k: int) -> list[int]:
+    """The nesting to emit when the command line asks for no particular one.
+
+    Doubling rather than consecutive. A regionalization is read as a nesting of
+    realms inside regions inside provinces, and consecutive cuts of a merge tree
+    differ by one split, which is not a change of grain a reader can see. Each
+    level here roughly halves the mean region.
+
+    Adaptive rather than a fixed list so that a run over a narrow range does not
+    warn about levels it was never going to be able to emit.
+
+    Args:
+        min_k: Lowest level the tree was cut at.
+        max_k: Highest level the tree was cut at.
+
+    Returns:
+        Sorted levels within [min_k, max_k], always non-empty.
+    """
+    levels = []
+    k = max(min_k, 2)
+    while k <= max_k:
+        levels.append(k)
+        k *= 2
+    return levels or [min_k]
+
+
 def resolve_levels(
     requested: Sequence[int] | None,
     optimal: int,

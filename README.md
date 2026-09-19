@@ -97,9 +97,15 @@ uv run marimo run notebook.py -- [OPTIONS]
 - `--findings-output=PATH`: Where to write the findings page
   (default: `output/findings.html`), with a `.json` of the same numbers beside
   it. See "Findings" below.
-- `--default-level=N`: Which cut of the hierarchy the map opens on (default: 4).
+- `--default-level=N`: Which cut of the hierarchy is published (default: 4).
   Always emitted, so the level shown is always one of the levels present. This
-  is deliberately not the level the selector chose — see below.
+  is deliberately not the level the selector chose — see below. Everything
+  built for a single cut — the GeoJSON, the per-cluster taxa statistics, the
+  PERMANOVA — describes this level.
+- `--hierarchy-levels=A,B,C`: Cuts of the merge tree to emit. Defaults to a
+  doubling ladder over the tested range (2, 4, 8 for `--min-clusters=2
+  --max-clusters=15`), because consecutive cuts differ by one split, which is
+  not a change of grain a reader can see.
 - `--no-findings`: Skip the findings page. It re-clusters each clade on its
   own, which is the run's heaviest stage repeated over two subsets, so a run
   that only wants the map can leave it out.
@@ -403,9 +409,17 @@ splits 1182/4 hexagons — Ward peeling a handful off rather than regionalizing
 anything. Plantae at k=2 does give the expected north/south split, so the
 boundary is real; k=2 is simply the wrong grain to express it.
 
-The map therefore opens on four, where agreement with the published framework
-peaks. This is a presentation default: the clustering is unchanged, every level
-is still emitted, and the selector's k is still computed and reported.
+The map therefore publishes four, where agreement with the published framework
+peaks. The clustering is unchanged and every level is still emitted; what
+changed is that the selector's k no longer decides what the outputs describe.
+It is still computed and reported on the findings page, as a diagnostic beside
+the level actually published.
+
+This matters beyond which level the map opens on. Everything built for a single
+cut — the GeoJSON, the per-cluster taxa statistics and significant differences,
+the cluster colours, the PERMANOVA — is built at the published level. Before
+this they described the selector's cut while the map showed another, so the R²
+on the page and the regions on the map were not the same partition.
 
 ## License
 

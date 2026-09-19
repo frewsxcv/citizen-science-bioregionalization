@@ -963,14 +963,44 @@ def _(all_cluster_metrics, materialize_parquet):
 
 
 @app.cell
-def _(all_clusters_df, materialize_parquet, optimal_num_clusters):
+def _(
+    default_display_level,
+    hierarchy_levels,
+    max_clusters_to_test,
+    min_clusters_to_test,
+    optimal_num_clusters,
+):
+    from src.hierarchy import default_ladder, resolve_default_level, resolve_levels
+
+    # Resolved here rather than at the writer, because everything below is built
+    # at `published_level`. The selector's k is kept and reported, but it stops
+    # deciding what the outputs describe: it maximises a score silhouette
+    # dominates, silhouette falls monotonically with k on these distances, and
+    # the cut it lands on scored last against both references the run computes.
+    # See defaults.DEFAULT_DISPLAY_LEVEL.
+    hierarchy_level_list = resolve_levels(
+        hierarchy_levels
+        or default_ladder(min_clusters_to_test, max_clusters_to_test),
+        optimal_num_clusters,
+        min_clusters_to_test,
+        max_clusters_to_test,
+        display=default_display_level,
+    )
+    published_level = resolve_default_level(
+        default_display_level, optimal_num_clusters, hierarchy_level_list
+    )
+    return hierarchy_level_list, published_level
+
+
+@app.cell
+def _(all_clusters_df, materialize_parquet, published_level):
     # Create base GeocodeClusterSchema (single k) for downstream use
     from src.dataframes.geocode_cluster import build_geocode_cluster_df
 
     geocode_cluster_df = materialize_parquet(
         build_geocode_cluster_df(
             all_clusters_df,
-            optimal_num_clusters,
+            published_level,
         ),
         cache_key="GeocodeClusterSchema",
     ).collect(engine="streaming")
@@ -1204,9 +1234,9 @@ def _(mo):
 
 
 @app.cell
-def _(optimal_num_clusters):
+def _(published_level):
     # Use taxonomic coloring if we have at least 10 clusters, otherwise use geographic
-    color_method = "taxonomic" if optimal_num_clusters >= 10 else "geographic"
+    color_method = "taxonomic" if published_level >= 10 else "geographic"
     return (color_method,)
 
 
@@ -1289,11 +1319,11 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, geocode_distance_matrix, optimal_num_clusters, pl):
+def _(all_clusters_df, geocode_distance_matrix, published_level, pl):
     from src.dataframes.geocode_silhouette_score import build_geocode_silhouette_score_df
 
     # Get clustering for optimal k
-    k_df = all_clusters_df.filter(pl.col("num_clusters") == optimal_num_clusters)
+    k_df = all_clusters_df.filter(pl.col("num_clusters") == published_level)
 
     geocode_silhouette_score_df = build_geocode_silhouette_score_df(
         geocode_distance_matrix, k_df
@@ -1579,41 +1609,26 @@ def _(
     geocode_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
-    hierarchy_levels,
-    max_clusters_to_test,
-    min_clusters_to_test,
+    hierarchy_level_list,
     no_images,
-    optimal_num_clusters,
+    published_level,
     taxonomy_lf,
 ):
-    from src.hierarchy import (
-        build_hierarchy_json,
-        resolve_default_level,
-        resolve_levels,
-    )
+    from src.hierarchy import build_hierarchy_json
     from src.output import prepare_file_path
 
     # Every level reruns the chain the cells above ran for the selected one, so
     # the selected level's entry is what the single-level writer produced; the
     # others are the remaining cuts of the same tree. The cells above are kept
     # because they are what the notebook displays.
-    _levels = resolve_levels(
-        hierarchy_levels,
-        optimal_num_clusters,
-        min_clusters_to_test,
-        max_clusters_to_test,
-        display=default_display_level,
-    )
     _json = build_hierarchy_json(
         all_clusters_df,
         geocode_lf,
         geocode_neighbors_df,
         geocode_taxa_counts_lf,
         taxonomy_lf,
-        levels=_levels,
-        default_level=resolve_default_level(
-            default_display_level, optimal_num_clusters, _levels
-        ),
+        levels=hierarchy_level_list,
+        default_level=published_level,
         fetch_images=not no_images,
     )
     with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
@@ -1649,6 +1664,7 @@ def _(
     no_findings,
     optimal_num_clusters,
     parquet_source_path,
+    published_level,
     random_seed,
     reduction,
     taxon_clade_lf,
@@ -1690,7 +1706,7 @@ def _(
             chosen_k=optimal_num_clusters,
             composition_metric=composition_metric,
             seed=random_seed,
-            display_k=default_display_level,
+            display_k=published_level,
         )
         _data = _build_findings_data(
             _context,
