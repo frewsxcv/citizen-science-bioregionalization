@@ -1605,6 +1605,7 @@ def _(cluster_colors_df, geocode_cluster_df, geocode_lf, mo):
 @app.cell
 def _(
     all_clusters_df,
+    default_display_level,
     geocode_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
@@ -1652,6 +1653,7 @@ def _(
     all_clusters_df,
     bounding_box,
     composition_metric,
+    default_display_level,
     geocode_lf,
     geocode_precision,
     geocode_taxa_counts_lf,
