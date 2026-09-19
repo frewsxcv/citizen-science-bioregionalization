@@ -31,7 +31,8 @@ def a_context(**overrides: object) -> RunContext:
         "bbox": "25-47N, 87-66W",
         "geocode_precision": 4,
         "hexagons": 2098,
-        "taxa": 10432,
+        "taxa": 208296,
+        "taxa_analysed": 10000,
         "records": 1_000_000,
         "chosen_k": 2,
         "composition_metric": "betasim",
@@ -211,6 +212,32 @@ class TestRendering(unittest.TestCase):
         data = FindingsData(context=a_context(source='<script>x</script>'))
         page = render_findings_page(data)
         self.assertNotIn("<script>", page)
+
+    def test_reports_both_taxa_counts(self) -> None:
+        """The shares are fractions of the analysed set, not of the taxonomy.
+
+        Showing only the larger number invites dividing by it: 671 Aves taxa is
+        6.7% of 10,000 analysed and 0.3% of 208,296 in the taxonomy.
+        """
+        data = FindingsData(
+            context=a_context(),
+            clade_shares=[CladeShare("Aves", "aves", 0.965, 0.0671, 900, 671)],
+        )
+        page = render_findings_page(data)
+
+        self.assertIn("10,000 taxa", page)
+        self.assertIn("208,296", page)
+
+    def test_names_the_cut_it_opens_on_when_it_differs(self) -> None:
+        opens_elsewhere = render_findings_page(
+            FindingsData(context=a_context(chosen_k=2, display_k=4))
+        )
+        self.assertIn("opens on <strong>4</strong>", opens_elsewhere)
+
+        same = render_findings_page(
+            FindingsData(context=a_context(chosen_k=4, display_k=4))
+        )
+        self.assertNotIn("opens on", same)
 
     def test_summary_json_round_trips(self) -> None:
         data = FindingsData(

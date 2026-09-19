@@ -49,11 +49,17 @@ def resolve_levels(
     optimal: int,
     min_k: int,
     max_k: int,
+    display: int | None = None,
 ) -> list[int]:
     """Decide which cuts of the tree to emit.
 
     Always includes `optimal`, so the level the selector chose is present
     whatever else is asked for, and the single-level consumers still find it.
+
+    Also includes `display` when given. The cut a consumer opens on has to be
+    one of the cuts emitted, and with no `--hierarchy-levels` the only level
+    that would otherwise be present is the selector's -- which is the one
+    `defaults.DEFAULT_DISPLAY_LEVEL` exists to avoid opening on.
 
     Args:
         requested: Levels asked for on the command line, or None for just the
@@ -61,12 +67,15 @@ def resolve_levels(
         optimal: The level the selector chose.
         min_k: Lowest level the tree was cut at.
         max_k: Highest level the tree was cut at.
+        display: The level a consumer should open on, if it is in range.
 
     Returns:
         Sorted, de-duplicated levels, each within [min_k, max_k].
     """
     levels = set(requested or ())
     levels.add(optimal)
+    if display is not None:
+        levels.add(display)
     out_of_range = sorted(k for k in levels if not min_k <= k <= max_k)
     if out_of_range:
         logger.warning(
@@ -74,6 +83,38 @@ def resolve_levels(
             f"({min_k}-{max_k}): {out_of_range}"
         )
     return sorted(k for k in levels if min_k <= k <= max_k)
+
+
+def resolve_default_level(
+    preferred: int,
+    optimal: int,
+    levels: Sequence[int],
+) -> int:
+    """Decide which emitted cut a consumer should open on.
+
+    Deliberately not the selector's `optimal`. See
+    `defaults.DEFAULT_DISPLAY_LEVEL` for the evidence: the selector maximises a
+    score silhouette dominates, silhouette falls with k here, and the cut it
+    lands on scores worst against both references the run computes.
+
+    Falls back to `optimal` when the preferred level was not emitted, so this
+    can never point at a level that is not in the document.
+
+    Args:
+        preferred: The level to open on if it was emitted.
+        optimal: The level the selector chose, used as the fallback.
+        levels: The levels actually present.
+
+    Returns:
+        A level guaranteed to be in `levels`.
+    """
+    if preferred in levels:
+        return preferred
+    logger.info(
+        f"resolve_default_level: level {preferred} was not emitted "
+        f"(have {sorted(levels)}); opening on the selector's k={optimal}"
+    )
+    return optimal
 
 
 def build_hierarchy_json(
