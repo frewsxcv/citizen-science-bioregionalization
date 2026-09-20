@@ -385,14 +385,19 @@ def _(
     terrestrial_only,
     no_hex_floor,
     composition_metric,
+    default_display_level,
+    findings_output,
     hierarchy_levels,
     linkage,
+    no_findings,
+    no_images,
     reduction,
     metric_weights,
     num_clusters_pinned,
 ):
     from src.taxon_scope import parse_scope
     from src.types import Bbox
+    from src.run_config import RunConfig
 
     # Resolve final values from UI elements
     sample_records = int(sample_records_ui.value) or None
@@ -426,38 +431,42 @@ def _(
     random_seed = None if no_seed else int(seed_ui.value)
     min_hex_records = int(min_hex_records_ui.value) or None
 
+    config = RunConfig(
+        parquet_source_path=parquet_source_path,
+        bounding_box=bounding_box,
+        geocode_precision=geocode_precision,
+        taxon_scope=taxon_scope,
+        limit_results=limit_results,
+        sample_records=sample_records,
+        max_taxa=max_taxa,
+        min_geocode_presence=min_geocode_presence,
+        min_hex_records=min_hex_records,
+        no_hex_floor=no_hex_floor,
+        terrestrial_only=terrestrial_only,
+        min_clusters_to_test=min_clusters_to_test,
+        max_clusters_to_test=max_clusters_to_test,
+        num_clusters_pinned=num_clusters_pinned,
+        metric_weights=metric_weights,
+        composition_metric=composition_metric,
+        linkage=linkage,
+        reduction=reduction,
+        random_seed=random_seed,
+        hierarchy_levels=tuple(hierarchy_levels) if hierarchy_levels else None,
+        default_display_level=default_display_level,
+        log_file=log_file,
+        no_images=no_images,
+        no_findings=no_findings,
+        findings_output=findings_output,
+    )
+
+    # Rows derived from the config's own fields rather than listed by hand. The
+    # hand-written table showed 22 of the 25 settings, quietly omitting
+    # sample_records and the findings options.
     inputs_table = mo.ui.table(
         label="Inputs",
         selection=None,
         pagination=False,
-        data=[
-            {"variable": "limit_results", "value": limit_results},
-            {"variable": "log_file", "value": log_file},
-            {"variable": "parquet_source_path", "value": parquet_source_path},
-            {"variable": "min_lat", "value": min_lat},
-            {"variable": "max_lat", "value": max_lat},
-            {"variable": "min_lon", "value": min_lon},
-            {"variable": "max_lon", "value": max_lon},
-            {
-                "variable": "taxon_scope",
-                "value": str(taxon_scope) if taxon_scope else "(all taxa)",
-            },
-            {"variable": "geocode_precision", "value": geocode_precision},
-            {"variable": "min_clusters_to_test", "value": min_clusters_to_test},
-            {"variable": "max_clusters_to_test", "value": max_clusters_to_test},
-            {"variable": "max_taxa", "value": max_taxa},
-            {"variable": "min_geocode_presence", "value": min_geocode_presence},
-            {"variable": "random_seed", "value": random_seed},
-            {"variable": "min_hex_records", "value": min_hex_records},
-            {"variable": "terrestrial_only", "value": terrestrial_only},
-            {"variable": "no_hex_floor", "value": no_hex_floor},
-            {"variable": "composition_metric", "value": composition_metric},
-            {"variable": "hierarchy_levels", "value": hierarchy_levels},
-            {"variable": "linkage", "value": linkage},
-            {"variable": "reduction", "value": reduction},
-            {"variable": "metric_weights", "value": str(metric_weights)},
-            {"variable": "num_clusters_pinned", "value": num_clusters_pinned},
-        ],
+        data=config.as_rows(),
     )
 
     output2 = mo.vstack(
@@ -471,28 +480,7 @@ def _(
         mo.stop(not run_button_ui.value, output2)
 
     mo.md("Notebook started")
-    return (
-        bounding_box,
-        geocode_precision,
-        limit_results,
-        log_file,
-        max_clusters_to_test,
-        max_taxa,
-        min_clusters_to_test,
-        min_geocode_presence,
-        min_hex_records,
-        parquet_source_path,
-        random_seed,
-        sample_records,
-        taxon_scope,
-        terrestrial_only,
-        no_hex_floor,
-        composition_metric,
-        linkage,
-        reduction,
-        metric_weights,
-        num_clusters_pinned,
-    )
+    return (config,)
 
 
 @app.cell(hide_code=True)
@@ -504,11 +492,11 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(log_file):
+def _(config):
     import logging
 
     logging.basicConfig(
-        filename=log_file,
+        filename=config.log_file,
         format="%(asctime)s %(levelname)-8s %(message)s",
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -533,20 +521,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    bounding_box,
-    defaults,
-    geocode_precision,
-    limit_results,
-    materialize_parquet,
-    min_hex_records,
-    parquet_source_path,
-    random_seed,
-    sample_records,
-    taxon_scope,
-    terrestrial_only,
-    no_hex_floor,
-):
+def _(config, defaults, materialize_parquet):
     from src.dataframes.darwin_core import build_darwin_core_lf
     from src.geocode import (
         adaptive_min_hex_records,
@@ -556,21 +531,21 @@ def _(
     from src.logging import logger
 
     darwin_core_lf = build_darwin_core_lf(
-        source_path=parquet_source_path,
-        bounding_box=bounding_box,
-        limit=limit_results,
-        scope=taxon_scope,
-        sample_records=sample_records,
+        source_path=config.parquet_source_path,
+        bounding_box=config.bounding_box,
+        limit=config.limit_results,
+        scope=config.taxon_scope,
+        sample_records=config.sample_records,
         # --no-seed leaves random_seed None; that opts out of seeding UMAP for
         # the sake of threading, not out of knowing which records a run read.
-        seed=random_seed if random_seed is not None else 0,
+        seed=config.random_seed if config.random_seed is not None else 0,
     )
 
     # Applied here, upstream of the geocode set, so that the geocodes and the
     # taxa counts are both derived from the same rows.
-    if terrestrial_only:
+    if config.terrestrial_only:
         darwin_core_lf = filter_terrestrial_geocodes_lf(
-            darwin_core_lf, geocode_precision
+            darwin_core_lf, config.geocode_precision
         )
 
     # Spill once, here, rather than letting three downstream stages each re-read
@@ -592,12 +567,12 @@ def _(
     # Without a floor, Ward peels under-sampled hexagons off as singleton
     # clusters and the partition stops surviving perturbation: hiding 5% of
     # records took three of four test regions to chance agreement.
-    if not no_hex_floor:
-        floor = min_hex_records
+    if not config.no_hex_floor:
+        floor = config.min_hex_records
         if floor is None:
             floor = adaptive_min_hex_records(
                 darwin_core_lf,
-                geocode_precision,
+                config.geocode_precision,
                 defaults.MIN_HEX_RECORDS_ABSOLUTE_FLOOR,
                 defaults.MIN_HEX_RECORDS_MEDIAN_FRACTION,
                 defaults.MIN_HEX_RECORDS_CEILING,
@@ -606,21 +581,21 @@ def _(
                 f"Sampling floor derived from the data: {floor} records per hexagon"
             )
         darwin_core_lf = materialize_parquet(
-            filter_sparse_geocodes_lf(darwin_core_lf, geocode_precision, floor),
+            filter_sparse_geocodes_lf(darwin_core_lf, config.geocode_precision, floor),
             cache_key="DarwinCoreFilteredSchema",
         )
     return (darwin_core_lf,)
 
 
 @app.cell
-def _(bounding_box, materialize_parquet, darwin_core_lf, geocode_precision):
+def _(config, darwin_core_lf, materialize_parquet):
     from src.dataframes.geocode import build_geocode_lf
 
     geocode_lf_with_edges = materialize_parquet(
         build_geocode_lf(
             darwin_core_lf,
-            geocode_precision,
-            bounding_box=bounding_box,
+            config.geocode_precision,
+            bounding_box=config.bounding_box,
         ),
         cache_key="GeocodeSchema",
     )
@@ -697,21 +672,15 @@ def _(folium, geocode_lf_with_edges, geocode_unfiltered_lf, pl):
 
 
 @app.cell
-def _(
-    bounding_box,
-    materialize_parquet,
-    darwin_core_lf,
-    geocode_precision,
-    geocode_unfiltered_lf,
-):
+def _(config, darwin_core_lf, geocode_unfiltered_lf, materialize_parquet):
     from src.dataframes.taxonomy import build_taxonomy_lf
 
     taxonomy_lf = materialize_parquet(
         build_taxonomy_lf(
             darwin_core_lf,
-            geocode_precision,
+            config.geocode_precision,
             geocode_unfiltered_lf,
-            bounding_box=bounding_box,
+            bounding_box=config.bounding_box,
         ),
         cache_key="TaxonomySchema",
     )
@@ -742,11 +711,10 @@ def _(taxonomy_lf):
 
 @app.cell
 def _(
-    bounding_box,
-    materialize_parquet,
+    config,
     darwin_core_lf,
-    geocode_precision,
     geocode_unfiltered_lf,
+    materialize_parquet,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
@@ -754,10 +722,10 @@ def _(
     geocode_taxa_counts_unfiltered_lf = materialize_parquet(
         build_geocode_taxa_counts_lf(
             darwin_core_lf,
-            geocode_precision,
+            config.geocode_precision,
             taxonomy_lf,
             geocode_unfiltered_lf,
-            bounding_box=bounding_box,
+            bounding_box=config.bounding_box,
         ),
         cache_key="GeocodeTaxaCountsSchema",
     )
@@ -765,14 +733,14 @@ def _(
 
 
 @app.cell
-def _(geocode_taxa_counts_unfiltered_lf, max_taxa, min_geocode_presence):
+def _(config, geocode_taxa_counts_unfiltered_lf):
     from src.dataframes.geocode_taxa_counts import filter_top_taxa_lf
 
     # Apply taxa filtering if configured
     geocode_taxa_counts_lf = filter_top_taxa_lf(
         geocode_taxa_counts_unfiltered_lf,
-        max_taxa=max_taxa,
-        min_geocode_presence=min_geocode_presence,
+        max_taxa=config.max_taxa,
+        min_geocode_presence=config.min_geocode_presence,
     )
     return (geocode_taxa_counts_lf,)
 
@@ -835,15 +803,15 @@ def _(mo):
 
 
 @app.cell
-def _(geocode_lf, geocode_taxa_counts_lf, mo, np, random_seed, composition_metric, reduction):
+def _(config, geocode_lf, geocode_taxa_counts_lf, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_lf,
         geocode_lf,
-        random_state=random_seed,
-        metric=composition_metric,
-        reduction=reduction,
+        random_state=config.random_seed,
+        metric=config.composition_metric,
+        reduction=config.reduction,
     )
 
     mo.vstack(
@@ -873,13 +841,11 @@ def _(mo):
 
 @app.cell
 def _(
-    materialize_parquet,
+    config,
     geocode_connectivity_matrix,
     geocode_distance_matrix,
     geocode_lf,
-    linkage,
-    max_clusters_to_test,
-    min_clusters_to_test,
+    materialize_parquet,
 ):
     from src.dataframes.geocode_cluster import build_geocode_cluster_multi_k_df
 
@@ -888,9 +854,9 @@ def _(
             geocode_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
-            min_k=min_clusters_to_test,
-            max_k=max_clusters_to_test,
-            linkage=linkage,
+            min_k=config.min_clusters_to_test,
+            max_k=config.max_clusters_to_test,
+            linkage=config.linkage,
         ),
         cache_key="GeocodeClusterMultiKSchema",
     ).collect(engine="streaming")
@@ -909,12 +875,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    all_clusters_df,
-    geocode_distance_matrix,
-    metric_weights,
-    num_clusters_pinned,
-):
+def _(all_clusters_df, config, geocode_distance_matrix):
     from src.cluster_optimization import optimize_num_clusters
 
     # Named for what it is. This is where the combined score peaked (or what
@@ -923,8 +884,8 @@ def _(
     selector_k, all_cluster_metrics = optimize_num_clusters(
         geocode_distance_matrix,
         all_clusters_df,
-        weights=metric_weights,
-        pinned_k=num_clusters_pinned,
+        weights=config.metric_weights,
+        pinned_k=config.num_clusters_pinned,
     )
 
     all_cluster_metrics
@@ -943,14 +904,7 @@ def _(all_cluster_metrics, materialize_parquet):
 
 
 @app.cell
-def _(
-    default_display_level,
-    hierarchy_levels,
-    max_clusters_to_test,
-    min_clusters_to_test,
-    num_clusters_pinned,
-    selector_k,
-):
+def _(config, selector_k):
     from src.hierarchy import resolve_cluster_levels
 
     # The only cell that decides anything about k. Everything below reads
@@ -963,12 +917,12 @@ def _(
     # to do with grain -- removing the taxa cap shifted it from 2 to 3. See
     # defaults.DEFAULT_DISPLAY_LEVEL.
     levels = resolve_cluster_levels(
-        hierarchy_levels,
+        config.hierarchy_levels,
         selector_k,
-        min_clusters_to_test,
-        max_clusters_to_test,
-        preferred_display=default_display_level,
-        pinned=num_clusters_pinned is not None,
+        config.min_clusters_to_test,
+        config.max_clusters_to_test,
+        preferred_display=config.default_display_level,
+        pinned=config.num_clusters_pinned is not None,
     )
     return (levels,)
 
@@ -1307,11 +1261,11 @@ def _(mo):
 
 @app.cell
 def _(
-    materialize_parquet,
+    config,
     geocode_cluster_df,
     geocode_distance_matrix,
     geocode_lf,
-    random_seed,
+    materialize_parquet,
 ):
     from src.dataframes.permanova_results import build_permanova_results_df
 
@@ -1320,7 +1274,7 @@ def _(
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_df=geocode_cluster_df,
             geocode_lf=geocode_lf,
-            seed=random_seed,
+            seed=config.random_seed,
         ),
         cache_key="PermanovaResultsSchema",
     ).collect(engine="streaming")
@@ -1527,9 +1481,9 @@ def _(mo):
 
 @app.cell
 def _(
-    materialize_parquet,
     cluster_significant_differences_df,
-    no_images,
+    config,
+    materialize_parquet,
     taxonomy_lf,
 ):
     from src.dataframes.significant_taxa_images import build_significant_taxa_images_df
@@ -1538,7 +1492,7 @@ def _(
         build_significant_taxa_images_df(
             cluster_significant_differences_df,
             taxonomy_lf.collect(engine="streaming"),
-            fetch_images=not no_images,
+            fetch_images=not config.no_images,
         ),
         cache_key="SignificantTaxaImagesSchema",
     ).collect(engine="streaming")
@@ -1639,12 +1593,11 @@ def _(all_cluster_metrics_df, levels, mo):
 @app.cell
 def _(
     all_clusters_df,
-    default_display_level,
+    config,
     geocode_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
     levels,
-    no_images,
     taxonomy_lf,
 ):
     from src.hierarchy import build_hierarchy_json
@@ -1661,7 +1614,7 @@ def _(
         geocode_taxa_counts_lf,
         taxonomy_lf,
         levels=levels,
-        fetch_images=not no_images,
+        fetch_images=not config.no_images,
     )
     with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
         _writer.write(_json)
@@ -1683,19 +1636,11 @@ def _(mo):
 @app.cell
 def _(
     all_clusters_df,
-    bounding_box,
-    composition_metric,
-    default_display_level,
+    config,
     geocode_lf,
-    geocode_precision,
     geocode_taxa_counts_lf,
-    findings_output,
     levels,
     mo,
-    no_findings,
-    parquet_source_path,
-    random_seed,
-    reduction,
     taxon_clade_lf,
     taxonomy_lf,
 ):
@@ -1709,16 +1654,16 @@ def _(
     from src.findings_page import write_findings_page as _write_findings_page
     from src.output import prepare_file_path as _prepare_file_path
 
-    if no_findings:
+    if config.no_findings:
         _out = mo.md("_Findings page skipped (`--no-findings`)._")
     else:
         _context = _RunContext(
-            source=str(parquet_source_path),
+            source=str(config.parquet_source_path),
             bbox=(
-                f"{bounding_box.sw.lat:g}-{bounding_box.ne.lat:g}N, "
-                f"{bounding_box.sw.lng:g}-{bounding_box.ne.lng:g}E"
+                f"{config.bounding_box.sw.lat:g}-{config.bounding_box.ne.lat:g}N, "
+                f"{config.bounding_box.sw.lng:g}-{config.bounding_box.ne.lng:g}E"
             ),
-            geocode_precision=geocode_precision,
+            geocode_precision=config.geocode_precision,
             hexagons=geocode_lf.select(_pl.len()).collect().item(),
             taxa=taxonomy_lf.select(_pl.len()).collect().item(),
             # The clade shares are fractions of this, not of the taxonomy: the
@@ -1733,8 +1678,8 @@ def _(
             .collect(engine="streaming")
             .item(),
             levels=levels,
-            composition_metric=composition_metric,
-            seed=random_seed,
+            composition_metric=config.composition_metric,
+            seed=config.random_seed,
         )
         _data = _build_findings_data(
             _context,
@@ -1742,18 +1687,18 @@ def _(
             geocode_lf,
             all_clusters_df,
             taxon_clade_lf,
-            seed=random_seed,
-            metric=composition_metric,
-            reduction=reduction,
+            seed=config.random_seed,
+            metric=config.composition_metric,
+            reduction=config.reduction,
         )
-        _write_findings_page(_data, _prepare_file_path(findings_output))
+        _write_findings_page(_data, _prepare_file_path(config.findings_output))
         # The same numbers as JSON, so a reader who wants to check one does not
         # have to scrape the page for it.
-        _json_path = findings_output.removesuffix(".html") + ".json"
+        _json_path = config.findings_output.removesuffix(".html") + ".json"
         with open(_prepare_file_path(_json_path), "w") as _writer:
             _writer.write(_findings_summary_json(_data))
         _out = mo.md(
-            f"Wrote `{findings_output}`. "
+            f"Wrote `{config.findings_output}`. "
             f"{len(_data.congruence)} congruence points, "
             f"{len(_data.reference_by_k)} reference cuts, "
             f"{len(_data.clade_shares)} clade shares"
