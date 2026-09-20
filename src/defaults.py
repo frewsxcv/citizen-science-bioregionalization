@@ -105,23 +105,39 @@ HIERARCHY_LEVELS: str | None = None
 #: The cut a consumer opens on, which is deliberately not the one the selector
 #: chose.
 #:
-#: The selector maximises a combined score in which silhouette dominates, and
-#: silhouette falls monotonically with k on saturated ecological distances, so
-#: the selector takes the bottom of the range by construction. On the published
-#: East Coast run it took k=2, and the two independent checks the run computes
-#: both put that cut last:
+#: The selector maximises a combined score in which silhouette carries the most
+#: weight, and silhouette falls with k on saturated ecological distances, so it
+#: lands near the bottom of the tested range. Not *at* it: an earlier version of
+#: this note claimed the argmax is always `min_k`, which the run of 2026-09-20
+#: contradicted by selecting k=3 out of a range starting at 2. The defensible
+#: claim is weaker -- the selector sits low and moves under changes that have
+#: nothing to do with grain. Removing the taxa cap shifted it from 2 to 3.
 #:
-#:   - Aves and Plantae, clustered separately, agree at ARI -0.005 at k=2 --
-#:     no better than chance -- peaking at 0.548 at k=5. Aves at k=2 splits
-#:     1182/4 hexagons, which is Ward peeling a handful off rather than
-#:     regionalizing anything.
-#:   - Agreement with EPA Level II is ARI 0.152 at k=2, its lowest, peaking at
-#:     0.315 at k=4.
+#: Four is a presentation default, and the evidence for it is thinner than it
+#: once was. On the published run, agreement with EPA Level II -- the reference
+#: the pipeline is never shown -- goes:
 #:
-#: Four rather than five because it is where agreement with the published
-#: framework peaks, and the framework is the reference the pipeline is never
-#: shown; five wins the clade comparison but the two clades are not independent
-#: of the run's own choices the way EPA is.
+#:   k=2  ARI 0.2552    k=3  ARI 0.3107    k=4  ARI 0.3108
+#:   k=8  ARI 0.2861    k=12 ARI 0.2416    k=15 ARI 0.2502
+#:
+#: So ARI has a real interior optimum, and it is *flat across three and four*:
+#: 0.0001 apart, far below anything this measure resolves. Four is kept because
+#: changing a published default on a 0.0001 difference is churn, not because it
+#: won.
+#:
+#: The other two measures cannot arbitrate, for opposite reasons:
+#:
+#:   - V-measure rises almost monotonically with k here (0.3998 at k=2 to
+#:     0.5098 at k=15), because it rewards subdividing the reference
+#:     consistently. By V-measure the answer is always "more regions".
+#:   - Clade congruence peaked at k=5 with the taxa cap and at k=3 without it,
+#:     a filter with no ecological content. It is not stable enough to select
+#:     on, which is why the plan to use it as the criterion was dropped.
+#:
+#: Read the silhouette warning beside all of this: at the published cut it is
+#: 0.2382, below the 0.25 threshold, meaning the data do not show substantial
+#: cluster structure at any k. None of these numbers are choosing between
+#: well-separated alternatives.
 #:
 #: This is a presentation default, not a change to the clustering: every level
 #: is still emitted and the selector's k is still computed and reported. Runs on

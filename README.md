@@ -429,30 +429,42 @@ taxa present in 24 hexagons or more — the ones that do.
 
 ### Why the map does not open on the level the selector chose
 
-The selector maximises a combined score in which silhouette dominates, and
-silhouette falls monotonically with k on saturated ecological distances, so it
-takes the bottom of the range by construction. On the published East Coast run
-(2.71B records, 1,187 hexagons at resolution 4) it took k=2, and both checks
-the run computes put that cut last:
+Silhouette carries the most weight in the selector's combined score and falls
+with k on saturated ecological distances, so the selector lands near the bottom
+of the tested range. It is also unstable: removing the taxa cap moved it from
+two regions to three, a change with no ecological content.
 
-| Cut | Aves vs Plantae (ARI) | vs EPA Level II (ARI) | vs EPA (V-measure) |
+An earlier version of this section claimed the selector's argmax is always the
+bottom of the range. That was too strong — the run of 2026-09-20 selected three
+out of a range starting at two — and it is corrected here rather than quietly
+dropped.
+
+Agreement with EPA Level II, the reference the pipeline is never shown:
+
+| Cut | vs EPA (ARI) | vs EPA (V-measure) | Aves vs Plantae (ARI) |
 |---|---|---|---|
-| 2 | −0.005 | 0.152 | 0.315 |
-| 4 | 0.290 | **0.315** | 0.452 |
-| 5 | **0.548** | — | — |
-| 8 | 0.324 | 0.313 | 0.473 |
-| 12 | 0.358 | 0.281 | 0.474 |
+| 2 | 0.2552 | 0.3998 | −0.005 |
+| 3 | 0.3107 | 0.4583 | **0.4735** |
+| 4 | **0.3108** | 0.4784 | 0.3183 |
+| 8 | 0.2861 | 0.4767 | 0.3452 |
+| 12 | 0.2416 | 0.4873 | 0.2560 |
+| 15 | 0.2502 | 0.5098 | 0.2938 |
 
-At k=2 the two clades agree no better than chance, because Aves at that cut
-splits 1182/4 hexagons — Ward peeling a handful off rather than regionalizing
-anything. Plantae at k=2 does give the expected north/south split, so the
-boundary is real; k=2 is simply the wrong grain to express it.
+ARI is the only one of the three that can choose a grain, and **it does not
+distinguish three from four**: 0.3107 against 0.3108. Four is published because
+changing a default on a 0.0001 difference is churn, not because it won.
 
-The map therefore publishes four, where agreement with the published framework
-peaks. The clustering is unchanged and every level is still emitted; what
-changed is that the selector's k no longer decides what the outputs describe.
-It is still computed and reported on the findings page, as a diagnostic beside
-the level actually published.
+The other two cannot arbitrate, for opposite reasons. V-measure rewards
+subdividing the reference consistently, so it rises with k almost throughout and
+always prefers more regions. Clade congruence peaked at five regions with the
+taxa cap in place and at three without it — a filter with no ecological content
+— so it is not stable enough to select on, which is why an earlier plan to use
+it as the selection criterion was dropped.
+
+Read the silhouette warning beside all of this. At the published cut it is
+0.2382, below the 0.25 threshold, which means the data do not show substantial
+cluster structure at any k. These numbers are choosing between grains of a
+continuum, not between well-separated alternatives.
 
 This matters beyond which level the map opens on. Everything built for a single
 cut — the GeoJSON, the per-cluster taxa statistics and significant differences,

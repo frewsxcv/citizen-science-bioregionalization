@@ -345,6 +345,43 @@ class TestPublishedCut(unittest.TestCase):
 
         self.assertIn("this run publishes 4 (ARI 0.290)", page)
 
+    def test_reports_a_near_tie_as_a_tie(self) -> None:
+        """A bare argmax reads as though one cut won.
+
+        On the published run the top two cuts are 0.0001 apart, which is far
+        below what Adjusted Rand resolves.
+        """
+        from src.epa_reference import ReferenceAgreement
+
+        data = FindingsData(
+            context=a_context(chosen_k=3, display_k=4),
+            reference_by_k=[
+                (k, ReferenceAgreement(a, v, 1071, 116))
+                for k, a, v in [
+                    (2, 0.2552, 0.3998),
+                    (3, 0.3107, 0.4583),
+                    (4, 0.3108, 0.4784),
+                ]
+            ],
+        )
+        page = render_findings_page(data)
+
+        self.assertIn("highest at <strong>4 regions</strong>", page)
+        self.assertIn("That is a tie", page)
+        self.assertNotIn("peaks at", page)
+
+    def test_does_not_claim_a_tie_when_one_cut_is_clear(self) -> None:
+        from src.epa_reference import ReferenceAgreement
+
+        data = FindingsData(
+            context=a_context(chosen_k=2, display_k=4),
+            reference_by_k=[
+                (k, ReferenceAgreement(a, v, 1071, 116))
+                for k, a, v in [(2, 0.152, 0.315), (4, 0.315, 0.452)]
+            ],
+        )
+        self.assertNotIn("That is a tie", render_findings_page(data))
+
     def test_caption_names_the_cut(self) -> None:
         page = render_findings_page(
             FindingsData(
