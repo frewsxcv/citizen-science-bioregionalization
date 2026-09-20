@@ -4,6 +4,7 @@ import numpy as np
 import polars as pl
 from scipy.spatial.distance import pdist
 
+import src.matrices.geocode_distance as geocode_distance
 from src.matrices.geocode_distance import build_unscaled_X, GeocodeDistanceMatrix
 
 
@@ -238,3 +239,74 @@ class TestCompositionMetric(unittest.TestCase):
                 counts.lazy(), present.lazy(), metric="presence"
             ).abundance_condensed(),
         )
+
+
+class TestThePivotRunsOnce(unittest.TestCase):
+    """One pivot per build, on every metric.
+
+    The pivot is one of the widest stages in the pipeline -- on the published
+    extent it takes its own full pass at 10-15 GB -- and `presence` and
+    `abundance` each ran it twice: once for the feature matrix and once more to
+    build the reference matrix from an identical pivot. `betasim` returns
+    before that point, which is why the default path never showed it and the
+    logs did not either: only the scaled path was wrapped in `log_action`.
+    """
+
+    def _counts(self):
+        counts = pl.DataFrame(
+            {
+                "geocode": ["a"] * 3 + ["b"] * 3 + ["c"] * 3 + ["d"] * 3,
+                "taxonId": [1, 2, 3] * 4,
+                "count": [5, 1, 0, 1, 7, 2, 0, 2, 9, 3, 3, 3],
+            }
+        )
+        return counts, pl.DataFrame({"geocode": ["a", "b", "c", "d"]})
+
+    def _build_counting_pivots(self, metric):
+        counts, present = self._counts()
+        real = geocode_distance.pivot_taxon_counts
+        calls = []
+
+        def counting(lf):
+            calls.append(1)
+            return real(lf)
+
+        geocode_distance.pivot_taxon_counts = counting
+        try:
+            built = GeocodeDistanceMatrix.build(
+                counts.lazy(),
+                present.lazy(),
+                random_state=0,
+                metric=metric,
+                reduction="pcoa",
+            )
+        finally:
+            geocode_distance.pivot_taxon_counts = real
+        return len(calls), built
+
+    def test_every_metric_pivots_exactly_once(self):
+        for metric in ("betasim", "presence", "abundance"):
+            with self.subTest(metric=metric):
+                pivots, _ = self._build_counting_pivots(metric)
+                self.assertEqual(pivots, 1, f"{metric} pivoted {pivots} times")
+
+    def test_reusing_the_pivot_does_not_change_the_distances(self):
+        """The reference matrix must be what a second pivot would have given."""
+        counts, present = self._counts()
+        for metric in ("presence", "abundance"):
+            with self.subTest(metric=metric):
+                built = GeocodeDistanceMatrix.build(
+                    counts.lazy(),
+                    present.lazy(),
+                    random_state=0,
+                    metric=metric,
+                    reduction="pcoa",
+                )
+                expected = build_unscaled_X(counts.lazy(), present.lazy()).to_numpy()
+                if metric == "presence":
+                    expected = (expected > 0).astype(float)
+                reference = built.abundance_condensed()
+                assert reference is not None
+                np.testing.assert_allclose(
+                    reference, pdist(np.ascontiguousarray(expected), metric="braycurtis")
+                )
