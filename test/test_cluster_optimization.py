@@ -1,10 +1,16 @@
+import logging
 import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import polars as pl
 
-from src.cluster_optimization import optimize_num_clusters
+from src.cluster_optimization import (
+    optimize_num_clusters,
+    report_partition,
+    score_all_k,
+    select_k,
+)
 from src.dataframes.geocode_cluster_metrics import (
     _compute_inertia,
     _find_elbow_point,
@@ -410,3 +416,82 @@ class TestPinnedK(unittest.TestCase):
         for, with nothing in the output saying so."""
         with self.assertRaisesRegex(ValueError, "outside the range tested"):
             self._run(9)
+
+
+class TestScoringIsSeparateFromSelecting(unittest.TestCase):
+    """score_all_k scores, select_k picks, report_partition judges.
+
+    They were one call, which made the selector's k look like the thing the run
+    is built on. It is not -- `levels.published` is -- and the reporting in
+    particular was attached to the wrong cut.
+    """
+
+    def _metrics(self) -> pl.DataFrame:
+        """Scores where the selector's k is well separated and k=4 is not."""
+        return pl.DataFrame(
+            {
+                "num_clusters": [2, 3, 4],
+                "silhouette_score": [0.20, 0.40, 0.10],
+                "calinski_harabasz_score": [10.0, 20.0, 5.0],
+                "davies_bouldin_score": [2.0, 1.0, 3.0],
+                "inertia": [100.0, 50.0, 25.0],
+                "combined_score": [0.3, 0.9, 0.1],
+            }
+        )
+
+    def test_select_k_takes_the_best_combined_score(self) -> None:
+        self.assertEqual(select_k(self._metrics()), 3)
+
+    def test_select_k_does_not_log_about_fitness(self) -> None:
+        """Picking a k says nothing about whether it is any good."""
+        with self.assertLogs("src.cluster_optimization", level="WARNING") as logs:
+            select_k(self._metrics())
+            # assertLogs fails an empty block, so emit one of our own to prove
+            # the selector contributed nothing.
+            logging.getLogger("src.cluster_optimization").warning("sentinel")
+        self.assertEqual([r.getMessage() for r in logs.records], ["sentinel"])
+
+    def test_report_partition_describes_the_cut_it_is_given(self) -> None:
+        """The defect: the warning used to follow the selector, not the map.
+
+        With these scores the selector picks k=3, whose silhouette is 0.40 and
+        clears the threshold. The run publishes k=4, whose silhouette is 0.10
+        and does not. Reporting on the selector's cut would stay silent about
+        the partition every output is built from.
+        """
+        distance = MagicMock()
+        distance.abundance_condensed.return_value = None
+
+        with self.assertLogs("src.cluster_optimization", level="WARNING") as logs:
+            report_partition(distance, pl.DataFrame(), self._metrics(), 4)
+        messages = " ".join(r.getMessage() for r in logs.records)
+        self.assertIn("k=4", messages)
+        self.assertIn("no substantial cluster structure", messages)
+
+    def test_report_partition_is_quiet_for_a_well_separated_cut(self) -> None:
+        distance = MagicMock()
+        distance.abundance_condensed.return_value = None
+        with self.assertLogs("src.cluster_optimization", level="INFO") as logs:
+            report_partition(distance, pl.DataFrame(), self._metrics(), 3)
+        self.assertNotIn(
+            "no substantial cluster structure",
+            " ".join(r.getMessage() for r in logs.records),
+        )
+
+    def test_report_partition_survives_a_cut_that_was_never_scored(self) -> None:
+        distance = MagicMock()
+        distance.abundance_condensed.return_value = None
+        with self.assertLogs("src.cluster_optimization", level="WARNING") as logs:
+            report_partition(distance, pl.DataFrame(), self._metrics(), 99)
+        self.assertIn("never scored", " ".join(r.getMessage() for r in logs.records))
+
+    def test_the_composed_function_still_does_all_three(self) -> None:
+        """optimize_num_clusters is kept for callers that want one call."""
+        distance = MagicMock()
+        distance.abundance_condensed.return_value = None
+        with patch(
+            "src.cluster_optimization.score_all_k", return_value=self._metrics()
+        ):
+            k, metrics = optimize_num_clusters(distance, pl.DataFrame())
+        self.assertEqual(k, 3)
+        self.assertEqual(metrics.height, 3)

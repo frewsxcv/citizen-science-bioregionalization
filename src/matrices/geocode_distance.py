@@ -104,24 +104,28 @@ def pivot_taxon_counts(taxon_counts: pl.LazyFrame) -> pl.LazyFrame:
     ).sort(by="geocode")
 
 
-def build_X(
+def build_unscaled_X(
     geocode_taxa_counts_lf: pl.LazyFrame,
     geocode_lf: pl.LazyFrame,
 ) -> pl.DataFrame:
-    """
-    Builds the feature matrix (X) for distance calculation.
+    """The feature matrix before scaling: raw per-geocode taxon counts.
 
-    Steps:
-    1. Pivot the taxon counts dataframe so rows are geocodes and columns are taxa.
-    2. Fill any missing taxon counts (nulls) with 0.
-    3. Assert that the order of geocodes matches the input geocode_df.
-    4. Drop the 'geocode' column to keep only numerical features.
-    5. Scale the features using RobustScaler.
+    Pivots the counts so rows are geocodes and columns are taxa, fills the
+    absences with 0, checks the row order against `geocode_lf`, and drops the
+    identifier column.
 
-    Returns:
-        A Polars DataFrame representing the scaled feature matrix.
+    The row-order assertion is the load-bearing part: everything downstream
+    addresses geocodes positionally, so a mismatch here silently relabels the
+    whole map rather than failing.
+
+    Unscaled because `build_X` centres its output with RobustScaler, which on
+    data whose medians are non-zero produces negative entries -- and
+    Bray-Curtis, a ratio of summed absolute differences to summed absolute
+    totals, is only bounded on [0, 1] for non-negative input. On real occurrence
+    data most taxa are absent from most hexagons, so the medians are zero and
+    nothing goes negative; that is luck rather than a guarantee, and the
+    reference metric should not depend on it.
     """
-    # 1. Pivot the table
     feature_matrix = log_action(
         "Pivoting taxon counts",
         lambda: geocode_taxa_counts_lf.pipe(pivot_taxon_counts).collect(
@@ -131,53 +135,29 @@ def build_X(
 
     assert feature_matrix.height > 1, "More than one geocode is required to cluster"
 
-    # 2. Fill nulls (taxa not present in a geocode) with 0
-    feature_matrix = log_action(
-        "Filling null taxon counts with 0",
-        lambda: feature_matrix.fill_null(np.uint32(0)),
-    )
+    feature_matrix = feature_matrix.fill_null(np.uint32(0))
 
-    # 3. Ensure the order of geocodes in the matrix matches the input geocode list.
-    # This is crucial for later steps that rely on matching indices.
     assert feature_matrix["geocode"].equals(
         geocode_lf.collect(engine="streaming")["geocode"]
     ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
 
-    # 4. Drop the geocode identifier column
-    feature_matrix = log_action(
-        "Dropping geocode column", lambda: feature_matrix.drop("geocode")
-    )
-
-    # 5. Scale features
-    scaled_feature_matrix = log_action(
-        "Scaling features", lambda: feature_matrix.pipe(scale_values)
-    )
-
-    return scaled_feature_matrix
+    return feature_matrix.drop("geocode").cast(pl.Float64)
 
 
-def build_unscaled_X(
+def build_X(
     geocode_taxa_counts_lf: pl.LazyFrame,
     geocode_lf: pl.LazyFrame,
 ) -> pl.DataFrame:
-    """The feature matrix before scaling: raw per-geocode taxon counts.
+    """`build_unscaled_X` put through RobustScaler.
 
-    `build_X` centres its output with RobustScaler, which on data whose medians
-    are non-zero produces negative entries -- and Bray-Curtis, a ratio of summed
-    absolute differences to summed absolute totals, is only bounded on [0, 1]
-    for non-negative input. On real occurrence data most taxa are absent from
-    most hexagons, so the medians are zero and nothing goes negative; that is
-    luck rather than a guarantee, and the reference metric should not depend on
-    it.
+    Kept as its own entry point because the determinism suite pivots through
+    it; `GeocodeDistanceMatrix.build` pivots once and scales the result
+    directly, rather than calling this and pivoting a second time.
     """
-    feature_matrix = geocode_taxa_counts_lf.pipe(pivot_taxon_counts).collect(
-        engine="streaming"
+    return log_action(
+        "Scaling features",
+        lambda: scale_values(build_unscaled_X(geocode_taxa_counts_lf, geocode_lf)),
     )
-    feature_matrix = feature_matrix.fill_null(np.uint32(0))
-    assert feature_matrix["geocode"].equals(
-        geocode_lf.collect(engine="streaming")["geocode"]
-    ), "Geocode order mismatch between pivoted matrix and geocode dataframe."
-    return feature_matrix.drop("geocode").cast(pl.Float64)
 
 
 def scale_values(feature_matrix: pl.DataFrame) -> pl.DataFrame:
@@ -406,6 +386,15 @@ class GeocodeDistanceMatrix:
                 reduce_dimensions_pcoa for why the second is reproducible and
                 the first is not.
         """
+        # Pivoted once, here, and reused by every branch below. The pivot is one
+        # of the widest stages in the pipeline -- on the published extent it
+        # takes its own full pass at 10-15 GB -- and it used to run twice on two
+        # of the three metric paths: `presence` and `abundance` each built a
+        # feature matrix and then built the reference matrix from a second,
+        # identical pivot. `betasim` returns before that point, which is why the
+        # default path never showed it.
+        counts = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf)
+
         if metric == "betasim":
             # Clustered on the dissimilarities themselves. Ward is what forced
             # an embedding -- it needs Euclidean input -- and UPGMA does not, so
@@ -413,7 +402,6 @@ class GeocodeDistanceMatrix:
             # embed and no distortion to introduce. The PCoA coordinates below
             # are computed only so Calinski-Harabasz and Davies-Bouldin have a
             # feature space to be defined in; nothing clusters on them.
-            counts = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf)
             presence = (counts.to_numpy() > 0).astype(np.float64)
             logger.info(
                 f"Composition metric: betasim over {presence.shape[1]} taxa "
@@ -458,7 +446,6 @@ class GeocodeDistanceMatrix:
             # median is 1, so centring maps its column to 0 and -1 -- handing
             # Bray-Curtis the negative values it is not defined for. There are
             # also no magnitudes left to normalise.
-            counts = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf)
             feature_matrix = pl.from_numpy(
                 (counts.to_numpy() > 0).astype(np.float64)
             )
@@ -467,7 +454,7 @@ class GeocodeDistanceMatrix:
                 f"(Bray-Curtis over presence bits is Sorensen)"
             )
         else:
-            feature_matrix = build_X(geocode_taxa_counts_lf, geocode_lf)
+            feature_matrix = log_action("Scaling features", lambda: scale_values(counts))
             logger.info(
                 f"Composition metric: abundance over {feature_matrix.width} taxa"
             )
@@ -485,7 +472,7 @@ class GeocodeDistanceMatrix:
         # rows. Measured on Colombia, pdist over an 800-row slice took 19.0s as
         # given and 2.9s once copied -- a 6.6x penalty for nothing. End to end
         # this call went from 586s to 74s.
-        reference = build_unscaled_X(geocode_taxa_counts_lf, geocode_lf).to_numpy()
+        reference = counts.to_numpy()
         if metric == "presence":
             reference = (reference > 0).astype(np.float64)
         unscaled = np.ascontiguousarray(reference)

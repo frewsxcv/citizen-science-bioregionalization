@@ -616,7 +616,7 @@ def _(
 def _(bounding_box, materialize_parquet, darwin_core_lf, geocode_precision):
     from src.dataframes.geocode import build_geocode_lf
 
-    geocode_lf_with_edges = materialize_parquet(
+    geocode_all_lf = materialize_parquet(
         build_geocode_lf(
             darwin_core_lf,
             geocode_precision,
@@ -624,42 +624,42 @@ def _(bounding_box, materialize_parquet, darwin_core_lf, geocode_precision):
         ),
         cache_key="GeocodeSchema",
     )
-    return (geocode_lf_with_edges,)
+    return (geocode_all_lf,)
 
 
 @app.cell
-def _(materialize_parquet, geocode_lf_with_edges):
+def _(materialize_parquet, geocode_all_lf):
     from src.dataframes.geocode import build_geocode_no_edges_lf
 
-    geocode_unfiltered_lf = materialize_parquet(
+    geocode_no_edges_lf = materialize_parquet(
         build_geocode_no_edges_lf(
-            geocode_lf_with_edges,
+            geocode_all_lf,
         ),
         cache_key="GeocodeNoEdgesSchema",
     )
-    return (geocode_unfiltered_lf,)
+    return (geocode_no_edges_lf,)
 
 
 @app.cell
-def _(geocode_lf_with_edges):
+def _(geocode_all_lf):
     from src.dataframes.geocode_neighbors import build_geocode_neighbors_df
 
     # Build neighbors for all geocodes (including edges)
-    geocode_neighbors_with_edges_df = build_geocode_neighbors_df(
-        geocode_lf_with_edges.collect(),
+    geocode_neighbors_all_df = build_geocode_neighbors_df(
+        geocode_all_lf.collect(),
     )
-    return (geocode_neighbors_with_edges_df,)
+    return (geocode_neighbors_all_df,)
 
 
 @app.cell
-def _(materialize_parquet, geocode_lf, geocode_neighbors_with_edges_df):
+def _(materialize_parquet, geocode_clustered_lf, geocode_neighbors_all_df):
     from src.dataframes.geocode_neighbors import build_geocode_neighbors_no_edges_df
 
     # Build neighbors for filtered geocodes only
     geocode_neighbors_df = materialize_parquet(
         build_geocode_neighbors_no_edges_df(
-            geocode_neighbors_with_edges_df,
-            geocode_lf.collect(),
+            geocode_neighbors_all_df,
+            geocode_clustered_lf.collect(),
         ),
         cache_key="GeocodeNeighborsSchema",
     ).collect()
@@ -667,11 +667,11 @@ def _(materialize_parquet, geocode_lf, geocode_neighbors_with_edges_df):
 
 
 @app.cell(hide_code=True)
-def _(folium, geocode_lf_with_edges, geocode_unfiltered_lf, pl):
-    _center = geocode_unfiltered_lf.select(
+def _(folium, geocode_all_lf, geocode_no_edges_lf, pl):
+    _center = geocode_no_edges_lf.select(
         pl.col("center").alias("geometry"),
     ).collect()
-    _boundary = geocode_lf_with_edges.select(
+    _boundary = geocode_all_lf.select(
         pl.col("boundary").alias("geometry"),
         pl.col("is_edge"),
     ).collect()
@@ -702,7 +702,7 @@ def _(
     materialize_parquet,
     darwin_core_lf,
     geocode_precision,
-    geocode_unfiltered_lf,
+    geocode_no_edges_lf,
 ):
     from src.dataframes.taxonomy import build_taxonomy_lf
 
@@ -710,7 +710,7 @@ def _(
         build_taxonomy_lf(
             darwin_core_lf,
             geocode_precision,
-            geocode_unfiltered_lf,
+            geocode_no_edges_lf,
             bounding_box=bounding_box,
         ),
         cache_key="TaxonomySchema",
@@ -746,7 +746,7 @@ def _(
     materialize_parquet,
     darwin_core_lf,
     geocode_precision,
-    geocode_unfiltered_lf,
+    geocode_no_edges_lf,
     taxonomy_lf,
 ):
     from src.dataframes.geocode_taxa_counts import build_geocode_taxa_counts_lf
@@ -756,7 +756,7 @@ def _(
             darwin_core_lf,
             geocode_precision,
             taxonomy_lf,
-            geocode_unfiltered_lf,
+            geocode_no_edges_lf,
             bounding_box=bounding_box,
         ),
         cache_key="GeocodeTaxaCountsSchema",
@@ -784,14 +784,22 @@ def _(geocode_taxa_counts_lf):
 
 
 @app.cell
-def _(geocode_taxa_counts_lf, geocode_unfiltered_lf, pl):
-    # Filter geocode_unfiltered_lf to only include geocodes present in geocode_taxa_counts_lf
-    geocode_lf = geocode_unfiltered_lf.join(
+def _(geocode_taxa_counts_lf, geocode_no_edges_lf, pl):
+    # The hexagons that actually get clustered, and so the ones that appear on
+    # the map. The taxa filters above run on the counts, not the geocodes, so a
+    # hexagon whose every taxon was filtered out survives in geocode_no_edges_lf
+    # with nothing in it. This semi-join drops those -- which is what keeps the
+    # row-order assertion in matrices.geocode_distance.build_unscaled_X true.
+    #
+    # The consequence is not a crash but a quieter one: an aggressive taxa
+    # filter silently shrinks the published map. Compare this frame's height
+    # against geocode_no_edges_lf to see how many hexagons a filter cost.
+    geocode_clustered_lf = geocode_no_edges_lf.join(
             geocode_taxa_counts_lf.select(pl.col("geocode").unique()),
             on="geocode",
             how="semi",
         )
-    return (geocode_lf,)
+    return (geocode_clustered_lf,)
 
 
 @app.cell(hide_code=True)
@@ -852,12 +860,12 @@ def _(composition_metric, linkage, random_seed, reduction):
 
 
 @app.cell
-def _(composition_settings, geocode_lf, geocode_taxa_counts_lf, mo, np):
+def _(composition_settings, geocode_clustered_lf, geocode_taxa_counts_lf, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_lf,
-        geocode_lf,
+        geocode_clustered_lf,
         random_state=composition_settings.seed,
         metric=composition_settings.metric,
         reduction=composition_settings.reduction,
@@ -894,7 +902,7 @@ def _(
     composition_settings,
     geocode_connectivity_matrix,
     geocode_distance_matrix,
-    geocode_lf,
+    geocode_clustered_lf,
     max_clusters_to_test,
     min_clusters_to_test,
 ):
@@ -902,7 +910,7 @@ def _(
 
     all_clusters_df = materialize_parquet(
         build_geocode_cluster_multi_k_df(
-            geocode_lf,
+            geocode_clustered_lf,
             geocode_distance_matrix,
             geocode_connectivity_matrix,
             min_k=min_clusters_to_test,
@@ -932,17 +940,18 @@ def _(
     metric_weights,
     num_clusters_pinned,
 ):
-    from src.cluster_optimization import optimize_num_clusters
+    from src.cluster_optimization import score_all_k, select_k
 
-    # Named for what it is. This is where the combined score peaked (or what
-    # --num-clusters pinned), and it is a diagnostic: the cell below decides
-    # what the run publishes, and it is deliberately not always this.
-    selector_k, all_cluster_metrics = optimize_num_clusters(
+    # Two steps, deliberately. Scoring every cut and preferring one of them are
+    # different claims, and running them as one call made the preference look
+    # like a decision. It is not: `levels.published` below is what the run
+    # actually builds on.
+    all_cluster_metrics = score_all_k(
         geocode_distance_matrix,
         all_clusters_df,
         weights=metric_weights,
-        pinned_k=num_clusters_pinned,
     )
+    selector_k = select_k(all_cluster_metrics, pinned_k=num_clusters_pinned)
 
     all_cluster_metrics
     return all_cluster_metrics, selector_k
@@ -988,6 +997,23 @@ def _(
         pinned=num_clusters_pinned is not None,
     )
     return (levels,)
+
+
+@app.cell
+def _(all_cluster_metrics_df, all_clusters_df, geocode_distance_matrix, levels):
+    from src.cluster_optimization import report_partition
+
+    # Reported for the cut the run publishes. This used to happen inside the
+    # selector and describe whatever the selector chose, so the "no substantial
+    # cluster structure" warning could describe a partition no output contains
+    # while staying silent about the one every output is built from.
+    report_partition(
+        geocode_distance_matrix,
+        all_clusters_df,
+        all_cluster_metrics_df,
+        levels.published,
+    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -1197,13 +1223,13 @@ def _(mo):
 
 
 @app.cell
-def _(materialize_parquet, geocode_cluster_df, geocode_lf):
+def _(materialize_parquet, geocode_cluster_df, geocode_clustered_lf):
     from src.dataframes.cluster_boundary import build_cluster_boundary_df
 
     cluster_boundary_df = materialize_parquet(
         build_cluster_boundary_df(
             geocode_cluster_df,
-            geocode_lf,
+            geocode_clustered_lf,
         ),
         cache_key="ClusterBoundarySchema",
     ).collect(engine="streaming")
@@ -1327,7 +1353,7 @@ def _(
     materialize_parquet,
     geocode_cluster_df,
     geocode_distance_matrix,
-    geocode_lf,
+    geocode_clustered_lf,
     random_seed,
 ):
     from src.dataframes.permanova_results import build_permanova_results_df
@@ -1336,7 +1362,7 @@ def _(
         build_permanova_results_df(
             geocode_distance_matrix=geocode_distance_matrix,
             geocode_cluster_df=geocode_cluster_df,
-            geocode_lf=geocode_lf,
+            geocode_lf=geocode_clustered_lf,
             seed=random_seed,
         ),
         cache_key="PermanovaResultsSchema",
@@ -1507,7 +1533,7 @@ def _(
     cluster_taxa_statistics_df,
     geocode_cluster_df,
     geocode_distance_matrix,
-    geocode_lf,
+    geocode_clustered_lf,
     geocode_taxa_counts_lf,
     mo,
     taxonomy_lf,
@@ -1515,7 +1541,7 @@ def _(
     from src.plot.cluster_taxa import create_cluster_taxa_heatmap
 
     heatmap = create_cluster_taxa_heatmap(
-        geocode_lf=geocode_lf,
+        geocode_lf=geocode_clustered_lf,
         geocode_cluster_df=geocode_cluster_df,
         cluster_colors_df=cluster_colors_df,
         geocode_distance_matrix=geocode_distance_matrix,
@@ -1657,7 +1683,7 @@ def _(all_cluster_metrics_df, levels, mo):
 def _(
     all_clusters_df,
     default_display_level,
-    geocode_lf,
+    geocode_clustered_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
     levels,
@@ -1673,7 +1699,7 @@ def _(
     # because they are what the notebook displays.
     _json = build_hierarchy_json(
         all_clusters_df,
-        geocode_lf,
+        geocode_clustered_lf,
         geocode_neighbors_df,
         geocode_taxa_counts_lf,
         taxonomy_lf,
@@ -1702,7 +1728,7 @@ def _(
     all_clusters_df,
     bounding_box,
     composition_settings,
-    geocode_lf,
+    geocode_clustered_lf,
     geocode_precision,
     geocode_taxa_counts_lf,
     findings_output,
@@ -1733,7 +1759,7 @@ def _(
                 f"{bounding_box.sw.lng:g}-{bounding_box.ne.lng:g}E"
             ),
             geocode_precision=geocode_precision,
-            hexagons=geocode_lf.select(_pl.len()).collect().item(),
+            hexagons=geocode_clustered_lf.select(_pl.len()).collect().item(),
             taxa=taxonomy_lf.select(_pl.len()).collect().item(),
             # The clade shares are fractions of this, not of the taxonomy: the
             # taxa filters run before clustering, so most of the taxonomy is
@@ -1752,7 +1778,7 @@ def _(
         _data = _build_findings_data(
             _context,
             geocode_taxa_counts_lf,
-            geocode_lf,
+            geocode_clustered_lf,
             all_clusters_df,
             taxon_clade_lf,
             settings=composition_settings,
