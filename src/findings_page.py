@@ -129,8 +129,23 @@ class FindingsData:
     skipped: list[str] = field(default_factory=list)
 
 
+#: Two cuts whose Adjusted Rand scores differ by less than this are reported as
+#: a tie rather than ranked. On the published run the top two are 0.0001 apart,
+#: and presenting that as a winner would be a precision the measure does not
+#: have.
+ARI_TIE = 0.01
+
+
 def _esc(value: object) -> str:
     return html.escape(str(value))
+
+
+def _join(parts) -> str:
+    """"a", "a and b", "a, b and c"."""
+    items = list(parts)
+    if len(items) <= 1:
+        return "".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
 
 
 def _line_chart(
@@ -484,10 +499,30 @@ def render_findings_page(data: FindingsData) -> str:
         best_k, best_a = max(data.reference_by_k, key=lambda x: x[1].adjusted_rand)
         published = by_k.get(c.published_k)
         selector = by_k.get(c.chosen_k)
+
+        # Cuts too close to the best to be distinguished by this measure.
+        # Reporting a bare argmax reads as though one cut won; on the published
+        # run the top two are 0.0001 apart, which nothing here resolves.
+        near = sorted(
+            k
+            for k, a in data.reference_by_k
+            if k != best_k and best_a.adjusted_rand - a.adjusted_rand < ARI_TIE
+        )
+        tie_note = (
+            ""
+            if not near
+            else (
+                " That is a tie: "
+                + _join(f"{k}" for k in near)
+                + f" scores within {ARI_TIE} of it, which is below what this "
+                "measure distinguishes."
+            )
+        )
         out.append(
             "<p>The combined partition scored against EPA/CEC Level II "
-            "ecoregions, which the pipeline is never shown. Agreement peaks at "
-            f"<strong>{best_k} regions</strong> (ARI {best_a.adjusted_rand:.3f})"
+            "ecoregions, which the pipeline is never shown. Agreement is "
+            f"highest at <strong>{best_k} regions</strong> "
+            f"(ARI {best_a.adjusted_rand:.3f})"
             + (
                 ", which is the cut this run publishes."
                 if best_k == c.published_k
@@ -506,6 +541,7 @@ def render_findings_page(data: FindingsData) -> str:
                 if selector is not None and c.chosen_k != c.published_k
                 else ""
             )
+            + tie_note
             + "</p>"
             "<figure>"
             + _line_chart(
@@ -519,11 +555,18 @@ def render_findings_page(data: FindingsData) -> str:
                 ],
                 "Number of regions",
                 "Agreement with EPA Level II",
+                # Says the same as the prose above, ties included. A
+                # screen-reader user should not get the confident version.
                 aria=(
-                    f"Agreement with EPA Level II ecoregions by number of "
-                    f"regions. ARI peaks at {best_a.adjusted_rand:.2f} at "
-                    f"{best_k} regions; V-measure rises with the number of "
-                    f"regions."
+                    f"Adjusted Rand and V-measure against EPA Level II "
+                    f"ecoregions by number of regions. ARI is highest at "
+                    f"{best_a.adjusted_rand:.2f} at {best_k} regions"
+                    + (
+                        f", tied with " + _join(f"{k}" for k in near) + "."
+                        if near
+                        else "."
+                    )
+                    + " V-measure rises with the number of regions throughout."
                 ),
             )
             + "<figcaption>ARI penalises splitting a reference region; "

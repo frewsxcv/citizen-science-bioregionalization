@@ -951,10 +951,10 @@ def _(
 
     # Resolved here rather than at the writer, because everything below is built
     # at `published_level`. The selector's k is kept and reported, but it stops
-    # deciding what the outputs describe: it maximises a score silhouette
-    # dominates, silhouette falls monotonically with k on these distances, and
-    # the cut it lands on scored last against both references the run computes.
-    # See defaults.DEFAULT_DISPLAY_LEVEL.
+    # deciding what the outputs describe: silhouette carries the most weight in
+    # its score and falls with k here, so it lands near the bottom of the range,
+    # and it moves under changes that have nothing to do with grain -- removing
+    # the taxa cap shifted it from 2 to 3. See defaults.DEFAULT_DISPLAY_LEVEL.
     hierarchy_level_list = resolve_levels(
         hierarchy_levels
         or default_ladder(min_clusters_to_test, max_clusters_to_test),
@@ -985,13 +985,16 @@ def _(hierarchy_level_list, mo, optimal_num_clusters, published_level):
     **{published_level}**.
 
     The selector's combined score peaked at **{optimal_num_clusters}**, which is
-    reported as a diagnostic and does not decide anything. It maximises a score
-    silhouette dominates, and silhouette falls monotonically with k on saturated
-    ecological distances, so its peak is the bottom of the tested range whatever
-    the data says. On the published run that cut scored last against both
-    references this notebook computes: the two clades agreed no better than
-    chance there, and agreement with EPA Level II was its lowest. See the
-    Findings section.
+    reported as a diagnostic and does not decide anything. Silhouette carries the
+    most weight in that score and falls with k on saturated ecological distances,
+    so the selector lands near the bottom of the tested range — and it moves
+    under changes that have nothing to do with grain: removing the taxa cap
+    shifted it from 2 to 3.
+
+    Which cut is published is a presentation choice, and on current evidence a
+    close one. Agreement with EPA Level II is flat across three and four
+    regions. See the Findings section, and read the silhouette warning beside
+    all of it — the data do not show substantial cluster structure at any k.
     """
         if published_level != optimal_num_clusters
         else f"""
