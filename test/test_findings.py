@@ -28,6 +28,24 @@ from src.findings_page import (
     findings_summary_json,
     render_findings_page,
 )
+from src.types import ClusterLevels
+
+
+def some_levels(
+    published: int = 2,
+    selector: int = 2,
+    emitted: tuple[int, ...] | None = None,
+    min_k: int = 2,
+    max_k: int = 15,
+) -> ClusterLevels:
+    """A resolved cut decision, defaulting to one the run agrees with itself on."""
+    return ClusterLevels(
+        published=published,
+        selector=selector,
+        emitted=emitted if emitted is not None else tuple(sorted({published, selector})),
+        min_k=min_k,
+        max_k=max_k,
+    )
 
 
 def a_context(**overrides: object) -> RunContext:
@@ -39,7 +57,7 @@ def a_context(**overrides: object) -> RunContext:
         "taxa": 208296,
         "taxa_analysed": 10000,
         "records": 1_000_000,
-        "chosen_k": 2,
+        "levels": some_levels(),
         "composition_metric": "betasim",
         "seed": 0,
     }
@@ -233,16 +251,18 @@ class TestRendering(unittest.TestCase):
         self.assertIn("10,000 taxa", page)
         self.assertIn("208,296", page)
 
-    def test_names_the_cut_it_opens_on_when_it_differs(self) -> None:
-        opens_elsewhere = render_findings_page(
-            FindingsData(context=a_context(chosen_k=2, display_k=4))
+    def test_names_the_cut_it_publishes_and_the_selector_when_they_differ(self) -> None:
+        differs = render_findings_page(
+            FindingsData(context=a_context(levels=some_levels(published=4, selector=2)))
         )
-        self.assertIn("opens on <strong>4</strong>", opens_elsewhere)
+        self.assertIn("published at <strong>4 regions</strong>", differs)
+        self.assertIn("selector's score peaked at 2", differs)
 
         same = render_findings_page(
-            FindingsData(context=a_context(chosen_k=4, display_k=4))
+            FindingsData(context=a_context(levels=some_levels(published=4, selector=4)))
         )
-        self.assertNotIn("opens on", same)
+        self.assertIn("published at <strong>4 regions</strong>", same)
+        self.assertNotIn("selector's score peaked", same)
 
     def test_summary_json_round_trips(self) -> None:
         data = FindingsData(
@@ -253,7 +273,8 @@ class TestRendering(unittest.TestCase):
         parsed = json.loads(findings_summary_json(data))
 
         self.assertEqual(parsed["congruence"][0]["adjusted_rand"], 0.318)
-        self.assertEqual(parsed["context"]["chosen_k"], 2)
+        self.assertEqual(parsed["context"]["levels"]["published"], 2)
+        self.assertEqual(parsed["context"]["levels"]["selector"], 2)
 
 
 if __name__ == "__main__":
@@ -269,12 +290,13 @@ class TestPublishedCut(unittest.TestCase):
     split from k=2 beside numbers for k=4.
     """
 
-    def test_published_cut_is_the_display_level_when_there_is_one(self) -> None:
-        self.assertEqual(a_context(chosen_k=2, display_k=4).published_k, 4)
+    def test_the_published_cut_is_not_the_selector_s(self) -> None:
+        levels = some_levels(published=4, selector=2)
+        self.assertEqual(levels.published, 4)
+        self.assertFalse(levels.selector_agrees)
 
-    def test_published_cut_falls_back_to_the_selector(self) -> None:
-        """A run that never set a display level publishes the selector's."""
-        self.assertEqual(a_context(chosen_k=3, display_k=None).published_k, 3)
+    def test_a_run_can_publish_the_cut_the_selector_chose(self) -> None:
+        self.assertTrue(some_levels(published=3, selector=3).selector_agrees)
 
     def test_scores_the_cut_it_publishes(self) -> None:
         """A published level outside the fixed spread must still be scored."""
@@ -292,13 +314,15 @@ class TestPublishedCut(unittest.TestCase):
             ]
         )
         data = build_findings_data(
-            a_context(chosen_k=2, display_k=5),
+            a_context(
+                levels=some_levels(
+                    published=5, selector=2, emitted=(2, 5), min_k=2, max_k=6
+                )
+            ),
             pl.DataFrame({"geocode": [], "taxonId": [], "count": []}).lazy(),
             df.lazy(),
             multi_k,
             None,
-            min_k=2,
-            max_k=6,
             seed=0,
             metric="betasim",
             reduction="pcoa",
@@ -320,7 +344,7 @@ class TestPublishedCut(unittest.TestCase):
         from src.epa_reference import ReferenceAgreement
 
         data = FindingsData(
-            context=a_context(chosen_k=2, display_k=4),
+            context=a_context(levels=some_levels(published=4, selector=2)),
             reference_by_k=[
                 (k, ReferenceAgreement(a, v, 1071, 116))
                 for k, a, v in [(2, 0.152, 0.315), (4, 0.315, 0.452)]
@@ -335,7 +359,7 @@ class TestPublishedCut(unittest.TestCase):
         from src.epa_reference import ReferenceAgreement
 
         data = FindingsData(
-            context=a_context(chosen_k=2, display_k=4),
+            context=a_context(levels=some_levels(published=4, selector=2)),
             reference_by_k=[
                 (k, ReferenceAgreement(a, v, 1071, 116))
                 for k, a, v in [(2, 0.152, 0.315), (4, 0.290, 0.452), (8, 0.315, 0.473)]
@@ -354,7 +378,7 @@ class TestPublishedCut(unittest.TestCase):
         from src.epa_reference import ReferenceAgreement
 
         data = FindingsData(
-            context=a_context(chosen_k=3, display_k=4),
+            context=a_context(levels=some_levels(published=4, selector=3)),
             reference_by_k=[
                 (k, ReferenceAgreement(a, v, 1071, 116))
                 for k, a, v in [
@@ -374,7 +398,7 @@ class TestPublishedCut(unittest.TestCase):
         from src.epa_reference import ReferenceAgreement
 
         data = FindingsData(
-            context=a_context(chosen_k=2, display_k=4),
+            context=a_context(levels=some_levels(published=4, selector=2)),
             reference_by_k=[
                 (k, ReferenceAgreement(a, v, 1071, 116))
                 for k, a, v in [(2, 0.152, 0.315), (4, 0.315, 0.452)]
@@ -385,7 +409,7 @@ class TestPublishedCut(unittest.TestCase):
     def test_caption_names_the_cut(self) -> None:
         page = render_findings_page(
             FindingsData(
-                context=a_context(chosen_k=2, display_k=4),
+                context=a_context(levels=some_levels(published=4, selector=2)),
                 latitude_spans={"Aves": [(0, 31.4, 47.0, 1200)]},
             )
         )

@@ -917,7 +917,10 @@ def _(
 ):
     from src.cluster_optimization import optimize_num_clusters
 
-    optimal_num_clusters, all_cluster_metrics = optimize_num_clusters(
+    # Named for what it is. This is where the combined score peaked (or what
+    # --num-clusters pinned), and it is a diagnostic: the cell below decides
+    # what the run publishes, and it is deliberately not always this.
+    selector_k, all_cluster_metrics = optimize_num_clusters(
         geocode_distance_matrix,
         all_clusters_df,
         weights=metric_weights,
@@ -925,7 +928,7 @@ def _(
     )
 
     all_cluster_metrics
-    return all_cluster_metrics, optimal_num_clusters
+    return all_cluster_metrics, selector_k
 
 
 @app.cell
@@ -945,46 +948,47 @@ def _(
     hierarchy_levels,
     max_clusters_to_test,
     min_clusters_to_test,
-    optimal_num_clusters,
+    num_clusters_pinned,
+    selector_k,
 ):
-    from src.hierarchy import default_ladder, resolve_default_level, resolve_levels
+    from src.hierarchy import resolve_cluster_levels
 
-    # Resolved here rather than at the writer, because everything below is built
-    # at `published_level`. The selector's k is kept and reported, but it stops
-    # deciding what the outputs describe: silhouette carries the most weight in
-    # its score and falls with k here, so it lands near the bottom of the range,
-    # and it moves under changes that have nothing to do with grain -- removing
-    # the taxa cap shifted it from 2 to 3. See defaults.DEFAULT_DISPLAY_LEVEL.
-    hierarchy_level_list = resolve_levels(
-        hierarchy_levels
-        or default_ladder(min_clusters_to_test, max_clusters_to_test),
-        optimal_num_clusters,
+    # The only cell that decides anything about k. Everything below reads
+    # `levels.published` -- the GeoJSON, the taxa statistics, the colours, the
+    # PERMANOVA, the figures -- and nothing below re-derives a cut of its own.
+    #
+    # `levels.selector` is kept and reported but decides nothing: silhouette
+    # carries the most weight in its score and falls with k here, so it lands
+    # near the bottom of the range, and it moves under changes that have nothing
+    # to do with grain -- removing the taxa cap shifted it from 2 to 3. See
+    # defaults.DEFAULT_DISPLAY_LEVEL.
+    levels = resolve_cluster_levels(
+        hierarchy_levels,
+        selector_k,
         min_clusters_to_test,
         max_clusters_to_test,
-        display=default_display_level,
+        preferred_display=default_display_level,
+        pinned=num_clusters_pinned is not None,
     )
-    published_level = resolve_default_level(
-        default_display_level, optimal_num_clusters, hierarchy_level_list
-    )
-    return hierarchy_level_list, published_level
+    return (levels,)
 
 
 @app.cell(hide_code=True)
-def _(hierarchy_level_list, mo, optimal_num_clusters, published_level):
+def _(levels, mo):
     # Stated before the metric plots below, which mark the selector's peak.
     # Without this the notebook shows the selector's k in four places and the
     # published level in none, so a reader reasonably concludes the run
     # published the selector's cut. It does not.
     mo.md(
         f"""
-    ### Publishing {published_level} regions
+    ### Publishing {levels.published} regions
 
-    Levels emitted: **{", ".join(str(k) for k in hierarchy_level_list)}**.
+    Levels emitted: **{", ".join(str(k) for k in levels.emitted)}**.
     Everything built for a single cut below — the GeoJSON, the per-cluster taxa
     statistics, the cluster colours, the PERMANOVA — describes
-    **{published_level}**.
+    **{levels.published}**.
 
-    The selector's combined score peaked at **{optimal_num_clusters}**, which is
+    The selector's combined score peaked at **{levels.selector}**, which is
     reported as a diagnostic and does not decide anything. Silhouette carries the
     most weight in that score and falls with k on saturated ecological distances,
     so the selector lands near the bottom of the tested range — and it moves
@@ -996,11 +1000,11 @@ def _(hierarchy_level_list, mo, optimal_num_clusters, published_level):
     regions. See the Findings section, and read the silhouette warning beside
     all of it — the data do not show substantial cluster structure at any k.
     """
-        if published_level != optimal_num_clusters
+        if not levels.selector_agrees
         else f"""
-    ### Publishing {published_level} regions
+    ### Publishing {levels.published} regions
 
-    Levels emitted: **{", ".join(str(k) for k in hierarchy_level_list)}**.
+    Levels emitted: **{", ".join(str(k) for k in levels.emitted)}**.
     The selector's combined score also peaked here.
     """
     )
@@ -1008,14 +1012,14 @@ def _(hierarchy_level_list, mo, optimal_num_clusters, published_level):
 
 
 @app.cell
-def _(all_clusters_df, materialize_parquet, published_level):
+def _(all_clusters_df, levels, materialize_parquet):
     # Create base GeocodeClusterSchema (single k) for downstream use
     from src.dataframes.geocode_cluster import build_geocode_cluster_df
 
     geocode_cluster_df = materialize_parquet(
         build_geocode_cluster_df(
             all_clusters_df,
-            published_level,
+            levels.published,
         ),
         cache_key="GeocodeClusterSchema",
     ).collect(engine="streaming")
@@ -1053,12 +1057,12 @@ def _(mo):
 
 
 @app.cell
-def _(all_cluster_metrics_df, optimal_num_clusters):
+def _(all_cluster_metrics_df, levels):
     from src.plot.cluster_metrics import plot_all_metrics_vs_k
 
     plot_all_metrics_vs_k(
         all_cluster_metrics_df,
-        optimal_k=optimal_num_clusters,
+        optimal_k=levels.selector,
     )
     return
 
@@ -1072,12 +1076,12 @@ def _(mo):
 
 
 @app.cell
-def _(all_cluster_metrics_df, optimal_num_clusters):
+def _(all_cluster_metrics_df, levels):
     from src.plot.cluster_metrics import plot_normalized_metrics
 
     plot_normalized_metrics(
         all_cluster_metrics_df,
-        optimal_k=optimal_num_clusters,
+        optimal_k=levels.selector,
     )
     return
 
@@ -1249,9 +1253,9 @@ def _(mo):
 
 
 @app.cell
-def _(published_level):
+def _(levels):
     # Use taxonomic coloring if we have at least 10 clusters, otherwise use geographic
-    color_method = "taxonomic" if published_level >= 10 else "geographic"
+    color_method = "taxonomic" if levels.published >= 10 else "geographic"
     return (color_method,)
 
 
@@ -1338,11 +1342,11 @@ def _(mo):
 
 
 @app.cell
-def _(all_clusters_df, geocode_distance_matrix, published_level, pl):
+def _(all_clusters_df, geocode_distance_matrix, levels, pl):
     from src.dataframes.geocode_silhouette_score import build_geocode_silhouette_score_df
 
-    # Get clustering for optimal k
-    k_df = all_clusters_df.filter(pl.col("num_clusters") == published_level)
+    # The cut the run publishes, not the selector's.
+    k_df = all_clusters_df.filter(pl.col("num_clusters") == levels.published)
 
     geocode_silhouette_score_df = build_geocode_silhouette_score_df(
         geocode_distance_matrix, k_df
@@ -1621,13 +1625,13 @@ def _(geocode_distance_matrix, geocode_taxa_counts_lf, mo):
 
 
 @app.cell(hide_code=True)
-def _(all_cluster_metrics_df, mo, optimal_num_clusters, published_level):
+def _(all_cluster_metrics_df, levels, mo):
     from src.plot.findings import metrics_by_k
 
     metrics_by_k(
         all_cluster_metrics_df,
-        published_k=published_level,
-        selector_k=optimal_num_clusters,
+        published_k=levels.published,
+        selector_k=levels.selector,
     )
     return
 
@@ -1639,9 +1643,8 @@ def _(
     geocode_lf,
     geocode_neighbors_df,
     geocode_taxa_counts_lf,
-    hierarchy_level_list,
+    levels,
     no_images,
-    published_level,
     taxonomy_lf,
 ):
     from src.hierarchy import build_hierarchy_json
@@ -1657,8 +1660,7 @@ def _(
         geocode_neighbors_df,
         geocode_taxa_counts_lf,
         taxonomy_lf,
-        levels=hierarchy_level_list,
-        default_level=published_level,
+        levels=levels,
         fetch_images=not no_images,
     )
     with open(prepare_file_path("frontend/aggregations.json"), "w") as _writer:
@@ -1687,14 +1689,11 @@ def _(
     geocode_lf,
     geocode_precision,
     geocode_taxa_counts_lf,
-    max_clusters_to_test,
-    min_clusters_to_test,
     findings_output,
+    levels,
     mo,
     no_findings,
-    optimal_num_clusters,
     parquet_source_path,
-    published_level,
     random_seed,
     reduction,
     taxon_clade_lf,
@@ -1733,10 +1732,9 @@ def _(
             records=geocode_taxa_counts_lf.select(_pl.col("count").sum())
             .collect(engine="streaming")
             .item(),
-            chosen_k=optimal_num_clusters,
+            levels=levels,
             composition_metric=composition_metric,
             seed=random_seed,
-            display_k=published_level,
         )
         _data = _build_findings_data(
             _context,
@@ -1744,8 +1742,6 @@ def _(
             geocode_lf,
             all_clusters_df,
             taxon_clade_lf,
-            min_k=min_clusters_to_test,
-            max_k=max_clusters_to_test,
             seed=random_seed,
             metric=composition_metric,
             reduction=reduction,

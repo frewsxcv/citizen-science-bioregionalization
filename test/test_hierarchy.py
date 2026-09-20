@@ -2,7 +2,12 @@
 
 import unittest
 
-from src.hierarchy import default_ladder, resolve_default_level, resolve_levels
+from src.hierarchy import (
+    default_ladder,
+    resolve_cluster_levels,
+    resolve_default_level,
+    resolve_levels,
+)
 
 
 class TestResolveLevels(unittest.TestCase):
@@ -89,3 +94,73 @@ class TestDefaultLadder(unittest.TestCase):
         )
         self.assertEqual(levels, [2, 4, 8])
         self.assertEqual(resolve_default_level(4, 2, levels), 4)
+
+
+class TestResolveClusterLevels(unittest.TestCase):
+    """The single entry point the notebook calls.
+
+    Exists so the decision is made once. It previously took two calls whose
+    results travelled downstream as loose ints, and the published cut picked up
+    a different name at each module boundary.
+    """
+
+    def test_publishes_the_preferred_level_not_the_selector_s(self) -> None:
+        levels = resolve_cluster_levels(
+            None, selector_k=2, min_k=2, max_k=15, preferred_display=4
+        )
+        self.assertEqual(levels.published, 4)
+        self.assertEqual(levels.selector, 2)
+        self.assertFalse(levels.selector_agrees)
+
+    def test_the_published_cut_is_always_emitted(self) -> None:
+        """A consumer cannot open on a level that is not in the document."""
+        for preferred in (2, 3, 4, 8, 15):
+            levels = resolve_cluster_levels(
+                None, selector_k=2, min_k=2, max_k=15, preferred_display=preferred
+            )
+            self.assertIn(levels.published, levels.emitted)
+
+    def test_the_selector_s_cut_is_always_emitted(self) -> None:
+        levels = resolve_cluster_levels(
+            [8], selector_k=3, min_k=2, max_k=15, preferred_display=4
+        )
+        self.assertIn(3, levels.emitted)
+        self.assertIn(4, levels.emitted)
+        self.assertIn(8, levels.emitted)
+
+    def test_falls_back_to_the_selector_when_the_preferred_is_out_of_range(self) -> None:
+        levels = resolve_cluster_levels(
+            None, selector_k=2, min_k=2, max_k=3, preferred_display=4
+        )
+        self.assertEqual(levels.published, 2)
+        self.assertIn(2, levels.emitted)
+
+    def test_no_requested_levels_uses_the_doubling_ladder(self) -> None:
+        levels = resolve_cluster_levels(
+            None, selector_k=2, min_k=2, max_k=15, preferred_display=4
+        )
+        self.assertEqual(levels.emitted, (2, 4, 8))
+
+    def test_an_empty_request_means_nothing_asked_for(self) -> None:
+        """`--hierarchy-levels=` parses to [], which is not "emit nothing"."""
+        self.assertEqual(
+            resolve_cluster_levels(
+                [], selector_k=2, min_k=2, max_k=15, preferred_display=4
+            ).emitted,
+            (2, 4, 8),
+        )
+
+    def test_records_the_range_and_whether_k_was_pinned(self) -> None:
+        levels = resolve_cluster_levels(
+            None, selector_k=6, min_k=2, max_k=15, preferred_display=4, pinned=True
+        )
+        self.assertEqual((levels.min_k, levels.max_k), (2, 15))
+        self.assertTrue(levels.pinned)
+
+    def test_emitted_is_sorted_and_hashable(self) -> None:
+        """A tuple, so the decision cannot be mutated after it is made."""
+        levels = resolve_cluster_levels(
+            [8, 2], selector_k=3, min_k=2, max_k=15, preferred_display=4
+        )
+        self.assertEqual(levels.emitted, tuple(sorted(levels.emitted)))
+        hash(levels)

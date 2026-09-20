@@ -125,8 +125,6 @@ def build_findings_data(
     geocode_lf: pl.LazyFrame,
     all_clusters_df: pl.DataFrame,
     taxon_clade_lf: Optional[pl.LazyFrame],
-    min_k: int,
-    max_k: int,
     seed: Optional[int],
     metric: CompositionMetric,
     reduction: Reduction,
@@ -135,6 +133,10 @@ def build_findings_data(
     """Compute every number the findings page draws.
 
     Args:
+        context: Carries `levels`, which is where the cuts to score come from.
+            The page does not choose its own k values; scoring a set the run
+            did not emit is how a figure ends up describing a partition no
+            output contains.
         all_clusters_df: The run's multi-k clustering, which supplies the
             combined partition at each cut.
         taxon_clade_lf: `None` when the source carried no rank columns; the
@@ -144,16 +146,16 @@ def build_findings_data(
 
     data.clade_shares = clade_shares(geocode_taxa_counts_lf, taxon_clade_lf)
 
-    # Cuts to score. The published one always -- scoring every cut but the one
-    # the run actually publishes would be a strange page -- plus the selector's,
-    # so the two can be compared, plus a spread across the range, so the page
-    # can show that agreement depends on grain rather than asserting it from a
-    # single number.
-    candidate_ks = sorted(
-        {context.published_k, context.chosen_k}
-        | {k for k in (2, 4, 8, 12, 16) if min_k <= k <= max_k}
-        | {min_k, max_k}
-    )
+    # Cuts to score: the ones the run emitted, plus the ends of the range so
+    # the page can show that agreement depends on grain rather than asserting
+    # it from a single number. `emitted` already contains the published cut and
+    # the selector's, so both are always scored and can be compared.
+    #
+    # Taken from the run rather than invented here. This used to be a hardcoded
+    # {2, 4, 8, 12, 16}, which is a second opinion about which cuts matter and
+    # could drift from the ladder the run actually emits.
+    levels = context.levels
+    candidate_ks = sorted(set(levels.emitted) | {levels.min_k, levels.max_k})
     available_ks = set(all_clusters_df["num_clusters"].unique().to_list())
     ks = [k for k in candidate_ks if k in available_ks]
 
@@ -182,8 +184,8 @@ def build_findings_data(
             geocode_taxa_counts_lf,
             clade_taxon_ids(taxon_clade_lf, rank, value),
             geocode_lf,
-            min_k=min_k,
-            max_k=max_k,
+            min_k=levels.min_k,
+            max_k=levels.max_k,
             seed=seed,
             metric=metric,
             reduction=reduction,
@@ -216,7 +218,7 @@ def build_findings_data(
             )
         ]
         spans = latitude_spans(
-            partition, choose_span_cut(context.published_k, clade_ks), centres
+            partition, choose_span_cut(levels.published, clade_ks), centres
         )
         data.latitude_spans[name] = [
             (int(r["cluster"]), float(r["min_lat"]), float(r["max_lat"]), int(r["hexagons"]))

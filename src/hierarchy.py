@@ -6,19 +6,21 @@ usually be driven by the purpose of the study". This pipeline instead chose a
 single k and discarded the rest of the tree, which is both less informative than
 the literature's practice and, on this data, measurably worse.
 
-Measured against EPA CEC Level II ecoregions over the published bounding box
-(1,070 hexagons carrying both a cluster and a non-water reference region), with
-the tree cut at each k:
+Measured against EPA CEC Level II ecoregions over the published bounding box,
+with the tree cut at each k:
 
-    k=2   ARI 0.169   homogeneity 0.223   completeness 0.647   V 0.331
-    k=4   ARI 0.359   homogeneity 0.418   completeness 0.626   V 0.501
-    k=8   ARI 0.316   homogeneity 0.532   completeness 0.490   V 0.510
-    k=12  ARI 0.326   homogeneity 0.590   completeness 0.480   V 0.529
+    k=2   ARI 0.2552   V 0.3998
+    k=3   ARI 0.3107   V 0.4583
+    k=4   ARI 0.3108   V 0.4777
+    k=8   ARI 0.2861   V 0.4773
+    k=12  ARI 0.2416   V 0.4870
+    k=15  ARI 0.2502   V 0.5098
 
-The selector picks k=2, which agrees with an independently drawn framework less
-than half as well as k=4 does. Homogeneity climbs with k and completeness falls,
-the usual trade-off, so no single cut is right for every purpose -- which is the
-argument for publishing the nesting instead of arguing about the cut.
+ARI has an interior optimum and the two cuts at the top of it are 0.0001 apart,
+which is a tie rather than a winner. V-measure rises with k throughout, because
+it rewards subdividing the reference consistently, so it cannot choose either.
+No single cut is right for every purpose -- which is the argument for publishing
+the nesting instead of arguing about the cut.
 
 The levels share a merge tree, so they are nested by construction: a cluster at
 k=8 is contained in exactly one cluster at k=4.
@@ -40,6 +42,7 @@ from src.dataframes.cluster_significant_differences import (
 from src.dataframes.cluster_taxa_statistics import build_cluster_taxa_statistics_df
 from src.dataframes.geocode_cluster import build_geocode_cluster_df
 from src.dataframes.significant_taxa_images import build_significant_taxa_images_df
+from src.types import ClusterLevels
 
 logger = logging.getLogger(__name__)
 
@@ -143,14 +146,67 @@ def resolve_default_level(
     return optimal
 
 
+def resolve_cluster_levels(
+    requested: Sequence[int] | None,
+    selector_k: int,
+    min_k: int,
+    max_k: int,
+    preferred_display: int,
+    pinned: bool = False,
+) -> ClusterLevels:
+    """Settle, once, which cuts a run emits and which one it publishes.
+
+    The single place the k decision is made. It was previously split across two
+    calls in the notebook whose results were then carried downstream as loose
+    ints, which is how a cut got described under four different names -- see
+    `types.ClusterLevels`.
+
+    Args:
+        requested: Levels asked for on the command line, or None to use
+            `default_ladder`.
+        selector_k: Where the combined score peaked, or the pinned k.
+        min_k: Lowest level the tree was cut at.
+        max_k: Highest level the tree was cut at.
+        preferred_display: The level to publish if it was emitted; falls back
+            to `selector_k`.
+        pinned: Whether `selector_k` was asked for rather than found.
+
+    Returns:
+        A `ClusterLevels` whose `published` is guaranteed to be in `emitted`.
+    """
+    emitted = resolve_levels(
+        # Falsy rather than `is None`: `--hierarchy-levels=` parses to an empty
+        # list, which means "nothing asked for", not "emit nothing".
+        requested or default_ladder(min_k, max_k),
+        selector_k,
+        min_k,
+        max_k,
+        display=preferred_display,
+    )
+    published = resolve_default_level(preferred_display, selector_k, emitted)
+    levels = ClusterLevels(
+        published=published,
+        selector=selector_k,
+        emitted=tuple(emitted),
+        min_k=min_k,
+        max_k=max_k,
+        pinned=pinned,
+    )
+    logger.info(
+        f"resolve_cluster_levels: publishing k={levels.published}, "
+        f"selector {'pinned at' if pinned else 'peaked at'} k={levels.selector}, "
+        f"emitting {list(levels.emitted)}"
+    )
+    return levels
+
+
 def build_hierarchy_json(
     all_clusters_df: pl.DataFrame,
     geocode_lf: pl.LazyFrame,
     geocode_neighbors_df: pl.DataFrame,
     geocode_taxa_counts_lf: pl.LazyFrame,
     taxonomy_lf: pl.LazyFrame,
-    levels: Sequence[int],
-    default_level: int,
+    levels: ClusterLevels,
     fetch_images: bool = True,
 ) -> str:
     """Build the frontend payload for every level in `levels`.
@@ -167,8 +223,8 @@ def build_hierarchy_json(
         geocode_neighbors_df: Hexagon adjacency.
         geocode_taxa_counts_lf: Per-(hexagon, taxon) counts.
         taxonomy_lf: Taxonomy, providing names per taxonId.
-        levels: Which k values to emit.
-        default_level: The level a consumer should show first.
+        levels: The resolved cut decision: which k values to emit, and which
+            one a consumer should open on.
         fetch_images: Passed through to the Wikidata lookup.
 
     Returns:
@@ -179,7 +235,7 @@ def build_hierarchy_json(
     taxonomy_df = taxonomy_lf.collect(engine="streaming")
     out: list[dict[str, Any]] = []
 
-    for k in levels:
+    for k in levels.emitted:
         logger.info(f"build_hierarchy_json: building level k={k}")
         geocode_cluster_df = build_geocode_cluster_df(all_clusters_df, k)
         cluster_neighbors_df = build_cluster_neighbors_df(
@@ -213,4 +269,4 @@ def build_hierarchy_json(
         )
         out.append({"k": k, "clusters": clusters})
 
-    return json.dumps({"default_level": default_level, "levels": out})
+    return json.dumps({"default_level": levels.published, "levels": out})
