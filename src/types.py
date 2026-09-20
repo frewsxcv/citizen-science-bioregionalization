@@ -80,6 +80,42 @@ class TaxonScope:
         return f"{self.rank}:{self.name}"
 
 
+@dataclass(frozen=True)
+class ClusterLevels:
+    """Which cuts of the merge tree a run emits, and which one it publishes.
+
+    One object because the two numbers here used to travel separately under
+    four names between them -- `default_display_level` became `published_level`
+    became `display_k` became `published_k`, and `optimal_num_clusters` became
+    `chosen_k` became `selector_k` -- and the distinction they encode was got
+    wrong twice that way. Anything choosing a cut to build or describe wants
+    `published`; `selector` is a diagnostic and decides nothing.
+
+    Built by `hierarchy.resolve_cluster_levels`, which is the only place the
+    decision is made. See `defaults.DEFAULT_DISPLAY_LEVEL` for why the two
+    differ.
+    """
+
+    #: The cut every single-cut artifact is built at: the GeoJSON, the
+    #: per-cluster taxa statistics, the colours, the PERMANOVA, the figures.
+    published: int
+    #: Where the selector's combined score peaked. Reported, never built on.
+    selector: int
+    #: Every cut emitted in the hierarchy, sorted. Always contains both
+    #: `published` and `selector`.
+    emitted: tuple[int, ...]
+    #: The range the tree was actually cut at.
+    min_k: int
+    max_k: int
+    #: Whether `selector` was asked for via `--num-clusters` rather than found.
+    pinned: bool = False
+
+    @property
+    def selector_agrees(self) -> bool:
+        """Whether the selector happened to land on the published cut."""
+        return self.selector == self.published
+
+
 class LatLng(NamedTuple):
     """A latitude/longitude coordinate pair."""
 

@@ -14,6 +14,7 @@ are assigned by entity rather than by position, so a run missing one clade does
 not repaint the others.
 """
 
+import dataclasses
 import html
 import json
 from dataclasses import dataclass, field
@@ -21,6 +22,7 @@ from typing import Optional, Sequence
 
 from src.clade_congruence import Congruence
 from src.epa_reference import ReferenceAgreement
+from src.types import ClusterLevels
 
 # Assigned by entity and never recycled.
 COLORS = {
@@ -83,22 +85,13 @@ class RunContext:
     #: 208,296 in the taxonomy.
     taxa_analysed: int
     records: Optional[int]
-    chosen_k: int
+    #: Which cuts the run emitted and which one it publishes. One object rather
+    #: than two ints, because the distinction between them was got wrong twice
+    #: when they travelled separately -- see `types.ClusterLevels`. Every figure
+    #: on this page describes `levels.published`.
+    levels: ClusterLevels
     composition_metric: str
     seed: Optional[int]
-    #: The cut the page's figures describe, which is not always `chosen_k`.
-    display_k: Optional[int] = None
-
-    @property
-    def published_k(self) -> int:
-        """The cut the run publishes, which is what every figure describes.
-
-        A property rather than two fields read at the call site, because the
-        distinction has now been got wrong twice: `chosen_k` is what the
-        selector's score peaked at and decides nothing, while this is what the
-        outputs are built at. Anything picking a cut to describe wants this.
-        """
-        return self.display_k if self.display_k is not None else self.chosen_k
 
 
 @dataclass
@@ -361,11 +354,11 @@ def render_findings_page(data: FindingsData) -> str:
         f"clustered out of {c.taxa:,} in the taxonomy"
         + (f", from <strong>{c.records:,} records</strong>" if c.records else "")
         + f". Composition measured with <code>{_esc(c.composition_metric)}</code>; "
-        f"the selector chose <strong>{c.chosen_k} regions</strong>"
+        f"published at <strong>{c.levels.published} regions</strong>"
         + (
-            f", and this page opens on <strong>{c.display_k}</strong>."
-            if c.display_k is not None and c.display_k != c.chosen_k
-            else "."
+            "."
+            if c.levels.selector_agrees
+            else f", where the selector's score peaked at {c.levels.selector}."
         )
         + f"<br>Extent {_esc(c.bbox)} · source <code>{_esc(c.source)}</code>"
         + (f" · seed {c.seed}" if c.seed is not None else " · unseeded")
@@ -436,7 +429,7 @@ def render_findings_page(data: FindingsData) -> str:
         out.append(
             "<figure>"
             + _span_chart(data.latitude_spans)
-            + f"<figcaption>Latitude range of every cluster at {c.published_k} "
+            + f"<figcaption>Latitude range of every cluster at {c.levels.published} "
             "regions, the cut this run publishes. "
             "Disjoint ranges mean a north/south split; clusters that all span "
             "the extent mean the partition is not geographic.</figcaption>"
@@ -497,8 +490,8 @@ def render_findings_page(data: FindingsData) -> str:
     if data.reference_by_k:
         by_k = dict(data.reference_by_k)
         best_k, best_a = max(data.reference_by_k, key=lambda x: x[1].adjusted_rand)
-        published = by_k.get(c.published_k)
-        selector = by_k.get(c.chosen_k)
+        published = by_k.get(c.levels.published)
+        selector = by_k.get(c.levels.selector)
 
         # Cuts too close to the best to be distinguished by this measure.
         # Reporting a bare argmax reads as though one cut won; on the published
@@ -525,9 +518,9 @@ def render_findings_page(data: FindingsData) -> str:
             f"(ARI {best_a.adjusted_rand:.3f})"
             + (
                 ", which is the cut this run publishes."
-                if best_k == c.published_k
+                if best_k == c.levels.published
                 else (
-                    f"; this run publishes {c.published_k}"
+                    f"; this run publishes {c.levels.published}"
                     + (
                         f" (ARI {published.adjusted_rand:.3f})."
                         if published is not None
@@ -536,9 +529,9 @@ def render_findings_page(data: FindingsData) -> str:
                 )
             )
             + (
-                f" The selector's {c.chosen_k} scores "
+                f" The selector's {c.levels.selector} scores "
                 f"{selector.adjusted_rand:.3f}."
-                if selector is not None and c.chosen_k != c.published_k
+                if selector is not None and not c.levels.selector_agrees
                 else ""
             )
             + tie_note
@@ -627,7 +620,7 @@ def findings_summary_json(data: FindingsData) -> str:
     """The same numbers as JSON, for anything that would otherwise scrape them."""
     return json.dumps(
         {
-            "context": data.context.__dict__,
+            "context": dataclasses.asdict(data.context),
             "clade_shares": [s.__dict__ for s in data.clade_shares],
             "congruence": [x._asdict() for x in data.congruence],
             "congruence_pair": list(data.congruence_pair),
