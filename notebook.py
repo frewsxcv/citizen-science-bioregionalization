@@ -579,7 +579,7 @@ def _(
     # -- otherwise pays for a full pass. On the published East Coast run that
     # was roughly 17 of the notebook's 28 minutes, against about one minute for
     # all the clustering downstream of it.
-    darwin_core_lf = materialize_parquet(darwin_core_lf, cache_key="DarwinCoreSchema")
+    darwin_core_lf = materialize_parquet(darwin_core_lf, label="darwin_core")
 
     # The sampling floor is derived and applied *after* the spill, deliberately.
     # Both steps read every row -- one to find the median hexagon, one to drop
@@ -607,7 +607,7 @@ def _(
             )
         darwin_core_lf = materialize_parquet(
             filter_sparse_geocodes_lf(darwin_core_lf, geocode_precision, floor),
-            cache_key="DarwinCoreFilteredSchema",
+            label="darwin_core_filtered",
         )
     return (darwin_core_lf,)
 
@@ -622,7 +622,7 @@ def _(bounding_box, materialize_parquet, darwin_core_lf, geocode_precision):
             geocode_precision,
             bounding_box=bounding_box,
         ),
-        cache_key="GeocodeSchema",
+        label="geocode",
     )
     return (geocode_lf_with_edges,)
 
@@ -635,7 +635,7 @@ def _(materialize_parquet, geocode_lf_with_edges):
         build_geocode_no_edges_lf(
             geocode_lf_with_edges,
         ),
-        cache_key="GeocodeNoEdgesSchema",
+        label="geocode_no_edges",
     )
     return (geocode_unfiltered_lf,)
 
@@ -661,7 +661,7 @@ def _(materialize_parquet, geocode_lf, geocode_neighbors_with_edges_df):
             geocode_neighbors_with_edges_df,
             geocode_lf.collect(),
         ),
-        cache_key="GeocodeNeighborsSchema",
+        label="geocode_neighbors",
     ).collect()
     return (geocode_neighbors_df,)
 
@@ -713,7 +713,7 @@ def _(
             geocode_unfiltered_lf,
             bounding_box=bounding_box,
         ),
-        cache_key="TaxonomySchema",
+        label="taxonomy",
     )
     return (taxonomy_lf,)
 
@@ -729,7 +729,7 @@ def _(materialize_parquet, darwin_core_lf, taxonomy_lf):
     taxon_clade_lf = (
         None
         if _clade_lf is None
-        else materialize_parquet(_clade_lf, cache_key="TaxonCladeSchema")
+        else materialize_parquet(_clade_lf, label="taxon_clade")
     )
     return (taxon_clade_lf,)
 
@@ -759,7 +759,7 @@ def _(
             geocode_unfiltered_lf,
             bounding_box=bounding_box,
         ),
-        cache_key="GeocodeTaxaCountsSchema",
+        label="geocode_taxa_counts",
     )
     return (geocode_taxa_counts_unfiltered_lf,)
 
@@ -892,7 +892,7 @@ def _(
             max_k=max_clusters_to_test,
             linkage=linkage,
         ),
-        cache_key="GeocodeClusterMultiKSchema",
+        label="geocode_cluster_multi_k",
     ).collect(engine="streaming")
     return (all_clusters_df,)
 
@@ -937,7 +937,7 @@ def _(all_cluster_metrics, materialize_parquet):
 
     all_cluster_metrics_df = materialize_parquet(
         all_cluster_metrics,
-        cache_key="GeocodeClusterMetricsSchema",
+        label="geocode_cluster_metrics",
     ).collect(engine="streaming")
     return (all_cluster_metrics_df,)
 
@@ -1021,7 +1021,7 @@ def _(all_clusters_df, levels, materialize_parquet):
             all_clusters_df,
             levels.published,
         ),
-        cache_key="GeocodeClusterSchema",
+        label="geocode_cluster",
     ).collect(engine="streaming")
     return (geocode_cluster_df,)
 
@@ -1103,7 +1103,7 @@ def _(materialize_parquet, geocode_cluster_df, geocode_neighbors_df):
             geocode_neighbors_df,
             geocode_cluster_df,
         ),
-        cache_key="ClusterNeighborsSchema",
+        label="cluster_neighbors",
     )
     return (cluster_neighbors_lf,)
 
@@ -1132,7 +1132,7 @@ def _(materialize_parquet, geocode_cluster_df, geocode_taxa_counts_lf, taxonomy_
             geocode_cluster_df.lazy(),
             taxonomy_lf,
         ),
-        cache_key="ClusterTaxaStatisticsSchema",
+        label="cluster_taxa_statistics",
     ).collect(engine="streaming")
     return (cluster_taxa_statistics_df,)
 
@@ -1160,7 +1160,7 @@ def _(materialize_parquet, cluster_neighbors_lf, cluster_taxa_statistics_df):
             cluster_taxa_statistics_df,
             cluster_neighbors_lf,
         ),
-        cache_key="ClusterSignificantDifferencesSchema",
+        label="cluster_significant_differences",
     ).collect(engine="streaming")
     return (cluster_significant_differences_df,)
 
@@ -1188,7 +1188,7 @@ def _(materialize_parquet, geocode_cluster_df, geocode_lf):
             geocode_cluster_df,
             geocode_lf,
         ),
-        cache_key="ClusterBoundarySchema",
+        label="cluster_boundary",
     ).collect(engine="streaming")
     return (cluster_boundary_df,)
 
@@ -1274,7 +1274,7 @@ def _(
             cluster_taxa_statistics_df,
             color_method=color_method,
         ),
-        cache_key="ClusterColorSchema",
+        label="cluster_color",
     ).collect(engine="streaming")
     return (cluster_colors_df,)
 
@@ -1322,7 +1322,7 @@ def _(
             geocode_lf=geocode_lf,
             seed=random_seed,
         ),
-        cache_key="PermanovaResultsSchema",
+        label="permanova_results",
     ).collect(engine="streaming")
     return (permanova_results_df,)
 
@@ -1540,7 +1540,7 @@ def _(
             taxonomy_lf.collect(engine="streaming"),
             fetch_images=not no_images,
         ),
-        cache_key="SignificantTaxaImagesSchema",
+        label="significant_taxa_images",
     ).collect(engine="streaming")
     return (significant_taxa_images_df,)
 
