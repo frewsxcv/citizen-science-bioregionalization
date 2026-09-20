@@ -66,7 +66,10 @@ uv run marimo run notebook.py -- [OPTIONS]
   given.
 - `--no-limit`: Process every record. Required for a full run — `--limit-results`
   can only change the cap, not remove it.
-- `--max-taxa=N`: Keep only top N taxa by occurrence count.
+- `--max-taxa=N`: Keep only top N taxa by occurrence count. Off by default, and
+  the published run no longer uses it: "by occurrence count" is not neutral
+  between clades, so the cap skews *which* taxa survive rather than just how
+  many. See "The taxa cap is not a neutral filter" below.
 - `--min-geocode-presence=N`: Keep only taxa present in at least this fraction of geocodes.
 - `--min-hex-records=N`: Drop hexagons holding fewer than N occurrence records.
   Omit it and a floor is derived from the data — a tenth of what the median
@@ -387,6 +390,42 @@ Three things it reports:
 Level II is the grain that can answer the question: Level I puts the whole
 eastern United States in one region, so it cannot agree or disagree with a
 north/south split.
+
+### The taxa cap is not a neutral filter
+
+`--max-taxa=N` keeps the top N taxa *by record count*. That sounds like a size
+limit and behaves like a sampling bias: in the published extent a bird species
+averages about 3.9M records against a plant species' 2,263, so the cap keeps
+birds at nearly twice the rate it keeps plants.
+
+Measured by running the same snapshot, bounding box and seed with and without
+it. The pipeline is seeded and deterministic, so the differences are
+attributable to the cap rather than to run-to-run variation:
+
+| | `--max-taxa=10000` | no cap |
+|---|---|---|
+| Aves taxa | 671 | 951 (70.6% retained by the cap) |
+| Plantae taxa | 2,734 | 7,024 (38.9% retained) |
+| Aves clusters at the published cut | 202 / **980** / 1 / 3 | 207 / 486 / 488 / 6 |
+| Clade congruence peak | k=5 (ARI 0.548) | k=3 (ARI 0.474) |
+| EPA agreement peak | k=4 (ARI 0.315) | k=4 (ARI 0.311) |
+| Wall clock | 76 min | 110 min |
+
+Three things worth taking from that:
+
+- The cap was **degrading the partition**, not just shrinking it. The bird
+  mega-cluster of 980 hexagons splits into 486/488 once the cap is gone.
+- **Clade congruence is not a stable criterion.** Its optimum moved two levels
+  under a filter that has nothing to do with ecology, which rules it out as a
+  way of selecting k — it would be less stable than what it replaced.
+- **Agreement with EPA barely moved**, and its peak stayed at four. The external
+  reference is the one thing that held still while a major parameter changed
+  underneath it, which is the strongest evidence for the published level.
+
+`--min-geocode-presence` is a different matter and stays on: dropping taxa seen
+in under 2% of hexagons has an ecological rationale, since a taxon recorded in
+one hexagon carries no turnover signal. What the cap additionally removed were
+taxa present in 24 hexagons or more — the ones that do.
 
 ### Why the map does not open on the level the selector chose
 
