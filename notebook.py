@@ -923,17 +923,18 @@ def _(
     metric_weights,
     num_clusters_pinned,
 ):
-    from src.cluster_optimization import optimize_num_clusters
+    from src.cluster_optimization import score_all_k, select_k
 
-    # Named for what it is. This is where the combined score peaked (or what
-    # --num-clusters pinned), and it is a diagnostic: the cell below decides
-    # what the run publishes, and it is deliberately not always this.
-    selector_k, all_cluster_metrics = optimize_num_clusters(
+    # Two steps, deliberately. Scoring every cut and preferring one of them are
+    # different claims, and running them as one call made the preference look
+    # like a decision. It is not: `levels.published` below is what the run
+    # actually builds on.
+    all_cluster_metrics = score_all_k(
         geocode_distance_matrix,
         all_clusters_df,
         weights=metric_weights,
-        pinned_k=num_clusters_pinned,
     )
+    selector_k = select_k(all_cluster_metrics, pinned_k=num_clusters_pinned)
 
     all_cluster_metrics
     return all_cluster_metrics, selector_k
@@ -979,6 +980,23 @@ def _(
         pinned=num_clusters_pinned is not None,
     )
     return (levels,)
+
+
+@app.cell
+def _(all_cluster_metrics_df, all_clusters_df, geocode_distance_matrix, levels):
+    from src.cluster_optimization import report_partition
+
+    # Reported for the cut the run publishes. This used to happen inside the
+    # selector and describe whatever the selector chose, so the "no substantial
+    # cluster structure" warning could describe a partition no output contains
+    # while staying silent about the one every output is built from.
+    report_partition(
+        geocode_distance_matrix,
+        all_clusters_df,
+        all_cluster_metrics_df,
+        levels.published,
+    )
+    return
 
 
 @app.cell(hide_code=True)
