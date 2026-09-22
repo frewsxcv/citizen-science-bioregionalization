@@ -12,6 +12,7 @@ import unittest
 
 import polars as pl
 import polars_h3
+import polars_st as pl_st
 
 from src.clade_congruence import Congruence, clade_taxon_ids, congruence_by_k
 from src.epa_reference import reference_region_lf, score_against_reference
@@ -28,7 +29,7 @@ from src.findings_page import (
     findings_summary_json,
     render_findings_page,
 )
-from src.types import ClusterLevels
+from src.types import ClusterLevels, CompositionSettings
 
 
 def some_levels(
@@ -48,6 +49,21 @@ def some_levels(
     )
 
 
+def some_settings(
+    metric: str = "betasim",
+    reduction: str = "pcoa",
+    linkage: str = "ward",
+    seed: int | None = 0,
+) -> CompositionSettings:
+    """The run's composition settings, defaulting to the published ones."""
+    return CompositionSettings(
+        metric=metric,  # type: ignore[arg-type]
+        reduction=reduction,  # type: ignore[arg-type]
+        linkage=linkage,  # type: ignore[arg-type]
+        seed=seed,
+    )
+
+
 def a_context(**overrides: object) -> RunContext:
     base: dict[str, object] = {
         "source": "test/sample-archive",
@@ -58,8 +74,7 @@ def a_context(**overrides: object) -> RunContext:
         "taxa_analysed": 10000,
         "records": 1_000_000,
         "levels": some_levels(),
-        "composition_metric": "betasim",
-        "seed": 0,
+        "settings": some_settings(),
     }
     base.update(overrides)
     return RunContext(**base)  # type: ignore[arg-type]
@@ -323,9 +338,7 @@ class TestPublishedCut(unittest.TestCase):
             df.lazy(),
             multi_k,
             None,
-            seed=0,
-            metric="betasim",
-            reduction="pcoa",
+            settings=some_settings(),
         )
 
         scored = [k for k, _ in data.reference_by_k]
@@ -416,3 +429,65 @@ class TestPublishedCut(unittest.TestCase):
         self.assertIn("at 4 regions, the cut this run publishes", page)
 
 
+class TestCladesAreClusteredLikeTheRun(unittest.TestCase):
+    """A clade map must be built the way the combined map was.
+
+    `cluster_clade` passed metric, reduction and seed but not linkage, so a run
+    with --linkage=average clustered each clade with the default Ward and then
+    reported how well the two agreed. That figure measured the difference in
+    method as much as anything about the biology.
+    """
+
+    def test_the_clade_clustering_uses_the_run_s_linkage(self) -> None:
+        import src.clade_congruence as clade_congruence
+
+        seen: list[str] = []
+        real = clade_congruence.build_geocode_cluster_multi_k_df
+
+        def recording(*args: object, **kwargs: object):
+            seen.append(str(kwargs.get("linkage")))
+            return real(*args, **kwargs)  # type: ignore[arg-type]
+
+        points = [(25.0 + i * 0.4, -80.0 + i * 0.4) for i in range(40)]
+        geocodes = geocodes_for(points).unique(maintain_order=True)
+        geocode_lf = (
+            geocodes.with_columns(
+                lat=polars_h3.cell_to_lat("geocode"),
+                lng=polars_h3.cell_to_lng("geocode"),
+            )
+            .with_columns(
+                wkt=pl.concat_str(
+                    pl.lit("POINT("), pl.col("lng"), pl.lit(" "), pl.col("lat"), pl.lit(")")
+                )
+            )
+            .select("geocode", center=pl_st.from_wkt("wkt"))
+            .lazy()
+        )
+        counts = pl.DataFrame(
+            {
+                "geocode": [g for g in geocodes["geocode"] for _ in range(3)],
+                "taxonId": [1, 2, 3] * geocodes.height,
+                "count": [4, 2, 1] * geocodes.height,
+            }
+        ).lazy()
+        taxon_ids = pl.DataFrame({"taxonId": [1, 2, 3]}).lazy()
+
+        clade_congruence.build_geocode_cluster_multi_k_df = recording
+        try:
+            clade_congruence.cluster_clade(
+                "Aves",
+                counts,
+                taxon_ids,
+                geocode_lf,
+                min_k=2,
+                max_k=4,
+                settings=some_settings(linkage="average"),
+            )
+        finally:
+            clade_congruence.build_geocode_cluster_multi_k_df = real
+
+        self.assertEqual(
+            seen,
+            ["average"],
+            "the clade was clustered with a different linkage than the run",
+        )

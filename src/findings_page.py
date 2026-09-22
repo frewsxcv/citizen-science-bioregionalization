@@ -22,7 +22,7 @@ from typing import Optional, Sequence
 
 from src.clade_congruence import Congruence
 from src.epa_reference import ReferenceAgreement
-from src.types import ClusterLevels
+from src.types import ClusterLevels, CompositionSettings
 
 # Assigned by entity and never recycled.
 COLORS = {
@@ -90,8 +90,11 @@ class RunContext:
     #: when they travelled separately -- see `types.ClusterLevels`. Every figure
     #: on this page describes `levels.published`.
     levels: ClusterLevels
-    composition_metric: str
-    seed: Optional[int]
+    #: How composition became a map. One object for the same reason `levels`
+    #: is: these have to agree with what the clade comparison used, and the
+    #: page should say which reduction ran -- only one of the two is
+    #: reproducible across machines.
+    settings: CompositionSettings
 
 
 @dataclass
@@ -353,7 +356,9 @@ def render_findings_page(data: FindingsData) -> str:
         f"{c.geocode_precision}, <strong>{c.taxa_analysed:,} taxa</strong> "
         f"clustered out of {c.taxa:,} in the taxonomy"
         + (f", from <strong>{c.records:,} records</strong>" if c.records else "")
-        + f". Composition measured with <code>{_esc(c.composition_metric)}</code>; "
+        + f". Composition measured with <code>{_esc(c.settings.metric)}</code>, "
+        f"reduced by <code>{_esc(c.settings.reduction)}</code>, clustered with "
+        f"<code>{_esc(c.settings.linkage)}</code> linkage; "
         f"published at <strong>{c.levels.published} regions</strong>"
         + (
             "."
@@ -361,7 +366,11 @@ def render_findings_page(data: FindingsData) -> str:
             else f", where the selector's score peaked at {c.levels.selector}."
         )
         + f"<br>Extent {_esc(c.bbox)} · source <code>{_esc(c.source)}</code>"
-        + (f" · seed {c.seed}" if c.seed is not None else " · unseeded")
+        + (
+            f" · seed {c.settings.seed}"
+            if c.settings.seed is not None
+            else " · unseeded"
+        )
         + "</div>"
     )
 

@@ -24,8 +24,8 @@ from sklearn.metrics import adjusted_rand_score
 from src.dataframes.geocode_cluster import build_geocode_cluster_multi_k_df
 from src.dataframes.geocode_neighbors import build_geocode_neighbors_df
 from src.matrices.geocode_connectivity import GeocodeConnectivityMatrix
-from src.matrices.geocode_distance import CompositionMetric, GeocodeDistanceMatrix
-from src.types import Reduction
+from src.matrices.geocode_distance import GeocodeDistanceMatrix
+from src.types import CompositionSettings
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +73,7 @@ def cluster_clade(
     geocode_lf: pl.LazyFrame,
     min_k: int,
     max_k: int,
-    seed: Optional[int],
-    metric: CompositionMetric,
-    reduction: Reduction,
+    settings: CompositionSettings,
 ) -> Optional[CladePartition]:
     """Cluster one clade on its own, over the hexagons where it occurs.
 
@@ -88,6 +86,9 @@ def cluster_clade(
         geocode_lf: The run's geocode frame, which carries the `center` column
             adjacency needs. Narrowed here rather than rebuilt, so the cell
             geometry is the one the rest of the run used.
+        settings: The run's own composition settings, so the clade map is
+            built the way the combined map was. Comparing partitions built
+            different ways measures the difference in method, not in biology.
 
     Returns:
         The clade's partition, or `None` when too few hexagons hold it.
@@ -123,9 +124,9 @@ def cluster_clade(
     distance = GeocodeDistanceMatrix.build(
         counts_lf,
         clade_geocode_lf,
-        random_state=seed,
-        metric=metric,
-        reduction=reduction,
+        random_state=settings.seed,
+        metric=settings.metric,
+        reduction=settings.reduction,
     )
 
     # A clade cannot be cut into more regions than it has hexagons.
@@ -134,12 +135,16 @@ def cluster_clade(
         logger.info(f"cluster_clade: {name} cannot support k={min_k}; skipping")
         return None
 
+    # linkage included deliberately. It used to be omitted here, so a run with
+    # --linkage=average clustered the clades with the default Ward and then
+    # compared them against a combined map built with UPGMA.
     multi_k_df = build_geocode_cluster_multi_k_df(
         clade_geocode_lf,
         distance,
         connectivity,
         min_k=min_k,
         max_k=clade_max_k,
+        linkage=settings.linkage,
     )
     return CladePartition(
         name=name, multi_k_df=multi_k_df, geocodes=geocode_df.height, taxa=taxa
