@@ -16,7 +16,7 @@ computed this way and are deliberately absent:
 Both are cross-run comparisons; see `scripts/` for those.
 """
 
-from typing import Optional
+from typing import Optional, cast
 
 import altair as alt
 import numpy as np
@@ -71,8 +71,12 @@ def effort_vs_richness(
         alt.Chart(per_hex.to_pandas())
         .mark_circle(size=18, opacity=0.35, color=ACCENT)
         .encode(
-            x=alt.X("records:Q", scale=alt.Scale(type="log"), title="Records in hexagon"),
-            y=alt.Y("taxa:Q", scale=alt.Scale(type="log"), title="Distinct taxa observed"),
+            x=alt.X(
+                "records:Q", scale=alt.Scale(type="log"), title="Records in hexagon"
+            ),
+            y=alt.Y(
+                "taxa:Q", scale=alt.Scale(type="log"), title="Distinct taxa observed"
+            ),
             tooltip=[
                 alt.Tooltip("geocode:N", title="Hexagon"),
                 alt.Tooltip("records:Q", title="Records", format=","),
@@ -84,7 +88,7 @@ def effort_vs_richness(
             title=alt.Title(
                 "Observed richness is largely sampling effort",
                 subtitle=f"Spearman {rho:.3f} across {per_hex.height:,} hexagons"
-                " — a hexagon looks species-rich when it has been visited often"
+                " — a hexagon looks species-rich when it has been visited often",
             ),
         )
         .interactive()
@@ -130,7 +134,9 @@ def dissimilarity_vs_effort(
 
     gap = np.abs(log_records[rows] - log_records[cols])
     if len(condensed) > max_pairs:
-        idx = np.random.default_rng(seed).choice(len(condensed), max_pairs, replace=False)
+        idx = np.random.default_rng(seed).choice(
+            len(condensed), max_pairs, replace=False
+        )
         gap, dist = gap[idx], condensed[idx]
     else:
         dist = condensed
@@ -146,7 +152,11 @@ def dissimilarity_vs_effort(
         m = (gap >= edges[i]) & (gap < edges[i + 1])
         if m.sum() >= min_pairs:
             binned.append(
-                {"bin": label, "median": float(np.median(dist[m])), "pairs": int(m.sum())}
+                {
+                    "bin": label,
+                    "median": float(np.median(dist[m])),
+                    "pairs": int(m.sum()),
+                }
             )
     if not binned:
         return None, rho
@@ -156,8 +166,14 @@ def dissimilarity_vs_effort(
         alt.Chart(df)
         .mark_bar(color=WARN, cornerRadiusTopLeft=4, cornerRadiusTopRight=4, size=38)
         .encode(
-            x=alt.X("bin:N", sort=labels, title="Difference in sampling effort (orders of magnitude)"),
-            y=alt.Y("median:Q", title="Median dissimilarity", scale=alt.Scale(domain=[0, 1])),
+            x=alt.X(
+                "bin:N",
+                sort=labels,
+                title="Difference in sampling effort (orders of magnitude)",
+            ),
+            y=alt.Y(
+                "median:Q", title="Median dissimilarity", scale=alt.Scale(domain=[0, 1])
+            ),
             tooltip=[
                 alt.Tooltip("bin:N", title="Effort gap"),
                 alt.Tooltip("median:Q", title="Median dissimilarity", format=".4f"),
@@ -169,7 +185,7 @@ def dissimilarity_vs_effort(
             title=alt.Title(
                 "Does the map measure biota, or how often people visited?",
                 subtitle=f"Spearman {rho:.3f} between dissimilarity and effort gap"
-                " — flat bars would mean the index ignores sampling depth"
+                " — flat bars would mean the index ignores sampling depth",
             ),
         )
     )
@@ -210,11 +226,15 @@ def metrics_by_k(
         # Each measure is on its own scale, and two scales on one axis is a lie.
         # Min-max per measure puts them on a shared 0-1 so their *shapes* can be
         # compared; absolute values stay in the tooltip.
-        .unpivot(index="num_clusters", variable_name="metric", value_name="value")
-        .with_columns(
+        .unpivot(
+            index="num_clusters", variable_name="metric", value_name="value"
+        ).with_columns(
             normalized=(
                 (pl.col("value") - pl.col("value").min().over("metric"))
-                / (pl.col("value").max().over("metric") - pl.col("value").min().over("metric"))
+                / (
+                    pl.col("value").max().over("metric")
+                    - pl.col("value").min().over("metric")
+                )
             ).fill_nan(0.5)
         )
     )
@@ -241,8 +261,13 @@ def metrics_by_k(
 
     base = alt.Chart(long.to_pandas())
     lines = base.mark_line(strokeWidth=2, point=alt.OverlayMarkDef(size=45)).encode(
-        x=alt.X("num_clusters:Q", title="Number of regions", axis=alt.Axis(tickMinStep=1)),
-        y=alt.Y("normalized:Q", title="Normalised score (each measure scaled to its own range)"),
+        x=alt.X(
+            "num_clusters:Q", title="Number of regions", axis=alt.Axis(tickMinStep=1)
+        ),
+        y=alt.Y(
+            "normalized:Q",
+            title="Normalised score (each measure scaled to its own range)",
+        ),
         color=alt.Color(
             "metric:N",
             title="Measure",
@@ -288,7 +313,8 @@ def metrics_by_k(
             .encode(x="num_clusters:Q", y=alt.value(0), text="what:N")
         )
     marker = alt.layer(*marker_layers)
-    return (
+    return cast(
+        alt.LayerChart,
         (lines + marker)
         .properties(
             height=300,
@@ -302,8 +328,8 @@ def metrics_by_k(
                 subtitle="Silhouette falls with k on saturated ecological"
                 " distances and carries the most weight in the combined score,"
                 " so the selector's peak is the bottom of the tested range"
-                " whatever the data says"
+                " whatever the data says",
             ),
         )
-        .interactive()
+        .interactive(),
     )
