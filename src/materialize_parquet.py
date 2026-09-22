@@ -36,43 +36,46 @@ atexit.register(_cleanup_run_dirs)
 
 def materialize_parquet(
     data: pl.LazyFrame | pl.DataFrame,
-    cache_key: str,
-    cache_dir: str | None = None,
+    label: str,
+    spill_dir: str | None = None,
 ) -> pl.LazyFrame:
     """Spill a frame to parquet and hand back a lazy scan of it.
 
-    Despite the historical name this is not a cache: it always writes, and never
-    reads back a previous run's file. It exists to cut a long lazy query graph
-    into stages so that memory is released between them.
+    This is not a cache. It always writes, and never reads back a previous
+    run's file. It exists to cut a long lazy query graph into stages so that
+    memory is released between them.
+
+    The parameters used to be called `cache_key` and `cache_dir`, which said
+    the opposite of what the docstring underneath them had to keep correcting.
 
     Args:
         data: The frame to write.
-        cache_key: Human-readable label for the frame, used in the filename and
-            in logs. Need only be unique within a run.
-        cache_dir: Directory to write into. Defaults to a per-run subdirectory
+        label: Human-readable name for the stage, used in the filename and in
+            logs. Need only be unique within a run.
+        spill_dir: Directory to write into. Defaults to a per-run subdirectory
             of DATA_DIR (or the system temp directory).
 
     Returns:
         A LazyFrame scanning the file just written.
     """
-    # Hash the key to keep the filename filesystem-safe and fixed-length.
-    cache_hash = hashlib.sha256(cache_key.encode()).hexdigest()
+    # Hash the label to keep the filename filesystem-safe and fixed-length.
+    name_hash = hashlib.sha256(label.encode()).hexdigest()
 
-    if cache_dir is None:
+    if spill_dir is None:
         # Use DATA_DIR environment variable if set (persistent disk on GCP),
         # otherwise fall back to system temp directory
         base_dir = os.environ.get("DATA_DIR", tempfile.gettempdir())
-        cache_dir = os.path.join(base_dir, "polars_intermediates", _RUN_ID)
-        _run_dirs.add(cache_dir)
-    os.makedirs(cache_dir, exist_ok=True)
+        spill_dir = os.path.join(base_dir, "polars_intermediates", _RUN_ID)
+        _run_dirs.add(spill_dir)
+    os.makedirs(spill_dir, exist_ok=True)
 
-    output_path = os.path.join(cache_dir, f"{cache_hash}.parquet")
+    output_path = os.path.join(spill_dir, f"{name_hash}.parquet")
 
     if isinstance(data, pl.LazyFrame):
-        logger.info(f"Writing data from {cache_key} LazyFrame to {output_path}")
+        logger.info(f"Spilling {label} LazyFrame to {output_path}")
         data.sink_parquet(output_path, engine="streaming")
     else:
-        logger.info(f"Writing data from {cache_key} DataFrame to {output_path}")
+        logger.info(f"Spilling {label} DataFrame to {output_path}")
         data.write_parquet(output_path)
 
     result = pl.scan_parquet(output_path)
@@ -82,6 +85,6 @@ def materialize_parquet(
     # a run actually ingested, which left --limit-results unfalsifiable -- there
     # was no way to tell a cap that bound from one that never came near binding.
     row_count = result.select(pl.len()).collect().item()
-    logger.info(f"Materialized {cache_key}: {row_count} rows at {output_path}")
+    logger.info(f"Materialized {label}: {row_count} rows at {output_path}")
 
     return result
