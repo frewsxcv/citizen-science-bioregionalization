@@ -811,15 +811,32 @@ def _(mo):
 
 
 @app.cell
-def _(config, geocode_clustered_lf, geocode_taxa_counts_lf, mo, np):
+def _(config):
+    from src.types import CompositionSettings
+
+    # How composition becomes a map, as one object. Anything that builds a map
+    # from a slice of this run's data -- the clade congruence comparison --
+    # takes this rather than a handful of arguments, so it cannot be built a
+    # different way by omission. See types.CompositionSettings.
+    composition_settings = CompositionSettings(
+        metric=config.composition_metric,
+        reduction=config.reduction,
+        linkage=config.linkage,
+        seed=config.random_seed,
+    )
+    return (composition_settings,)
+
+
+@app.cell
+def _(composition_settings, geocode_clustered_lf, geocode_taxa_counts_lf, mo, np):
     from src.matrices.geocode_distance import GeocodeDistanceMatrix
 
     geocode_distance_matrix = GeocodeDistanceMatrix.build(
         geocode_taxa_counts_lf,
         geocode_clustered_lf,
-        random_state=config.random_seed,
-        metric=config.composition_metric,
-        reduction=config.reduction,
+        random_state=composition_settings.seed,
+        metric=composition_settings.metric,
+        reduction=composition_settings.reduction,
     )
 
     mo.vstack(
@@ -849,6 +866,7 @@ def _(mo):
 
 @app.cell
 def _(
+    composition_settings,
     config,
     geocode_clustered_lf,
     geocode_connectivity_matrix,
@@ -864,7 +882,7 @@ def _(
             geocode_connectivity_matrix,
             min_k=config.min_clusters_to_test,
             max_k=config.max_clusters_to_test,
-            linkage=config.linkage,
+            linkage=composition_settings.linkage,
         ),
         label="geocode_cluster_multi_k",
     ).collect(engine="streaming")
@@ -1662,6 +1680,7 @@ def _(mo):
 @app.cell
 def _(
     all_clusters_df,
+    composition_settings,
     config,
     geocode_clustered_lf,
     geocode_taxa_counts_lf,
@@ -1704,8 +1723,7 @@ def _(
             .collect(engine="streaming")
             .item(),
             levels=levels,
-            composition_metric=config.composition_metric,
-            seed=config.random_seed,
+            settings=composition_settings,
         )
         _data = _build_findings_data(
             _context,
@@ -1713,9 +1731,7 @@ def _(
             geocode_clustered_lf,
             all_clusters_df,
             taxon_clade_lf,
-            seed=config.random_seed,
-            metric=config.composition_metric,
-            reduction=config.reduction,
+            settings=composition_settings,
         )
         _write_findings_page(_data, _prepare_file_path(config.findings_output))
         # The same numbers as JSON, so a reader who wants to check one does not

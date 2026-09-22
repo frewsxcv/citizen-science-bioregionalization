@@ -22,8 +22,7 @@ from src.clade_congruence import (
 )
 from src.epa_reference import reference_region_lf, score_against_reference
 from src.findings_page import CladeShare, FindingsData, RunContext
-from src.matrices.geocode_distance import CompositionMetric
-from src.types import Reduction
+from src.types import CompositionSettings
 
 logger = logging.getLogger(__name__)
 
@@ -125,9 +124,7 @@ def build_findings_data(
     geocode_lf: pl.LazyFrame,
     all_clusters_df: pl.DataFrame,
     taxon_clade_lf: Optional[pl.LazyFrame],
-    seed: Optional[int],
-    metric: CompositionMetric,
-    reduction: Reduction,
+    settings: CompositionSettings,
     skipped: Optional[list[str]] = None,
 ) -> FindingsData:
     """Compute every number the findings page draws.
@@ -141,6 +138,8 @@ def build_findings_data(
             combined partition at each cut.
         taxon_clade_lf: `None` when the source carried no rank columns; the
             clade sections are then omitted rather than guessed at.
+        settings: Passed through to `cluster_clade` so each clade is clustered
+            the way the run's own map was.
     """
     data = FindingsData(context=context, skipped=list(skipped or []))
 
@@ -186,9 +185,7 @@ def build_findings_data(
             geocode_lf,
             min_k=levels.min_k,
             max_k=levels.max_k,
-            seed=seed,
-            metric=metric,
-            reduction=reduction,
+            settings=settings,
         )
         if partition is not None:
             partitions[name] = partition

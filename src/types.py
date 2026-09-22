@@ -81,6 +81,32 @@ class TaxonScope:
 
 
 @dataclass(frozen=True)
+class CompositionSettings:
+    """How a set of hexagons becomes a clustered map.
+
+    One object because these four travel together and have to agree. Clade
+    congruence compares a map built from one slice of the data against a map
+    built from another, and the comparison only means anything if both were
+    built the same way -- so passing them individually makes the invariant a
+    convention rather than a fact.
+
+    `linkage` is here because it is the one that got lost: `cluster_clade`
+    passed metric, reduction and seed but never linkage, so under
+    `--linkage=average` the clades were clustered with Ward while the combined
+    map used UPGMA, and the congruence figure compared two different methods.
+    """
+
+    #: How hexagon composition is compared. See CompositionMetric.
+    metric: CompositionMetric
+    #: How the composition matrix becomes Euclidean coordinates. See Reduction.
+    reduction: Reduction
+    #: Agglomerative linkage rule. See Linkage.
+    linkage: Linkage
+    #: Seed for UMAP and PERMANOVA. None opts out; see defaults.RANDOM_SEED.
+    seed: int | None
+
+
+@dataclass(frozen=True)
 class ClusterLevels:
     """Which cuts of the merge tree a run emits, and which one it publishes.
 
